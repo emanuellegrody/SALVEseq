@@ -927,7 +927,7 @@ readsdirectory <- paste0(input.dir, "W2/") #let's start with just one for now
 file_name <- list.files(readsdirectory, pattern = "*_shavedReads.txt", full.names = TRUE)
 
 # let's read in these reads for now
-VISER_env <- read.csv(file_name, header = TRUE) %>% select(target) %>% unique()
+VISER_env <- read.csv(file_name, header = TRUE) #%>% select(target) %>% unique()
 
 ```
 
@@ -1012,6 +1012,95 @@ for (i in 1:nrow(VISER_env_starcode)) {
 hist(VISER_env_starcode$dist, breaks = 50, xlab = "Levenshtein Distance: recovered to starcode dominant")
 ```
 
+Read in all starcode consensus sequences:
+```{r}
+main_folder <- "/projects/b1042/GoyalLab/egrody/20230929_Goyal_P1_BarcodeseqVISER/analysis/starcode"
+lengths = c("18", "24", "30")
+samples = c("invitro", "W0", "W2")
+subfolders <- file.path(main_folder, samples)
 
+starcodeTarget <- matrix(NA, nrow = length(samples), ncol = length(lengths))
+rownames(starcodeTarget) <- samples
+colnames(starcodeTarget) <- lengths
+
+
+# Loop through the subfolders and files
+for (folder_path in subfolders) {
+  for (bp in lengths) {
+    # List all files in the subfolder with a specific file name structure
+    file_list <- list.files(path = folder_path, pattern = paste0("*",bp,"_d8.txt"), full.names = TRUE)
+    # Check if any files were found
+    if (length(file_list) > 0) {
+      # Read the first entry from each file and add it to the dataframe
+      first_entry_data <- lapply(file_list, function(file) {
+        first_entry <- read.table(file, header = FALSE, sep = "\t", stringsAsFactors = FALSE, nrows = 1) %>% select(V1)  # Change nrows if you need more than one row
+        return(first_entry)
+      })
+  
+      # Add the data to the combined dataframe with a unique name
+      split <- unlist(strsplit(folder_path, "/"))
+      sample <- split[length(split)]
+      starcodeTarget[sample, bp] <- do.call(rbind, first_entry_data)[[1]]
+      
+    }
+  }
+}
+
+starcodeTarget
+```
+Note that we can ignore W0 since we know it's not going to have any actual targets. But we'll leave it here for now.
+
+Now, let's compare the LV dist of all the reads to these target sequences. This next chunk will take a good amount of time to run, about 10 minutes
+```{r, eval = FALSE}
+# reading in the data
+main_folder <- "/projects/b1042/GoyalLab/egrody/20230929_Goyal_P1_BarcodeseqVISER/analysis"
+lengths = c("18", "24", "30")
+samples = c("invitro", "W0", "W2")
+subfolders <- file.path(main_folder, samples)
+
+allVISER <- list()
+
+
+# Loop through the subfolders and files
+for (folder_path in subfolders) {
+  # List all files in the subfolder with a specific file name structure
+  file_list <- list.files(path = folder_path, pattern = paste0("*shavedReads.txt"), full.names = TRUE)
+  # Check if any files were found
+  if (length(file_list) > 0) {
+    # Read the first entry from each file and add it to the dataframe
+    entry_data <- lapply(file_list, function(file) {
+      entry <- read.table(file, header = TRUE, sep = ",") %>% unique() #%>% select(target) %>% unique()
+      return(entry)
+    })
+
+    # Add the data to the combined dataframe with a unique name
+    split <- unlist(strsplit(folder_path, "/"))
+    sample <- split[length(split)]
+    allVISER[[sample]] <- entry_data
+  }
+}
+
+# to index just one column, do this: allVISER$invitro[[1]]$cellID
+
+
+# comparing to our starcode results
+allVISER_dist <- list()
+# Loop through each data frame in allVISER
+for (sample in names(allVISER)) {
+  VISER_env <- allVISER[[sample]][[1]]
+  VISER_env$dist <- NA
+  consensusTarget <- starcodeTarget[sample, "30"]
+  for (i in 1:nrow(VISER_env)) {
+    dist <- adist(VISER_env$target[i], consensusTarget)
+    VISER_env$dist[i] <- dist
+  }
+  allVISER_dist[[sample]] <- VISER_env
+
+  # Plot the histogram for each data frame (optional)
+  #hist(VISER_env$dist, breaks = 50, xlab = "Levenshtein Distance: recovered to expected", main = sample)
+}
+
+
+```
 
 
