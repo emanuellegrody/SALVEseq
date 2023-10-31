@@ -56,16 +56,16 @@ w2 <- Add_Mito_Ribo_Seurat(w2, species = "macaque")
 w0 <- Add_Mito_Ribo_Seurat(w0, species = "macaque")
 invitro <- Add_Mito_Ribo_Seurat(invitro, species = "macaque")
 # Visualize QC metrics as a violin plot
-vplot <- VlnPlot(invitro, features = c("nFeature_RNA", "nCount_RNA", "percent_mito"), ncol = 3)
-ggsave(vplot, file = paste0(output.dir, "invitro_preQC_violinplot.svg"))
+#vplot <- VlnPlot(invitro, features = c("nFeature_RNA", "nCount_RNA", "percent_mito"), ncol = 3)
+#ggsave(vplot, file = paste0(output.dir, "invitro_preQC_violinplot.svg"))
 ```
 
 ```{r}
 w2 <- subset(w2, subset = nFeature_RNA > 200 & nFeature_RNA < 3500 & nCount_RNA < 20000 & percent_mito < 5)
 w0 <- subset(w0, subset = nFeature_RNA > 200 & nFeature_RNA < 3500 & nCount_RNA < 20000 & percent_mito < 5)
 invitro <- subset(invitro, subset = nFeature_RNA > 200 & nFeature_RNA < 3500 & nCount_RNA < 20000 & percent_mito < 5)
-vplot <- VlnPlot(invitro, features = c("nFeature_RNA", "nCount_RNA", "percent_mito"), ncol = 3)
-ggsave(vplot, file = paste0(output.dir, "invitro_postQC_violinplot.svg"))
+#vplot <- VlnPlot(invitro, features = c("nFeature_RNA", "nCount_RNA", "percent_mito"), ncol = 3)
+#ggsave(vplot, file = paste0(output.dir, "invitro_postQC_violinplot.svg"))
 ```
 
 ### Normalizing and scaling the data
@@ -98,8 +98,8 @@ w2 <- RunPCA(w2, features = VariableFeatures(object = w2))
 w0 <- RunPCA(w0, features = VariableFeatures(object = w0))
 invitro <- RunPCA(invitro, features = VariableFeatures(object = invitro))
 
-eplot <- ElbowPlot(invitro, ndims = 50)
-ggsave(eplot, file = paste0(output.dir, "invitro_elbow.svg"))
+#eplot <- ElbowPlot(invitro, ndims = 50)
+#ggsave(eplot, file = paste0(output.dir, "invitro_elbow.svg"))
 ```
 
 The curve flattens out around PC 30, so will use dim = 30 for the following analysis.
@@ -123,8 +123,8 @@ w2 <- RunUMAP(w2, dims = 1:30)#, umap.method = "umap-learn", metric = "correlati
 w0 <- RunUMAP(w0, dims = 1:30)#, umap.method = "umap-learn", metric = "correlation")
 invitro <- RunUMAP(invitro, dims = 1:30)#, umap.method = "umap-learn", metric = "correlation")
 
-dplot <- DimPlot(invitro, reduction = "umap")
-ggsave(dplot, file = paste0(output.dir, "invitro_umap.svg"))
+#dplot <- DimPlot(invitro, reduction = "umap")
+#ggsave(dplot, file = paste0(output.dir, "invitro_umap.svg"))
 ```
 If you get an error here, use *reticulate::py_install(packages ='umap-learn')*.
 
@@ -138,39 +138,57 @@ ggsave(fplot, file = paste0(output.dir, "invitro_mac239_featureplot.svg"))
 
 The default is to have a min cutoff of 1 and a max cutoff of 3 for feature plot. Still need to confirm that this was appropriate for our sample by plotting in a histogram all cells that have KLRB1 expression and looking for a population cutoff.
 
-To isolate out the KLRB1 expression data:
+To isolate out the mac239 expression data:
 ```{r}
-KLRB1_expression = GetAssayData(object = mmu, assay = "RNA", slot = "data")["KLRB1",]
-SingleCell_KLRB1 <- data.frame(cellID = names(KLRB1_expression), Count = unname(KLRB1_expression), stringsAsFactors = FALSE) %>%
+invitro_mac239_expression = GetAssayData(object = invitro, assay = "RNA", slot = "data")["mac239",]
+w2_mac239_expression = GetAssayData(object = w2, assay = "RNA", slot = "data")["mac239",]
+SingleCell_invitro <- data.frame(cellID = names(invitro_mac239_expression), Count = unname(invitro_mac239_expression), stringsAsFactors = FALSE) %>%
   mutate(cellID = str_sub(cellID, end = -3))
-#hist(SingleCell_KLRB1$Count, breaks = 50)
+SingleCell_w2 <- data.frame(cellID = names(w2_mac239_expression), Count = unname(w2_mac239_expression), stringsAsFactors = FALSE) %>%
+  mutate(cellID = str_sub(cellID, end = -3))
+hist(SingleCell_invitro$Count, breaks = 50)
+SingleCell_w2_nozero <- SingleCell_w2 %>% filter(Count > 0)
+hist(SingleCell_w2_nozero$Count, breaks = 50)
+
 
 # save here for later analyses
-write.csv(SingleCell_KLRB1, paste0(output.dir, "10XKLRB1expression.csv"))
-saveRDS(mmu, file = paste0(output.dir, "mmu.rds"))
+write.csv(SingleCell_w2, paste0(output.dir, "w2_10Xmac239expression.csv"))
+write.csv(SingleCell_invitro, paste0(output.dir, "invitro_10Xmac239expression.csv"))
+saveRDS(w2, file = paste0(output.dir, "w2.rds"))
+saveRDS(w0, file = paste0(output.dir, "w0.rds"))
+saveRDS(invitro, file = paste0(output.dir, "invitro.rds"))
 ```
-
 
 
 ## Current analysis
 ```{r}
-output.dir <- "/Users/egy2296/Library/CloudStorage/OneDrive-NorthwesternUniversity/Data/Sequencing/20230424_VISER/analysis/"
+output.dir <- "/projects/b1042/GoyalLab/egrody/20231017_VISER/Seurat/"
 # this dataframe includes zeros
-SingleCell_KLRB1 <- read.csv(paste0(output.dir, "KLRB1/10XKLRB1expression.csv"))
-mmu <- readRDS(paste0(output.dir, "mmu.rds"))
+SingleCell_w2 <- read.csv(paste0(output.dir, "w2_10Xmac239expression.csv"))
+SingleCell_invitro <- read.csv(paste0(output.dir, "invitro_10Xmac239expression.csv"))
+w2 <- readRDS(paste0(output.dir, "w2.rds"))
+w0 <- readRDS(paste0(output.dir, "w0.rds"))
+invitro <- readRDS(paste0(output.dir, "invitro.rds"))
 ```
 
 Let's pull out the necessary data to make the following dataframe: CellID, UMAP1, UMAP2, 10X_KLRB1_normalizedCounts (including zeros).
 ```{r}
-mmu.umap.coord <- as.data.frame(mmu[["umap"]]@cell.embeddings)
+w2.umap.coord <- as.data.frame(w2[["umap"]]@cell.embeddings)
+#w0.umap.coord <- as.data.frame(w0[["umap"]]@cell.embeddings)
+invitro.umap.coord <- as.data.frame(invitro[["umap"]]@cell.embeddings)
 
 #SingleCell_umapTest <- data.frame(cellID = names(KLRB1_expression), UMAP1 = test$UMAP_1, UMAP2 = test$UMAP_2, SingleCell_KLRB1_normalizedCounts = unname(KLRB1_expression), stringsAsFactors = FALSE) %>% mutate(cellID = str_sub(cellID, end = -3))
 
-# UMAP coordinates joined to KLRB1 expression
-SingleCell_umap <- data.frame(cellID = rownames(mmu.umap.coord), UMAP1 = mmu.umap.coord$UMAP_1, UMAP2 = mmu.umap.coord$UMAP_2) %>%
+# UMAP coordinates joined to mac239 expression
+SingleCell_w2_umap <- data.frame(cellID = rownames(w2.umap.coord), UMAP1 = w2.umap.coord$UMAP_1, UMAP2 = w2.umap.coord$UMAP_2) %>%
   mutate(cellID = str_sub(cellID, end = -3))
-SingleCell_umap <- inner_join(SingleCell_umap, SingleCell_KLRB1, by = "cellID") %>% select(-X) %>% rename(SingleCellcount = Count)
-write.csv(SingleCell_umap, paste0(output.dir, "SingleCellumap.csv"))
+SingleCell_w2_umap <- inner_join(SingleCell_w2_umap, SingleCell_w2, by = "cellID") %>% rename(SingleCellcount = Count)
+write.csv(SingleCell_w2_umap, paste0(output.dir, "w2_SingleCellumap.csv"))
+
+SingleCell_invitro_umap <- data.frame(cellID = rownames(invitro.umap.coord), UMAP1 = invitro.umap.coord$UMAP_1, UMAP2 = invitro.umap.coord$UMAP_2) %>%
+  mutate(cellID = str_sub(cellID, end = -3))
+SingleCell_invitro_umap <- inner_join(SingleCell_invitro_umap, SingleCell_invitro, by = "cellID") %>% rename(SingleCellcount = Count)
+write.csv(SingleCell_invitro_umap, paste0(output.dir, "invitro_SingleCellumap.csv"))
 
 # UMAP coordinates of KLRB1+ cells only
 #SingleCell_KLRB1nz <- SingleCell_KLRB1 %>% filter(Count > 0)
@@ -984,35 +1002,7 @@ BarcodesLvHistPlot
 ```
 Even when just looking at the more dissimilar sequences, we see that they have some sequences that are more similar and some that are divergent. So just setting a cutoff based on the reference genome sequence is not helping us distinguish between real target sequences and PCR/sequencing error.
 
-I ran starcode on all the sequences and got back the following list:
-```{r}
-#update the file in this chunk and two chunks down
-starcode.dir = "/projects/b1042/GoyalLab/egrody/20230929_Goyal_P1_BarcodeseqVISER/analysis/starcode/W2/"#let's start with just one for now
-
-# Get list of CSV files in the directory
-file_names <- list.files(starcode.dir, pattern = "*30_d8.txt", full.names = TRUE)
-
-# let's read in these reads for now
-for (file in file_names) {
-  VISER_starcode <- read.table(file_names, header = FALSE) %>% rename(target = V1, n = V2) %>% select(target)
-}
-
-# the most dominant sequence from starcode analysis
-dominant = "ACACTGCACTGCCACCCAGAGAGGGCAAAG"
-
-VISER_env_starcode <- VISER_env
-VISER_env_starcode$dist <- NA
-for (i in 1:nrow(VISER_env_starcode)) {
-  # Calculate the Levenshtein distance between the current string and the constant
-  dist <- adist(VISER_env_starcode$target[i], dominant)
-  # Assign the distance to the 'dist' column
-  VISER_env_starcode$dist[i] <- dist
-}
-
-hist(VISER_env_starcode$dist, breaks = 50, xlab = "Levenshtein Distance: recovered to starcode dominant")
-```
-
-Read in all starcode consensus sequences:
+I ran starcode on all the sequences. Read in all starcode consensus sequences:
 ```{r}
 main_folder <- "/projects/b1042/GoyalLab/egrody/20230929_Goyal_P1_BarcodeseqVISER/analysis/starcode"
 lengths = c("18", "24", "30")
@@ -1046,7 +1036,12 @@ for (folder_path in subfolders) {
   }
 }
 
-starcodeTarget
+# let's look at the distance of these things to the reference. Just looking at the full length sequences here
+for (row in c(7,8,9)) {
+  print(starcodeTarget[row])
+  print(adist(starcodeTarget[row], referenceTarget))
+}
+
 ```
 Note that we can ignore W0 since we know it's not going to have any actual targets. But we'll leave it here for now.
 
@@ -1100,7 +1095,64 @@ for (sample in names(allVISER)) {
   #hist(VISER_env$dist, breaks = 50, xlab = "Levenshtein Distance: recovered to expected", main = sample)
 }
 
-
+for (sample in names(allVISER_dist)) {
+  plotme <- allVISER_dist[[sample]]$dist
+  hist(plotme, breaks = 50, xlab = "Levenshtein Distance: recovered to consensus", main = sample)
+}
 ```
 
+Based on the histograms, I will filter all sequences that have LV dist greater than 9 from the consensus sequence. I will also save the resulting dataframes to make loading easier.
+```{r}
+for (sample in names(allVISER_dist)) {
+  allVISER_dist[[sample]] <- allVISER_dist[[sample]] %>% filter(dist < 10)
+  write.csv(allVISER_dist[[sample]], paste0(main_folder, "/R/", sample, "_shavedReadsFiltered.csv"), row.names=FALSE)
+}
+```
+
+Here write the code chunk needed to read back in these csv files into one list again. You can also only keep the UMI and cellID
+```{r}
+input.dir
+```
+
+### Linking to 10X
+
+```{r}
+VISER_invitro <- allVISER_dist[["invitro"]] %>% select(-dist, -target) %>% count(cellID)
+VISER_w2 <- allVISER_dist[["W2"]] %>% select(-dist, -target) %>% count(cellID)
+
+invitro_paint_umap = full_join(SingleCell_invitro_umap, VISER_invitro, by = "cellID") %>% rename(VISERcount = n) %>% 
+                                                                            mutate(log2ViserCount = log2(VISERcount))
+invitro_paint_umap[is.na(invitro_paint_umap)] <- 0
+w2_paint_umap = full_join(SingleCell_w2_umap, VISER_w2, by = "cellID") %>% rename(VISERcount = n) %>% 
+                                                                            mutate(log2ViserCount = log2(VISERcount))
+w2_paint_umap[is.na(w2_paint_umap)] <- 0
+```
+
+```{r}
+paintplot <- ggplot(invitro_paint_umap, aes(x = UMAP1, y = UMAP2)) +
+  geom_point(aes_string(color = invitro_paint_umap$log2ViserCount), size = 1, shape = 16) +
+  scale_color_gradient(low = "gray93", high = "darkblue") +
+  theme_classic() +
+  theme(legend.position = "bottom",
+        legend.title = element_text(size = rel(0.6)),
+        legend.text = element_text(size = rel(0.6), angle = 30),
+        axis.text = element_blank(),
+        axis.ticks = element_blank()) +
+  labs(title =  "mac239 from VISER", color = "")
+paintplot
+ggsave(paintplot, file = paste0(output.dir, "invitro_mac239_VISER.svg"))
+
+paintplot <- ggplot(w2_paint_umap, aes(x = UMAP1, y = UMAP2)) +
+  geom_point(aes_string(color = w2_paint_umap$log2ViserCount), size = 1, shape = 16) +
+  scale_color_gradient(low = "gray93", high = "darkblue") +
+  theme_classic() +
+  theme(legend.position = "bottom",
+        legend.title = element_text(size = rel(0.6)),
+        legend.text = element_text(size = rel(0.6), angle = 30),
+        axis.text = element_blank(),
+        axis.ticks = element_blank()) +
+  labs(title =  "mac239 from VISER", color = "")
+paintplot
+ggsave(paintplot, file = paste0(output.dir, "w2_mac239_VISER.svg"))
+```
 
