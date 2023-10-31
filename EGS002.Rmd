@@ -1,0 +1,1017 @@
+---
+title: "EGS002"
+author: "Emanuelle Grody"
+date: "2023-10-19"
+output: html_document
+---
+
+First time using Seurat on this computer? Let's install some things to get started.
+```{r}
+#install.packages("Seurat")
+#reticulate::py_install(envname="Renv", packages ='umap-learn')
+```
+Additionally, you'll need to delete and reinstall the R package Matrix. Go to the library location of R and manually delete the Matrix folder in order to remove the old version. To find where the packages are stored, use *.libPaths()* into the console then copy the result as the path and deleted the folder Matrix. Then use *install.packages("Matrix")* to get the correct version.
+
+```{r, echo = FALSE}
+library(dplyr)
+library(stringr)
+library(Seurat)
+library(patchwork)
+library(scCustomize)
+library(ggplot2)
+library(reshape2)
+library(svglite)
+library(stringdist)
+
+output.dir <- "/projects/b1042/GoyalLab/egrody/20231017_VISER/Seurat/"
+```
+
+# Single Cell Data
+
+We take as an input the count matrix(es). To get from base calls to count matrices, run cellranger with custom reference Mmu
+Once this has been run once, you can skip down to the section "Current Analysis"
+
+## Previous analysis
+### Setting up the Seurat object
+
+```{r, echo = FALSE}
+# Load the datasets
+w2.data <- Read10X(data.dir = "/projects/b1042/GoyalLab/egrody/20231017_VISER/counts/run_count_W2/outs/filtered_feature_bc_matrix/") # for Quest
+w0.data <- Read10X(data.dir = "/projects/b1042/GoyalLab/egrody/20231017_VISER/counts/run_count_W0/outs/filtered_feature_bc_matrix/")
+invitro.data <- Read10X(data.dir = "/projects/b1042/GoyalLab/egrody/20231017_VISER/counts/run_count_invitro/outs/filtered_feature_bc_matrix/")
+
+# Initialize the Seurat object with the raw (non-normalized data).
+w2 <- CreateSeuratObject(counts = w2.data, project = "w2", min.cells = 3, min.features = 200)
+w0 <- CreateSeuratObject(counts = w0.data, project = "w0", min.cells = 3, min.features = 200)
+invitro <- CreateSeuratObject(counts = invitro.data, project = "invitro", min.cells = 3, min.features = 200)
+```
+
+### QC
+
+I started with all the same parameters from the Seurat PBMC tutorial. However, I added an additional step to pull the MT data from rhesus macaque using scCustomize.
+
+```{r}
+# The [[ operator can add columns to object metadata. This is a great place to stash QC stats
+w2 <- Add_Mito_Ribo_Seurat(w2, species = "macaque")
+w0 <- Add_Mito_Ribo_Seurat(w0, species = "macaque")
+invitro <- Add_Mito_Ribo_Seurat(invitro, species = "macaque")
+# Visualize QC metrics as a violin plot
+vplot <- VlnPlot(invitro, features = c("nFeature_RNA", "nCount_RNA", "percent_mito"), ncol = 3)
+ggsave(vplot, file = paste0(output.dir, "invitro_preQC_violinplot.svg"))
+```
+
+```{r}
+w2 <- subset(w2, subset = nFeature_RNA > 200 & nFeature_RNA < 3500 & nCount_RNA < 20000 & percent_mito < 5)
+w0 <- subset(w0, subset = nFeature_RNA > 200 & nFeature_RNA < 3500 & nCount_RNA < 20000 & percent_mito < 5)
+invitro <- subset(invitro, subset = nFeature_RNA > 200 & nFeature_RNA < 3500 & nCount_RNA < 20000 & percent_mito < 5)
+vplot <- VlnPlot(invitro, features = c("nFeature_RNA", "nCount_RNA", "percent_mito"), ncol = 3)
+ggsave(vplot, file = paste0(output.dir, "invitro_postQC_violinplot.svg"))
+```
+
+### Normalizing and scaling the data
+
+```{r}
+# Normalizing
+w2 <- NormalizeData(w2, normalization.method = "LogNormalize", scale.factor = 10000) # these are the default values, synonymous with NormalizeData(pbmc)
+w0 <- NormalizeData(w0)
+invitro <- NormalizeData(invitro)
+
+# Feature selection
+w2 <- FindVariableFeatures(w2, selection.method = "vst", nfeatures = 2000)
+w0 <- FindVariableFeatures(w0, selection.method = "vst", nfeatures = 2000)
+invitro <- FindVariableFeatures(invitro, selection.method = "vst", nfeatures = 2000)
+
+# Scaling
+w2.genes <- rownames(w2)
+w0.genes <- rownames(w0)
+invitro.genes <- rownames(invitro)
+w2 <- ScaleData(w2, features = w2.genes) # to reduce runtime, you can remove features argument, but this will mess with your heatmaps
+w0 <- ScaleData(w0, features = w0.genes)
+invitro <- ScaleData(invitro, features = invitro.genes)
+```
+
+### Determining dimensionality
+
+```{r, echo=FALSE}
+# Linear dimensional reduction
+w2 <- RunPCA(w2, features = VariableFeatures(object = w2))
+w0 <- RunPCA(w0, features = VariableFeatures(object = w0))
+invitro <- RunPCA(invitro, features = VariableFeatures(object = invitro))
+
+eplot <- ElbowPlot(invitro, ndims = 50)
+ggsave(eplot, file = paste0(output.dir, "invitro_elbow.svg"))
+```
+
+The curve flattens out around PC 30, so will use dim = 30 for the following analysis.
+
+### Clustering
+
+```{r, echo = FALSE}
+w2 <- FindNeighbors(w2, dims = 1:30)
+w2 <- FindClusters(w2, resolution = 0.5)
+w0 <- FindNeighbors(w0, dims = 1:30)
+w0 <- FindClusters(w0, resolution = 0.5)
+invitro <- FindNeighbors(invitro, dims = 1:30)
+invitro <- FindClusters(invitro, resolution = 0.5)
+```
+### Non-linear dimensional reduction
+
+To use Python UMAP via reticulate, set umap.method to 'umap-learn' and metric to 'correlation'. This can only be run locally, not on RStudio on Quest Analytics.
+
+```{r}
+w2 <- RunUMAP(w2, dims = 1:30)#, umap.method = "umap-learn", metric = "correlation")
+w0 <- RunUMAP(w0, dims = 1:30)#, umap.method = "umap-learn", metric = "correlation")
+invitro <- RunUMAP(invitro, dims = 1:30)#, umap.method = "umap-learn", metric = "correlation")
+
+dplot <- DimPlot(invitro, reduction = "umap")
+ggsave(dplot, file = paste0(output.dir, "invitro_umap.svg"))
+```
+If you get an error here, use *reticulate::py_install(packages ='umap-learn')*.
+
+### mac239 analysis
+
+```{r}
+# Adjust the contrast in the plot
+fplot <- FeaturePlot(invitro, features = "mac239", min.cutoff = 1, max.cutoff = 3)
+ggsave(fplot, file = paste0(output.dir, "invitro_mac239_featureplot.svg"))
+```
+
+The default is to have a min cutoff of 1 and a max cutoff of 3 for feature plot. Still need to confirm that this was appropriate for our sample by plotting in a histogram all cells that have KLRB1 expression and looking for a population cutoff.
+
+To isolate out the KLRB1 expression data:
+```{r}
+KLRB1_expression = GetAssayData(object = mmu, assay = "RNA", slot = "data")["KLRB1",]
+SingleCell_KLRB1 <- data.frame(cellID = names(KLRB1_expression), Count = unname(KLRB1_expression), stringsAsFactors = FALSE) %>%
+  mutate(cellID = str_sub(cellID, end = -3))
+#hist(SingleCell_KLRB1$Count, breaks = 50)
+
+# save here for later analyses
+write.csv(SingleCell_KLRB1, paste0(output.dir, "10XKLRB1expression.csv"))
+saveRDS(mmu, file = paste0(output.dir, "mmu.rds"))
+```
+
+
+
+## Current analysis
+```{r}
+output.dir <- "/Users/egy2296/Library/CloudStorage/OneDrive-NorthwesternUniversity/Data/Sequencing/20230424_VISER/analysis/"
+# this dataframe includes zeros
+SingleCell_KLRB1 <- read.csv(paste0(output.dir, "KLRB1/10XKLRB1expression.csv"))
+mmu <- readRDS(paste0(output.dir, "mmu.rds"))
+```
+
+Let's pull out the necessary data to make the following dataframe: CellID, UMAP1, UMAP2, 10X_KLRB1_normalizedCounts (including zeros).
+```{r}
+mmu.umap.coord <- as.data.frame(mmu[["umap"]]@cell.embeddings)
+
+#SingleCell_umapTest <- data.frame(cellID = names(KLRB1_expression), UMAP1 = test$UMAP_1, UMAP2 = test$UMAP_2, SingleCell_KLRB1_normalizedCounts = unname(KLRB1_expression), stringsAsFactors = FALSE) %>% mutate(cellID = str_sub(cellID, end = -3))
+
+# UMAP coordinates joined to KLRB1 expression
+SingleCell_umap <- data.frame(cellID = rownames(mmu.umap.coord), UMAP1 = mmu.umap.coord$UMAP_1, UMAP2 = mmu.umap.coord$UMAP_2) %>%
+  mutate(cellID = str_sub(cellID, end = -3))
+SingleCell_umap <- inner_join(SingleCell_umap, SingleCell_KLRB1, by = "cellID") %>% select(-X) %>% rename(SingleCellcount = Count)
+write.csv(SingleCell_umap, paste0(output.dir, "SingleCellumap.csv"))
+
+# UMAP coordinates of KLRB1+ cells only
+#SingleCell_KLRB1nz <- SingleCell_KLRB1 %>% filter(Count > 0)
+#SingleCell_KLRB1umap = inner_join(SingleCell_KLRB1nz, SingleCell_umap, by = "cellID") %>% select(-X) %>% rename(SingleCellcount = Count)
+```
+
+
+
+# VISER analysis: KLRB1
+
+For this experiment, I conducted a side chemistry reaction using custom 10X primers, designed to capture SIV239mac env reads. After subsetting my Read1 and Read2 fastq files to 5M reads, I used a Python script to filter and isolate out the high quality reads from the subset.
+
+## Previous analysis (skip)
+
+### Early analysis
+First I loaded in the data from the Python script and merged into one dataframe. Because there are so many files, it will take two or three minutes:
+```{r, eval = FALSE}
+VISER_KLRB1 <- data.frame()
+readsdirectory <- paste0(output.dir, "shavedReads/")
+
+# Get list of CSV files in the directory
+file_names <- list.files(readsdirectory, pattern = "*_shavedReads.txt", full.names = TRUE)
+
+for (file_name in file_names) {
+  temp_data <- read.csv(file_name, header = TRUE)
+  VISER_KLRB1 <- rbind(VISER_KLRB1, temp_data)
+}
+rm(temp_data)
+# We won't need the target for downstream analysis 
+VISER_KLRB1 <- VISER_KLRB1 %>% select(cellID, UMI)
+write.csv(VISER_KLRB1, paste0(output.dir, "VISER_KLRB1.csv", row.names=FALSE))
+```
+Once run once, you can just read in the final dataframe as seen in the next section.
+
+Previously, I calculated the Levenshtein distance (must keep target column for this):
+```{r, eval = FALSE}
+expectedTarget = "AAAGTTCTTCACCTTCATCTCTTCCTCGGGATGTCTG" 
+VISER_KLRB1$dist <- NA
+for (i in 1:nrow(VISER_KLRB1)) {
+  # Calculate the Levenshtein distance between the current string and the constant
+  dist <- adist(VISER_KLRB1$target[i], expectedTarget)
+  # Assign the distance to the 'dist' column
+  VISER_KLRB1$dist[i] <- dist
+}
+
+hist(recovered_KLRB1$dist, breaks = 50, xlab = "Levenshtein Distance: recovered to expected")
+```
+Early in my analysis, I looked at this histogram to determine that a good cutoff for Levenshtein distance is 6. The data here has already been trimmed to this Levenshtein distance. For reference, for 1M subset there were 886575 sequences that were further than LD = 6 that got tossed by my Python script. This proportion (~11%) is constant regardless of sampling size (1M vs 5M)
+
+Then I wanted to see if the cellIDs from my analysis are contained in the list of cells that have KLRB1:
+```{r, eval = FALSE}
+# Get unique strings from both dataframes
+unique_strings_df1 <- unique(SingleCell_KLRB1$cellID)
+unique_strings_df2 <- unique(VISER_KLRB1$cellID)
+
+# Check if unique strings in df1 are present in df2
+strings_present <- unique_strings_df1 %in% unique_strings_df2
+
+# Print the result
+cat("The proportion of KLRB1+ cells in the original dataset that are recovered in my side reaction:", sum(strings_present)/length(strings_present))
+```
+
+### Single read cells
+Do not run this chunk unless you must! It will take 15 minutes at least.
+```{r, eval = FALSE}
+VISER_ct <- VISER_KLRB1 %>% group_by(cellID) %>% summarise(count = length(UMI)) 
+VISER_NUMI <- VISER_KLRB1
+NUMItest <- data.frame()
+
+for (s in VISER_NUMI$UMI) {
+  for (i in 1:nchar(s)) {
+    if (substr(s, i, i) == "N") {
+      for (patch in c("A", "C", "T", "G")) {
+        corrected_UMI <- paste0(substr(s, 1, i-1), patch, substr(s, i+1, nchar(s)))
+        if (corrected_UMI %in% VISER_NUMI$UMI) {
+          VISER_NUMI$UMI[VISER_NUMI$UMI == s] <- corrected_UMI
+          NUMItest <- rbind(NUMItest, c(s, corrected_UMI))
+          break
+        }
+      }
+    }
+  }
+}
+
+VISER_NUMI_ct =  VISER_NUMI %>% group_by(cellID) %>% summarise(count = length(UMI)) 
+# to count number of N's
+#sum(sapply(VISER_unique_1$UMI, function(string) str_count(string, "N")))
+VISER_NUMI_NCELL <- VISER_NUMI
+NCELLtest <- data.frame()
+
+for (s in VISER_NUMI_NCELL$cellID) {
+  for (i in 1:nchar(s)) {
+    if (substr(s, i, i) == "N") {
+      for (patch in c("A", "C", "T", "G")) {
+        corrected_cellID <- paste0(substr(s, 1, i-1), patch, substr(s, i+1, nchar(s)))
+        if (corrected_cellID %in% VISER_NUMI_NCELL$cellID) {
+          VISER_NUMI_NCELL$cellID[VISER_NUMI_NCELL$cellID == s] <- corrected_cellID
+          NCELLtest <- rbind(NCELLtest, c(s, corrected_cellID))
+          break
+        }
+      }
+    }
+  }
+}
+
+VISER_NUMI_NCELL_ct <- VISER_NUMI_NCELL %>% group_by(cellID) %>% summarise(count = length(UMI)) 
+colnames(NCELLtest) <- c("original", "corrected")
+colnames(NUMItest) <- c("original", "corrected")
+```
+
+How many counts are there in cells that have just one UMI?
+```{r}
+oneUMI <- VISER_uniq_NUMI_NCELL_ct %>% filter(count == 1) %>% select(cellID)
+joinOneUMI <- inner_join(VISER_NUMI_NCELL_ct, oneUMI, by = "cellID") %>% arrange(desc(count))
+hist(joinOneUMI$count)
+sum(joinOneUMI == 1)
+```
+
+```{r}
+whoAreOneUMI <- inner_join(SingleCell_KLRB1, joinOneUMI, by = "cellID") %>% select(-X) %>% rename(SingleCellCount = Count, ViserCount = count) %>% arrange(desc(SingleCellCount)) %>% mutate(logViserCount = log(ViserCount))
+ggplot(data = whoAreOneUMI, aes(x=logViserCount, y=SingleCellCount)) +
+  geom_point()
+cor(whoAreOneUMI$SingleCellCount, whoAreOneUMI$logViserCount)
+```
+
+### N correction
+
+In order to reduce the list of shaved reads to unique reads, I trialed correcting the N values caused by sequencing errors. I did this by comparing the sequences, and if all else is the same, repairing the N with the correct base. This will take two or three minutes.
+```{r, eval = FALSE}
+# ChatGPT helped write this
+VISER_uniq <-  VISER_KLRB1 %>% unique()
+VISER_uniq_ct <- VISER_uniq %>% group_by(cellID) %>% summarise(count = length(UMI)) 
+
+VISER_uniq_NUMI <- VISER_uniq
+NUMI <- data.frame()
+
+for (s in VISER_uniq_NUMI$UMI) {
+  for (i in 1:nchar(s)) {
+    if (substr(s, i, i) == "N") {
+      for (patch in c("A", "C", "T", "G")) {
+        corrected_UMI <- paste0(substr(s, 1, i-1), patch, substr(s, i+1, nchar(s)))
+        if (corrected_UMI %in% VISER_uniq_NUMI$UMI) {
+          VISER_uniq_NUMI$UMI[VISER_uniq_NUMI$UMI == s] <- corrected_UMI
+          NUMI <- rbind(NUMI, c(s, corrected_UMI))
+          break
+        }
+      }
+    }
+  }
+}
+VISER_uniq_NUMI <- VISER_uniq_NUMI %>% unique()
+VISER_uniq_NUMI_ct =  VISER_uniq_NUMI %>% group_by(cellID) %>% summarise(count = length(UMI)) 
+# to count number of N's
+#sum(sapply(VISER_unique_1$UMI, function(string) str_count(string, "N")))
+VISER_uniq_NUMI_NCELL <- VISER_uniq_NUMI
+NCELL <- data.frame()
+
+for (s in VISER_uniq_NUMI_NCELL$cellID) {
+  for (i in 1:nchar(s)) {
+    if (substr(s, i, i) == "N") {
+      for (patch in c("A", "C", "T", "G")) {
+        corrected_cellID <- paste0(substr(s, 1, i-1), patch, substr(s, i+1, nchar(s)))
+        if (corrected_cellID %in% VISER_uniq_NUMI_NCELL$cellID) {
+          VISER_uniq_NUMI_NCELL$cellID[VISER_uniq_NUMI_NCELL$cellID == s] <- corrected_cellID
+          NCELL <- rbind(NCELL, c(s, corrected_cellID))
+          break
+        }
+      }
+    }
+  }
+}
+
+VISER_uniq_NUMI_NCELL_ct <- VISER_uniq_NUMI_NCELL %>% group_by(cellID) %>% summarise(count = length(UMI)) 
+colnames(NCELL) <- c("original", "corrected")
+colnames(NUMI) <- c("original", "corrected")
+
+NCELL_ct <- NCELL %>% group_by(corrected) %>% summarise(count = length(corrected)) 
+
+```
+
+Just to make sure, I looked to see if there were any strings that have two N's in either UMI or cellID and I didn't find anything.
+```{r}
+cat("Number of UMI with 2 N's: ", VISER_uniq %>% select(UMI) %>% filter(str_detect(UMI, "(.*N.*){2}")))
+cat("Number of cellID with 2 N's: ", VISER_uniq %>% select(cellID) %>% filter(str_detect(cellID, "(.*N.*){2}")))
+```
+
+Copied from StepTwo of Yogesh's 10X barcode matching pipeline found \href{https://github.com/arjunrajlaboratory/FateMap_Goyal2023/blob/main/extractionScripts/10XScripts/10XBarcodeMatching/10XBarcodeMatching-master/SubmissionScripts/stepTwo/stepTwo.R}{here}. We were looking at pairwise Levenshtein distance in my cellIDs to check the efficacy of my N correction method. Because I have over 77k, I subsample anywhere from 5k-10k. Unfortunately, I couldn't find compelling results.
+```{r}
+set.seed(2059)
+subsample1bef = sample(VISER_uniq_ct$cellID,7500)
+subsample2bef = sample(VISER_uniq_ct$cellID,7500)
+subsample3bef = sample(VISER_uniq_ct$cellID,7500)
+# subsamples = data.frame(subsample1 = subsample1, subsample2 = subsample2, subsample3 = subsample3)
+testN1 <- data.frame()
+subsample1aft <- subsample1bef
+  for (s in subsample1bef) {
+    for (i in 1:nchar(s)) {
+      if (substr(s, i, i) == "N") {
+        for (patch in c("A", "C", "T", "G")) {
+          corrected_cellID <- paste0(substr(s, 1, i-1), patch, substr(s, i+1, nchar(s)))
+          if (corrected_cellID %in% subsample1bef) {
+            subsample1aft[subsample1aft == s] <- corrected_cellID
+            testN1 <- rbind(testN1, c(s, corrected_cellID))
+            break
+          }
+        }
+      }
+    }
+  }
+
+testN2 <- data.frame()
+subsample2aft <- subsample2bef
+  for (s in subsample2bef) {
+    for (i in 1:nchar(s)) {
+      if (substr(s, i, i) == "N") {
+        for (patch in c("A", "C", "T", "G")) {
+          corrected_cellID <- paste0(substr(s, 1, i-1), patch, substr(s, i+1, nchar(s)))
+          if (corrected_cellID %in% subsample2bef) {
+            subsample2aft[subsample2aft == s] <- corrected_cellID
+            testN2 <- rbind(testN2, c(s, corrected_cellID))
+            break
+          }
+        }
+      }
+    }
+  }
+
+testN3 <- data.frame()
+subsample3aft <- subsample3bef
+  for (s in subsample3bef) {
+    for (i in 1:nchar(s)) {
+      if (substr(s, i, i) == "N") {
+        for (patch in c("A", "C", "T", "G")) {
+          corrected_cellID <- paste0(substr(s, 1, i-1), patch, substr(s, i+1, nchar(s)))
+          if (corrected_cellID %in% subsample3bef) {
+            subsample3aft[subsample3aft == s] <- corrected_cellID
+            testN3 <- rbind(testN3, c(s, corrected_cellID))
+            break
+          }
+        }
+      }
+    }
+  }
+
+BarcodesLv1bef = as.integer(stringdistmatrix(subsample1bef, method = "lv"))
+BarcodesLv2bef = as.integer(stringdistmatrix(subsample2bef, method = "lv"))
+BarcodesLv3bef = as.integer(stringdistmatrix(subsample3bef, method = "lv"))
+lBarcodesLvb = length(BarcodesLv1bef)
+
+BarcodesLvb = c(BarcodesLv1bef, BarcodesLv2bef, BarcodesLv3bef)
+
+BarcodesLv1aft = as.integer(stringdistmatrix(subsample1aft, method = "lv"))
+BarcodesLv2aft = as.integer(stringdistmatrix(subsample2aft, method = "lv"))
+BarcodesLv3aft = as.integer(stringdistmatrix(subsample3aft, method = "lv"))
+lBarcodesLva = length(BarcodesLv1aft)
+
+BarcodesLva = c(BarcodesLv1aft, BarcodesLv2aft, BarcodesLv3aft)
+
+leng1 <- length(BarcodesLvb)
+leng2 <- length(BarcodesLva)
+gg <- tibble(lvdist = c(BarcodesLvb, BarcodesLva),
+  condition = c(rep("before", leng1), rep("after", leng2)))
+
+ggf <- gg %>% filter(lvdist < 5)
+
+ggplot(ggf, aes(x=lvdist, color=condition)) +
+  geom_histogram(fill="white", position="dodge")+
+  theme(legend.position="top")
+
+plotme1 <- BarcodesLv1 %>% filter(lvdist < 5)
+hist(plotme1$lvdist, main = "cellIDs pairwise Levenshtein Distance (subsampled) \nafter N correction", xlab = "Levenshtein Distance")
+
+```
+
+```{r}
+# Percent of counts before N correction that are distance 1
+sum(plotme2$lvdist == 1)
+
+# Percent of counts after N correction that are distance 1
+sum(plotme1$lvdist == 1)
+```
+
+```{r}
+# Sample corrected sequences
+set.seed(2059)
+subsample1_1 = sample(VISER_uniq_NUMI_NCELL_ct$cellID,5000)
+subsample1_2 = sample(VISER_uniq_NUMI_NCELL_ct$cellID,5000)
+subsample1_3 = sample(VISER_uniq_NUMI_NCELL_ct$cellID,5000)
+
+# Sample uncorrected
+set.seed(2059)
+subsample2_1 = sample(VISER_uniq_ct$cellID,5000)
+subsample2_2 = sample(VISER_uniq_ct$cellID,5000)
+subsample2_3 = sample(VISER_uniq_ct$cellID,5000)
+
+# How many sequences with N's exist in each?
+subsample1 <- c(subsample1_1, subsample1_2, subsample1_3)
+sum(str_detect(subsample1, "N"))
+subsample2 <- c(subsample2_1, subsample2_2, subsample2_3)
+sum(str_detect(subsample2, "N"))
+```
+
+```{r}
+# I also tried to spike in corrected sequences to see if that would make the trend stronger so as to be noticeable
+subsample1_1 = c(sample(VISER_uniq_NUMI_NCELL_ct$cellID,8000), NCELL$corrected)
+subsample1_2 = c(sample(VISER_uniq_NUMI_NCELL_ct$cellID,8000), NCELL$corrected)
+subsample1_3 = c(sample(VISER_uniq_NUMI_NCELL_ct$cellID,8000), NCELL$corrected)
+BarcodesLv1_1 = as.integer(stringdistmatrix(subsample1_1, method = "lv"))
+BarcodesLv1_2 = as.integer(stringdistmatrix(subsample1_2, method = "lv"))
+BarcodesLv1_3 = as.integer(stringdistmatrix(subsample1_3, method = "lv"))
+lBarcodesLv1 = length(BarcodesLv1_1)
+
+BarcodesLv1 = tibble(lvdist = c(BarcodesLv1_1, BarcodesLv1_2, BarcodesLv1_3),
+  subsamNum = c(rep("subsamping1", lBarcodesLv1), rep("subsamping2", lBarcodesLv1), rep("subsamping3", lBarcodesLv1)))
+
+#hist(BarcodesLv1$lvdist, main = "cellIDs pairwise Levenshtein Distance (subsampled) \nafter N correction", xlab = "Levenshtein Distance")
+
+#plotme1 <- BarcodesLv1 %>% filter(lvdist < 5)
+#hist(plotme1$lvdist, main = "cellIDs pairwise Levenshtein Distance (subsampled) \nafter N correction", xlab = "Levenshtein Distance")
+
+subsample2_1 = c(sample(VISER_uniq_ct$cellID,8000), NCELL$original)
+subsample2_2 = c(sample(VISER_uniq_ct$cellID,8000), NCELL$original)
+subsample2_3 = c(sample(VISER_uniq_ct$cellID,8000), NCELL$original)
+BarcodesLv2_1 = as.integer(stringdistmatrix(subsample2_1, method = "lv"))
+BarcodesLv2_2 = as.integer(stringdistmatrix(subsample2_2, method = "lv"))
+BarcodesLv2_3 = as.integer(stringdistmatrix(subsample2_3, method = "lv"))
+lBarcodesLv2 = length(BarcodesLv2_1)
+
+BarcodesLv2 = tibble(lvdist = c(BarcodesLv2_1, BarcodesLv2_2, BarcodesLv2_3),
+  subsamNum = c(rep("subsamping1", lBarcodesLv2), rep("subsamping2", lBarcodesLv2), rep("subsamping3", lBarcodesLv2)))
+
+leng1 <- length(BarcodesLv1)
+leng2 <- length(BarcodesLv2)
+gg <- tibble(lvdist = c(BarcodesLv2, BarcodesLv1),
+  condition = c(rep("before", leng2), rep("after", leng1)))
+
+ggf <- gg %>% filter(lvdist < 5)
+
+ggplot(ggf, aes(x=lvdist, color=condition)) +
+  geom_histogram(fill="white", position="dodge")+
+  theme(legend.position="top")
+
+plotme1 <- BarcodesLv1 %>% filter(lvdist < 5)
+hist(plotme1$lvdist, main = "cellIDs pairwise Levenshtein Distance (subsampled) \nafter N correction", xlab = "Levenshtein Distance")
+
+```
+
+
+I want to circle back to the idea of "how many cellIDs are shared", if I'm going to link these two datasets together. Compare the KLRB1-expressing cells from 10X (the non-negative cells, this is important!) to the VISER reads.
+```{r}
+length(intersect(SingleCell_KLRB1nz$cellID, VISER_uniq_NUMI_NCELL_ct$cellID)) / length(SingleCell_KLRB1nn$cellID) * 100
+```
+
+
+## Current analysis
+
+```{r}
+VISER_KLRB1_full <- read.csv(paste0(output.dir, "KLRB1/VISER_KLRB1.csv"))
+VISER_KLRB1 <- VISER_KLRB1_full %>% select(cellID, UMI) %>% unique()
+```
+
+### Removing N's
+After extensive trials with N correction (see Previous Analysis section), we decided to just remove sequences that contain N's. 
+```{r}
+VISER_KLRB1_noN <- VISER_KLRB1_full %>% filter(!grepl("N", UMI)) %>% filter(!grepl("N", cellID))
+VISER_KLRB1_noN <- VISER_KLRB1_noN %>% unique() %>% group_by(cellID) %>% summarise(count = length(UMI))
+```
+
+### Joint UMAPs
+Now I full_join the 10X UMAP dataframe with my VISER data using cellIDs to maintain the cells that are captured from one modality but not the other. First I also log normalize my VISER data. Because it's all non-zero (unlike 10X), I will use log (natural log) instead fo using log1p (natural log plus 1), which is what 10X does. Yogesh instead used log2 (binary log).
+```{r}
+SingleCell_umap <- read.csv(paste0(output.dir, "KLRB1/SingleCellumap.csv"))
+paint_umap = full_join(SingleCell_umap, VISER_KLRB1_noN, by = "cellID") %>% rename(VISERcount = count) %>% 
+                                                                            mutate(log2ViserCount = log2(VISERcount))
+paint_umap[is.na(paint_umap)] <- 0
+```
+
+This is to plot the VISER cellIDs on the 10X UMAP.
+```{r}
+paintplot <- ggplot(paint_umap, aes(x = UMAP1, y = UMAP2)) +
+  geom_point(aes_string(color = paint_umap$log2ViserCount), size = 1, shape = 16) +
+  scale_color_gradient(low = "gray93", high = "darkblue") +
+  theme_classic() +
+  theme(legend.position = "bottom",
+        legend.title = element_text(size = rel(0.6)),
+        legend.text = element_text(size = rel(0.6), angle = 30),
+        axis.text = element_blank(),
+        axis.ticks = element_blank()) +
+  labs(title =  "KLRB1 from VISER", color = "")
+paintplot
+originalplot <- ggplot(paint_umap, aes(x = UMAP1, y = UMAP2)) +
+  geom_point(aes_string(color = paint_umap$SingleCellcount), size = 1, shape = 16) +
+  scale_color_gradient(low = "gray93", high = "darkblue") +
+  theme_classic() +
+  theme(legend.position = "bottom",
+        legend.title = element_text(size = rel(0.6)),
+        legend.text = element_text(size = rel(0.6), angle = 30),
+        axis.text = element_blank(),
+        axis.ticks = element_blank()) +
+  labs(title =  "KLRB1 from 10X", color = "")
+originalplot
+
+output.dir <- "/Users/egy2296/Library/CloudStorage/OneDrive-NorthwesternUniversity/Data/Sequencing/20230424_VISER/analysis/"
+ggsave(paintplot, file = paste0(output.dir, "KLRB1/UMAP_paintplot.svg"))
+ggsave(originalplot, file = paste0(output.dir, "KLRB1/UMAP_originalplot.svg"))
+```
+Now normalizing the UMAPs and dividing one by the other to see the relationships between the specific cellIDs:
+```{r}
+paint_umap <- paint_umap %>% mutate(normSingleCell = SingleCellcount/max(SingleCellcount), normlogVISER = log2ViserCount/max(log2ViserCount)) %>%
+  mutate(ratioSingleVISER = (normSingleCell+1)/(normlogVISER+1))
+```
+```{r}
+mid <- mean(paint_umap$ratioSingleVISER)
+paintplotnorm <- ggplot(paint_umap, aes(x = UMAP1, y = UMAP2)) +
+  geom_point(aes_string(color = paint_umap$ratioSingleVISER), size = 1, shape = 16) +
+  scale_color_gradient2(midpoint = mid, low = "blue", mid = "gray93", high = "red") +
+  theme_classic() +
+  theme(legend.position = "bottom",
+        legend.title = element_text(size = rel(0.6)),
+        legend.text = element_text(size = rel(0.6), angle = 30),
+        axis.text = element_blank(),
+        axis.ticks = element_blank()) +
+  labs(title =  "Counts Ratio SingleCell:VISER", color = "")
+paintplotnorm
+
+ggsave(paintplotnorm, file = paste0(output.dir, "KLRB1/UMAP_paintplotnorm.svg"))
+```
+
+
+### Correlation plots
+Here is the code that Yogesh wrote during our coding session.
+```{r}
+# read in 10X data
+SingleCell_KLRB1 <- read.csv(paste0(output.dir, "KLRB1/10XKLRB1expression.csv"))
+
+SingleCell_KLRB1_uniq <- SingleCell_KLRB1 %>% unique()
+SingleCell_KLRB1nz_uniq <- SingleCell_KLRB1 %>% filter(Count > 0) %>% unique()
+VISER_KLRB1_noN_uniq <- VISER_KLRB1_noN %>% unique()
+
+# join VISER and 10X data by cellID
+jointTable = inner_join(VISER_KLRB1_noN_uniq, SingleCell_KLRB1_uniq, by = "cellID") %>% rename(VISERcount = count, SingleCellcount = Count) %>% 
+                                                                            mutate(log1pViserCount = log1p(VISERcount), log2ViserCount = log2(VISERcount), lnViserCount = log(VISERcount), normalizedViserCount = 1000*VISERcount/sum(VISERcount), logNormViser = log1p(normalizedViserCount))
+cat("Correlation between 10X data and log1p VISER data:", cor(jointTable$SingleCellcount, jointTable$log1pViserCount),
+    "\nCorrelation between 10X data and logNorm VISER data:", cor(jointTable$SingleCellcount, jointTable$logNormViser),
+    "\nCorrelation between 10X data and log2 VISER data:", cor(jointTable$SingleCellcount, jointTable$log2ViserCount),
+    "\nCorrelation between 10X data and ln VISER data:", cor(jointTable$SingleCellcount, jointTable$lnViserCount),
+    "\nCorrelation between 10X data and non-transformed VISER data:", cor(jointTable$SingleCellcount, jointTable$VISERcount),
+    "\nCorrelation between 10X data and non-transformed normalized VISER:", cor(jointTable$SingleCellcount, jointTable$normalizedViserCount))
+
+ggplot(data = jointTable, aes(x=VISERcount, y=SingleCellcount)) +
+  geom_point()
+
+ggplot(data = jointTable, aes(x=normalizedViserCount, y=SingleCellcount)) +
+  geom_point()
+
+
+ggplot(data = jointTable, aes(x=log1pViserCount, y=SingleCellcount)) +
+  geom_point()
+
+ggplot(data = jointTable, aes(x=lnViserCount, y=SingleCellcount)) +
+  geom_point()
+
+ggplot(data = jointTable, aes(x=log2ViserCount, y=SingleCellcount)) +
+  geom_point()
+
+#this last one is the one
+ggplot(data = jointTable, aes(x=logNormViser, y=SingleCellcount)) +
+  geom_point()
+```
+### Cells High in VISER and zero in 10X
+```{r}
+# finding out which cells are the ones that are on the X axis in the above correlation plots
+whoareyou <- jointTable %>% filter(SingleCellcount == 0) %>% select(cellID, logNormViser) %>% rename(onlyinViser = logNormViser)
+#paint_umap <- mutate(whoisthey = whoareyou)
+whoiswhere <- full_join(whoareyou, paint_umap, by = "cellID") %>% select(onlyinViser, UMAP1, UMAP2)
+whoiswhere[is.na(whoiswhere)] <- 0
+```
+
+```{r}
+whoiswhereplot <- ggplot(whoiswhere, aes(x = UMAP1, y = UMAP2)) +
+  geom_point(aes_string(color = whoiswhere$onlyinViser), size = 1, shape = 16) +
+  scale_color_gradient(low = "gray93", high = "darkblue") +
+  theme_classic() +
+  theme(legend.position = "bottom",
+        legend.title = element_text(size = rel(0.6)),
+        legend.text = element_text(size = rel(0.6), angle = 30),
+        axis.text = element_blank(),
+        axis.ticks = element_blank()) +
+  labs(title =  "KLRB1 from VISER", color = "")
+whoiswhereplot
+ggsave(whoiswhereplot, file = paste0(output.dir, "KLRB1/UMAP_whoiswhere.svg"))
+```
+How much RNA overall do these cells have? Maybe they just have less total RNA
+```{r}
+DefaultAssay(mmu) <- "RNA"
+test <- data.frame(cellID = Cells(mmu))
+whoareyou <- whoareyou %>% mutate(cellID = paste0(cellID, "-1")) #remember, this is how the cellIDs are stored in the Seurat object
+whoareyoujoin <- inner_join(test, whoareyou, by = "cellID")
+
+subset_whoareyou <- subset(mmu, cells = whoareyoujoin$cellID)
+
+VlnPlot(subset_whoareyou, features = c("nFeature_RNA", "nCount_RNA", "percent_mito"), ncol = 3)
+VlnPlot(mmu, features = c("nFeature_RNA", "nCount_RNA", "percent_mito"), ncol = 3)
+```
+After rerunning the first section to reload in the raw counts into mmu (not normalized), I want to check that these cells really have no KLRB1 expression.
+```{r}
+subset_whoareyou_noNorm <- subset(mmu, cells = whoareyoujoin$cellID)
+noNorm <- GetAssayData(object = subset_whoareyou_noNorm, assay = "RNA", slot = "data")["KLRB1",]
+plot(noNorm)
+max(noNorm)
+```
+
+### Gut check: numbers
+Last thing, let's get the numbers:
+10X cells: 8,035 (2647 have KLRB1 expression)
+Of the 3293 cells that are shared between VISER and 10X, 23% (758) have undetectable levels of KLRB1 that were recovered by VISER
+By this token, I would expect to have 23% more reads in VISER than in 10X: 8035 * 1.23 = 9885 expected cells (or about 10k)
+In reality, I have 82k cells recovered with VISER
+Of these, 6k have N's from sequencing error, leaving 76k. 44k have just one read and are therefore likely PCR errors, leaving 32k.
+```{r}
+(1+ (758/3293))*8035
+
+197299 - 76582
+76-44
+length(unique(VISER_KLRB1$cellID)) #82k
+length(unique(VISER_KLRB1_noN$cellID))
+```
+
+These numbers aren't quite making sense yet. I wouldn't imagine that many unique cells are actually barcoded by 10X. I looked into the cells with a single raw read to see if these were erroneous PCR errors that could be cleared up from the data. Turned out "no" because the correlation decreases without these cells
+```{r}
+aaVISER_KLRB1 <- read.csv(paste0(output.dir, "KLRB1/VISER_KLRB1.csv"))
+aaVISER_KLRB1 <- aaVISER_KLRB1 %>% select(cellID, UMI)
+
+aaVISER_KLRB1 %>% select(-UMI) %>% unique() #82k unique cellIDs
+aaVISER_KLRB1 %>% select(-cellID) %>% unique() #100k unique UMIs
+
+aUMIcount <- aaVISER_KLRB1 %>% group_by(cellID,UMI) %>% count(name = "count") %>% filter(count > 1) #67k UMIs that are > 1
+aUMIcount_cellID <- aUMIcount$cellID %>% unique() #27k cellIDs with UMI=1 filtered
+
+aUMIcount_cellID_noN <- aUMIcount_cellID[!(grepl("N", aUMIcount_cellID))] %>% unique() #26k cellIDs filtered for UMI=1, N's
+aa <- data.frame(cellID = aUMIcount_cellID_noN)
+
+#  now let's repeat the correlation analysis above
+VISER_KLRB1_filter <- inner_join(VISER_KLRB1_noN_uniq, aa, by = "cellID")
+jointTableFilter = inner_join(aa_uniq_ctFilter2, SingleCell_KLRB1_uniq, by = "cellID") %>% rename(VISERcount = UMIcount, SingleCellcount = Count) %>% 
+                                                                            mutate(log1pViserCount = log1p(VISERcount), log2ViserCount = log2(VISERcount), lnViserCount = log(VISERcount), normalizedViserCount = 1000*VISERcount/sum(VISERcount), logNormViser = log1p(normalizedViserCount))
+cat("Correlation between 10X data and log1p VISER data:", cor(jointTableFilter$SingleCellcount, jointTableFilter$log1pViserCount),
+    "\nCorrelation between 10X data and logNorm VISER data:", cor(jointTableFilter$SingleCellcount, jointTableFilter$logNormViser),
+    "\nCorrelation between 10X data and log2 VISER data:", cor(jointTableFilter$SingleCellcount, jointTableFilter$log2ViserCount),
+    "\nCorrelation between 10X data and ln VISER data:", cor(jointTableFilter$SingleCellcount, jointTableFilter$lnViserCount),
+    "\nCorrelation between 10X data and non-transformed VISER data:", cor(jointTableFilter$SingleCellcount, jointTableFilter$VISERcount),
+    "\nCorrelation between 10X data and non-transformed normalized VISER:", cor(jointTableFilter$SingleCellcount, jointTableFilter$normalizedViserCount))
+
+ggplot(data = jointTableFilter, aes(x=lnViserCount, y=SingleCellcount)) +
+  geom_point()
+```
+
+
+### Analysis without UMIs
+
+Do we see the same trends in cellID counts when we count off of raw reads (PCR amplified) and unique UMIs?
+```{r}
+SingleCell_umap <- read.csv(paste0(output.dir, "KLRB1/SingleCellumap.csv"))
+VISER_withoutUMI <- VISER_KLRB1_full %>% select(cellID) %>% filter(!grepl("N", cellID)) %>% group_by(cellID) %>% summarise(count = n())
+compare_w_wo_UMI <- inner_join(VISER_KLRB1_noN, VISER_withoutUMI, by = "cellID") %>% rename(withUMI = count.x, withoutUMI = count.y)
+
+ggplot(compare_w_wo_UMI, aes(x = withUMI, y = withoutUMI)) +
+  geom_point()
+cor(compare_w_wo_UMI$withUMI, compare_w_wo_UMI$withoutUMI)
+
+#compare to SingleCell
+compare_wo_UMI_10X <- inner_join(SingleCell_umap, VISER_withoutUMI, by = "cellID") %>% rename(withoutUMI = count)
+ggplot(compare_wo_UMI_10X, aes(x = SingleCellcount, y = withoutUMI)) +
+  geom_point()
+cor(compare_wo_UMI_10X$SingleCellcount, compare_wo_UMI_10X$withoutUMI)
+```
+
+```{r}
+withoutUMI_UMAP <- full_join(VISER_withoutUMI, SingleCell_umap, by = "cellID") %>% rename(VISERcount = count) %>% 
+                                                                            mutate(log2ViserCount = log2(VISERcount)) %>% select(-X)
+withoutUMI_UMAP[is.na(withoutUMI_UMAP)] <- 0
+
+withoutUMIplot <- ggplot(withoutUMI_UMAP, aes(x = UMAP1, y = UMAP2)) +
+  geom_point(aes_string(color = withoutUMI_UMAP$log2ViserCount), size = 1, shape = 16) +
+  scale_color_gradient(low = "gray93", high = "darkblue") +
+  theme_classic() +
+  theme(legend.position = "bottom",
+        legend.title = element_text(size = rel(0.6)),
+        legend.text = element_text(size = rel(0.6), angle = 30),
+        axis.text = element_blank(),
+        axis.ticks = element_blank()) +
+  labs(title =  "without UMI", color = "")
+withoutUMIplot
+ggsave(withoutUMIplot, file = paste0(output.dir, "KLRB1/UMAP_withoutUMI.svg"))
+
+# looking at the ratio of VISER withoutUMI to 10X
+withoutUMI_UMAP <- withoutUMI_UMAP %>% mutate(normSingleCell = SingleCellcount/max(SingleCellcount), normlogVISER = log2ViserCount/max(log2ViserCount)) %>%
+  mutate(ratioSingleVISER = (normSingleCell+1)/(normlogVISER+1))
+
+mid <- mean(withoutUMI_UMAP$ratioSingleVISER)
+withoutUMIratioplot <- ggplot(withoutUMI_UMAP, aes(x = UMAP1, y = UMAP2)) +
+  geom_point(aes_string(color = withoutUMI_UMAP$ratioSingleVISER), size = 1, shape = 16) +
+  scale_color_gradient2(midpoint = mid, low = "blue", mid = "gray93", high = "red") +
+  theme_classic() +
+  theme(legend.position = "bottom",
+        legend.title = element_text(size = rel(0.6)),
+        legend.text = element_text(size = rel(0.6), angle = 30),
+        axis.text = element_blank(),
+        axis.ticks = element_blank()) +
+  labs(title =  "Counts Ratio SingleCell:VISERwithoutUMI", color = "")
+withoutUMIratioplot
+ggsave(withoutUMIratioplot, file = paste0(output.dir, "KLRB1/UMAP_withoutUMIratio.svg"))
+```
+
+
+# env Analysis
+
+## Previous analysis
+```{r, eval = FALSE}
+#update the file in this chunk and two chunks down
+input.dir = "/projects/b1042/GoyalLab/egrody/20230929_Goyal_P1_BarcodeseqVISER/analysis/"
+output.dir = "/projects/b1042/GoyalLab/egrody/20230929_Goyal_P1_BarcodeseqVISER/analysis/forBLAST/"
+readsdirectory <- paste0(input.dir, "W2/") #let's start with just one for now; we will try separately for each sample
+
+# Get list of CSV files in the directory
+file_name <- list.files(readsdirectory, pattern = "*_shavedReads.txt", full.names = TRUE)
+
+# let's read in these reads for now
+temp_data <- read.csv(file_name, header = TRUE) %>% select(target) %>% unique()
+
+```
+### Pairwise LV Dist Histogram
+The first step is to see what the pairwise LV histogram looks like to see if we have more similar or dissimilar sequences.
+```{r}
+set.seed(2059)
+subsample1 = sample(temp_data$target,10000) #can lower to 5k to reduce run time
+subsample2 = sample(temp_data$target,10000)
+subsample3 = sample(temp_data$target,10000)
+BarcodesLv1 = as.integer(stringdistmatrix(subsample1, method = "lv"))
+BarcodesLv2 = as.integer(stringdistmatrix(subsample2, method = "lv"))
+BarcodesLv3 = as.integer(stringdistmatrix(subsample3, method = "lv"))
+lBarcodesLv = length(BarcodesLv1)
+
+BarcodesLv = tibble(
+  lvdist = c(BarcodesLv1, BarcodesLv2, BarcodesLv3),
+  subsamNum = c(rep("subsamping1", lBarcodesLv), rep("subsamping2", lBarcodesLv), rep("subsamping3", lBarcodesLv)))
+
+BarcodesLvHist <- BarcodesLv %>% group_by(subsamNum, lvdist) %>% summarise(length(lvdist)) %>%
+  group_by(subsamNum) %>% mutate(totalNum = sum(`length(lvdist)`), fracLvDist = `length(lvdist)`/totalNum)
+
+BarcodesLvHistPlot <- ggplot(BarcodesLvHist, aes(lvdist, fracLvDist)) +
+  geom_bar(width = 0.5, stat = 'identity') +
+  facet_wrap(facets = vars(subsamNum)) +
+  theme_classic()
+BarcodesLvHistPlot
+#ggsave(plot = BarcodesLvHistPlot, file = paste0(readsdirectory, 'invitro_LVhist.svg'))
+```
+
+### BLAST
+This is to extract non-redundant and relevant (commented-out) sequences from a subsample to submit for BLAST.
+```{r}
+# Custom function to compute Levenshtein distance and save the strings being compared
+custom_lv_distance <- function(x, y) {
+  lv_distance <- stringdistmatrix(x, y, method = "lv")
+  row_names <- rep(x, each = length(y))
+  col_names <- rep(y, length(x))
+  df <- data.frame(dist = as.vector(lv_distance), string1 = row_names, string2 = col_names)
+  return(df)
+}
+
+pairwise1 <- custom_lv_distance(subsample1, subsample1)
+pairwise2 <- custom_lv_distance(subsample2, subsample2)
+pairwise3 <- custom_lv_distance(subsample3, subsample3)
+
+# taking the most similar sequences
+#subLVdist1 <- pairwise1 %>% filter(dist <= 8 & dist > 0) %>% select(string1) %>% unique()
+#subLVdist2 <- pairwise2 %>% filter(dist <= 8 & dist > 0) %>% select(string1) %>% unique()
+#subLVdist3 <- pairwise3 %>% filter(dist <= 8 & dist > 0) %>% select(string1) %>% unique()
+
+# triangularizing my matrix
+
+library(reshape2)
+
+pairwise1_long <- melt(pairwise1, varnames = c("string1", "string2"), value.name = "dist")
+pairwise1_long <- pairwise1_long[pairwise1_long$string1 != pairwise1_long$string2, ]
+pairwise1_triangular <- dcast(pairwise1_long, string1 ~ string2, value.var = "dist")
+pairwise1_triangular[upper.tri(pairwise1_triangular, diag = FALSE)] <- NA
+
+pairwise2_long <- melt(pairwise2, varnames = c("string1", "string2"), value.name = "dist")
+pairwise2_long <- pairwise2_long[pairwise2_long$string1 != pairwise2_long$string2, ]
+pairwise2_triangular <- dcast(pairwise2_long, string1 ~ string2, value.var = "dist")
+pairwise2_triangular[upper.tri(pairwise2_triangular, diag = FALSE)] <- NA
+
+pairwise3_long <- melt(pairwise3, varnames = c("string1", "string2"), value.name = "dist")
+pairwise3_long <- pairwise3_long[pairwise3_long$string1 != pairwise3_long$string2, ]
+pairwise3_triangular <- dcast(pairwise3_long, string1 ~ string2, value.var = "dist")
+pairwise3_triangular[upper.tri(pairwise3_triangular, diag = FALSE)] <- NA
+
+# Converting it back
+pairwise1_clean <- melt(pairwise1_triangular, varnames = c("string2", "string1"), value.name = "dist")
+pairwise2_clean <- melt(pairwise2_triangular, varnames = c("string2", "string1"), value.name = "dist")
+pairwise3_clean <- melt(pairwise3_triangular, varnames = c("string2", "string1"), value.name = "dist")
+
+colnames(pairwise1_clean) <- c("string1", "string2", "dist")
+colnames(pairwise2_clean) <- c("string1", "string2", "dist")
+colnames(pairwise3_clean) <- c("string1", "string2", "dist")
+
+# taking the most similar sequences again
+subLVdist1_clean <- pairwise1_clean %>% filter(dist <= 6 & dist > 0) %>% select(string1) %>% unique()
+subLVdist2_clean <- pairwise2_clean %>% filter(dist <= 6 & dist > 0) %>% select(string1) %>% unique()
+subLVdist3_clean <- pairwise3_clean %>% filter(dist <= 6 & dist > 0) %>% select(string1) %>% unique()
+allinone <- rbind(subLVdist1_clean, subLVdist2_clean, subLVdist3_clean)
+
+file_conn <- file(paste0(output.dir, "W2forBLAST.fsa"), "w")
+sequences <- unlist(allinone)
+#envprimer = "CCAGCAGACCCATATCCAACAGG"
+
+# Loop through each sequence and write it to the file with a custom header
+for (i in seq_along(sequences)) {
+  header <- sprintf(">sequence_%05d", i)  # Generate the header line
+  cat(header, "\n", paste0(sequences[i]), "\n", file = file_conn)  # Write header and sequence to file; paste0 to add envprimer before the sequence
+}
+
+# Close the file connection
+close(file_conn)
+```
+
+### starcode
+```{r}
+#update the file in this chunk and two chunks down
+input.dir = "/projects/b1042/GoyalLab/egrody/20230929_Goyal_P1_BarcodeseqVISER/analysis/"
+output.dir = "/projects/b1042/GoyalLab/egrody/20230929_Goyal_P1_BarcodeseqVISER/analysis/forBLAST/"
+readsdirectory <- paste0(input.dir, "W2/") #let's start with just one for now; we will try separately for each sample
+
+# Get list of CSV files in the directory
+file_name <- list.files(readsdirectory, pattern = "*_shavedReads.txt", full.names = TRUE)
+
+# output for starcode
+#manually looped through each of the file output combinations
+VISER_out <- read.csv(file_name, header = TRUE) %>% select(target)
+VISER_out$target <- substr(VISER_out$target, 1, 18)
+VISER_out <- VISER_out %>% unique()
+write.table(VISER_out$target, paste0(readsdirectory, "W2_shavedReadsList_18.txt"), sep = ",", quote = FALSE, row.names = FALSE, col.names = FALSE)
+```
+I saved three different lengths of target sequences: 18bp, 24bp, and 30bp ("full length"), because starcode has a maximum LV dist of 8. I ran starcode in Quest using the starcodeRun.py script over these files. From that analysis, I got a list of the most popular consensus sequences for each sample for each target length. Next, I use those consensus sequences to identify a cutoff for target reads instead of using 
+
+## Current analysis
+```{r, eval = FALSE}
+#update the file in this chunk and two chunks down
+input.dir = "/projects/b1042/GoyalLab/egrody/20230929_Goyal_P1_BarcodeseqVISER/analysis/"
+readsdirectory <- paste0(input.dir, "W2/") #let's start with just one for now
+
+# Get list of CSV files in the directory
+file_name <- list.files(readsdirectory, pattern = "*_shavedReads.txt", full.names = TRUE)
+
+# let's read in these reads for now
+VISER_env <- read.csv(file_name, header = TRUE) %>% select(target) %>% unique()
+
+```
+
+### Target cutoff
+These are the reference sequences:
+```{r}
+envprimer = "CCAGCAGACCCATATCCAACAGG"
+referenceTarget = "ACCCGGCACTGCCAACCAGAGAAGGCAAAG"
+```
+
+Cutoff by LV:
+```{r, eval = FALSE}
+referenceTarget = "ACCCGGCACTGCCAACCAGAGAAGGCAAAG" 
+VISER_env$dist <- NA
+for (i in 1:nrow(VISER_env)) {
+  # Calculate the Levenshtein distance between the current string and the constant
+  dist <- adist(VISER_env$target[i], referencearget)
+  # Assign the distance to the 'dist' column
+  VISER_env$dist[i] <- dist
+}
+
+hist(VISER_env$dist, breaks = 50, xlab = "Levenshtein Distance: recovered to expected")
+```
+This histogram has two peaks: one centered at 9 and one centered at 18.
+
+What are these more dissimilar sequences? Are they divergent or are they similar to each other?
+```{r}
+dissimilar_env <- VISER_env %>% filter(dist > 15)
+similar_env <- VISER_env %>% filter(dist < 16)
+VISER_env_30 <- VISER_env
+VISER_env_30$target <- substr(VISER_env_30$target, 1, 18)
+
+set.seed(2059)
+subsample1 = sample(VISER_env_30$target,5000)
+subsample2 = sample(VISER_env_30$target,5000)
+subsample3 = sample(VISER_env_30$target,5000)
+BarcodesLv1 = as.integer(stringdistmatrix(subsample1, method = "lv"))
+BarcodesLv2 = as.integer(stringdistmatrix(subsample2, method = "lv"))
+BarcodesLv3 = as.integer(stringdistmatrix(subsample3, method = "lv"))
+lBarcodesLv = length(BarcodesLv1)
+
+BarcodesLv = tibble(
+  lvdist = c(BarcodesLv1, BarcodesLv2, BarcodesLv3),
+  subsamNum = c(rep("subsamping1", lBarcodesLv), rep("subsamping2", lBarcodesLv), rep("subsamping3", lBarcodesLv)))
+
+BarcodesLvHist <- BarcodesLv %>% group_by(subsamNum, lvdist) %>% summarise(length(lvdist)) %>%
+  group_by(subsamNum) %>% mutate(totalNum = sum(`length(lvdist)`), fracLvDist = `length(lvdist)`/totalNum)
+
+BarcodesLvHistPlot <- ggplot(BarcodesLvHist, aes(lvdist, fracLvDist)) +
+  geom_bar(width = 0.5, stat = 'identity') +
+  facet_wrap(facets = vars(subsamNum)) +
+  theme_classic()
+BarcodesLvHistPlot
+```
+Even when just looking at the more dissimilar sequences, we see that they have some sequences that are more similar and some that are divergent. So just setting a cutoff based on the reference genome sequence is not helping us distinguish between real target sequences and PCR/sequencing error.
+
+I ran starcode on all the sequences and got back the following list:
+```{r}
+#update the file in this chunk and two chunks down
+starcode.dir = "/projects/b1042/GoyalLab/egrody/20230929_Goyal_P1_BarcodeseqVISER/analysis/starcode/W2/"#let's start with just one for now
+
+# Get list of CSV files in the directory
+file_names <- list.files(starcode.dir, pattern = "*30_d8.txt", full.names = TRUE)
+
+# let's read in these reads for now
+for (file in file_names) {
+  VISER_starcode <- read.table(file_names, header = FALSE) %>% rename(target = V1, n = V2) %>% select(target)
+}
+
+# the most dominant sequence from starcode analysis
+dominant = "ACACTGCACTGCCACCCAGAGAGGGCAAAG"
+
+VISER_env_starcode <- VISER_env
+VISER_env_starcode$dist <- NA
+for (i in 1:nrow(VISER_env_starcode)) {
+  # Calculate the Levenshtein distance between the current string and the constant
+  dist <- adist(VISER_env_starcode$target[i], dominant)
+  # Assign the distance to the 'dist' column
+  VISER_env_starcode$dist[i] <- dist
+}
+
+hist(VISER_env_starcode$dist, breaks = 50, xlab = "Levenshtein Distance: recovered to starcode dominant")
+```
+
+
+
+
