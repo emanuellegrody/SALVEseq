@@ -41,26 +41,17 @@ headers = df.iloc[0].tolist()
 split_points = [int(point) for point in df.iloc[1].tolist()]
 
 
+outputDirectory = "/Volumes/fsmresfiles/Basic_Sciences/CDB/GoyalLab/People/EmmieGrody/Data/Sequencing/20231017_VISER/genomes/"
+for header, split_point in zip(headers, split_points):
+    # Call the split_sequence() function
+    sequence1, sequence2 = split_sequence(input_fa, split_point, header, header)
 
+    # Create filenames based on header
+    filename1 = header + ".fa"
+    filename2 = header + ".fa"
 
+    # Save the sequences to separate files
+    with open(filename1, "w") as file1, open(filename2, "w") as file2:
+        file1.write(sequence1)
+        file2.write(sequence2)
 
-
-split_point = 6
-header1 = "Header1"
-header2 = "Header2"
-
-sequence1, sequence2 = split_sequence(split_point, header1, header2, input_fa)
-
-
-output_file1 = 'output1.txt'
-output_file2 = 'output2.txt'
-
-# Write the output files
-with open(output_file1, 'w') as outfile1, open(output_file2, 'w') as outfile2:
-    # Write header and formatted sequence to output files
-    outfile1.write(sequence1)
-    outfile2.write(sequence2)
-
-outputDirectory =
-    np.savetxt(outputDirectory + samples[i] + "_shavedReads.txt", shavedReads, delimiter=",", fmt='%s',
-               header="cellID,UMI,target", comments="")
