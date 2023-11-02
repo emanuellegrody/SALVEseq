@@ -12,4 +12,4 @@
 
 source activate cellranger
 
-/projects/b1042/GoyalLab/egrody/packages/cellranger-7.2.0/cellranger count --id=run_count_invitro --fastqs=/projects/b1042/GoyalLab/egrody/20230929_Goyal_P1_BarcodeseqVISER/bcl2fastq/ --sample=EGS002_invitro --transcriptome=/projects/b1042/GoyalLab/egrody/packages/refdata-Mmu-10/Mmul_10_mac239full/
+/projects/b1042/GoyalLab/egrody/packages/cellranger-7.2.0/cellranger count --id=run_count_invitro --fastqs=/projects/b1042/GoyalLab/egrody/20231017_VISER/rawFastQ/ --sample=Invitro_CD4 --transcriptome=/projects/b1042/GoyalLab/egrody/packages/refdata-Mmu-10/Mmul_10_mac239full/
