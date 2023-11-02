@@ -70,7 +70,6 @@ for i in range(3):
         target = read[1][sumprimerstagger:fastQCtrim]  # currently only doing env
         utr = read[0][29:fastQCtrim]    # **update, this is fine for now
         shaved = np.array([cellID, UMI, target])
-        shaved_utr = np.array([cellID, UMI, utr])
 
         # Read 2
         # toss reads that don't include our VISER primer
@@ -100,7 +99,7 @@ for i in range(3):
         if len(Qscore1[np.where(Qscore1[29:fastQCtrim] <= 14)]) > 5:    # try many different combinations
             badUtrQscore.append(read)
             continue
-        if (len(regex.findall("(TTTTTTTTTT)", read1Call) < 1)) or (len(regex.findall("(NN)", read1Call) > 0)):
+        if (len(regex.findall("(TTTTTTTTTT)", read1Call)) < 1) or (len(regex.findall("(NN)", read1Call)) > 0):
             badUtr.append(read)
             continue
         # remove poly(dT)
