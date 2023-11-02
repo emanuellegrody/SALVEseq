@@ -68,7 +68,7 @@ for i in range(3):
         cellID = read[0][0:16]
         UMI = read[0][17:28]
         target = read[1][sumprimerstagger:fastQCtrim]  # currently only doing env
-        utr = read[0][29:fastQCtrim]    # **update, this is fine for now
+        utr = read[0][29:]    # **update, this is fine for now
         shaved = np.array([cellID, UMI, target])
 
         # Read 2
@@ -96,7 +96,7 @@ for i in range(3):
 
         # Read 1
         # toss reads that have a bad quality score
-        if len(Qscore1[np.where(Qscore1[29:fastQCtrim] <= 14)]) > 5:    # try many different combinations
+        if len(Qscore1[np.where(Qscore1[29:] <= 14)]) > 5:    # try many different combinations
             badUtrQscore.append(read)
             continue
         if (len(regex.findall("(TTTTTTTTTT)", read1Call)) < 1) or (len(regex.findall("(NN)", read1Call)) > 0):
@@ -105,6 +105,9 @@ for i in range(3):
         # remove poly(dT)
         last_index = utr.rfind("TTTTTTTTTT")
         shaved_utr = np.array([cellID, UMI, utr[last_index + len("TTTTTTTTTT"):]])
+        # toss zero-length reads
+        if len(utr[last_index + len("TTTTTTTTTT"):]) == 0:
+            continue
 
         screenedUtrReads.append(read)
         shavedUtrReads.append(shaved_utr)
