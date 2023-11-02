@@ -5,7 +5,7 @@
 #SBATCH -N 1
 #SBATCH -n 1
 #SBATCH --mem=35G
-#SBATCH -t 8:00:00
+#SBATCH -t 5:00:00
 #SBATCH --output=/projects/b1042/GoyalLab/egrody/20230929_Goyal_P1_BarcodeseqVISER/scripts/logs/cellrangercount_W0.txt
 #SBATCH --error=/projects/b1042/GoyalLab/egrody/20230929_Goyal_P1_BarcodeseqVISER/scripts/logs/cellrangercount_W0.err
 #SBATCH --verbose
