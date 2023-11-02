@@ -100,16 +100,13 @@ for i in range(3):
         if len(Qscore1[np.where(Qscore1[29:fastQCtrim] <= 14)]) > 5:    # try many different combinations
             badUtrQscore.append(read)
             continue
-        if (len(regex.findall("(AAAA)", read1Call)) > 0 or len(regex.findall("(TTTT)", read1Call)) > 0 or len(
-                regex.findall("(GGGG)", read1Call)) > 0 or len(regex.findall("(CCCC)", read1Call)) > 0 or len(
-            regex.findall("(NN)", read1Call)) > 0):
+        if (len(regex.findall("(TTTTTTTTTT)", read1Call) < 1)) or (len(regex.findall("(NN)", read1Call) > 0)):
             badUtr.append(read)
             continue
-        # for non-viral only: toss reads that are far from reference; for viral sequences, additional steps needed
-        # if jellyfish.levenshtein_distance(target, referenceTarget[:len(target)]) > 8:  # updated to 8
-        #    badTarget.append(read)
-        #    continue
-        # all the good reads get passed
+        # remove poly(dT)
+        last_index = utr.rfind("TTTTTTTTTT")
+        shaved_utr = np.array([cellID, UMI, utr[last_index + len("TTTTTTTTTT"):]])
+
         screenedUtrReads.append(read)
         shavedUtrReads.append(shaved_utr)
 
