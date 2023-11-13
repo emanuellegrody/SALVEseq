@@ -10,4 +10,4 @@
 #SBATCH --error=/projects/b1042/GoyalLab/egrody/20231017_VISER/scripts/logs/scviralquant.err
 #SBATCH --verbose
 
-/projects/b1042/GoyalLab/egrody/packages/scViralQuant/scviralquant -10x /projects/b1042/GoyalLab/egrody/20231017_VISER/counts/Mmul_10_only/run_count_W2/ -op /projects/b1042/GoyalLab/egrody/20231017_VISER/scViralQuant/W2/gtf/ -p 8 -p2genome /projects/b1042/GoyalLab/egrody/packages/refdata-Mmu-10/mac239_for_scViralQuant/
+/projects/b1042/GoyalLab/egrody/packages/scViralQuant/scviralquant -10x /projects/b1042/GoyalLab/egrody/20231017_VISER/counts/Mmul_10_only/run_count_W0/ -op /projects/b1042/GoyalLab/egrody/20231017_VISER/scViralQuant/W0/gtf/ -p 8 -p2genome /projects/b1042/GoyalLab/egrody/packages/refdata-Mmu-10/mac239_for_scViralQuant/
