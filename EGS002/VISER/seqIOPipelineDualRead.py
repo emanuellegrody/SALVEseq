@@ -105,8 +105,9 @@ for i in range(3):
             badUtrQscore.append(read)
             continue
         # output all polyT lengths
-        polyT = sum(len(match) for match in regex.findall(r'(T{4,})', read1Call))
-        allPolyT.append(polyT)
+        polyTsum = sum(len(match) for match in regex.findall(r'(T{4,})', read1Call))
+        polyTfirst = len(regex.search(r'(T{4,})', read1Call).group()) if regex.search(r'(T{4,})', read1Call) else 0
+        allPolyT.append(np.array([polyTsum, polyTfirst]))
         # toss reads that are missing polyT or contain N's
         if (len(regex.findall("(TTTTTTTTTT)", read1Call)) < 1) or (len(regex.findall("(NN)", read1Call)) > 0):
             badUtr.append(read)
@@ -164,7 +165,8 @@ for i in range(3):
                header="cellID,UMI,utr", comments="")
     np.savetxt(outputDirectory + samples[i] + "_badUtrQscore.txt", badUtrQscore, fmt='%s')
     np.savetxt(outputDirectory + samples[i] + "_allQscores.txt", allQscores, fmt='%s')
-    np.savetxt(outputDirectory + samples[i] + "_allPolyT.txt", allPolyT, fmt='%s')
+    np.savetxt(outputDirectory + samples[i] + "_allPolyT.txt", allPolyT, delimiter=",", fmt='%s',
+               header="polyTsum,polyTfirst", comments="")
     np.savetxt(outputDirectory + samples[i] + "_badUtr.txt", badUtr, fmt='%s')
     np.savetxt(outputDirectory + samples[i] + "_uniqueScreenedUtrReads.txt", uniqueScreenedUtrReads, fmt='%s')
     np.savetxt(outputDirectory + samples[i] + "_uniqueShavedUtrReads.txt", uniqueShavedUtrReads, delimiter=",",
