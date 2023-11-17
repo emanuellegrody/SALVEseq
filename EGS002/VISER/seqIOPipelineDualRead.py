@@ -40,7 +40,9 @@ for i in range(3):
     shavedReads = []
     screenedUtrReads = []
     shavedUtrReads = []
+    allQscores = []
     badUtrQscore = []
+    allPolyT = []
     badUtr = []
     # referenceTarget = "ACTGGCCTACCTACAATATGGGTGGAGCTATTTCCATGAGGCGGTCCAGGCCGTCTGGAGATCTGCGACAGAGACTCTTGCGGGCGCGTG"
     fastQCtrim = 54
@@ -95,14 +97,21 @@ for i in range(3):
         shavedReads.append(shaved)
 
         # Read 1
+        # output all Qscores for histogram
+        lowQC = len(Qscore1[np.where(Qscore1[29:] <= 14)])
+        allQscores.append(lowQC)
         # toss reads that have a bad quality score
-        if len(Qscore1[np.where(Qscore1[29:] <= 14)]) > 5:    # try many different combinations
+        if lowQC > 5:    # try many different combinations
             badUtrQscore.append(read)
             continue
+        # output all polyT lengths
+        polyT = sum(len(match) for match in regex.findall(r'(T{4,})', read1Call))
+        allPolyT.append(polyT)
+        # toss reads that are missing polyT or contain N's
         if (len(regex.findall("(TTTTTTTTTT)", read1Call)) < 1) or (len(regex.findall("(NN)", read1Call)) > 0):
             badUtr.append(read)
             continue
-        # remove poly(dT)
+        # remove polyT
         last_index = utr.rfind("TTTTTTTTTT")
         shaved_utr = np.array([cellID, UMI, utr[last_index + len("TTTTTTTTTT"):]])
         # toss zero-length reads
@@ -154,6 +163,8 @@ for i in range(3):
     np.savetxt(outputDirectory + samples[i] + "_shavedUtrReads.txt", shavedUtrReads, delimiter=",", fmt='%s',
                header="cellID,UMI,utr", comments="")
     np.savetxt(outputDirectory + samples[i] + "_badUtrQscore.txt", badUtrQscore, fmt='%s')
+    np.savetxt(outputDirectory + samples[i] + "_allQscores.txt", allQscores, fmt='%s')
+    np.savetxt(outputDirectory + samples[i] + "_allPolyT.txt", allPolyT, fmt='%s')
     np.savetxt(outputDirectory + samples[i] + "_badUtr.txt", badUtr, fmt='%s')
     np.savetxt(outputDirectory + samples[i] + "_uniqueScreenedUtrReads.txt", uniqueScreenedUtrReads, fmt='%s')
     np.savetxt(outputDirectory + samples[i] + "_uniqueShavedUtrReads.txt", uniqueShavedUtrReads, delimiter=",",
