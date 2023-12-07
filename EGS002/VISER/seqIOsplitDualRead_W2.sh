@@ -13,4 +13,4 @@
 source activate VISER
 cd /projects/b1042/GoyalLab/egrody/20230929_Goyal_P1_BarcodeseqVISER/splits/
 
-python /projects/b1042/GoyalLab/egrody/20230929_Goyal_P1_BarcodeseqVISER/scripts/seqIOPipelineSplitDualRead.py "$W2"
+python /projects/b1042/GoyalLab/egrody/20230929_Goyal_P1_BarcodeseqVISER/scripts/seqIOPipelineSplitDualRead.py "W2"

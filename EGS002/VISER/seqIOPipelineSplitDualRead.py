@@ -20,6 +20,7 @@ stagger = envstagger[index]
 
 # iterate through the split #
 outputDirectory = directory + sample + "/"
+print("Grabbing reads...")
 for s in range(1, splits[index]+1):
     # Grab two reads
     inputRead1 = f'{sample}_R1_split{str(s).zfill(2)}.fastq'
@@ -121,6 +122,7 @@ for s in range(1, splits[index]+1):
         screenedUtrReads.append(read)
         shavedUtrReads.append(shaved_utr)
 
+    print("Making outputs...")
     uniqueScreenedReads = np.unique(screenedReads, axis=0)
     uniqueShavedReads = np.unique(shavedReads, axis=0)
 
