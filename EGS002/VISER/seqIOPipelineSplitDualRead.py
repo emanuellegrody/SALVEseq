@@ -23,8 +23,8 @@ outputDirectory = directory + sample + "/"
 print("Grabbing reads...")
 for s in range(1, splits[index]+1):
     # Grab two reads
-    inputRead1 = f'{sample}_R1_split{str(s).zfill(2)}.fastq'
-    inputRead2 = f'{sample}_R2_split{str(s).zfill(2)}.fastq'
+    inputRead1 = f'{sample}_R1_split{str(s).zfill(2)}'
+    inputRead2 = f'{sample}_R2_split{str(s).zfill(2)}'
 
     # initializing variables
     read1 = []
