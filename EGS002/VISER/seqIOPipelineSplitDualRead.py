@@ -22,9 +22,10 @@ stagger = envstagger[index]
 outputDirectory = directory + sample + "/"
 print("Grabbing reads...")
 for s in range(1, splits[index]+1):
+    split_no = str(s).zfill(2)
     # Grab two reads
-    inputRead1 = f'{sample}_R1_split{str(s).zfill(2)}'
-    inputRead2 = f'{sample}_R2_split{str(s).zfill(2)}'
+    inputRead1 = f'{sample}_R1_split{split_no}'
+    inputRead2 = f'{sample}_R2_split{split_no}'
 
     # initializing variables
     read1 = []
@@ -130,7 +131,7 @@ for s in range(1, splits[index]+1):
     uniqueShavedUtrReads = np.unique(shavedUtrReads, axis=0)
 
     # Print summary file
-    summaryFile = open(outputDirectory + sample + "_summaryFile.txt", "w")
+    summaryFile = open(outputDirectory + sample + "_split" + split_no + "_summaryFile.txt", "w")
     summaryFile.write("total raw reads \t\t\t%d" % len(read1) + "\n")
     summaryFile.write("Read2:\n")
     summaryFile.write("total missingPrimer reads \t\t%d" % len(missingPrimer) + "\n")
@@ -151,26 +152,26 @@ for s in range(1, splits[index]+1):
 
     # Save outputs to text files for further analysis
     print("Saving outputs...")
-    np.savetxt(outputDirectory + sample + "_shavedReads.txt", shavedReads, delimiter=",", fmt='%s',
+    np.savetxt(outputDirectory + sample + "_split" + split_no + "_shavedReads.txt", shavedReads, delimiter=",", fmt='%s',
                header="cellID,UMI,target", comments="")
-    np.savetxt(outputDirectory + sample + "_joinedRead1Read2.txt", joinedRead1Read2, fmt='%s')
-    np.savetxt(outputDirectory + sample + "_badQscore.txt", badQscore, fmt='%s')
-    np.savetxt(outputDirectory + sample + "_badTarget.txt", badTarget, fmt='%s')
-    np.savetxt(outputDirectory + sample + "_uniqueScreenedReads.txt", uniqueScreenedReads, fmt='%s')
-    np.savetxt(outputDirectory + sample + "_uniqueShavedReads.txt", uniqueShavedReads, delimiter=",",
+    np.savetxt(outputDirectory + sample + "_split" + split_no + "_joinedRead1Read2.txt", joinedRead1Read2, fmt='%s')
+    np.savetxt(outputDirectory + sample + "_split" + split_no + "_badQscore.txt", badQscore, fmt='%s')
+    np.savetxt(outputDirectory + sample + "_split" + split_no + "_badTarget.txt", badTarget, fmt='%s')
+    np.savetxt(outputDirectory + sample + "_split" + split_no + "_uniqueScreenedReads.txt", uniqueScreenedReads, fmt='%s')
+    np.savetxt(outputDirectory + sample + "_split" + split_no + "_uniqueShavedReads.txt", uniqueShavedReads, delimiter=",",
                fmt='%s',
                header="cellID,UMI,target", comments="")
 
     # Read 1
-    np.savetxt(outputDirectory + sample + "_shavedUtrReads.txt", shavedUtrReads, delimiter=",", fmt='%s',
+    np.savetxt(outputDirectory + sample + "_split" + split_no + "_shavedUtrReads.txt", shavedUtrReads, delimiter=",", fmt='%s',
                header="cellID,UMI,utr", comments="")
-    np.savetxt(outputDirectory + sample + "_badUtrQscore.txt", badUtrQscore, fmt='%s')
-    np.savetxt(outputDirectory + sample + "_allQscores.txt", allQscores, fmt='%s')
-    np.savetxt(outputDirectory + sample + "_allPolyT.txt", allPolyT, delimiter=",", fmt='%s',
+    np.savetxt(outputDirectory + sample + "_split" + split_no + "_badUtrQscore.txt", badUtrQscore, fmt='%s')
+    np.savetxt(outputDirectory + sample + "_split" + split_no + "_allQscores.txt", allQscores, fmt='%s')
+    np.savetxt(outputDirectory + sample + "_split" + split_no + "_allPolyT.txt", allPolyT, delimiter=",", fmt='%s',
                header="read1Call,polyT", comments="")
-    np.savetxt(outputDirectory + sample + "_badUtr.txt", badUtr, fmt='%s')
-    np.savetxt(outputDirectory + sample + "_uniqueScreenedUtrReads.txt", uniqueScreenedUtrReads, fmt='%s')
-    np.savetxt(outputDirectory + sample + "_uniqueShavedUtrReads.txt", uniqueShavedUtrReads, delimiter=",",
+    np.savetxt(outputDirectory + sample + "_split" + split_no + "_badUtr.txt", badUtr, fmt='%s')
+    np.savetxt(outputDirectory + sample + "_split" + split_no + "_uniqueScreenedUtrReads.txt", uniqueScreenedUtrReads, fmt='%s')
+    np.savetxt(outputDirectory + sample + "_split" + split_no + "_uniqueShavedUtrReads.txt", uniqueShavedUtrReads, delimiter=",",
                fmt='%s',
                header="cellID,UMI,utr", comments="")
 
