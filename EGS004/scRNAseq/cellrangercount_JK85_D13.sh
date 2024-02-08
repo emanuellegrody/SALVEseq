@@ -12,4 +12,4 @@
 
 source activate cellranger
 
-/home/egy2296/packages/cellranger-7.2.0/bin/cellranger count --id=cellranger_count_D13 --fastqs=/projects/b1042/GoyalLab/Subia/20230122_scRNAseq/fastq/outs/fastq_path/AACF7M7HV/ --sample=JK85_D13 --transcriptome=/projects/b1042/GoyalLab/egrody/packages/refdata-Mmu-10/Mmul_10/
+/home/egy2296/packages/cellranger-7.2.0/cellranger count --id=cellranger_count_D13 --fastqs=/projects/b1042/GoyalLab/Subia/20230122_scRNAseq/fastq/outs/fastq_path/AACF7M7HV/ --sample=JK85_D13 --transcriptome=/projects/b1042/GoyalLab/egrody/packages/refdata-Mmu-10/Mmul_10/
