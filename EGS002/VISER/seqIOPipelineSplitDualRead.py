@@ -1,29 +1,31 @@
 # the objective of this code is to process SALVEseq fastq files
 print("Let's begin!")
 print("Importing...")
-import gzip
-# import jellyfish
 import numpy as np
 import regex as regex
 from Bio import SeqIO
-import glob
+import sys
 
 # Update this block with your specific output directory; input directory is specified in the shell script
-directory = "/projects/b1042/GoyalLab/egrody/20230929_Goyal_P1_BarcodeseqVISER/analysis/dualRead/"
+directory = "/projects/b1042/GoyalLab/egrody/20230929_Goyal_P1_BarcodeseqVISER/analysis/dualRead/splits/"
 
-# Outer loop: iterate through the samples
-samples = ("W0", "W2", "invitro")   # **update
-envstagger = ("GCTC", "A", "CT")    # **update
-for i in range(3):
-    print("Starting on sample", str(samples[i]))
-    # Inner loop: iterate through the second split #
-    outputDirectory = directory + samples[i] + "/"
-    file_pattern = outputDirectory + samples[i] + "_shavedReads.txt"
-    if glob.glob(file_pattern):
-        continue
+# sample is specified in the shell script
+samples = ("W0", "W2", "invitro")
+envstagger = ("GCTC", "A", "CT")
+splits = (2, 38, 35)
+sample = sys.argv[1]
+
+index = samples.index(sample)
+stagger = envstagger[index]
+
+# iterate through the split #
+outputDirectory = directory + sample + "/"
+print("Grabbing reads...")
+for s in range(1, splits[index]+1):
+    split_no = str(s).zfill(2)
     # Grab two reads
-    inputRead1 = f'5M_{samples[i]}_R1.fastq'
-    inputRead2 = f'5M_{samples[i]}_R2.fastq'
+    inputRead1 = f'{sample}_R1_split{split_no}'
+    inputRead2 = f'{sample}_R2_split{split_no}'
 
     # initializing variables
     read1 = []
@@ -32,7 +34,7 @@ for i in range(3):
     read2Qscore = []
     joinedRead1Read2 = []
     envprimer = "CCAGCAGACCCATATCCAACAGG"
-    sumprimerstagger = len(envprimer) + len(envstagger[i])  # **update
+    sumprimerstagger = len(envprimer) + len(stagger)
     missingPrimer = []
     badQscore = []
     badTarget = []
@@ -105,9 +107,8 @@ for i in range(3):
             badUtrQscore.append(read)
             continue
         # output all polyT lengths
-        polyTsum = sum(len(match) for match in regex.findall(r'(T{4,})', read1Call))
-        polyTfirst = len(regex.search(r'(T{4,})', read1Call).group()) if regex.search(r'(T{4,})', read1Call) else 0
-        allPolyT.append(np.array([polyTsum, polyTfirst]))
+        polyT = len(regex.search(r'(T{4,})', read1Call).group()) if regex.search(r'(T{4,})', read1Call) else 0
+        allPolyT.append(np.array([read1Call, polyT]))
         # toss reads that are missing polyT or contain N's
         if (len(regex.findall("(TTTTTTTTTT)", read1Call)) < 1) or (len(regex.findall("(NN)", read1Call)) > 0):
             badUtr.append(read)
@@ -122,6 +123,7 @@ for i in range(3):
         screenedUtrReads.append(read)
         shavedUtrReads.append(shaved_utr)
 
+    print("Making outputs...")
     uniqueScreenedReads = np.unique(screenedReads, axis=0)
     uniqueShavedReads = np.unique(shavedReads, axis=0)
 
@@ -129,7 +131,7 @@ for i in range(3):
     uniqueShavedUtrReads = np.unique(shavedUtrReads, axis=0)
 
     # Print summary file
-    summaryFile = open(outputDirectory + samples[i] + "_summaryFile.txt", "w")
+    summaryFile = open(outputDirectory + sample + "_split" + split_no + "_summaryFile.txt", "w")
     summaryFile.write("total raw reads \t\t\t%d" % len(read1) + "\n")
     summaryFile.write("Read2:\n")
     summaryFile.write("total missingPrimer reads \t\t%d" % len(missingPrimer) + "\n")
@@ -150,26 +152,26 @@ for i in range(3):
 
     # Save outputs to text files for further analysis
     print("Saving outputs...")
-    np.savetxt(outputDirectory + samples[i] + "_shavedReads.txt", shavedReads, delimiter=",", fmt='%s',
+    np.savetxt(outputDirectory + sample + "_split" + split_no + "_shavedReads.txt", shavedReads, delimiter=",", fmt='%s',
                header="cellID,UMI,target", comments="")
-    np.savetxt(outputDirectory + samples[i] + "_joinedRead1Read2.txt", joinedRead1Read2, fmt='%s')
-    np.savetxt(outputDirectory + samples[i] + "_badQscore.txt", badQscore, fmt='%s')
-    np.savetxt(outputDirectory + samples[i] + "_badTarget.txt", badTarget, fmt='%s')
-    np.savetxt(outputDirectory + samples[i] + "_uniqueScreenedReads.txt", uniqueScreenedReads, fmt='%s')
-    np.savetxt(outputDirectory + samples[i] + "_uniqueShavedReads.txt", uniqueShavedReads, delimiter=",",
+    np.savetxt(outputDirectory + sample + "_split" + split_no + "_joinedRead1Read2.txt", joinedRead1Read2, fmt='%s')
+    np.savetxt(outputDirectory + sample + "_split" + split_no + "_badQscore.txt", badQscore, fmt='%s')
+    np.savetxt(outputDirectory + sample + "_split" + split_no + "_badTarget.txt", badTarget, fmt='%s')
+    np.savetxt(outputDirectory + sample + "_split" + split_no + "_uniqueScreenedReads.txt", uniqueScreenedReads, fmt='%s')
+    np.savetxt(outputDirectory + sample + "_split" + split_no + "_uniqueShavedReads.txt", uniqueShavedReads, delimiter=",",
                fmt='%s',
                header="cellID,UMI,target", comments="")
 
     # Read 1
-    np.savetxt(outputDirectory + samples[i] + "_shavedUtrReads.txt", shavedUtrReads, delimiter=",", fmt='%s',
+    np.savetxt(outputDirectory + sample + "_split" + split_no + "_shavedUtrReads.txt", shavedUtrReads, delimiter=",", fmt='%s',
                header="cellID,UMI,utr", comments="")
-    np.savetxt(outputDirectory + samples[i] + "_badUtrQscore.txt", badUtrQscore, fmt='%s')
-    np.savetxt(outputDirectory + samples[i] + "_allQscores.txt", allQscores, fmt='%s')
-    np.savetxt(outputDirectory + samples[i] + "_allPolyT.txt", allPolyT, delimiter=",", fmt='%s',
-               header="polyTsum,polyTfirst", comments="")
-    np.savetxt(outputDirectory + samples[i] + "_badUtr.txt", badUtr, fmt='%s')
-    np.savetxt(outputDirectory + samples[i] + "_uniqueScreenedUtrReads.txt", uniqueScreenedUtrReads, fmt='%s')
-    np.savetxt(outputDirectory + samples[i] + "_uniqueShavedUtrReads.txt", uniqueShavedUtrReads, delimiter=",",
+    np.savetxt(outputDirectory + sample + "_split" + split_no + "_badUtrQscore.txt", badUtrQscore, fmt='%s')
+    np.savetxt(outputDirectory + sample + "_split" + split_no + "_allQscores.txt", allQscores, fmt='%s')
+    np.savetxt(outputDirectory + sample + "_split" + split_no + "_allPolyT.txt", allPolyT, delimiter=",", fmt='%s',
+               header="read1Call,polyT", comments="")
+    np.savetxt(outputDirectory + sample + "_split" + split_no + "_badUtr.txt", badUtr, fmt='%s')
+    np.savetxt(outputDirectory + sample + "_split" + split_no + "_uniqueScreenedUtrReads.txt", uniqueScreenedUtrReads, fmt='%s')
+    np.savetxt(outputDirectory + sample + "_split" + split_no + "_uniqueShavedUtrReads.txt", uniqueShavedUtrReads, delimiter=",",
                fmt='%s',
                header="cellID,UMI,utr", comments="")
 
