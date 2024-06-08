@@ -196,58 +196,38 @@ BarcodesLvHistPlot
 ```
 
 
-### starcode
-```{r}
-#update the file in this chunk and two chunks down
-input.dir = "/projects/b1042/GoyalLab/egrody/20230929_Goyal_P1_BarcodeseqVISER/analysis/"
-output.dir = "/projects/b1042/GoyalLab/egrody/20230929_Goyal_P1_BarcodeseqVISER/analysis/forBLAST/"
-readsdirectory <- paste0(input.dir, "W2/") #let's start with just one for now; we will try separately for each sample
-
-# Get list of CSV files in the directory
-file_name <- list.files(readsdirectory, pattern = "*_shavedReads.txt", full.names = TRUE)
-
-# output for starcode
-#manually looped through each of the file output combinations
-VISER_out <- read.csv(file_name, header = TRUE) %>% select(target)
-VISER_out$target <- substr(VISER_out$target, 1, 18)
-VISER_out <- VISER_out %>% unique()
-write.table(VISER_out$target, paste0(readsdirectory, "W2_shavedReadsList_18.txt"), sep = ",", quote = FALSE, row.names = FALSE, col.names = FALSE)
-```
 
 ### Target cutoff
 ```{r, eval = FALSE}
 #update the file in this chunk and two chunks down
-input.dir = "/projects/b1042/GoyalLab/egrody/20230929_Goyal_P1_BarcodeseqVISER/analysis/"
-readsdirectory <- paste0(input.dir, "W2/") #let's start with just one for now
+input.dir = "/projects/b1042/GoyalLab/egrody/20240116_VISER_SALVEseq/analysis/dualRead/"
+sample = "PL_tat1/"
+readsdirectory <- paste0(input.dir, sample) #let's start with just one for now
 
 # Get list of CSV files in the directory
 file_name <- list.files(readsdirectory, pattern = "*_shavedReads.txt", full.names = TRUE)
 
-# let's read in these reads for now
-VISER_w2_env <- read.csv(file_name, header = TRUE) #%>% select(target) %>% unique()
+# read in these reads
+SALVE_PL_tat1 <- read.csv(file_name, header = TRUE) %>% select(target) %>% unique()
 
-```
-
-These are the reference sequences:
-```{r}
+#reference sequences
 envprimer = "CCAGCAGACCCATATCCAACAGG"
-referenceTarget = "ACCCGGCACTGCCAACCAGAGAAGGCAAAG"
-```
+tat1primer = "GCTAATACATCTTCTGCCCATATCCAACAGGACC"
+envReferenceTarget = "CCCGGCACTGCCAACCAGAGAAGGCAGAGA" #30bp, from starcode
+tat1ReferenceTarget = "CGGCACTGCCAACCAGAGAAGGCAAGAAGA"
 
-Cutoff by LV:
-```{r, eval = FALSE}
-referenceTarget = "ACCCGGCACTGCCAACCAGAGAAGGCAAAG" 
-VISER_w2_env$dist <- NA
-for (i in 1:nrow(VISER_w2_env)) {
+#Cutoff by LV
+SALVE_PL_tat1$dist <- NA
+for (i in 1:nrow(SALVE_PL_tat1)) {
   # Calculate the Levenshtein distance between the current string and the constant
-  dist <- adist(VISER_w2_env$target[i], referencearget)
+  dist <- adist(substr(SALVE_PL_tat1$target[i], 1, 30), tat1ReferenceTarget)
   # Assign the distance to the 'dist' column
-  VISER_w2_env$dist[i] <- dist
+  SALVE_PL_tat1$dist[i] <- dist
 }
 
-hist(VISER_w2_env$dist, breaks = 50, xlab = "Levenshtein Distance: recovered to expected")
+hist(SALVE_PL_tat1$dist, breaks = 50, xlab = "Levenshtein Distance: recovered to expected")
 ```
-This histogram has two peaks: one centered at 9 and one centered at 18.
+This histogram has two peaks: one centered at 3-4 and one centered at 17.
 
 What are these more dissimilar sequences? Are they divergent or are they similar to each other?
 ```{r}
@@ -280,11 +260,11 @@ BarcodesLvHistPlot
 ```
 Even when just looking at the more dissimilar sequences, we see that they have some sequences that are more similar and some that are divergent. So just setting a cutoff based on the reference genome sequence is not helping us distinguish between real target sequences and PCR/sequencing error.
 
-I ran starcode on all the sequences. Read in all starcode consensus sequences:
+I ran starcode on all the sequences. Read in all starcode consensus sequences: UPDATE
 ```{r}
-main_folder <- "/projects/b1042/GoyalLab/egrody/20230929_Goyal_P1_BarcodeseqVISER/analysis/starcode"
+main_folder <- "/projects/b1042/GoyalLab/egrody/20240116_VISER_SALVEseq/analysis/starcode"
 lengths = c("18", "24", "30")
-samples = c("invitro", "W0", "W2")
+samples = c("PL_env", "PL_tat1")
 subfolders <- file.path(main_folder, samples)
 
 starcodeTarget <- matrix(NA, nrow = length(samples), ncol = length(lengths))
@@ -321,17 +301,16 @@ for (row in c(7,8,9)) {
 }
 
 ```
-Note that we can ignore W0 since we know it's not going to have any actual targets. But we'll leave it here for now.
 
 Now, let's compare the LV dist of all the reads to these target sequences. This next chunk will take a good amount of time to run, about 10 minutes
 ```{r, eval = FALSE}
 # reading in the data
-main_folder <- "/projects/b1042/GoyalLab/egrody/20230929_Goyal_P1_BarcodeseqVISER/analysis"
+main_folder <- "/projects/b1042/GoyalLab/egrody/20240116_VISER_SALVEseq/analysis/dualRead/"
 lengths = c("18", "24", "30")
-samples = c("invitro", "W0", "W2")
+samples = c("PL_env", "PL_tat1")
 subfolders <- file.path(main_folder, samples)
 
-allVISER <- list()
+allSALVE <- list()
 
 
 # Loop through the subfolders and files
@@ -349,7 +328,7 @@ for (folder_path in subfolders) {
     # Add the data to the combined dataframe with a unique name
     split <- unlist(strsplit(folder_path, "/"))
     sample <- split[length(split)]
-    allVISER[[sample]] <- entry_data
+    allSALVE[[sample]] <- entry_data
   }
 }
 
@@ -357,24 +336,24 @@ for (folder_path in subfolders) {
 
 
 # comparing to our starcode results
-allVISER_dist <- list()
+allSALVE_dist <- list()
 # Loop through each data frame in allVISER
-for (sample in names(allVISER)) {
-  VISER_w2_env <- allVISER[[sample]][[1]]
-  VISER_w2_env$dist <- NA
+for (sample in names(allSALVE)) {
+  SALVE_PL_env <- allSALVE[[sample]][[1]]
+  SALVE_PL_env$dist <- NA
   consensusTarget <- starcodeTarget[sample, "30"]
-  for (i in 1:nrow(VISER_w2_env)) {
-    dist <- adist(VISER_w2_env$target[i], consensusTarget)
-    VISER_w2_env$dist[i] <- dist
+  for (i in 1:nrow(SALVE_PL_env)) {
+    dist <- adist(SALVE_PL_env$target[i], consensusTarget)
+    SALVE_PL_env$dist[i] <- dist
   }
-  allVISER_dist[[sample]] <- VISER_w2_env
+  allSALVE_dist[[sample]] <- SALVE_PL_env
 
   # Plot the histogram for each data frame (optional)
   #hist(VISER_w2_env$dist, breaks = 50, xlab = "Levenshtein Distance: recovered to expected", main = sample)
 }
 
-for (sample in names(allVISER_dist)) {
-  plotme <- allVISER_dist[[sample]]$dist
+for (sample in names(allSALVE_dist)) {
+  plotme <- allSALVE_dist[[sample]]$dist
   hist(plotme, breaks = 50, xlab = "Levenshtein Distance: recovered to consensus", main = sample)
 }
 ```
