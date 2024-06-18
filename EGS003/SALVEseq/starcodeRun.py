@@ -17,14 +17,14 @@ starcodeLocation = os.path.join("/projects/b1042/GoyalLab/egrody/packages/starco
 os.chdir("..")
 
 lengths = [18, 24, 30]
-samples = ["invitro"]
-threads = "4"
+samples = ["PL_env"]
+threads = "8"
 dist = "8"
 
 for i in lengths:
 	for sample in samples:
-		samplePath = os.path.join('/projects/b1042/GoyalLab/egrody/20230929_Goyal_P1_BarcodeseqVISER/analysis/', sample, '{}_shavedReadsList_{}.txt'.format(sample, i))
-		outfilePath = os.path.join('/projects/b1042/GoyalLab/egrody/20230929_Goyal_P1_BarcodeseqVISER/analysis/starcode', sample, '{}_Target{}_d8.txt'.format(sample, i))
+		samplePath = os.path.join('/projects/b1042/GoyalLab/egrody/20240116_VISER_SALVEseq/analysis/dualRead/', sample, '{}_shavedReadsList_{}.txt'.format(sample, i))
+		outfilePath = os.path.join('/projects/b1042/GoyalLab/egrody/20240116_VISER_SALVEseq/analysis/dualRead/starcode', sample, '{}_Target{}_d8.txt'.format(sample, i))
 		starcodeCommand = [starcodeLocation, '-d', dist, '-t', threads, '-i', samplePath, "-s", '-o', outfilePath]
 		subprocess.run(starcodeCommand)
 
