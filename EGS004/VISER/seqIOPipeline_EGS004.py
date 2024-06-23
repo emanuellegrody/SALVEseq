@@ -10,7 +10,7 @@ import os
 import glob
 
 # Update this block with your specific output directory; input directory is specified in the shell script
-directory = "/Users/egy2296/Library/CloudStorage/OneDrive-NorthwesternUniversity/Data/Sequencing/20240116_VISER_SALVEseq/analysis/EGS004/seqIO/"
+directory = "/projects/b1042/GoyalLab/egrody/20240116_VISER_SALVEseq/EGS004/seqIO/"
 
 # sample is specified in the shell script
 samples = ("VISER_D13", "VISER_D83", "VISER_D195")
