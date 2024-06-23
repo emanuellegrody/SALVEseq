@@ -34,7 +34,8 @@ endRead2 = "R2_001.fastq.gz"
 inputRead1 = glob.glob(f'{sample}*{endRead1}')
 inputRead2 = glob.glob(f'{sample}*{endRead2}')
 
-for file1, file2 in inputRead1, inputRead2:
+rawreads = 0
+for file1, file2 in zip(inputRead1, inputRead2):
     # initializing variables
     read1 = []
     read2 = []
@@ -68,6 +69,7 @@ for file1, file2 in inputRead1, inputRead2:
 
     joinedRead1Read2 = np.column_stack((read1, read2))
     print("Number of reads: ", len(joinedRead1Read2))
+    rawreads += len(joinedRead1Read2)
 
     for read, Qscore1, Qscore2 in zip(joinedRead1Read2, read1QscoreInt, read2QscoreInt):
         read1Call = read[0]
@@ -102,8 +104,7 @@ uniqueShavedReads = np.unique(shavedReads, axis=0)
 
 # Print summary file
 summaryFile = open(outputDirectory + sample + "_summaryFile.txt", "w")
-summaryFile.write("total raw reads \t\t\t%d" % len(read1) + "\n")
-summaryFile.write("Read2:\n")
+summaryFile.write("total raw reads \t\t\t%d" % rawreads + "\n")
 summaryFile.write("total missingPrimer reads \t\t%d" % len(missingPrimer) + "\n")
 summaryFile.write("total badQscore reads \t\t\t%d" % len(badQscore) + "\n")
 summaryFile.write("total badTarget reads \t\t\t%d" % len(badTarget) + "\n")
