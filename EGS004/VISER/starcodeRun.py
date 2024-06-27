@@ -23,8 +23,8 @@ dist = "8"
 
 for i in lengths:
 	for sample in samples:
-		samplePath = os.path.join('/projects/b1042/GoyalLab/egrody/20240116_VISER_SALVEseq/EGS004/starcode/', sample, '{}shavedReadsList_{}.txt'.format(sample, i))
-		outfilePath = os.path.join('/projects/b1042/GoyalLab/egrody/20240116_VISER_SALVEseq/EGS004/starcode/', sample, '{}_Target{}_d8.txt'.format(sample, i))
+		samplePath = os.path.join('/projects/b1042/GoyalLab/egrody/20240116_VISER_SALVEseq/EGS004/starcode/{}shavedReadsList_{}.txt'.format(sample, i))
+		outfilePath = os.path.join('/projects/b1042/GoyalLab/egrody/20240116_VISER_SALVEseq/EGS004/starcode/{}_Target{}_d8.txt'.format(sample, i))
 		starcodeCommand = [starcodeLocation, '-d', dist, '-t', threads, '-i', samplePath, "-s", '-o', outfilePath]
 		subprocess.run(starcodeCommand)
 
