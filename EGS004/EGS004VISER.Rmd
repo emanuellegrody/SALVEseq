@@ -1,18 +1,16 @@
 ---
-title: "EGS002VISER"
+title: "EGS004VISER"
 author: "Emanuelle Grody"
-date: "2024-01-30"
+date: "2024-06-23"
 output: html_document
 ---
 
-This file has been split from EGS002.Rmd
-
+This analysis is to be run after EGS004scRNAseq.Rmd.
 
 ```{r, echo = FALSE}
 library(dplyr)
 library(stringr)
 library(patchwork)
-library(scCustomize)
 library(ggplot2)
 library(reshape2)
 library(svglite)
@@ -23,169 +21,43 @@ library(stringdist)
 # env Analysis
 ## Previous analysis
 ```{r, eval = FALSE}
-#update the file in this chunk and two chunks down
-input.dir = "/projects/b1042/GoyalLab/egrody/20230929_Goyal_P1_BarcodeseqVISER/analysis/"
-output.dir = "/projects/b1042/GoyalLab/egrody/20230929_Goyal_P1_BarcodeseqVISER/analysis/forBLAST/"
-readsdirectory <- paste0(input.dir, "W2/") #let's start with just one for now; we will try separately for each sample
+input.dir = "/projects/b1042/GoyalLab/egrody/20240116_VISER_SALVEseq/EGS004/seqIO/"
+samples = c("VISER_D13", "VISER_D83", "VISER_D195")
+reads = data.frame()
+for (sample in samples) {
+  file_name <- paste0(input.dir, sample, "/", sample, "_shavedReads.txt")
+   unique_data <- read.csv(file_name, header = TRUE) %>% 
+    unique()
+  unique_data$sample <- sample
+  
+  cat("Sample: ", sample, "\nNo. of unique targets: ", nrow(unique_data), "\n")
+  reads <- bind_rows(reads,unique_data)
+}
 
-# Get list of CSV files in the directory
-file_name <- list.files(readsdirectory, pattern = "*_shavedReads.txt", full.names = TRUE)
-
-# let's read in these reads for now
-temp_data <- read.csv(file_name, header = TRUE) %>% select(target) %>% unique()
+VISER_D13 <- reads %>% filter(sample == "VISER_D13")
+VISER_D83 <- reads %>% filter(sample == "VISER_D83")
+VISER_D195 <- reads %>% filter(sample == "VISER_D195")
 
 ```
 ### Pairwise LV Dist Histogram
 The first step is to see what the pairwise LV histogram looks like to see if we have more similar or dissimilar sequences.
 ```{r}
 set.seed(2059)
-subsample1 = sample(temp_data$target,10000) #can lower to 5k to reduce run time
-subsample2 = sample(temp_data$target,10000)
-subsample3 = sample(temp_data$target,10000)
-BarcodesLv1 = as.integer(stringdistmatrix(subsample1, method = "lv"))
-BarcodesLv2 = as.integer(stringdistmatrix(subsample2, method = "lv"))
-BarcodesLv3 = as.integer(stringdistmatrix(subsample3, method = "lv"))
+#subsample1 = sample(VISER_D13$target,10000) #can lower to 5k to reduce run time
+#subsample2 = sample(temp_data$target,10000)
+#subsample3 = sample(temp_data$target,10000)
+BarcodesLv1 = as.integer(stringdistmatrix(VISER_D195$target, method = "lv"))
 lBarcodesLv = length(BarcodesLv1)
 
 BarcodesLv = tibble(
-  lvdist = c(BarcodesLv1, BarcodesLv2, BarcodesLv3),
-  subsamNum = c(rep("subsamping1", lBarcodesLv), rep("subsamping2", lBarcodesLv), rep("subsamping3", lBarcodesLv)))
+  lvdist = BarcodesLv1,
+  subsamNum = rep("D195", lBarcodesLv))
 
-BarcodesLvHist <- BarcodesLv %>% group_by(subsamNum, lvdist) %>% summarise(length(lvdist)) %>%
-  group_by(subsamNum) %>% mutate(totalNum = sum(`length(lvdist)`), fracLvDist = `length(lvdist)`/totalNum)
 
-BarcodesLvHistPlot <- ggplot(BarcodesLvHist, aes(lvdist, fracLvDist)) +
-  geom_bar(width = 0.5, stat = 'identity') +
-  facet_wrap(facets = vars(subsamNum)) +
-  theme_classic()
-BarcodesLvHistPlot
-#ggsave(plot = BarcodesLvHistPlot, file = paste0(readsdirectory, 'invitro_LVhist.svg'))
-```
-
-### BLAST
-This is to extract non-redundant and relevant (commented-out) sequences from a subsample to submit for BLAST.
-```{r}
-# Custom function to compute Levenshtein distance and save the strings being compared
-custom_lv_distance <- function(x, y) {
-  lv_distance <- stringdistmatrix(x, y, method = "lv")
-  row_names <- rep(x, each = length(y))
-  col_names <- rep(y, length(x))
-  df <- data.frame(dist = as.vector(lv_distance), string1 = row_names, string2 = col_names)
-  return(df)
-}
-
-pairwise1 <- custom_lv_distance(subsample1, subsample1)
-pairwise2 <- custom_lv_distance(subsample2, subsample2)
-pairwise3 <- custom_lv_distance(subsample3, subsample3)
-
-# taking the most similar sequences
-#subLVdist1 <- pairwise1 %>% filter(dist <= 8 & dist > 0) %>% select(string1) %>% unique()
-#subLVdist2 <- pairwise2 %>% filter(dist <= 8 & dist > 0) %>% select(string1) %>% unique()
-#subLVdist3 <- pairwise3 %>% filter(dist <= 8 & dist > 0) %>% select(string1) %>% unique()
-
-# triangularizing my matrix
-
-library(reshape2)
-
-pairwise1_long <- melt(pairwise1, varnames = c("string1", "string2"), value.name = "dist")
-pairwise1_long <- pairwise1_long[pairwise1_long$string1 != pairwise1_long$string2, ]
-pairwise1_triangular <- dcast(pairwise1_long, string1 ~ string2, value.var = "dist")
-pairwise1_triangular[upper.tri(pairwise1_triangular, diag = FALSE)] <- NA
-
-pairwise2_long <- melt(pairwise2, varnames = c("string1", "string2"), value.name = "dist")
-pairwise2_long <- pairwise2_long[pairwise2_long$string1 != pairwise2_long$string2, ]
-pairwise2_triangular <- dcast(pairwise2_long, string1 ~ string2, value.var = "dist")
-pairwise2_triangular[upper.tri(pairwise2_triangular, diag = FALSE)] <- NA
-
-pairwise3_long <- melt(pairwise3, varnames = c("string1", "string2"), value.name = "dist")
-pairwise3_long <- pairwise3_long[pairwise3_long$string1 != pairwise3_long$string2, ]
-pairwise3_triangular <- dcast(pairwise3_long, string1 ~ string2, value.var = "dist")
-pairwise3_triangular[upper.tri(pairwise3_triangular, diag = FALSE)] <- NA
-
-# Converting it back
-pairwise1_clean <- melt(pairwise1_triangular, varnames = c("string2", "string1"), value.name = "dist")
-pairwise2_clean <- melt(pairwise2_triangular, varnames = c("string2", "string1"), value.name = "dist")
-pairwise3_clean <- melt(pairwise3_triangular, varnames = c("string2", "string1"), value.name = "dist")
-
-colnames(pairwise1_clean) <- c("string1", "string2", "dist")
-colnames(pairwise2_clean) <- c("string1", "string2", "dist")
-colnames(pairwise3_clean) <- c("string1", "string2", "dist")
-
-# taking the most similar sequences again
-subLVdist1_clean <- pairwise1_clean %>% filter(dist <= 6 & dist > 0) %>% select(string1) %>% unique()
-subLVdist2_clean <- pairwise2_clean %>% filter(dist <= 6 & dist > 0) %>% select(string1) %>% unique()
-subLVdist3_clean <- pairwise3_clean %>% filter(dist <= 6 & dist > 0) %>% select(string1) %>% unique()
-allinone <- rbind(subLVdist1_clean, subLVdist2_clean, subLVdist3_clean)
-
-file_conn <- file(paste0(output.dir, "W2forBLAST.fsa"), "w")
-sequences <- unlist(allinone)
-#envprimer = "CCAGCAGACCCATATCCAACAGG"
-
-# Loop through each sequence and write it to the file with a custom header
-for (i in seq_along(sequences)) {
-  header <- sprintf(">sequence_%05d", i)  # Generate the header line
-  cat(header, "\n", paste0(sequences[i]), "\n", file = file_conn)  # Write header and sequence to file; paste0 to add envprimer before the sequence
-}
-
-# Close the file connection
-close(file_conn)
-```
-
-### starcode
-```{r}
-#update the file in this chunk and two chunks down
-input.dir = "/projects/b1042/GoyalLab/egrody/20230929_Goyal_P1_BarcodeseqVISER/analysis/"
-output.dir = "/projects/b1042/GoyalLab/egrody/20230929_Goyal_P1_BarcodeseqVISER/analysis/forBLAST/"
-readsdirectory <- paste0(input.dir, "W2/") #let's start with just one for now; we will try separately for each sample
-
-# Get list of CSV files in the directory
-file_name <- list.files(readsdirectory, pattern = "*_shavedReads.txt", full.names = TRUE)
-
-# output for starcode
-#manually looped through each of the file output combinations
-VISER_out <- read.csv(file_name, header = TRUE) %>% select(target)
-VISER_out$target <- substr(VISER_out$target, 1, 18)
-VISER_out <- VISER_out %>% unique()
-write.table(VISER_out$target, paste0(readsdirectory, "W2_shavedReadsList_18.txt"), sep = ",", quote = FALSE, row.names = FALSE, col.names = FALSE)
-```
-I saved three different lengths of target sequences: 18bp, 24bp, and 30bp ("full length"), because starcode has a maximum LV dist of 8. I ran starcode in Quest using the starcodeRun.py script over these files. From that analysis, I got a list of the most popular consensus sequences for each sample for each target length. I used those consensus sequences to identify a cutoff for target reads instead of using the reference.
-
-### UTR Read1
-```{r, eval = FALSE}
-#update the file in this chunk and two chunks down
-input.dir = "/projects/b1042/GoyalLab/egrody/20230929_Goyal_P1_BarcodeseqVISER/analysis/dualRead/"
-output.dir = "/projects/b1042/GoyalLab/egrody/20230929_Goyal_P1_BarcodeseqVISER/analysis/forBLAST/"
-readsdirectory <- paste0(input.dir, "W2/") #let's start with just one for now; we will try separately for each sample
-
-# Get list of CSV files in the directory
-file_name <- list.files(readsdirectory, pattern = "*_shavedUtrReads.txt", full.names = TRUE)
-
-# let's read in these reads for now
-temp_data <- read.csv(file_name, header = TRUE) %>% select(target) %>% unique()
-
-```
-### Pairwise LV Dist Histogram
-The first step is to see what the pairwise LV histogram looks like to see if we have more similar or dissimilar sequences.
-```{r}
-set.seed(2059)
-subsample1 = sample(temp_data$target,10000) #can lower to 5k to reduce run time
-subsample2 = sample(temp_data$target,10000)
-subsample3 = sample(temp_data$target,10000)
-BarcodesLv1 = as.integer(stringdistmatrix(subsample1, method = "lv"))
-BarcodesLv2 = as.integer(stringdistmatrix(subsample2, method = "lv"))
-BarcodesLv3 = as.integer(stringdistmatrix(subsample3, method = "lv"))
-lBarcodesLv = length(BarcodesLv1)
-
-BarcodesLv = tibble(
-  lvdist = c(BarcodesLv1, BarcodesLv2, BarcodesLv3),
-  subsamNum = c(rep("subsamping1", lBarcodesLv), rep("subsamping2", lBarcodesLv), rep("subsamping3", lBarcodesLv)))
-
-BarcodesLvHist <- BarcodesLv %>% group_by(subsamNum, lvdist) %>% summarise(length(lvdist)) %>%
-  group_by(subsamNum) %>% mutate(totalNum = sum(`length(lvdist)`), fracLvDist = `length(lvdist)`/totalNum)
-
-BarcodesLvHistPlot <- ggplot(BarcodesLvHist, aes(lvdist, fracLvDist)) +
-  geom_bar(width = 0.5, stat = 'identity') +
-  facet_wrap(facets = vars(subsamNum)) +
+BarcodesLvHistPlot <- ggplot(BarcodesLv, aes(x = lvdist)) + 
+  geom_histogram(aes(y = ..count../sum(..count..)), bins = 30) +
+  scale_y_continuous(labels = scales::percent) +
+  labs(y="Fractional Abundance") +
   theme_classic()
 BarcodesLvHistPlot
 #ggsave(plot = BarcodesLvHistPlot, file = paste0(readsdirectory, 'invitro_LVhist.svg'))
@@ -194,251 +66,186 @@ BarcodesLvHistPlot
 
 ### starcode
 ```{r}
-#update the file in this chunk and two chunks down
-input.dir = "/projects/b1042/GoyalLab/egrody/20230929_Goyal_P1_BarcodeseqVISER/analysis/"
-output.dir = "/projects/b1042/GoyalLab/egrody/20230929_Goyal_P1_BarcodeseqVISER/analysis/forBLAST/"
-readsdirectory <- paste0(input.dir, "W2/") #let's start with just one for now; we will try separately for each sample
+preprocess_starcode <- function(sample, length) {
+  readsdirectory <- paste0(input.dir, sample, "/")
+  
+  # Get list of CSV files in the directory
+  file_name <- list.files(readsdirectory, pattern = "*_shavedReads.txt", full.names = TRUE)
+  
+  # Ensure file_name is not empty
+  if (length(file_name) > 0) {
+    # output for starcode
+    VISER_out <- read.csv(file_name, header = TRUE) %>% select(target)
+    VISER_out$target <- substr(VISER_out$target, 1, length)
+    VISER_out <- VISER_out %>% unique()
+    write.table(VISER_out$target, paste0(output.dir, sample, "shavedReadsList_", length, ".txt"), sep = ",", quote = FALSE, row.names = FALSE, col.names = FALSE)
+  }
+}
 
-# Get list of CSV files in the directory
-file_name <- list.files(readsdirectory, pattern = "*_shavedReads.txt", full.names = TRUE)
 
-# output for starcode
-#manually looped through each of the file output combinations
-VISER_out <- read.csv(file_name, header = TRUE) %>% select(target)
-VISER_out$target <- substr(VISER_out$target, 1, 18)
-VISER_out <- VISER_out %>% unique()
-write.table(VISER_out$target, paste0(readsdirectory, "W2_shavedReadsList_18.txt"), sep = ",", quote = FALSE, row.names = FALSE, col.names = FALSE)
+input.dir = "/projects/b1042/GoyalLab/egrody/20240116_VISER_SALVEseq/EGS004/seqIO/"
+output.dir = "/projects/b1042/GoyalLab/egrody/20240116_VISER_SALVEseq/EGS004/starcode/"
+
+samples = c("VISER_D13", "VISER_D83", "VISER_D195")
+starcode_lengths <- c(18, 24, 30)
+
+for (sample in samples) {
+  for (i in starcode_lengths) {
+    preprocess_starcode(sample, i)
+  }
+}
+
 ```
+I saved three different lengths of target sequences: 18bp, 24bp, and 30bp ("full length"), because starcode has a maximum LV dist of 8. I ran starcode in Quest using the starcodeRun.py script over these files. From that analysis, I got a list of the most popular consensus sequences for each sample for each target length. I used those consensus sequences to identify a cutoff for target reads.
+
 
 ### Target cutoff
 ```{r, eval = FALSE}
-#update the file in this chunk and two chunks down
-input.dir = "/projects/b1042/GoyalLab/egrody/20230929_Goyal_P1_BarcodeseqVISER/analysis/"
-readsdirectory <- paste0(input.dir, "W2/") #let's start with just one for now
-
-# Get list of CSV files in the directory
-file_name <- list.files(readsdirectory, pattern = "*_shavedReads.txt", full.names = TRUE)
-
-# let's read in these reads for now
-VISER_w2_env <- read.csv(file_name, header = TRUE) #%>% select(target) %>% unique()
-
-```
-
-These are the reference sequences:
-```{r}
-envprimer = "CCAGCAGACCCATATCCAACAGG"
-referenceTarget = "ACCCGGCACTGCCAACCAGAGAAGGCAAAG"
-```
-
-Cutoff by LV:
-```{r, eval = FALSE}
-referenceTarget = "ACCCGGCACTGCCAACCAGAGAAGGCAAAG" 
-VISER_w2_env$dist <- NA
-for (i in 1:nrow(VISER_w2_env)) {
-  # Calculate the Levenshtein distance between the current string and the constant
-  dist <- adist(VISER_w2_env$target[i], referencearget)
-  # Assign the distance to the 'dist' column
-  VISER_w2_env$dist[i] <- dist
-}
-
-hist(VISER_w2_env$dist, breaks = 50, xlab = "Levenshtein Distance: recovered to expected")
-```
-This histogram has two peaks: one centered at 9 and one centered at 18.
-
-What are these more dissimilar sequences? Are they divergent or are they similar to each other?
-```{r}
-dissimilar_env <- VISER_w2_env %>% filter(dist > 15)
-similar_env <- VISER_w2_env %>% filter(dist < 16)
-VISER_w2_env_30 <- VISER_w2_env
-VISER_w2_env_30$target <- substr(VISER_w2_env_30$target, 1, 18)
-
-set.seed(2059)
-subsample1 = sample(VISER_w2_env_30$target,5000)
-subsample2 = sample(VISER_w2_env_30$target,5000)
-subsample3 = sample(VISER_w2_env_30$target,5000)
-BarcodesLv1 = as.integer(stringdistmatrix(subsample1, method = "lv"))
-BarcodesLv2 = as.integer(stringdistmatrix(subsample2, method = "lv"))
-BarcodesLv3 = as.integer(stringdistmatrix(subsample3, method = "lv"))
-lBarcodesLv = length(BarcodesLv1)
-
-BarcodesLv = tibble(
-  lvdist = c(BarcodesLv1, BarcodesLv2, BarcodesLv3),
-  subsamNum = c(rep("subsamping1", lBarcodesLv), rep("subsamping2", lBarcodesLv), rep("subsamping3", lBarcodesLv)))
-
-BarcodesLvHist <- BarcodesLv %>% group_by(subsamNum, lvdist) %>% summarise(length(lvdist)) %>%
-  group_by(subsamNum) %>% mutate(totalNum = sum(`length(lvdist)`), fracLvDist = `length(lvdist)`/totalNum)
-
-BarcodesLvHistPlot <- ggplot(BarcodesLvHist, aes(lvdist, fracLvDist)) +
-  geom_bar(width = 0.5, stat = 'identity') +
-  facet_wrap(facets = vars(subsamNum)) +
-  theme_classic()
-BarcodesLvHistPlot
-```
-Even when just looking at the more dissimilar sequences, we see that they have some sequences that are more similar and some that are divergent. So just setting a cutoff based on the reference genome sequence is not helping us distinguish between real target sequences and PCR/sequencing error.
-
-I ran starcode on all the sequences. Read in all starcode consensus sequences:
-```{r}
-main_folder <- "/projects/b1042/GoyalLab/egrody/20230929_Goyal_P1_BarcodeseqVISER/analysis/starcode"
-lengths = c("18", "24", "30")
-samples = c("invitro", "W0", "W2")
-subfolders <- file.path(main_folder, samples)
-
-starcodeTarget <- matrix(NA, nrow = length(samples), ncol = length(lengths))
-rownames(starcodeTarget) <- samples
-colnames(starcodeTarget) <- lengths
-
-
-# Loop through the subfolders and files
-for (folder_path in subfolders) {
-  for (bp in lengths) {
-    # List all files in the subfolder with a specific file name structure
-    file_list <- list.files(path = folder_path, pattern = paste0("*",bp,"_d8.txt"), full.names = TRUE)
-    # Check if any files were found
-    if (length(file_list) > 0) {
-      # Read the first entry from each file and add it to the dataframe
-      first_entry_data <- lapply(file_list, function(file) {
-        first_entry <- read.table(file, header = FALSE, sep = "\t", stringsAsFactors = FALSE, nrows = 1) %>% select(V1)  # Change nrows if you need more than one row
-        return(first_entry)
-      })
+postprocess_starcode <- function(sample, length, readsdirectory) {
+  # Get list of CSV files in the directory
+  all_files <- list.files(readsdirectory, pattern = "*_d8.txt", full.names = TRUE)
+  file_name <- all_files[grepl(sample, all_files) & grepl(length, all_files)]
   
-      # Add the data to the combined dataframe with a unique name
-      split <- unlist(strsplit(folder_path, "/"))
-      sample <- split[length(split)]
-      starcodeTarget[sample, bp] <- do.call(rbind, first_entry_data)[[1]]
-      
-    }
+  # Ensure file_name is not empty
+  if (length(file_name) > 0) {
+    # output for starcode
+    VISER_out <- read.csv(file_name, header = FALSE, sep = "\t") %>% slice(1:5)
+    colnames(VISER_out) <- c("consensus", "count")
+    starcode_consensus[sample, length] <<- VISER_out$consensus[1]
+  }
+  return(starcode_consensus)
+}
+
+
+input.dir = "/projects/b1042/GoyalLab/egrody/20240116_VISER_SALVEseq/EGS004/starcode/"
+
+samples = c("VISER_D13", "VISER_D83", "VISER_D195")
+starcode_lengths <- c("18_", "24_", "30_")
+starcode_consensus <- data.frame(matrix(NA, nrow = length(samples), ncol = length(starcode_lengths)))
+rownames(starcode_consensus) <- samples
+colnames(starcode_consensus) <- starcode_lengths
+
+for (sample in samples) {
+  for (i in starcode_lengths) {
+    postprocess_starcode(sample, i, input.dir)
   }
 }
 
-# let's look at the distance of these things to the reference. Just looking at the full length sequences here
-for (row in c(7,8,9)) {
-  print(starcodeTarget[row])
-  print(adist(starcodeTarget[row], referenceTarget))
-}
 
 ```
-Note that we can ignore W0 since we know it's not going to have any actual targets. But we'll leave it here for now.
 
-Now, let's compare the LV dist of all the reads to these target sequences. This next chunk will take a good amount of time to run, about 10 minutes
+Cutoff by LV
 ```{r, eval = FALSE}
-# reading in the data
-main_folder <- "/projects/b1042/GoyalLab/egrody/20230929_Goyal_P1_BarcodeseqVISER/analysis"
-lengths = c("18", "24", "30")
-samples = c("invitro", "W0", "W2")
-subfolders <- file.path(main_folder, samples)
-
-allVISER <- list()
-
-
-# Loop through the subfolders and files
-for (folder_path in subfolders) {
-  # List all files in the subfolder with a specific file name structure
-  file_list <- list.files(path = folder_path, pattern = paste0("*shavedReads.txt"), full.names = TRUE)
-  # Check if any files were found
-  if (length(file_list) > 0) {
-    # Read the first entry from each file and add it to the dataframe
-    entry_data <- lapply(file_list, function(file) {
-      entry <- read.table(file, header = TRUE, sep = ",") %>% unique() #%>% select(target) %>% unique()
-      return(entry)
-    })
-
-    # Add the data to the combined dataframe with a unique name
-    split <- unlist(strsplit(folder_path, "/"))
-    sample <- split[length(split)]
-    allVISER[[sample]] <- entry_data
+for (sample in samples) {
+  df <- get(sample)
+  df$dist <- NA
+  for (i in 1:nrow(df)) {
+    # Calculate the Levenshtein distance between the current string and the constant
+    dist <- adist(df$target[i], starcode_consensus[sample, "30_"])
+    # Assign the distance to the 'dist' column
+    df$dist[i] <- dist
+    assign(sample, df)
   }
 }
 
-# to index just one column, do this: allVISER$invitro[[1]]$cellID
-
-
-# comparing to our starcode results
-allVISER_dist <- list()
-# Loop through each data frame in allVISER
-for (sample in names(allVISER)) {
-  VISER_w2_env <- allVISER[[sample]][[1]]
-  VISER_w2_env$dist <- NA
-  consensusTarget <- starcodeTarget[sample, "30"]
-  for (i in 1:nrow(VISER_w2_env)) {
-    dist <- adist(VISER_w2_env$target[i], consensusTarget)
-    VISER_w2_env$dist[i] <- dist
-  }
-  allVISER_dist[[sample]] <- VISER_w2_env
-
-  # Plot the histogram for each data frame (optional)
-  #hist(VISER_w2_env$dist, breaks = 50, xlab = "Levenshtein Distance: recovered to expected", main = sample)
-}
-
-for (sample in names(allVISER_dist)) {
-  plotme <- allVISER_dist[[sample]]$dist
-  hist(plotme, breaks = 50, xlab = "Levenshtein Distance: recovered to consensus", main = sample)
-}
+hist(VISER_D195$dist, breaks = 50, xlab = "Levenshtein Distance: recovered to expected")
 ```
+This histogram has two peaks: one centered at 3 and one centered at 16. Cutoff is 8.
 
-Based on the histograms, I will filter all sequences that have LV dist greater than 9 from the consensus sequence. I will also save the resulting dataframes to make loading easier.
 ```{r}
-for (sample in names(allVISER_dist)) {
-  allVISER_dist[[sample]] <- allVISER_dist[[sample]] %>% filter(dist < 10)
-  write.csv(allVISER_dist[[sample]], paste0(main_folder, "/R/", sample, "_shavedReadsFiltered.csv"), row.names=FALSE)
-}
+VISER_D13_starcodecut <- VISER_D13 %>% filter(dist < 8) %>% select(cellID, UMI) %>% unique() %>% count(cellID) %>% rename(counts = n)
+hist(VISER_D13_starcodecut$counts, ylim = c(0,70), breaks = 50, main = "VISER_D13 from seqIO", xlab = "env UMIs")
 ```
+
+
+### scPathoQuant test analysis
+Instead of using seqIO pipeline, I tested using cellranger count --> scPathoQuant to align reads
+
+```{r}
+input.dir <- "/projects/b1042/GoyalLab/egrody/20240116_VISER_SALVEseq/EGS004/scPathoQuant/VISER_D13/"
+file <- "pathogen_al_gene_counts_mac239.csv"
+VISER_scPQ <- read.csv(paste0(input.dir, file), header = TRUE) %>% rename(cellID = cell_barcode) %>% 
+  mutate(cellID = str_sub(cellID, end = -3)) %>% unique()
+
+#compare to seqIO analysis
+hist(VISER_scPQ$umi, breaks = 50, main = "VISER_D13 from scPathoQuant", xlab = "env UMIs")
+```
+
+Overlap?
+```{r}
+scPQ_v_seqIO <- left_join(VISER_D13_starcodecut, VISER_scPQ, by = "cellID") %>% filter(!is.na(umi))
+cat("Correlation between seqIO and scPathoQuant env counts:", cor(scPQ_v_seqIO$counts, scPQ_v_seqIO$umi))
+corrplot <- ggplot(data = scPQ_v_seqIO, aes(x=counts, y=umi)) +
+  geom_point() + 
+  labs(x = "seqIO counts", y = "scPathoQuant counts", title = "VISER D13 env+ cells") +
+  theme_classic()
+corrplot
+
+VISER_D13_prestarcode <- VISER_D13 %>% select(cellID, UMI) %>% unique() %>% count(cellID) %>% rename(counts = n)
+scPQ_v_seqIOfull <- left_join(VISER_D13_prestarcode, VISER_scPQ, by = "cellID") %>% filter(!is.na(umi))
+cat("Correlation between seqIO prestarcode and scPathoQuant env counts:", cor(scPQ_v_seqIO$counts, scPQ_v_seqIO$umi))
+corrplot <- ggplot(data = scPQ_v_seqIO, aes(x=counts, y=umi)) +
+  geom_point() + 
+  labs(x = "seqIO counts", y = "scPathoQuant counts", title = "VISER D13 env+ cells") +
+  theme_classic()
+corrplot
+```
+
+
+
+
+
+
+
+## Next steps
 
 ### Linking to 10X
 Read back in VISER sequences.
 ```{r}
-output.dir <- "/projects/b1042/GoyalLab/egrody/20231017_VISER/scViralQuant/"
-SingleCell_invitro_umap <- read.csv(paste0(output.dir, "invitro_SingleCellumap_env.csv")) #%>% filter(SingleCellcount > 0)
-SingleCell_w2_umap <- read.csv(paste0(output.dir, "w2_SingleCellumap_env.csv")) #%>% filter(SingleCellcount > 0)
-SingleCell_invitro_umap_10X <- SingleCell_invitro_umap %>% mutate(log1pSingleCell = log1p(SingleCellcount))
-SingleCell_w2_umap_10X <- SingleCell_w2_umap %>% mutate(log1pSingleCell = log1p(SingleCellcount))
+output.dir <- "/projects/b1042/GoyalLab/egrody/20240116_VISER_SALVEseq/EGS004/scRNAseq/"
+SingleCell_d13_umap <- read.csv(paste0(output.dir, "d13_SingleCellUMAP.csv")) %>% rename(SingleCellcount = Count) %>% select(-X)
+#SingleCell_d13_umap_10X <- SingleCell_d13_umap %>% mutate(log1pSingleCell = log1p(SingleCellcount))
 ```
 
 Updated the variables to be the preclustered 10X UMAP coordinates
 ```{r}
-VISER_invitro <- allVISER_dist[["invitro"]] %>% select(-dist, -target) %>% unique() %>% count(cellID)
-VISER_w2 <- allVISER_dist[["W2"]] %>% select(-dist, -target) %>% unique() %>% count(cellID)
-
-invitro_paint_umap = full_join(SingleCell_invitro_umap_10X, VISER_invitro, by = "cellID") %>% rename(VISERcount = n) %>% 
+d13_paint_umap = full_join(SingleCell_d13_umap, VISER_D13_prestarcode, by = "cellID") %>% rename(VISERcount = counts) %>% 
                     mutate(log2ViserCount = log2(VISERcount))
-invitro_paint_umap[is.na(invitro_paint_umap)] <- 0
-w2_paint_umap = full_join(SingleCell_w2_umap_10X, VISER_w2, by = "cellID") %>% rename(VISERcount = n) %>% 
-                    mutate(log2ViserCount = log2(VISERcount))
-w2_paint_umap[is.na(w2_paint_umap)] <- 0
+d13_paint_umap[is.na(d13_paint_umap)] <- 0
 
 # how many cells from each method?
-totalvirus_10X <- sum(invitro_paint_umap$log1pSingleCell != 0, na.rm = TRUE)
-totalvirus_10X <- sum(w2_paint_umap$log1pSingleCell != 0, na.rm = TRUE)
-#totalvirus_VISER <- invitro_paint_umap %>% select(log2SingleCell) %>% filter(log2SingleCell > 0) %>% nrow()
-totalvirus_VISER <- sum(invitro_paint_umap$log2ViserCount != 0, na.rm = TRUE)
-totalvirus_VISER <- sum(w2_paint_umap$log2ViserCount != 0, na.rm = TRUE)
-#totalvirus_VISER <- invitro_paint_umap %>% select(log2ViserCount) %>% filter(log2ViserCount > 0) %>% nrow()
-# did it two different ways because I was surprised that this was the outcome; 10X seems low and VISER seems high
+cat("env+ cells from 10X:", sum(d13_paint_umap$SingleCellcount != 0, na.rm = TRUE), 
+    "\nenv+ cells from seqIO (all):", sum(d13_paint_umap$log2ViserCount != 0, na.rm = TRUE))
+
+d13_paint_umap_left = left_join(SingleCell_d13_umap, VISER_D13_prestarcode, by = "cellID") %>% rename(VISERcount = counts) %>% 
+                    mutate(log2ViserCount = log2(VISERcount))
+d13_paint_umap_left[is.na(d13_paint_umap_left)] <- 0
+
+# how many cells from each method?
+cat("\nenv+ cells from seqIO (anchored):", sum(d13_paint_umap_left$log2ViserCount != 0, na.rm = TRUE))
+
+
+d13_paint_umap = full_join(SingleCell_d13_umap, VISER_scPQ, by = "cellID") %>% 
+  rename(VISERcount = umi) %>% select(-gene) %>%
+                    mutate(log2ViserCount = log2(VISERcount))
+d13_paint_umap[is.na(d13_paint_umap)] <- 0
+
+# how many cells from each method?
+cat("env+ cells from 10X:", sum(d13_paint_umap$SingleCellcount != 0, na.rm = TRUE), 
+    "\nenv+ cells from scPQ (all):", sum(d13_paint_umap$log2ViserCount != 0, na.rm = TRUE))
+
+d13_paint_umap_left = left_join(SingleCell_d13_umap, VISER_scPQ, by = "cellID") %>% rename(VISERcount = umi) %>% select(-gene) %>%
+                    mutate(log2ViserCount = log2(VISERcount))
+d13_paint_umap_left[is.na(d13_paint_umap_left)] <- 0
+
+# how many cells from each method?
+cat("\nenv+ cells from scPQ (anchored):", sum(d13_paint_umap_left$log2ViserCount != 0, na.rm = TRUE))
 ```
 
-Not sure why I started using full join here instead of left join (which retains the UMAP'ed cells) or inner join (which keeps only cells in common). Let me see if it makes a difference.
+
+
 ```{r}
-test_invitro_paint_umap = left_join(SingleCell_invitro_umap_10X, VISER_invitro, by = "cellID") %>% rename(VISERcount = n) %>% 
-                    mutate(log2ViserCount = log2(VISERcount))
-test_invitro_paint_umap[is.na(test_invitro_paint_umap)] <- 0
-test_w2_paint_umap = left_join(SingleCell_w2_umap_10X, VISER_w2, by = "cellID") %>% rename(VISERcount = n) %>% 
-                    mutate(log2ViserCount = log2(VISERcount))
-test_w2_paint_umap[is.na(test_w2_paint_umap)] <- 0
-
-
-test_invitro_paint_umap = left_join(SingleCell_invitro_umap, VISER_invitro, by = "cellID") %>% rename(VISERcount = n) %>% 
-                    mutate(log2ViserCount = log2(VISERcount))
-test_invitro_paint_umap[is.na(test_invitro_paint_umap)] <- 0
-test_w2_paint_umap = left_join(SingleCell_w2_umap, VISER_w2, by = "cellID") %>% rename(VISERcount = n) %>% 
-                    mutate(log2ViserCount = log2(VISERcount))
-test_w2_paint_umap[is.na(test_w2_paint_umap)] <- 0
-
-totalvirus_10X <- sum(test_invitro_paint_umap$log1pSingleCell != 0, na.rm = TRUE)
-totalvirus_10X <- sum(test_w2_paint_umap$log1pSingleCell != 0, na.rm = TRUE)
-#totalvirus_VISER <- invitro_paint_umap %>% select(log2SingleCell) %>% filter(log2SingleCell > 0) %>% nrow()
-totalvirus_VISER <- sum(test_invitro_paint_umap$log2ViserCount != 0, na.rm = TRUE)
-totalvirus_VISER <- sum(test_w2_paint_umap$log2ViserCount != 0, na.rm = TRUE)
-#totalvirus_VISER <- invitro_paint_umap %>% select(log2ViserCount) %>% filter(log2ViserCount > 0) %>% nrow()
-
+#did not run below here
 paint_identities_umap <- test_invitro_paint_umap %>% mutate(identity = case_when(
     log2ViserCount > 0 & log1pSingleCell > 0 ~ "both",
     log2ViserCount > 0 ~ "Viser",
