@@ -987,7 +987,121 @@ Read back in VISER data with env counts. See EGS002VISER.Rm for the analysis tha
 ```{r}
 input.dir <- "/projects/b1042/GoyalLab/egrody/20230929_VISER/analysis/seqIOdualRead/splits/cleaned/"
 VISER_w2_whitelist <- read.csv(paste0(input.dir, "w2_VISER_whitelist_uniqued.csv"))
+```
 
+The sample FASTQ files were divided into multiple "splits" or "chunks" (used interchangeably) to improve processing speed thru the upstream seqIO analysis and avoid memory issues. Now we read all the splits in to reconstruct the full dataset.
+
+### Loading in splits
+```{r}
+main_folder <- "/projects/b1042/GoyalLab/egrody/20230929_VISER/analysis/dualRead/"
+samples = c("PL_env", "PL_tat1", "PL_tat2")
+subfolders <- file.path(main_folder, samples)
+
+SALVE_PLenv_full <- data.frame()
+SALVE_PLtat1_full <- data.frame()
+SALVE_PLtat2_full <- data.frame()
+
+
+# Read in shaved reads
+
+```
+
+First, we ensure that our cell barcodes are present in the 10X 3'v3.1 whitelist:
+```{r}
+whitelist_location <- "/home/egy2296/packages/cellranger-7.2.0/lib/python/cellranger/barcodes/3M-february-2018.txt.gz"
+whitelist <- as.list(fread(whitelist_location, sep = "\n", header = FALSE, data.table = FALSE)$V1)
+
+SALVE_PLenv_whitelist <- SALVE_PLenv_full %>% filter(cellID %in% whitelist)
+SALVE_PLtat1_whitelist <- SALVE_PLtat1_full %>% filter(cellID %in% whitelist)
+SALVE_PLtat2_whitelist <- SALVE_PLtat2_full %>% filter(cellID %in% whitelist)
+
+```
+For these datasets, we filter out the following percentages (rounded) of cellIDs which are likely artifacts: 23% from invitro, 31% from W2, and 71% from W0.
+
+
+Next, we trim divergent env sequences. We start by loading in the most populous sequences from our starcode analysis. For reference, these sequences are as follows:
+invitro: ACACTGCACTGCGAACCAGAGAAGGCAAA
+W2: ACACTGCACTGCCACCCAGAGAGGGCAAAG
+W0: CTGAAGATCGGAAGAGCGTCGTGTAGG
+```{r}
+# trim by distance to starcode results
+
+main_folder <- "/projects/b1042/GoyalLab/egrody/20230929_VISER/analysis/starcode"
+subfolders <- file.path(main_folder, samples)
+
+starcodeTarget <- matrix(nrow = length(samples), ncol = 1)
+rownames(starcodeTarget) <- samples
+colnames(starcodeTarget) <- "30"
+
+
+# Loop through the subfolders and files
+for (folder_path in subfolders) {
+    # List all files in the subfolder with a specific file name structure
+    file_list <- list.files(path = folder_path, pattern = paste0("*30_d8.txt"), full.names = TRUE)
+    # Check if any files were found
+    if (length(file_list) > 0) {
+      # Read the first entry from each file and add it to the dataframe
+      first_entry_data <- lapply(file_list, function(file) {
+        first_entry <- read.table(file, header = FALSE, sep = "\t", stringsAsFactors = FALSE, nrows = 1) %>% select(V1)  # Change nrows if you need more than one row
+        return(first_entry)
+      })
+  
+      # Add the data to the combined dataframe with a unique name
+      split <- unlist(strsplit(folder_path, "/"))
+      sample <- split[length(split)]
+      starcodeTarget[sample] <- do.call(rbind, first_entry_data)[[1]]
+  }
+}
+starcodeTarget <- na.omit(starcodeTarget)
+
+# Add LV dist column
+
+VISER_invitro_whitelist$dist <- adist(VISER_invitro_whitelist$target, starcodeTarget["invitro"])
+VISER_W2_whitelist$dist <- adist(VISER_W2_whitelist$target, starcodeTarget["W2"])
+VISER_W0_whitelist$dist <- adist(VISER_W0_whitelist$target, starcodeTarget["W0"])
+
+# Plotting
+plotme <- VISER_W2_whitelist$dist
+hist(plotme, breaks = 50, xlab = "Levenshtein Distance: recovered to consensus", main = "W2")
+plotme <- VISER_W0_whitelist$dist
+hist(plotme, breaks = 50, xlab = "Levenshtein Distance: recovered to consensus", main = "W0")
+plotme <- VISER_invitro_whitelist$dist
+hist(plotme, breaks = 50, xlab = "Levenshtein Distance: recovered to consensus", main = "invitro")
+
+
+# Trimming at 10
+VISER_invitro_whitelist <- VISER_invitro_whitelist %>% filter(dist < 10) %>% select(-dist, -target) %>% unique() %>% count(cellID)
+VISER_W2_whitelist <- VISER_W2_whitelist %>% filter(dist < 10) %>% select(-dist, -target) %>% unique() %>% count(cellID)
+VISER_W0_whitelist <- VISER_W0_whitelist %>% filter(dist < 10) %>% select(-dist, -target) %>% unique() %>% count(cellID)
+
+output.dir <- "/projects/b1042/GoyalLab/egrody/20230929_VISER/analysis/seqIOdualRead/splits/cleaned/"
+
+write.csv(VISER_invitro_whitelist, paste0(output.dir, "invitro_VISER_whitelist_uniqued.csv"))
+write.csv(VISER_W2_whitelist, paste0(output.dir, "w2_VISER_whitelist_uniqued.csv"))
+write.csv(VISER_W0_whitelist, paste0(output.dir, "w0_VISER_whitelist_uniqued.csv"))
+```
+
+Finally, let's filter out cellIDs with UMIs = 1 as we can't confirm that these are real:
+```{r}
+VISER_invitro_whitelist <- VISER_invitro_whitelist %>% filter(n > 1)
+VISER_W2_whitelist <- VISER_W2_whitelist %>% filter(n > 1)
+VISER_W0_whitelist <- VISER_W0_whitelist %>% filter(n > 1)
+```
+
+
+### Linking to 10X
+Read back in 10X data with env counts and UMAP coordinates. See EGS002scRNAseq.Rm for the analysis that generated these datasets.
+```{r}
+output.dir <- "/projects/b1042/GoyalLab/egrody/20231017_VISER/analysis/scViralQuant/outputs/"
+SingleCell_invitro_umap <- read.csv(paste0(output.dir, "invitro_SingleCellumap_env.csv")) #%>% filter(SingleCellcount > 0)
+SingleCell_w2_umap <- read.csv(paste0(output.dir, "w2_SingleCellumap_env.csv")) #%>% filter(SingleCellcount > 0)
+SingleCell_invitro_umap_10X <- SingleCell_invitro_umap %>% mutate(log1pSingleCell = log1p(SingleCellcount))
+SingleCell_w2_umap_10X <- SingleCell_w2_umap %>% mutate(log1pSingleCell = log1p(SingleCellcount))
+
+#output.dir <- "/projects/b1042/GoyalLab/egrody/20230929_VISER/analysis/seqIOdualRead/splits/cleaned/"
+#VISER_invitro_full <- read.csv(paste0(output.dir, "invitro_VISER_whitelist_uniqued.csv"))
+#VISER_W2_full <- read.csv(paste0(output.dir, "w2_VISER_whitelist_uniqued.csv"))
+#when reading in, remember to filter UMIs = 1 if desired
 ```
 
 Updated the variables to be the preclustered 10X UMAP coordinates.
@@ -1014,6 +1128,45 @@ totalvirus_SALVEseq <- sum(VISER_SALVEseq_left$SALVEseqcount != 0, na.rm = TRUE)
 ```
 
 
+```{r}
+invitro_paint_umap = full_join(SingleCell_invitro_umap_10X, VISER_invitro_whitelist, by = "cellID") %>% rename(VISERcount = n) %>% 
+                    mutate(log2ViserCount = log2(VISERcount))
+invitro_paint_umap[is.na(invitro_paint_umap)] <- 0
+w2_paint_umap = full_join(SingleCell_w2_umap_10X, VISER_W2_whitelist, by = "cellID") %>% rename(VISERcount = n) %>% 
+                    mutate(log2ViserCount = log2(VISERcount))
+w2_paint_umap[is.na(w2_paint_umap)] <- 0
+
+# how many env+ cells from each method?
+totalvirus_10X <- sum(invitro_paint_umap$log1pSingleCell != 0, na.rm = TRUE)
+totalvirus_10X <- sum(w2_paint_umap$log1pSingleCell != 0, na.rm = TRUE)
+#totalvirus_VISER <- invitro_paint_umap %>% select(log2SingleCell) %>% filter(log2SingleCell > 0) %>% nrow()
+totalvirus_VISER <- sum(invitro_paint_umap$log2ViserCount != 0, na.rm = TRUE)
+totalvirus_VISER <- sum(w2_paint_umap$log2ViserCount != 0, na.rm = TRUE)
+#totalvirus_VISER <- invitro_paint_umap %>% select(log2ViserCount) %>% filter(log2ViserCount > 0) %>% nrow()
+# did it two different ways because I was surprised that this was the outcome; 10X seems low and VISER seems high
+```
+
+To see what are in common, now we use left_join to look at only the cells with 10X anchors:
+```{r}
+test_invitro_paint_umap = left_join(SingleCell_invitro_umap_10X, VISER_invitro_whitelist, by = "cellID") %>% rename(VISERcount = n) %>% 
+                    mutate(log2ViserCount = log2(VISERcount))
+test_invitro_paint_umap[is.na(test_invitro_paint_umap)] <- 0
+test_w2_paint_umap = left_join(SingleCell_w2_umap_10X, VISER_W2_whitelist, by = "cellID") %>% rename(VISERcount = n) %>% 
+                    mutate(log2ViserCount = log2(VISERcount))
+test_w2_paint_umap[is.na(test_w2_paint_umap)] <- 0
+
+
+totalvirus_10X <- sum(test_invitro_paint_umap$log1pSingleCell != 0, na.rm = TRUE)
+totalvirus_10X <- sum(test_w2_paint_umap$log1pSingleCell != 0, na.rm = TRUE)
+#totalvirus_VISER <- invitro_paint_umap %>% select(log2SingleCell) %>% filter(log2SingleCell > 0) %>% nrow()
+totalvirus_VISER <- sum(test_invitro_paint_umap$log2ViserCount != 0, na.rm = TRUE)
+totalvirus_VISER <- sum(test_w2_paint_umap$log2ViserCount != 0, na.rm = TRUE)
+#totalvirus_VISER <- invitro_paint_umap %>% select(log2ViserCount) %>% filter(log2ViserCount > 0) %>% nrow()
+
+```
+
+I'm not seeing a marked increase in the number of joint cells, which shouldn't be a surprise given that these are extensively PCR'ed, well-mixed samples.
+^Later: Not sure what this comment means
 
 ### Correlation plots
 ```{r}

@@ -4,8 +4,8 @@
 #SBATCH --job-name=seqIOsplitW0
 #SBATCH -N 1
 #SBATCH -n 1
-#SBATCH --mem=20G
-#SBATCH -t 0:30:00
+#SBATCH --mem=6G
+#SBATCH -t 0:10:00
 #SBATCH --output=/projects/b1042/GoyalLab/egrody/20230929_Goyal_P1_BarcodeseqVISER/scripts/logs/seqIOsplitW0.txt
 #SBATCH --error=/projects/b1042/GoyalLab/egrody/20230929_Goyal_P1_BarcodeseqVISER/scripts/logs/seqIOsplitW0.err
 #SBATCH --verbose

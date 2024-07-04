@@ -5,6 +5,7 @@ import gzip
 import numpy as np
 import regex as regex
 from Bio import SeqIO
+import glob
 import os
 import sys
 
@@ -25,8 +26,10 @@ if not os.path.exists(outputDirectory):
     os.makedirs(outputDirectory)
 
 # Grab two reads
-inputRead1 = f'{sample}*_R1_001.fastq.gz'
-inputRead2 = f'{sample}*_R2_001.fastq.gz'
+endRead1 = "R1_001.fastq.gz"
+endRead2 = "R2_001.fastq.gz"
+inputRead1 = glob.glob(f'{sample}*{endRead1}')
+inputRead2 = glob.glob(f'{sample}*{endRead2}')
 
 # initializing variables
 read1 = []
@@ -48,8 +51,9 @@ shavedReads = []
 fastQCtrim = 77   # update
 
 # take the zipped read files and parse them into reads; update if input is zipped
-R1parsed = SeqIO.parse(gzip.open(inputRead1, "rt"), format="fastq")
-R2parsed = SeqIO.parse(gzip.open(inputRead2, "rt"), format="fastq")
+R1parsed = SeqIO.parse(gzip.open(inputRead1[0], "rt"), format="fastq")
+R2parsed = SeqIO.parse(gzip.open(inputRead2[0], "rt"), format="fastq")
+print("Reads parsed")
 
 # build a dataframe to connect read 1 and read 2 by ID (line 0)
 for record1, record2 in zip(R1parsed, R2parsed):
