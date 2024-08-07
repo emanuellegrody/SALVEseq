@@ -866,6 +866,129 @@ threePrimeOnly <- SingleCell_allviralgenes_w2_filtered%>% filter(env != 0 | nef 
 
 ## Current analysis
 
+We take as an input the scPathoQuant augmented count matrices.
+
+### Loading in reads
+```{r}
+SeuratSALVEseq <- function(file_location, sample_name, output_dir = "/projects/b1042/GoyalLab/egrody/", plots = FALSE, rds = FALSE) {
+  #if you would like to output plots from this pipeline, pass entries for the plots and output_dir variables
+  
+  # Reading in feature matrices
+  data <- Read10X(data.dir = file_location)
+  # Initialize the Seurat object with the raw (non-normalized data)
+  sample <- CreateSeuratObject(counts = data, project = sample_name, min.cells = 3) #no minimum features 
+  # QC
+  sample <- Add_Mito_Ribo_Seurat(sample, species = "macaque")
+  if (plots) {
+    vplot <- VlnPlot(sample, features = c("nFeature_RNA", "nCount_RNA", "percent_mito"), ncol = 3)
+    ggsave(vplot, file = paste0(output_dir, sample_name, "_noQC_violinplot.svg"))
+  }
+  # Normalizing
+  sample <- NormalizeData(sample, verbose = FALSE)
+  # Return the variable
+  return(sample)
+}
+
+PL_env <- SeuratSALVEseq("/projects/b1042/GoyalLab/egrody/20240116_VISER_SALVEseq/analysis/counts/run_count_PL_env/outs/filtered_feature_bc_matrix_scPathoQuant_bbmap/", 
+                     "PL_env", 
+                     output_dir = "/projects/b1042/GoyalLab/egrody/20240116_VISER_SALVEseq/analysis/Seurat/PL_env/", plots = TRUE)
+PL_tat1 <- SeuratSALVEseq("/projects/b1042/GoyalLab/egrody/20240116_VISER_SALVEseq/analysis/counts/run_count_PL_tat1/outs/filtered_feature_bc_matrix_scPathoQuant_bbmap/", 
+                     "PL_tat1", 
+                     output_dir = "/projects/b1042/GoyalLab/egrody/20240116_VISER_SALVEseq/analysis/Seurat/PL_tat1/", plots = TRUE)
+PL_tat2 <- SeuratSALVEseq("/projects/b1042/GoyalLab/egrody/20240116_VISER_SALVEseq/analysis/counts/run_count_PL_tat2/outs/filtered_feature_bc_matrix_scPathoQuant_bbmap/", 
+                     "PL_tat2", 
+                     output_dir = "/projects/b1042/GoyalLab/egrody/20240116_VISER_SALVEseq/analysis/Seurat/PL_tat2/", plots = TRUE)
+```
+
+Next we isolate the viral counts from our Seurat object.
+```{r scPathoCountCellID function}
+scPathoCountCellID <- function(seurat_obj, viral_gene, count_type = "normalized") {
+  if (count_type == "raw") {
+    expression <- GetAssayData(object = seurat_obj, assay = "RNA", slot = "counts")[viral_gene,]
+  }
+  expression <- GetAssayData(object = seurat_obj, assay = "RNA", slot = "data")[viral_gene,]
+  SingleCell <- data.frame(cellID = names(expression),
+                                   Count = unname(expression), stringsAsFactors = FALSE) %>%
+  mutate(cellID = str_sub(cellID, end = -3))
+  return(SingleCell)
+}
+
+output_dir = "/projects/b1042/GoyalLab/egrody/20240116_VISER_SALVEseq/analysis/Seurat/PL_env/"
+PLenv_mac239 <- scPathoCountCellID(PL_env, "mac239")
+write.csv(PLenv_mac239, paste0(output_dir, "PLenv_mac239expression.csv"))
+
+output_dir = "/projects/b1042/GoyalLab/egrody/20240116_VISER_SALVEseq/analysis/Seurat/PL_tat1/"
+PLtat1_mac239 <- scPathoCountCellID(PL_tat1, "mac239")
+write.csv(PLtat1_mac239, paste0(output_dir, "PLtat1_mac239expression.csv"))
+
+output_dir = "/projects/b1042/GoyalLab/egrody/20240116_VISER_SALVEseq/analysis/Seurat/PL_tat2/"
+PLtat2_mac239 <- scPathoCountCellID(PL_tat2, "mac239")
+write.csv(PLtat2_mac239, paste0(output_dir, "PLtat2_mac239expression.csv"))
+```
+
+These cellIDs are already whitelist filtered.
+
+
+Interacting with the data: what does the mac239 expression look like?
+```{r}
+#How many cells have mac239 expression?
+hist(PLenv_mac239$Count)
+hist(PLtat1_mac239$Count)
+hist(PLtat2_mac239$Count)
+
+(sum(PLtat1_mac239$Count == 0) / nrow(PLtat1_mac239))
+
+#How many reads are mac239 reads?
+count_matrix <- GetAssayData(PL_tat1, slot = "counts")
+cell_sums <- colSums(count_matrix)
+PLtat1_allgenes <- data.frame(
+    cellID = names(cell_sums),
+    totalCounts = cell_sums) %>%
+  mutate(cellID = str_sub(cellID, end = -3))
+
+PLtat1_ratio <- inner_join(PLtat1_mac239, PLtat1_allgenes, by = "cellID") %>% mutate(ratio = Count / totalCounts)
+hist(PLtat1_ratio$ratio)
+```
+
+Currently no UMI cutoff set.
+
+
+### Linking to 10X
+Read back in 10X data with env counts and UMAP coordinates. See EGS002scRNAseq.Rm for the analysis that generated these datasets.
+```{r}
+input.dir <- "/projects/b1042/GoyalLab/egrody/20231017_VISER/analysis/scViralQuant/outputs/"
+SingleCell_w2_umap <- read.csv(paste0(input.dir, "w2_SingleCellumap_env.csv")) #%>% filter(SingleCellcount > 0)
+SingleCell_w2_umap_10X <- SingleCell_w2_umap %>% mutate(log1pSingleCell = log1p(SingleCellcount))
+```
+
+Updated the variables to be the preclustered 10X UMAP coordinates.
+```{r}
+w2_paint_umap_full = full_join(SingleCell_w2_umap_10X, PLtat1_mac239, by = "cellID") %>% rename(SALVEseqcount = Count)
+w2_paint_umap_full[is.na(w2_paint_umap_full)] <- 0
+
+# how many mac239+ cells from each method?
+totalvirus_10X <- sum(w2_paint_umap_full$log1pSingleCell != 0, na.rm = TRUE)
+totalvirus_SALVEseq <- sum(w2_paint_umap_full$SALVEseqcount != 0, na.rm = TRUE)
+```
+
+To see what are in common, now we use left_join to look at only the cells with 10X anchors:
+```{r}
+w2_paint_umap = left_join(SingleCell_w2_umap_10X, PLtat1_mac239, by = "cellID") %>% rename(SALVEseqcount = Count)
+w2_paint_umap[is.na(w2_paint_umap)] <- 0
+
+totalvirus_10X <- sum(w2_paint_umap$log1pSingleCell != 0, na.rm = TRUE)
+totalvirus_SALVEseq <- sum(w2_paint_umap$SALVEseqcount != 0, na.rm = TRUE)
+
+```
+
+
+### Link to VISER
+Read back in VISER data with env counts. See EGS002VISER.Rm for the analysis that generated these datasets.
+```{r}
+input.dir <- "/projects/b1042/GoyalLab/egrody/20230929_VISER/analysis/seqIOdualRead/splits/cleaned/"
+VISER_w2_whitelist <- read.csv(paste0(input.dir, "w2_VISER_whitelist_uniqued.csv"))
+```
+
 The sample FASTQ files were divided into multiple "splits" or "chunks" (used interchangeably) to improve processing speed thru the upstream seqIO analysis and avoid memory issues. Now we read all the splits in to reconstruct the full dataset.
 
 ### Loading in splits
@@ -982,6 +1105,29 @@ SingleCell_w2_umap_10X <- SingleCell_w2_umap %>% mutate(log1pSingleCell = log1p(
 ```
 
 Updated the variables to be the preclustered 10X UMAP coordinates.
+```{r}
+VISER_SALVEseq_full = full_join(VISER_w2_whitelist, PLenv_mac239, by = "cellID") %>% rename(SALVEseqcount = Count) %>%
+  rename(VISERcount = n) %>% mutate(log2ViserCount = log2(VISERcount))
+VISER_SALVEseq_full[is.na(VISER_SALVEseq_full)] <- 0
+
+# how many mac239+ cells from each method?
+totalvirus_VISER <- sum(VISER_SALVEseq_full$log2ViserCount != 0, na.rm = TRUE)
+totalvirus_SALVEseq <- sum(VISER_SALVEseq_full$SALVEseqcount != 0, na.rm = TRUE)
+```
+
+To see what are in common, now we use left_join to look at only the cells with VISER anchors:
+```{r}
+VISER_SALVEseq_left = left_join(VISER_w2_whitelist, PLenv_mac239, by = "cellID") %>% rename(SALVEseqcount = Count) %>%
+  rename(VISERcount = n) %>% mutate(log2ViserCount = log2(VISERcount))
+VISER_SALVEseq_left[is.na(VISER_SALVEseq_left)] <- 0
+
+# how many mac239+ cells from each method?
+totalvirus_VISER <- sum(VISER_SALVEseq_left$log2ViserCount != 0, na.rm = TRUE)
+totalvirus_SALVEseq <- sum(VISER_SALVEseq_left$SALVEseqcount != 0, na.rm = TRUE)
+
+```
+
+
 ```{r}
 invitro_paint_umap = full_join(SingleCell_invitro_umap_10X, VISER_invitro_whitelist, by = "cellID") %>% rename(VISERcount = n) %>% 
                     mutate(log2ViserCount = log2(VISERcount))
