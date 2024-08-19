@@ -14,8 +14,8 @@ import gzip
 directory = "/projects/b1042/GoyalLab/egrody/20240116_VISER_SALVEseq/EGS004/seqIO/"
 
 # sample is specified in the shell script
-samples = ("VISER_D13", "VISER_D83", "VISER_D195")
-envstagger = ("CT", "TGC", "")
+samples = ("VISER_D13", "VISER_D83", "VISER_D195", "invitro")
+envstagger = ("CT", "TGC", "", "A")
 sample = sys.argv[1]
 
 index = samples.index(sample)

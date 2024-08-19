@@ -11,4 +11,4 @@
 #SBATCH --verbose
 
 source activate scPathoQuant
-/home/egy2296/packages/scPathoQuant/scpathoquant -10x /projects/b1042/GoyalLab/egrody/20240116_VISER_SALVEseq/analysis/counts/run_count_PL_env/ -op /projects/b1042/GoyalLab/egrody/20240116_VISER_SALVEseq/analysis/scPathoQuant/PL_env/ -p 8 -p2genome /home/egy2296/packages/scPathoQuant/mac239_genome/
+/home/egy2296/packages/scPathoQuant/scpathoquant -10x /projects/b1042/GoyalLab/egrody/20240116_VISER_SALVEseq/EGS003/counts/run_count_PLenv/ -op /projects/b1042/GoyalLab/egrody/20240116_VISER_SALVEseq/EGS003/scPathoQuant/PLenv/ -p 8 -p2genome /home/egy2296/packages/scPathoQuant/mac239_genome/
