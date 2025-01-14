@@ -12,21 +12,28 @@ def count_reads_per_cell(bam_file, chrom, start, end):
     total_reads = 0
     reads_without_cb = 0
     
+    # Pre-fetch the CB tag ID to avoid string comparison in loop
+    cb_tag_id = pysam.libcalignedsegment.CTAG["CB"]
+    
     # Iterate over reads in the specified region
     for read in bam.fetch(chrom, start, end):
+        # Quick position check without creating new objects
+        read_start = read.reference_start
+        if read_start >= end:
+            continue
+        if read_start + 20 <= start:
+            continue
+            
         total_reads += 1
+        
+        # Use low-level tag access for better performance
         try:
-            # Extract the cell barcode (adjust the tag if necessary)
-            cell_barcode = read.get_tag("CB")
-            # Increment the count for this cell
+            cell_barcode = read.get_tag_bytes(cb_tag_id)[0].decode()
             cell_counts[cell_barcode] += 1
-        except KeyError:
-            # Count reads without CB tag
+        except (KeyError, IndexError):
             reads_without_cb += 1
     
-    # Close the BAM file
     bam.close()
-    
     return cell_counts, total_reads, reads_without_cb
 
 if __name__ == "__main__":
@@ -39,12 +46,14 @@ if __name__ == "__main__":
     
     args = parser.parse_args()
     
-    counts, total_reads, reads_without_cb = count_reads_per_cell(args.bam_file, args.chrom, args.start, args.end)
+    counts, total_reads, reads_without_cb = count_reads_per_cell(
+        args.bam_file, args.chrom, args.start, args.end
+    )
     
     # Write results to CSV file
     with open(args.output, 'w', newline='') as csvfile:
         csvwriter = csv.writer(csvfile)
-        csvwriter.writerow(['Cell_ID', 'Read_Count'])  # Write header
+        csvwriter.writerow(['Cell_ID', 'Read_Count'])
         for cell, count in counts.items():
             csvwriter.writerow([cell, count])
     
