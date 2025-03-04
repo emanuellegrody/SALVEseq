@@ -14,17 +14,53 @@ def hamming_distance(s1: str, s2: str) -> int:
     return sum(c1 != c2 for c1, c2 in zip(s1, s2))
 
 
-def umi_error_correction(df: pd.DataFrame) -> pd.DataFrame:
-    """Correct UMI errors within each cell group."""
+def umi_error_correction(df: pd.DataFrame, max_group_size: int = 10000) -> pd.DataFrame:
+    """
+    Correct UMI errors within each cell group using a memory-efficient approach.
 
-    def process_group(group):
+    Args:
+        df: DataFrame with columns 'cellID', 'UMI', 'target', and 'count'
+        max_group_size: Maximum size of groups to process at once
+
+    Returns:
+        DataFrame with corrected UMIs
+    """
+
+    def process_large_group(group):
+        """Process large groups in chunks to avoid memory issues."""
+        # Sort by count descending to prioritize high-count UMIs
+        group = group.sort_values('count', ascending=False)
+
+        umis = group['UMI'].values
+        counts = group['count'].values
+        mask = np.ones(len(umis), dtype=bool)
+
+        # Process in windows, comparing each UMI only to those with higher counts
+        for i in range(len(umis)):
+            if not mask[i]:
+                continue
+            # Only compare with UMIs that have lower counts
+            for j in range(i + 1, min(i + 1000, len(umis))):  # Limit comparison window
+                if not mask[j]:
+                    continue
+                if hamming_distance(umis[i], umis[j]) == 1:
+                    counts[i] += counts[j]
+                    mask[j] = False
+
+        return pd.DataFrame({
+            'cellID': group['cellID'].values[mask],
+            'UMI': umis[mask],
+            'target': group['target'].values[mask],
+            'count': counts[mask]
+        })
+
+    def process_small_group(group):
+        """Process small groups using the original method."""
         if len(group) <= 1:
             return group
 
         umis = group['UMI'].values
         counts = group['count'].values
-        cellids = group['cellID'].values
-        targets = group['target'].values
         mask = np.ones(len(umis), dtype=bool)
 
         for i, j in combinations(range(len(umis)), 2):
@@ -39,14 +75,47 @@ def umi_error_correction(df: pd.DataFrame) -> pd.DataFrame:
                     mask[i] = False
 
         return pd.DataFrame({
-            'cellID': cellids[mask],
+            'cellID': group['cellID'].values[mask],
             'UMI': umis[mask],
-            'target': targets[mask],
+            'target': group['target'].values[mask],
             'count': counts[mask]
         })
 
     print("Performing UMI error correction...")
-    return df.groupby('cellID', group_keys=False).apply(process_group).reset_index(drop=True)
+
+    # Process groups in batches to manage memory
+    corrected_groups = []
+    batch_size = 1000  # Process this many groups before concatenating
+
+    # Get group sizes
+    group_sizes = df.groupby('cellID').size()
+
+    # Process large and small groups separately
+    for batch_start in range(0, len(group_sizes), batch_size):
+        batch_groups = []
+        batch_indices = group_sizes.index[batch_start:batch_start + batch_size]
+
+        for cell_id in batch_indices:
+            group = df[df['cellID'] == cell_id]
+
+            # Choose processing method based on group size
+            if len(group) > max_group_size:
+                processed_group = process_large_group(group)
+            else:
+                processed_group = process_small_group(group)
+
+            batch_groups.append(processed_group)
+
+        # Combine batch results
+        if batch_groups:
+            batch_result = pd.concat(batch_groups, ignore_index=True)
+            corrected_groups.append(batch_result)
+
+        # Print progress
+        print(f"Processed {batch_start + len(batch_indices)} / {len(group_sizes)} groups")
+
+    # Combine all results
+    return pd.concat(corrected_groups, ignore_index=True)
 
 
 def find_closest_barcode(barcode: str, whitelist: set) -> str:
@@ -136,10 +205,15 @@ def main():
     # Save full dataset
     data.to_csv(f"{args.output_dir}VISER_{args.sample_name}_full.csv", index=False)
 
-    # UMI error correction
-    print("Correcting UMI errors...")
+    group_sizes = data.groupby('cellID').size()
+    print(f"\nGroup size statistics:")
+    print(f"Maximum group size: {group_sizes.max()}")
+    print(f"Mean group size: {group_sizes.mean():.2f}")
+    print(f"Number of groups > 10000: {(group_sizes > 10000).sum()}")
+
+    # UMI error correction with monitoring
+    print("\nCorrecting UMI errors...")
     data_umi_corrected = umi_error_correction(data)
-    data_umi_corrected.to_csv(f"{args.output_dir}VISER_{args.sample_name}_UMIcorrect.csv", index=False)
 
     # Cell ID correction
     print("Correcting cell IDs...")
