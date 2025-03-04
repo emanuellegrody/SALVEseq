@@ -1,0 +1,6 @@
+sample,fastq,cell_count
+cDNA,/projects/b1042/GoyalLab/egrody/EGS007LongRead/fromRamon/cDNA/GoyalLab_invitro_cDNA.fastq.gz,9700
+CIe_env,/projects/b1042/GoyalLab/egrody/EGS007LongRead/fromRamon/CIe_env/GoyalLab_invitro_CIe_env.fastq.gz,9700
+CIe_gag,/projects/b1042/GoyalLab/egrody/EGS007LongRead/fromRamon/CIe_gag/GoyalLab_invitro_CIe_gag.fastq.gz,9700
+CIe_tat1,/projects/b1042/GoyalLab/egrody/EGS007LongRead/fromRamon/CIe_tat1/GoyalLab_invitro_CIe_tat1.fastq.gz,9700
+CIe_vif,/projects/b1042/GoyalLab/egrody/EGS007LongRead/fromRamon/CIe_vif/GoyalLab_invitro_CIe_vif.fastq.gz,9700

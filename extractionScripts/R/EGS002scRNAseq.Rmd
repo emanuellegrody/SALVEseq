@@ -5,8 +5,6 @@ date: "2024-01-30"
 output: html_document
 ---
 
-This file has been split from EGS002.Rmd
-
 The goals of this scRNAseq analysis was to recover viral reads from the 10X data. I tried a couple of different strategies to accomplish this:
 * Augmenting the Macaca mulatta reference genome with the SIVmac239 genomes
 ** mac239 genome as one gene "no individual genes"
@@ -16,14 +14,8 @@ The goals of this scRNAseq analysis was to recover viral reads from the 10X data
 The first strategy was used in the Previous Analysis section and will not be pursued moving forward. I found that the implementation of scViralQuant was easier and faster.
 
 ```{r, echo = FALSE}
-library(dplyr)
-library(stringr)
-library(Seurat)
-library(patchwork)
-library(scCustomize)
-library(ggplot2)
-library(reshape2)
-library(svglite)
+source("~/SALVEseq/packages.R")
+source("~/SALVEseq/functions.R")
 ```
 
 
@@ -38,9 +30,9 @@ Once this has been run once, you can skip down to the section "Current Analysis"
 
 ```{r, echo = FALSE}
 # Setting up Seurat object
-w2.data <- Read10X(data.dir = "/projects/b1042/GoyalLab/egrody/20231017_VISER/counts/Mmul_10_mac239full/run_count_W2/outs/filtered_feature_bc_matrix/")
-w0.data <- Read10X(data.dir = "/projects/b1042/GoyalLab/egrody/20231017_VISER/counts/Mmul_10_mac239full/run_count_W0/outs/filtered_feature_bc_matrix/")
-invitro.data <- Read10X(data.dir = "/projects/b1042/GoyalLab/egrody/20231017_VISER/counts/Mmul_10_mac239full/run_count_invitro/outs/filtered_feature_bc_matrix/")
+w2.data <- Read10X(data.dir = "/projects/b1042/GoyalLab/egrody/20231017_EGS002/counts/Mmul_10_mac239full/run_count_W2/outs/filtered_feature_bc_matrix/")
+w0.data <- Read10X(data.dir = "/projects/b1042/GoyalLab/egrody/20231017_EGS002/counts/Mmul_10_mac239full/run_count_W0/outs/filtered_feature_bc_matrix/")
+invitro.data <- Read10X(data.dir = "/projects/b1042/GoyalLab/egrody/20231017_EGS002/counts/Mmul_10_mac239full/run_count_invitro/outs/filtered_feature_bc_matrix/")
 
 # Initialize the Seurat object with the raw (non-normalized data).
 w2 <- CreateSeuratObject(counts = w2.data, project = "w2", min.cells = 3, min.features = 200)
@@ -49,9 +41,9 @@ invitro <- CreateSeuratObject(counts = invitro.data, project = "invitro", min.ce
 
 
 # QC
-w2 <- Add_Mito_Ribo_Seurat(w2, species = "macaque")
-w0 <- Add_Mito_Ribo_Seurat(w0, species = "macaque")
-invitro <- Add_Mito_Ribo_Seurat(invitro, species = "macaque")
+w2 <- Add_Mito_Ribo(w2, species = "macaque")
+w0 <- Add_Mito_Ribo(w0, species = "macaque")
+invitro <- Add_Mito_Ribo(invitro, species = "macaque")
 # Visualize QC metrics as a violin plot
 #vplot <- VlnPlot(invitro, features = c("nFeature_RNA", "nCount_RNA", "percent_mito"), ncol = 3)
 #ggsave(vplot, file = paste0(output.dir, "invitro_preQC_violinplot.svg"))
@@ -119,10 +111,8 @@ To isolate out the mac239 expression data:
 ```{r}
 invitro_mac239_expression = GetAssayData(object = invitro, assay = "RNA", slot = "data")["mac239",]
 w2_mac239_expression = GetAssayData(object = w2, assay = "RNA", slot = "data")["mac239",]
-SingleCell_invitro <- data.frame(cellID = names(invitro_mac239_expression), Count = unname(invitro_mac239_expression), stringsAsFactors = FALSE) %>%
-  mutate(cellID = str_sub(cellID, end = -3))
-SingleCell_w2 <- data.frame(cellID = names(w2_mac239_expression), Count = unname(w2_mac239_expression), stringsAsFactors = FALSE) %>%
-  mutate(cellID = str_sub(cellID, end = -3))
+SingleCell_invitro <- data.frame(cellID = names(invitro_mac239_expression), Count = unname(invitro_mac239_expression), stringsAsFactors = FALSE)
+SingleCell_w2 <- data.frame(cellID = names(w2_mac239_expression), Count = unname(w2_mac239_expression), stringsAsFactors = FALSE) 
 hist(SingleCell_invitro$Count, breaks = 50)
 SingleCell_w2_nozero <- SingleCell_w2 %>% filter(Count > 0)
 hist(SingleCell_w2_nozero$Count, breaks = 50)
@@ -137,7 +127,7 @@ saveRDS(invitro, file = paste0(output.dir, "invitro.rds"))
 ```
 
 ```{r}
-output.dir <- "/projects/b1042/GoyalLab/egrody/20231017_VISER/Seurat/Mmul_10_mac239/"
+output.dir <- "/projects/b1042/GoyalLab/egrody/20231017_EGS002/Seurat/Mmul_10_mac239/"
 # this dataframe includes zeros
 SingleCell_w2 <- read.csv(paste0(output.dir, "w2_10Xmac239expression.csv"))
 SingleCell_invitro <- read.csv(paste0(output.dir, "invitro_10Xmac239expression.csv"))
@@ -152,16 +142,14 @@ w2.umap.coord <- as.data.frame(w2[["umap"]]@cell.embeddings)
 #w0.umap.coord <- as.data.frame(w0[["umap"]]@cell.embeddings)
 invitro.umap.coord <- as.data.frame(invitro[["umap"]]@cell.embeddings)
 
-#SingleCell_umapTest <- data.frame(cellID = names(KLRB1_expression), UMAP1 = test$UMAP_1, UMAP2 = test$UMAP_2, SingleCell_KLRB1_normalizedCounts = unname(KLRB1_expression), stringsAsFactors = FALSE) %>% mutate(cellID = str_sub(cellID, end = -3))
+#SingleCell_umapTest <- data.frame(cellID = names(KLRB1_expression), UMAP1 = test$UMAP_1, UMAP2 = test$UMAP_2, SingleCell_KLRB1_normalizedCounts = unname(KLRB1_expression), stringsAsFactors = FALSE)
 
 # UMAP coordinates joined to mac239 expression
-SingleCell_w2_umap <- data.frame(cellID = rownames(w2.umap.coord), UMAP1 = w2.umap.coord$UMAP_1, UMAP2 = w2.umap.coord$UMAP_2) %>%
-  mutate(cellID = str_sub(cellID, end = -3))
+SingleCell_w2_umap <- data.frame(cellID = rownames(w2.umap.coord), UMAP1 = w2.umap.coord$UMAP_1, UMAP2 = w2.umap.coord$UMAP_2)
 SingleCell_w2_umap <- inner_join(SingleCell_w2_umap, SingleCell_w2, by = "cellID") %>% rename(SingleCellcount = Count)
 write.csv(SingleCell_w2_umap, paste0(output.dir, "w2_SingleCellumap.csv"))
 
-SingleCell_invitro_umap <- data.frame(cellID = rownames(invitro.umap.coord), UMAP1 = invitro.umap.coord$UMAP_1, UMAP2 = invitro.umap.coord$UMAP_2) %>%
-  mutate(cellID = str_sub(cellID, end = -3))
+SingleCell_invitro_umap <- data.frame(cellID = rownames(invitro.umap.coord), UMAP1 = invitro.umap.coord$UMAP_1, UMAP2 = invitro.umap.coord$UMAP_2)
 SingleCell_invitro_umap <- inner_join(SingleCell_invitro_umap, SingleCell_invitro, by = "cellID") %>% rename(SingleCellcount = Count)
 write.csv(SingleCell_invitro_umap, paste0(output.dir, "invitro_SingleCellumap.csv"))
 SingleCell_invitro_umap <- read.csv(paste0(output.dir, "invitro_SingleCellumap.csv")) %>% filter(SingleCellcount > 0)
@@ -176,7 +164,7 @@ SingleCell_invitro_umap <- read.csv(paste0(output.dir, "invitro_SingleCellumap.c
 For this analysis, my reference genome was a concatenated macaque and SIV genome with SIV genes annotated. Rerun all previous processing steps on the Seurat objects and then jump to this chunk.
 
 ```{r}
-output.dir <- "/projects/b1042/GoyalLab/egrody/20231017_VISER/Seurat/Mmul_10_mac239full/"
+output.dir <- "/projects/b1042/GoyalLab/egrody/20231017_EGS002/Seurat/Mmul_10_mac239full/"
 all_genes <- rownames(invitro)
 mac239genes <- c("gag","gag-pol","pol","pol-Vif","Vif","Vif-Vpx","Vpx","Vpr","Vpr-Tat1","Tat1","Tat1-Rev1","env","env-Tat2-Rev2","env-Rev2","env-nef","nef","nef-U3")
 test <- all_genes[grep("env", all_genes)]
@@ -213,8 +201,7 @@ for (gene in mac239genes) {
   #invitro_mac239_together <- rbind(invitro_mac239_together, invitro_data)
 }
 invitro_mac239_together_filtered <- invitro_mac239_together %>% filter(if_any(everything(), ~ . != 0)) %>% 
-  cbind(cellID = rownames(invitro_mac239_together_filtered)) %>%
-  mutate(cellID = str_sub(cellID, end = -3))
+  cbind(cellID = rownames(invitro_mac239_together_filtered))
 
 #gene length normalization
 #Yogesh says this isn't necessary
@@ -245,83 +232,27 @@ heat <- ggplot(melt_invitro, aes(variable, cellID)) +
 
 
 
-## Current analysis
+
 ### scViralQuant
 
 For this analysis, the reference genome is regular macaque reference. Running the scViralQuant package \href{https://github.com/galelab/scViralQuant} creates a new supplemented feature barcode matrix by finding viral reads that were discarded during cellranger count alignment and adding them back to the feature matrix. We read in this updated feature matrix and perform all Seurat analysis steps without alteration.
 
-```{r Seurat function}
-SeuratPipeline <- function(file_location, sample_name, output_dir = "/projects/b1042/GoyalLab/egrody/", plots = FALSE, rds = FALSE) {
-  #if you would like to output plots from this pipeline, pass entries for the plots and output_dir variables
-  
-  # Reading in feature matrices
-  data <- Read10X(data.dir = file_location)
-  # Initialize the Seurat object with the raw (non-normalized data)
-  sample <- CreateSeuratObject(counts = data, project = sample_name, min.cells = 3, min.features = 200)
-  # QC
-  sample <- Add_Mito_Ribo_Seurat(sample, species = "macaque")
-  if (plots) {
-    vplot <- VlnPlot(sample, features = c("nFeature_RNA", "nCount_RNA", "percent_mito"), ncol = 3)
-    ggsave(vplot, file = paste0(output_dir, sample_name, "_preQC_violinplot.svg"))
-  }
-  sample <- subset(sample, subset = nFeature_RNA > 200 & nFeature_RNA < 3500 & nCount_RNA < 20000 & percent_mito < 5)
-  if (plots) {
-    vplot <- VlnPlot(sample, features = c("nFeature_RNA", "nCount_RNA", "percent_mito"), ncol = 3)
-    ggsave(vplot, file = paste0(output_dir, sample_name, "_postQC_violinplot.svg"))
-  }
-  # Normalizing
-  sample <- NormalizeData(sample, verbose = FALSE)
-  # Feature selection
-  sample <- FindVariableFeatures(sample, selection.method = "vst", nfeatures = 2000, verbose = FALSE)
-  # Scaling
-  genes <- rownames(sample)
-  sample <- ScaleData(sample, features = genes, verbose = FALSE)
-  # Linear dimension reduction
-  sample <- RunPCA(sample, features = VariableFeatures(object = sample), verbose = FALSE)
-  if (plots) {
-    eplot <- ElbowPlot(sample, ndims = 50)
-    ggsave(eplot, file = paste0(output_dir, sample_name, "_elbow.svg"))
-  }
-  # Clustering
-  sample <- FindNeighbors(sample, dims = 1:30, verbose = FALSE)
-  sample <- FindClusters(sample, resolution = 0.5, verbose = FALSE)
-  # Dimension reduction
-  sample <- RunUMAP(sample, dims = 1:30, verbose = FALSE)#, umap.method = "umap-learn", metric = "correlation")
-  if (plots) {
-    dplot <- DimPlot(sample, reduction = "umap")
-    ggsave(dplot, file = paste0(output_dir, sample_name, "_umap.svg"))
-  }
-  if (rds) {
-    saveRDS(sample, file = paste0(output_dir, sample_name, ".rds"))
-  }
-  
-  # Return the variable
-  return(sample)
-}
+```{r Seurat}
 
-output_dir = "/projects/b1042/GoyalLab/egrody/20231017_VISER/scRNAseq/"
-w2 <- SeuratPipeline("/projects/b1042/GoyalLab/egrody/20231017_VISER/counts/Mmul_10_only/run_count_W2/outs/filtered_feature_bc_matrix_bbmap/", "w2")
-invitro <- SeuratPipeline("/projects/b1042/GoyalLab/egrody/20231017_VISER/counts/Mmul_10_only/run_count_invitro/outs/filtered_feature_bc_matrix_bbmap/", "invitro")
+output_dir = "/projects/b1042/GoyalLab/egrody/20231017_EGS002/scRNAseq/"
+w2 <- SeuratPipeline("/projects/b1042/GoyalLab/egrody/20231017_EGS002/analysis/counts/Mmul_10_only/run_count_W2/outs/filtered_feature_bc_matrix_bbmap/", "w2")
+invitro <- SeuratPipeline("/projects/b1042/GoyalLab/egrody/20231017_EGS002/analysis/counts/Mmul_10_only/run_count_invitro/outs/filtered_feature_bc_matrix_bbmap/", "invitro")
 
 ```
 
 Next we isolate the viral counts from our Seurat object.
-```{r scViralCountCellID function}
-scViralCountCellID <- function(seurat_obj, viral_gene, count_type = "normalized") {
-  if (count_type == "raw") {
-    expression <- GetAssayData(object = seurat_obj, assay = "RNA", slot = "counts")[viral_gene,]
-  }
-  expression <- GetAssayData(object = seurat_obj, assay = "RNA", slot = "data")[viral_gene,]
-  SingleCell <- data.frame(cellID = names(expression),
-                                   Count = unname(expression), stringsAsFactors = FALSE) %>%
-  mutate(cellID = str_sub(cellID, end = -3))
-  return(SingleCell)
-}
+```{r targetExpressionDF}
 
-SingleCell_w2 <- scViralCountCellID(w2, "mac239")
-SingleCell_invitro <- scViralCountCellID(invitro, "mac239")
-write.csv(SingleCell_w2, paste0(output_dir, "w2_scViralQuantexpression.csv"))
-write.csv(SingleCell_invitro, paste0(output_dir, "invitro_scViralQuantexpression.csv"))
+output.dir <- "/projects/b1042/GoyalLab/egrody/20240116_VISER_SALVEseq/EGS003/EGS002/"
+SingleCell_w2 <- targetExpressionDF(w2, "mac239")
+write.csv(SingleCell_w2, paste0(output.dir, "w2_scVQexpression.csv"))
+SingleCell_invitro <- targetExpressionDF(invitro, "env")
+write.csv(SingleCell_invitro, paste0(output.dir, "invitro_scVQexpression_env.csv"))
 ```
 
 Filtering out cells that express gag or pol. My model for how these sequences show up on 3' sequencing involves accidental PCR products that could generate false cellIDs, so we will exclude them
@@ -334,7 +265,7 @@ mac239genes <- annotations %>% select(V9) %>% rename(gene = V9) %>% mutate(gene 
 viralExpression <- function(data, genes, count_type = "normalized") {
   SingleCell_allviralgenes = data.frame(matrix(ncol = length(genes), nrow = length(colnames(data))))
   colnames(SingleCell_allviralgenes) = genes
-  temp <- data.frame(cellID = colnames(data)) %>% mutate(cellID = str_sub(cellID, end = -3))
+  temp <- data.frame(cellID = colnames(data))
   rownames(SingleCell_allviralgenes) = temp$cellID
   if (count_type == "raw") {
       for (gene in genes) {
@@ -402,7 +333,6 @@ What is the LV dist histogram of gag-expressing cellIDs?
 
 
 
-
 If we want to plot a heatmap of the expression of each viral gene for each cellID, we can run this chunk:
 ```{r heatmap of viral genes}
 melt_w2 <- melt(SingleCell_allviralgenes_w2_filtered)
@@ -417,13 +347,12 @@ heat
 
 Exporting counts with UMAP coordinates:
 ```{r}
-scUMAPViralCellID <- function(seurat_obj, viralCellID_var) {
-  #requires scViralCountCellID() output passed as viralCellID_var
+scUMAPViralCellID <- function(seurat_obj, geneCellID_var) {
+  #requires sctargetExpressionDF() output passed as geneCellID_var
   
   coords <- as.data.frame(seurat_obj[["umap"]]@cell.embeddings)
-  umap <- data.frame(cellID = rownames(coords), UMAP1 = coords$UMAP_1, UMAP2 = coords$UMAP_2) %>%
-    mutate(cellID = str_sub(cellID, end = -3))
-  joint <- inner_join(umap, viralCellID_var, by = "cellID") #%>% rename(SingleCellcount = Count)
+  umap <- data.frame(cellID = rownames(coords), UMAP1 = coords$UMAP_1, UMAP2 = coords$UMAP_2)
+  joint <- inner_join(umap, geneCellID_var, by = "cellID") #%>% rename(SingleCellcount = Count)
   return(joint)
 }
 
@@ -437,36 +366,49 @@ Madeline pointed out that to get rid of the infected cells clustering together, 
 To do this, I use the scViralQuant alignment information from the previous section, run Seurat on the non-scViralQuant original matrices, and join the two datasets by cellID.
 
 ```{r}
-w2_painted <- SeuratPipeline("/projects/b1042/GoyalLab/egrody/20231017_VISER/counts/Mmul_10_only/run_count_W2/outs/raw_feature_bc_matrix/", "w2")
+w2_painted <- SeuratPipeline("/projects/b1042/GoyalLab/egrody/20231017_EGS002/counts/Mmul_10_only/run_count_W2/outs/raw_feature_bc_matrix/", "w2")
 
-SingleCell_w2_painted <- scViralCountCellID(w2_painted, "env")
+SingleCell_w2_painted <- sctargetExpressionDF(w2_painted, "env")
 SingleCell_w2_painted_umap <- scUMAPViralCellID(w2_painted, SingleCell_w2)
 ```
 
 Plotting.
 ```{r}
-plotUMAP <- function(data, colorby, title, output_dir, saveas) {
-  umap <- ggplot(data, aes(x = UMAP1, y = UMAP2)) +
-  geom_point(aes_string(color = data$colorby), size = 1, shape = 16) +
-  scale_color_gradient(low = "gray93", high = "darkblue") +
-  theme_classic() +
-  theme(legend.position = "bottom",
-        legend.title = element_text(size = rel(0.6)),
-        legend.text = element_text(size = rel(0.6), angle = 30),
-        axis.text = element_blank(),
-        axis.ticks = element_blank()) +
-  labs(title =  title, color = "")
-  ggsave(umap, file = paste0(output_dir, file_name, ".svg"))
-}
-
 plotUMAP(data = SingleCell_w2_painted_umap,
          colorby = log1pSingleCell,
          title = "scViralQuant onto preclustered 10X, log counts",
          output_dir = output_dir,
          saveas = "scviralquant_preclustered10X_w2")
-
 ```
 
+## Current analysis
+### cellranger Mmulmac
+
+Current approach to getting viral reads from 10X data is to align to concatenated macaque + SIVmac239 genomes with full mac239 annotation ("Mmul_10_mac239annot" or "Mmul_10_mac239full").
 
 
+```{r Seurat}
+
+output_dir = "/projects/b1042/GoyalLab/egrody/20231017_EGS002/analysis/"
+w2 <- SeuratPipeline("/projects/b1042/GoyalLab/egrody/20231017_EGS002/counts/Mmul_10_mac239full/run_count_W2/outs/filtered_feature_bc_matrix/", "w2")
+invitro <- SeuratPipeline("/projects/b1042/GoyalLab/egrody/20231017_EGS002/counts/Mmul_10_mac239full/run_count_invitro/outs/filtered_feature_bc_matrix/", "invitro")
+
+# alternatively, use alignment to Mmul_10_env
+invitro <- SeuratPipeline("/projects/b1042/GoyalLab/egrody/20231017_EGS002/counts/Mmul_10_mac239env/run_count_invitro/outs/filtered_feature_bc_matrix/", "invitro")
+```
+
+Next we isolate the viral counts from our Seurat object.
+```{r targetExpressionDF}
+
+output.dir <- "/projects/b1042/GoyalLab/egrody/20231017_EGS002/counts/Mmul_10_mac239env/" #update
+SingleCell_w2 <- targetExpressionDF(w2, "env")
+write.csv(SingleCell_w2, paste0(output.dir, "w2_Mmulmac_env.csv"))
+SingleCell_w2 <- targetExpressionDF(w2, "tat") #no cells
+#write.csv(SingleCell_w2, paste0(output.dir, "w2_Mmulmac_tat.csv"))
+SingleCell_invitro <- targetExpressionDF(invitro, "env")
+write.csv(SingleCell_invitro, paste0(output.dir, "invitro_Mmulmac_env.csv"))
+
+SingleCell_invitro <- targetExpressionDF(invitro, "mac239")
+write.csv(SingleCell_invitro, paste0(output.dir, "invitro_Mmulmacenv_mac239.csv"))
+```
 

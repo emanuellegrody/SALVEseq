@@ -1,0 +1,11 @@
+Processing sample: GoyalLab_invitro_cDNA
+Completed processing: GoyalLab_invitro_cDNA
+Processing sample: GoyalLab_invitro_CIe_env
+Completed processing: GoyalLab_invitro_CIe_env
+Processing sample: GoyalLab_invitro_CIe_gag
+Completed processing: GoyalLab_invitro_CIe_gag
+Processing sample: GoyalLab_invitro_CIe_tat1
+Completed processing: GoyalLab_invitro_CIe_tat1
+Processing sample: GoyalLab_invitro_CIe_vif
+Completed processing: GoyalLab_invitro_CIe_vif
+All samples processed!

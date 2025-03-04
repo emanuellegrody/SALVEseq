@@ -1,0 +1,8 @@
+sample,fastq_1,fastq_2,expected_cells
+08M171_W33_PBMC,,,10000
+08M171_D14_PBMC,,,10000
+08M171_W33_Gut,,,8000
+08M171_W2and6_Gut,,,1000
+08M171_W6_Lymph,,,10000
+08M171_W33_Lymph,,,10000
+Intestine_D9_P4,,,10000

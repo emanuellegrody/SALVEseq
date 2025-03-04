@@ -1,0 +1,262 @@
+---
+title: "EGS005SALVEseq"
+author: "Emanuelle Grody"
+date: "2024-Fall"
+output: html_document
+---
+
+This file is for processing SALVEseq reads
+Copied from EGS003SALVEseq on 9/10/2024
+
+```{r, echo = FALSE}
+source("~/SALVEseq/packages.R")
+source("~/SALVEseq/functions.R")
+```
+
+# env and tat Analysis
+## Current analysis
+
+### Loading Single Cell data
+We load in the 10X data with viral counts and UMAP coordinates (see EGS004scRNAseq.Rm for the analysis that generated these datasets):
+```{r}
+input.dir <- "/projects/b1042/GoyalLab/egrody/20240116_VISER_SALVEseq/EGS004/scRNAseq/"
+SingleCell_d195_umap <- read.csv(paste0(input.dir, "d195_virusfreeUMAPscPathoQuant.csv"))
+SingleCell_d195_umap_env <- SingleCell_d195_umap %>% select(cellID, UMAP1, UMAP2, env) %>%
+  mutate(log1pSingleCell = log1p(env)) %>%
+  mutate(cellID = str_sub(cellID, end = -3))
+SingleCell_d195_umap_tat <- SingleCell_d195_umap %>% select(cellID, UMAP_1, UMAP_2, tat) %>%
+  mutate(log1pSingleCell = log1p(tat)) %>%
+  mutate(cellID = str_sub(cellID, end = -3))
+
+count_envpos <- SingleCell_d195_umap_env %>% filter(env != 0)
+count_anypos <- SingleCell_d195_umap %>% select(-UMAP1, -UMAP2, -cellID, -X) %>%
+  filter(rowSums(across(where(is.numeric), ~ . != 0)) > 0)
+```
+
+
+### Loading in SALVEseq 
+Now loading the SALVEseq v2 reads.
+```{r}
+PL_env <- Read10X(data.dir = "/projects/b1042/GoyalLab/egrody/20241010_SALVEBhatt/analysis/counts/count_PLenv_mac239annot/outs/filtered_feature_bc_matrix/") %>% CreateSeuratObject()
+
+expression_data <- FetchData(PL_env, vars = "env")
+#ids <- rownames(expression_data)
+SALVE_d195 <- data.frame(cellID = rownames(expression_data), env = expression_data)
+
+
+PL_gag <- Read10X(data.dir = "/projects/b1042/GoyalLab/egrody/20241010_SALVEBhatt/analysis/counts/count_PLgag_Mmulmac/outs/filtered_feature_bc_matrix/") %>% CreateSeuratObject()
+
+expression_data <- FetchData(PL_gag, vars = "env")
+#ids <- rownames(expression_data)
+SALVE_d195 <- data.frame(cellID = rownames(expression_data), env = expression_data)
+```
+
+### Linking to 10X
+To see what are in common, we use left_join to look at only the cells with 10X anchors:
+```{r}
+env_paint_umap = left_join(SingleCell_d195_umap_env, SALVE_d195, by = "cellID")
+env_paint_umap[is.na(env_paint_umap)] <- 0
+
+left_both <- sum((env_paint_umap$log1pSingleCell != 0 & env_paint_umap$log1pSALVE != 0), na.rm = TRUE)
+left_10Xonly <- sum(env_paint_umap$log1pSingleCell != 0, na.rm = TRUE) - left_both
+left_SALVEonly <- sum(env_paint_umap$log1pSALVE != 0, na.rm = TRUE) - left_both
+cat("\n\nenv\nTotal cells: \t\t", nrow(env_paint_umap),
+  "\nCells in both: \t\t", left_both,
+  "\nCells in 10X only: \t", left_10Xonly,
+    "\nCells in SALVE only: \t", left_SALVEonly)
+
+```
+
+```{r}
+input.dir <- "/projects/b1042/GoyalLab/egrody/20240116_VISER_SALVEseq/EGS004/scRNAseq/counts/cellranger_count_D195/outs/raw_feature_bc_matrix/"
+d195_raw <- Read10X(input.dir)
+
+# Calculate UMI counts per barcode
+umi_counts <- colSums(d195_raw)
+
+# Create a data frame with barcode and UMI count
+plot_data <- data.frame(barcode = names(umi_counts), 
+                        umi_count = umi_counts)
+
+# Sort the data frame by UMI count in descending order
+plot_data <- plot_data %>% 
+  arrange(desc(umi_count)) %>%
+  mutate(barcode = substr(barcode, 1, nchar(barcode) - 2))
+
+#isolating out only the SALVE+ cellIDs
+SALVE_cellids <- SALVE_d195 %>% select(cellID)
+cat(sum(SALVE_cellids[[1]] %in% plot_data$barcode), "out of", nrow(SALVE_cellids), 
+    "SALVEseq cellIDs are found in raw cellID list")
+
+# Add a column to indicate whether each barcode should be highlighted
+plot_data$highlight <- plot_data$barcode %in% SALVE_cellids[[1]]
+
+# Add rank and handle zero/negative values
+plot_data <- plot_data %>%
+  arrange(desc(umi_count)) %>%
+  mutate(
+    rank = row_number(),
+    umi_count_adj = ifelse(umi_count <= 0, 0.1, umi_count)  # Replace 0 or negative with 0.1
+  )
+
+# Create the plot
+umi_rank_plot <- ggplot(plot_data %>% arrange(highlight), aes(x = rank, y = umi_count_adj)) +
+  geom_point(aes(color = highlight), alpha = 0.6) +
+  scale_x_log10(
+    labels = scales::label_number(),
+    breaks = scales::breaks_log(n = 6)
+  ) +
+  scale_y_log10(
+    labels = scales::label_number(),
+    breaks = scales::breaks_log(n = 6)
+  ) +
+  scale_color_manual(values = c("FALSE" = "grey", "TRUE" = "red")) +
+  labs(x = "Rank of Barcode", 
+       y = "UMI Count (Adjusted)",
+       title = "UMI Count vs. Barcode Rank (Log-Scaled Axes)") +
+  theme_minimal() +
+  theme(legend.position = "none")
+
+umi_rank_plot
+
+# Save the plot
+#ggsave("/projects/b1042/GoyalLab/egrody/20240116_VISER_SALVEseq/EGS003/joint/barcodeRankPlot_total_env.png", umi_rank_plot, width = 10, height = 8)
+```
+
+
+### Correlation plots
+```{r}
+
+#  now let's repeat the correlation analysis above
+jointTableFilter = inner_join(scViralQuant_env, PL_env_clean, by = "cellID") 
+jointTableTat = inner_join(scViralQuant_tat, PL_tat1_clean, by = "cellID") 
+
+#  mutate(log1pViserCount = log1p(VISERcount), log2ViserCount = log2(VISERcount), lnViserCount = log(VISERcount), normalizedViserCount = 1000*VISERcount/sum(VISERcount), logNormViser = log1p(normalizedViserCount), log1pSingleCell = log1p(SingleCellcount))
+
+
+output.dir <- "/projects/b1042/GoyalLab/egrody/20240116_VISER_SALVEseq/EGS003/Seurat/"
+cat("Correlation of env between 10X data and log1p SALVE data:", cor(jointTableFilter$log1pSingleCell, jointTableFilter$log1pSALVE))
+corrplot <- ggplot(data = jointTableFilter, aes(x=log1pSALVE, y=log1pSingleCell)) +
+  geom_point() + 
+  xlim(0,7) + 
+  ylim(0,7)
+corrplot
+ggsave(corrplot, file = paste0(output.dir, "PLenv_correlationplot.svg"))
+
+cat("Correlation of tat between 10X data and log1p SALVE data:", cor(jointTableTat$log1pSingleCell, jointTableTat$log1pSALVE))
+corrplot <- ggplot(data = jointTableTat, aes(x=log1pSALVE, y=log1pSingleCell)) +
+  geom_point() +
+  xlim(0,7) +
+  ylim(0,7)
+ggsave(corrplot, file = paste0(output.dir, "PLtat1_correlationplot.svg"))
+```
+
+
+### Paint UMAPs
+```{r}
+
+output.dir <- "/projects/b1042/GoyalLab/egrody/20240116_VISER_SALVEseq/EGS003/joint/"
+umap_env_salve <- create_umap_plot(
+  data = env_paint_umap,
+  method = "SALVE",
+  title = "env from SALVE",
+  output_file_name = "umap_env_SALVE.svg",
+  output_dir = output.dir
+)
+create_umap_plot(
+  data = tat_paint_umap,
+  method = "SALVE",
+  title = "tat from SALVE",
+  output_file_name = "umap_tat_SALVE.svg",
+  output_dir = output.dir
+)
+create_umap_plot(
+  data = env_paint_umap,
+  method = "10X",
+  title = "env from 10X",
+  output_file_name = "umap_env_SingleCell.svg",
+  output_dir = output.dir
+)
+create_umap_plot(
+  data = tat_paint_umap,
+  method = "10X",
+  title = "env from 10X",
+  output_file_name = "umap_env_SingleCell.svg",
+  output_dir = output.dir
+)
+```
+
+```{r betweenMethods UMAP}
+
+create_identity_umap(
+   data = env_paint_umap,
+   title = "env between methods",
+   output_file_name = "umap_env_comparison.svg",
+   output_dir = output.dir
+)
+
+create_identity_umap(
+   data = tat_paint_umap,
+   title = "tat between methods",
+   output_file_name = "umap_tat_comparison.svg",
+   output_dir = output.dir
+)
+```
+
+### Unanchored cells
+Do the unanchored cells exist in the raw cellIDs from 10X?
+```{r}
+input.dir <- "/projects/b1042/GoyalLab/egrody/20231017_VISER/analysis/counts/Mmul_10_only/run_count_invitro/outs/raw_feature_bc_matrix_bbmap/"
+invitro_raw <- Read10X(input.dir)
+
+# Calculate UMI counts per barcode
+umi_counts <- colSums(invitro_raw)
+
+# Create a data frame with barcode and UMI count
+plot_data <- data.frame(barcode = names(umi_counts), 
+                        umi_count = umi_counts)
+
+# Sort the data frame by UMI count in descending order
+plot_data <- plot_data %>% 
+  arrange(desc(umi_count)) %>%
+  mutate(barcode = substr(barcode, 1, nchar(barcode) - 2))
+
+#isolating out only the SALVE+ cellIDs
+SALVE_cellids <- invitro_paint_umap_full %>% filter(log1pSALVE > 0) %>% select(cellID)
+cat(sum(SALVE_cellids[[1]] %in% plot_data$barcode), "out of", nrow(SALVE_cellids), 
+    "SALVEseq cellIDs are found in raw cellID list")
+
+# Add a column to indicate whether each barcode should be highlighted
+plot_data$highlight <- plot_data$barcode %in% SALVE_cellids[[1]]
+
+# Add rank and handle zero/negative values
+plot_data <- plot_data %>%
+  arrange(desc(umi_count)) %>%
+  mutate(
+    rank = row_number(),
+    umi_count_adj = ifelse(umi_count <= 0, 0.1, umi_count)  # Replace 0 or negative with 0.1
+  )
+
+# Create the plot
+umi_rank_plot <- ggplot(plot_data %>% arrange(highlight), aes(x = rank, y = umi_count_adj)) +
+  geom_point(aes(color = highlight), alpha = 0.6) +
+  scale_x_log10(
+    labels = scales::label_number(),
+    breaks = scales::breaks_log(n = 6)
+  ) +
+  scale_y_log10(
+    labels = scales::label_number(),
+    breaks = scales::breaks_log(n = 6)
+  ) +
+  scale_color_manual(values = c("FALSE" = "grey", "TRUE" = "red")) +
+  labs(x = "Rank of Barcode", 
+       y = "UMI Count (Adjusted)",
+       title = "UMI Count vs. Barcode Rank (Log-Scaled Axes)") +
+  theme_minimal() +
+  theme(legend.position = "none")
+
+umi_rank_plot
+
+# Save the plot
+ggsave("/projects/b1042/GoyalLab/egrody/20240116_VISER_SALVEseq/EGS003/joint/barcodeRankPlot_total_env.svg", umi_rank_plot, width = 10, height = 8, device = "svg")
+```

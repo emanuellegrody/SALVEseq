@@ -1,0 +1,5 @@
+[W::hts_idx_load3] The index file is older than the data file: /projects/b1042/GoyalLab/egrody/20231017_EGS002/counts/Mmul_10_mac239full/run_count_invitro/outs/possorted_genome_bam.bam.bai
+Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_cells.py", line 152, in <module>
+    if cell_barcode_counts:
+NameError: name 'cell_barcode_counts' is not defined

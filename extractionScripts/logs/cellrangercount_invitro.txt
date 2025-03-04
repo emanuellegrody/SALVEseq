@@ -1,0 +1,10 @@
+Martian Runtime - v4.0.11
+
+RuntimeError: pipestance 'run_count_invitro' already exists and is locked by another Martian instance. If you are sure no other Martian instance is running, delete the _lock file in /projects/b1042/GoyalLab/egrody/20231017_EGS002/counts/Mmul_10_mac239env/run_count_invitro and start Martian again.
+
+2025-03-04 10:51:37 Shutting down.
+Saving pipestance info to "run_count_invitro/run_count_invitro.mri.tgz"
+For assistance, upload this file to 10x Genomics by running:
+
+cellranger upload <your_email> "run_count_invitro/run_count_invitro.mri.tgz"
+

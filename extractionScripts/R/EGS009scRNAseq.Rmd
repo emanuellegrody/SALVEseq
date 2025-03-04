@@ -1,0 +1,284 @@
+---
+title: "EGS009scRNAseq"
+author: "Emanuelle Grody"
+date: "2024-12-03"
+output: html_document
+---
+
+
+```{r, echo = FALSE}
+source("~/SALVEseq/packages.R")
+source("~/SALVEseq/functions.R")
+```
+
+
+# Single Cell Data
+
+We take as an input the count matrix(es). To get from base calls to count matrices, run cellranger with custom reference Mmu (no viral genes).
+
+## Functions
+```{r}
+
+# Function to analyze gene expression in multiple Seurat objects
+analyze_seurat_genes <- function(seurat_list, genes_of_interest, min_count = 0) {
+  # Initialize results list
+  results <- list()
+  
+  # Initialize empty dataframe for counts
+  count_df <- data.frame()
+  
+  # Loop through each Seurat object
+  for (i in seq_along(seurat_list)) {
+    seurat_obj <- seurat_list[[i]]
+    obj_name <- names(seurat_list)[i]
+    
+    # Check if genes exist in the object
+    genes_present <- genes_of_interest %in% rownames(GetAssayData(seurat_obj))
+    results[[obj_name]] <- data.frame(
+      gene = genes_of_interest,
+      present = genes_present
+    )
+    
+    # Get cell IDs and counts for present genes
+    if (any(genes_present)) {
+      counts <- GetAssayData(seurat_obj, slot = "counts")
+      present_genes <- genes_of_interest[genes_present]
+      
+      for (gene in present_genes) {
+        gene_counts <- counts[gene, ]
+        temp_df <- data.frame(
+          object = obj_name,
+          cell_id = colnames(seurat_obj),
+          gene = gene,
+          count = as.numeric(gene_counts)
+        )
+        # Filter for counts above minimum threshold
+        temp_df <- temp_df[temp_df$count > min_count, ]
+        count_df <- rbind(count_df, temp_df)
+      }
+    }
+  }
+  
+  return(list(
+    gene_presence = results,
+    expression_data = count_df
+  ))
+}
+
+# For exporting vRNA+ cells
+reshape_gene_data <- function(df) {
+  wide_df <- df %>%
+    pivot_wider(
+      id_cols = cell_id,
+      names_from = gene,
+      values_from = count,
+      values_fill = 0
+    )
+  
+  expected_cols <- c("pol", "env", "nef")
+  missing_cols <- setdiff(expected_cols, names(wide_df))
+  
+  if (length(missing_cols) > 0) {
+    for (col in missing_cols) {
+      wide_df[[col]] <- 0
+    }
+  }
+  
+  wide_df <- wide_df %>%
+    select(cell_id, all_of(expected_cols))
+  
+  return(wide_df)
+}
+```
+
+
+## Current analysis
+### Seurat loading
+
+```{r}
+output_dir = "/projects/b1042/GoyalLab/egrody/20241127_EGS009/analysis/Seurat/"
+input_root = "/projects/b1042/GoyalLab/egrody/20241127_EGS009/analysis/counts/"
+
+objects <- list()
+tissues <- c("P","L","G")
+conditions <- c("acute", "ART")
+for (i in tissues) {
+  for (j in conditions) {
+    sample_name <- paste(i, j, "GEX", sep = "_")
+    input_dir <- paste0(input_root, "run_count_", sample_name, "/outs/filtered_feature_bc_matrix/")
+    if (sample_name != "G_acute_GEX") {
+      objects[[sample_name]] <- SeuratPipeline(input_dir, sample_name = sample_name, output_dir = output_dir, plots = "TRUE")
+    }
+  }
+}
+```
+
+### Mmulmac alignment analysis
+```{r}
+output_dir = "/projects/b1042/GoyalLab/egrody/20241127_EGS009/analysis/Seurat/GEX_Mmulmac/"
+input_root = "/projects/b1042/GoyalLab/egrody/20241127_EGS009/analysis/counts/GEX_Mmulmac/"
+
+objects <- list()
+tissues <- c("P","L","G")
+conditions <- c("acute", "ART")
+for (i in tissues) {
+  for (j in conditions) {
+    sample_name <- paste(i, j, "GEX", sep = "_")
+    input_dir <- paste0(input_root, "run_count_", sample_name, "/outs/filtered_feature_bc_matrix/")
+    if (sample_name != "G_acute_GEX") {
+      objects[[sample_name]] <- SeuratPipeline(input_dir, sample_name = sample_name, output_dir = output_dir, plots = "TRUE")
+    }
+  }
+}
+```
+
+```{r}
+# not sure about this list
+viral_genes <- c("5'U3",
+"5'R",
+"5'U5",
+"5'UTR",
+"gag",
+"pol",
+"vif",
+"vpx",
+"vpr",
+"tat",
+"rev",
+"env",
+"nef",
+"3'U3",
+"3'R",
+"3'U5")
+
+results <- analyze_seurat_genes(objects, viral_genes, min_count = 1)
+
+# vRNA+ cells:
+uniquecells <- results$expression_data %>% select(cell_id) %>%
+  unique()
+cat("Number of cells vRNA+: ", nrow(uniquecells))
+
+comparecells_GEX <- results$expression_data %>% filter(gene == "pol" | gene == "env" | gene =="nef")
+
+comparecells_GEX <- reshape_gene_data(comparecells_GEX)
+
+output_dir <- "/projects/b1042/GoyalLab/egrody/20241127_EGS009/analysis/joint/"
+file_path <- paste0(output_dir, "comparecells_GEX_Mmulmac.csv")
+write.csv(comparecells_GEX, file_path)
+```
+
+
+
+## Reuse code
+
+### Without virus UMAP coords
+If we are loading in the filtered data without viral gene annotation, we join the scPathoQuant output (not normalized?) to the cellIDs. 
+
+```{r}
+virusfreeUMAPscPathoQuant <- function(sample, input.directory, seurat_object, gene_list = NULL) {
+  expression_file <- paste0(input.directory, sample, "/pathogen_al_gene_counts_mac239.csv")
+  if (!file.exists(expression_file)) {
+    stop("scPathoQuant output file does not exist: ", expression_file)
+  }
+  
+  expression <- tryCatch({
+    read.csv(expression_file)
+  }, error = function(e) {
+    stop("Error reading CSV file: ", e$message)
+  })
+  
+  if (!is.data.frame(expression)) {
+    stop("Expression data is not a dataframe")
+  }
+  
+  if (ncol(expression) < 3) {
+    stop("Expression data should have at least 3 columns: cell ID, gene, and count")
+  }
+  
+  colnames(expression)[1:3] <- c("cellID", "Gene", "Count")
+  if (!is.null(gene_list)) {
+    expression <- expression[expression$Gene %in% gene_list, ]
+    if (nrow(expression) == 0) {
+      stop("No genes from the provided gene_list found in the expression data")
+    }
+  } else {
+    gene_list <- unique(expression$Gene)
+  }
+  if (!requireNamespace("Seurat", quietly = TRUE)) {
+    stop("Seurat package is required but not installed")
+  }
+  
+  if (!"umap" %in% names(seurat_object@reductions)) {
+    stop("UMAP reduction not found in Seurat object")
+  }
+  
+  cell_metadata <- data.frame(
+    cellID = colnames(seurat_object),
+    UMAP1 = seurat_object@reductions$umap@cell.embeddings[,1],
+    UMAP2 = seurat_object@reductions$umap@cell.embeddings[,2]
+  )
+  
+  expression_wide <- reshape2::dcast(expression, cellID ~ Gene, value.var = "Count", fill = 0)
+  combined_data <- merge(cell_metadata, expression_wide, by = "cellID", all.x = TRUE)
+  
+  combined_data[is.na(combined_data)] <- 0
+  missing_genes <- setdiff(gene_list, colnames(combined_data))
+  if (length(missing_genes) > 0) {
+    combined_data[, missing_genes] <- 0
+  }
+  
+  gene_cols <- setdiff(colnames(combined_data), c("cellID", "UMAP1", "UMAP2"))
+  combined_data <- combined_data[, c("cellID", "UMAP1", "UMAP2", gene_cols)]
+  
+  return(combined_data)
+}
+
+output.dir <- "/projects/b1042/GoyalLab/egrody/20240116_VISER_SALVEseq/EGS004/scRNAseq/"
+input.dir <- "/projects/b1042/GoyalLab/egrody/20240116_VISER_SALVEseq/EGS004/scRNAseq/scPathoQuant/"
+gene_list <- c("5pU3", "5pR", "5pU5", "5pUTR",
+               "gag", "pol", "vif", "vpx",
+               "vpr", "tat", "rev", "env",
+               "nef", "3pU3", "3pR", "3pU5")
+combined_d13 <- virusfreeUMAPscPathoQuant("D13", input.dir, d13, gene_list)
+write.csv(combined_d13, paste0(output.dir, "d13_virusfreeUMAPscPathoQuant.csv"))
+combined_d83 <- virusfreeUMAPscPathoQuant("D83", input.dir, d83, gene_list)
+write.csv(combined_d83, paste0(output.dir, "d83_virusfreeUMAPscPathoQuant.csv"))
+combined_d195 <- virusfreeUMAPscPathoQuant("D195", input.dir, d195, gene_list)
+write.csv(combined_d195, paste0(output.dir, "d195_virusfreeUMAPscPathoQuant.csv"))
+```
+
+### scPathoQuant UMAP coords
+If we are loading in the scPathoQuant data, we next isolate the viral counts from the Seurat objects.
+```{r output viral expression .csvs}
+objects <- list(d13 = d13, d83 = d83, d195 = d195)
+genes <- c("env", "tat", "mac239")
+output_dir <- "/projects/b1042/GoyalLab/egrody/20240116_VISER_SALVEseq/EGS004/scRNAseq/"
+save_scPQ_expression(
+  objects, 
+  genes, 
+  output_dir = output_dir)
+
+```
+
+### Mmul10 UMAP painted with scViralQuant (skip)
+
+I use the scViralQuant alignment information from the previous section, run Seurat on the non-scViralQuant original matrices, and join the two datasets by cellID.
+
+```{r}
+w2_painted <- SeuratPipeline("/projects/b1042/GoyalLab/egrody/20231017_VISER/counts/Mmul_10_only/run_count_W2/outs/raw_feature_bc_matrix/", "w2")
+
+SingleCell_w2_painted <- scViralCountCellID(w2_painted, "env")
+SingleCell_w2_painted_umap <- scUMAPViralCellID(w2_painted, SingleCell_w2)
+```
+
+Plotting.
+```{r}
+plotUMAP(data = SingleCell_w2_painted_umap,
+         colorby = log1pSingleCell,
+         title = "scViralQuant onto preclustered 10X, log counts",
+         output_dir = output_dir,
+         saveas = "scviralquant_preclustered10X_w2")
+```
+
+
+
