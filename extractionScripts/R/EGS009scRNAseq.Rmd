@@ -220,7 +220,34 @@ plotUMAP(data = SingleCell_w2_painted_umap,
 
 # 2025
 ## Saturation analysis
-### mac239 from GEX
+### mac239 from Pacute
+```{r}
+input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/bamsort/split/"
+reads_GEX <- read.csv(paste0(input.dir, "P_acute_GEX_bamsort_split_inside.csv"))
+
+molecules_GEX <- reads_GEX %>% select(-reads)
+
+output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/saturation/"
+results <- sample_cellID(molecules_GEX)
+summary <- analyze_cellID_sampling(results, title = "cellID Saturation: GEX")
+results_file <- paste0(output.dir, "Pacute_sample_cellID_results.csv")
+summary_file <- paste0(output.dir, "Pacute_sample_cellID_summary.csv")
+write.csv(results, results_file, row.names = FALSE)
+write.csv(summary, summary_file, row.names = FALSE)
+
+results <- sample_UMI_weighted(reads_GEX)
+summary <- analyze_UMI_sampling(results, title = paste0("Weighted UMI Saturation: GEX"))
+results_file <- paste0(output.dir, "Pacute_sample_UMI_results.csv")
+summary_file <- paste0(output.dir, "Pacute_sample_UMI_summary.csv")
+write.csv(results, results_file, row.names = FALSE)
+write.csv(summary, summary_file, row.names = FALSE)
+
+model_results <- fit_models(results, target_coverage = 95)
+model_results <- fit_models(results, target_coverage = 98.7)
+model_results <- fit_models(results, target_coverage = 100)
+```
+
+### mac239 from Lacute
 ```{r summary}
 input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/bamsort/split/"
 reads_summary <- read.csv(paste0(input.dir, "all_samples_summary.txt"), header = TRUE)

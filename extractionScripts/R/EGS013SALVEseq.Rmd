@@ -279,7 +279,7 @@ Combining the coordinates and clusters from SingleCell aligned to Mmul_10 with t
 ```{r}
 SingleCell_Pacute_clusters <- read.csv("/projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/counts/Mmul_10/Pacute_Mmul10_clusters.csv", row.names = "X")
 SingleCell_Pacute_mac239 <- read.csv("/projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/counts/Mmul_10_mac239/Pacute_Mmulmac_mac239.csv", row.names = "X")
-Pacute_SALVE <- read.csv("/projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/bamsort/Pacute_SALVE_filtered.csv")
+Pacute_SALVE <- read.csv("/projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/bamsort/Pacute_SALVE_filtered.csv", row.names = "X")
 
 SingleCell_Pacute_mac239 <- SingleCell_Pacute_mac239 %>% select(cellID, mac239)
 SingleCell_Pacute <- left_join(SingleCell_Pacute_clusters, SingleCell_Pacute_mac239, by = "cellID")
@@ -289,8 +289,7 @@ Pacute_paint_umap[is.na(Pacute_paint_umap)] <- 0
 ```
 
 
-Quick plotting things
-```{r}
+```{r plotting}
 # Function to create Seurat-style DimPlot
 plot_clusters <- function(data, 
                          label_clusters = TRUE,
@@ -387,72 +386,43 @@ write.csv(invitro_paint_umap, paste0(output_dir, "invitro_paint_umap.csv"))
 
 ```
 
-
-###Haven't gotten past here
 Quick correlation plot:
-```{r}
-innerjoin <- invitro_paint_umap %>%
-  mutate(log2SingleCell = ifelse(Count == 0, NA, log2SingleCell)) %>%
-  mutate(Count = ifelse(log2SingleCell == 0, 0, Count)) %>%
-  filter(!is.na(log2SingleCell)) %>% filter(!is.na(Count))
+```{r correlation plotting}
+innerjoin <- inner_join(SingleCell_Pacute_mac239, Pacute_SALVE, by = "cellID")
+Pacute_innerjoin <- left_join(SingleCell_Pacute_clusters, innerjoin, by = "cellID")
+Pacute_innerjoin[is.na(Pacute_innerjoin)] <- 0
 
-innerjoin <- invitro_paint_umap %>%
-  mutate(log2SingleCell = ifelse(Count == 0, NA, log2SingleCell)) %>%
-  mutate(Count = ifelse(log2SingleCell == 0, 0, Count)) %>%
-  filter(log2SingleCell != 0)
-
-cat("Correlation of invitro between 10X and SALVE data:", cor(innerjoin$log2SingleCell, innerjoin$Count))
-corrplot <- ggplot(data = innerjoin, aes(x=Count, y=log2SingleCell)) +
+cat("Correlation of invitro between 10X and SALVE (total_lessLTR):", cor(Pacute_innerjoin$mac239, Pacute_innerjoin$total_lessLTR))
+corrplot <- ggplot(data = Pacute_innerjoin, aes(x=total_lessLTR, y=mac239)) +
   geom_point() + 
   xlim(0,10) + 
-  ylim(0,10)
+  ylim(0,10) +
+  theme_minimal() + 
+  theme(aspect.ratio = 1) + 
+  labs(title = "inner_join correlation")
 corrplot
-ggsave(corrplot, file = paste0(output_dir, "intersect_correlationplot.svg"))
+output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS013/joint/subset/"
+ggsave(corrplot, file = paste0(output.dir, "innerjoin_correlationplot.svg"))
 ```
 
-
-Let's pull the list of cellIDs that are vRNA positive (just from 10X itself (SPQ)).
-```{r}
-input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS003/EGS002/"
-SingleCell_umap_env <- read.csv(paste0(input.dir, "invitro_scVQexpression_env.csv"))
-SingleCell_umap_env <- SingleCell_umap_env %>% mutate(log1pSingleCell = log1p(Count)) %>% select(-X)
-
-##cheap way out:
-list_of_cellIDs <- SingleCell_umap_env %>% filter(log1pSingleCell >= 1) %>%
-  select(cellID) %>% 
-  mutate(cellID = paste0(cellID, "-1"))
-list_of_cellIDs <- list_of_cellIDs$cellID
-
-##skip for now
-#invitro_paint_umap_full = full_join(SingleCell_umap_env, PL_env, by = "cellID")
-#invitro_paint_umap_full[is.na(invitro_paint_umap_full)] <- 0
-#SALVE_cellids <- invitro_paint_umap_full %>% filter(log1pSALVE > 0) %>% select(cellID) %>% mutate(cellID = paste0(cellID, "-1"))
-```
-Or use above's "SingleCell_invitro"
-
-### DEG analysis
+### DEG analysis (break point)
 
 ```{r}
-# Create your subset of cells
-list_of_cells <- invitro_paint_umap %>% filter(invitro_paint_umap$Count != 0) #for SALVE
-#list_of_cells <- invitro_paint_umap %>% filter(invitro_paint_umap$SingleCellcount != 0) #for 10X
+list_of_cells <- Pacute_paint_umap %>% filter(total_lessLTR != 0) #for SALVE
+list_of_cells <- Pacute_paint_umap %>% filter(mac239 != 0) #for 10X
 list_of_cells <- list_of_cells$cellID
-#invitro <- readRDS(file = paste0("/projects/b1042/GoyalLab/egrody/extractedData/EGS003/EGS002/", "invitro.rds")) #reload invitro from RDS
-subset_cells <- subset(invitro, cells = list_of_cells) 
 
+Pacute <- SeuratPipeline("/projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/counts/Mmul_10/Mmul_10_P_acute_GEX/outs/filtered_feature_bc_matrix/", "Pacute", plots = FALSE)
 
-# Run analysis
-results <- analyze_cell_subset(invitro, list_of_cells)
+#This analysis takes ~8 minutes
+results <- analyze_cell_subset(Pacute, list_of_cells)
 ```
 
 ### Saving results
 ```{r}
-
-output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS003/joint/Mmul_10_onlyclusters/DEG_SALVE/"
+output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS013/joint/subset/singleCell/"
 save_subset_analysis(results, output_dir = output.dir)
-
-output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS003/joint/"
-plot_subset_analysis(invitro, results, list_of_cells, output_dir = paste0(output.dir, "plots/"))
+plot_subset_analysis(Pacute, results, list_of_cells, output_dir = paste0(output.dir, "plots/"))
 ```
 
 ### Interpreting results
@@ -550,14 +520,12 @@ wb <- createWorkbook()
 addWorksheet(wb, "filtered_conserved")
 writeData(wb, "filtered_conserved", filteredConserv)
 saveWorkbook(wb, paste0(output.dir, "conserved_markers_filtered.xlsx"), overwrite = TRUE)
-
 ```
-
 
 
 ## Saturation analysis
 
-### SALVE
+### cellID sampling without reads
 This is to look at cellID sampling to ask: why don't we see those 10X only cells also in SALVE?
 ```{r loading}
 input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/bamsort/split/"
@@ -608,6 +576,7 @@ model_results <- fit_models(results, target_coverage = 100)
 model_results <- fit_models(results, target_coverage = 120)
 ```
 
+### UMI sampling with reads
 Now looking at UMI sampling to get full picture of read saturation
 ```{r}
 output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/saturation/sample_UMI/"
@@ -641,37 +610,7 @@ model_results <- fit_models(results, target_coverage = 100, coverage_column = "p
 model_results <- fit_models(results, target_coverage = 120)
 ```
 
-
-### mac239 from GEX
-
-```{r}
-input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/bamsort/split/"
-reads_GEX <- read.csv(paste0(input.dir, "P_acute_GEX_bamsort_split_inside.csv"))
-
-molecules_GEX <- reads_GEX %>% select(-reads)
-
-output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/saturation/"
-results <- sample_cellID(molecules_GEX)
-summary <- analyze_cellID_sampling(results, title = "cellID Saturation: GEX")
-results_file <- paste0(output.dir, "GEX_sample_cellID_results.csv")
-summary_file <- paste0(output.dir, "GEX_sample_cellID_summary.csv")
-write.csv(results, results_file, row.names = FALSE)
-write.csv(summary, summary_file, row.names = FALSE)
-
-results <- sample_UMI_weighted(reads_GEX)
-summary <- analyze_UMI_sampling(results, title = paste0("Weighted UMI Saturation: GEX"))
-results_file <- paste0(output.dir, "GEX_sample_UMI_results.csv")
-summary_file <- paste0(output.dir, "GEX_sample_UMI_summary.csv")
-write.csv(results, results_file, row.names = FALSE)
-write.csv(summary, summary_file, row.names = FALSE)
-
-model_results <- fit_models(results, target_coverage = 95)
-model_results <- fit_models(results, target_coverage = 98.7)
-model_results <- fit_models(results, target_coverage = 100)
-```
-
-
-### SALVE mac239 vs Mmul_10
+### SALVE Summary: mac239 vs Mmul_10
 ```{r loading}
 input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/bamsort/split/"
 reads_summary <- read.csv("/projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/bamsort/split/all_samples_summary.txt", header = TRUE)
