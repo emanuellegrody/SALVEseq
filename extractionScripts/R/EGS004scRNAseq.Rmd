@@ -19,11 +19,11 @@ source("~/SALVEseq/functions.R")
 ```
 
 
-# Single Cell Data
+# Previous Analysis
 
 We take as an input the count matrix(es). To get from base calls to count matrices, run cellranger with custom reference Mmu.
 
-## Previous: SPQ
+## SPQ
 ### scViralQuant
 
 For this analysis, the reference genome is regular macaque reference. Running the scPathoQuant package \href{https://github.com/galelab/scPathoQuant} creates a new supplemented feature barcode matrix by finding viral reads that were discarded during cellranger count alignment and adding them back to the feature matrix. We read in this updated feature matrix and perform all Seurat analysis steps without alteration.
@@ -202,8 +202,8 @@ plotUMAP(data = SingleCell_w2_painted_umap,
 ```
 
 
-## Current Analysis
-### cellranger Mmulmac
+# Current Analysis
+## cellranger Mmulmac
 
 Current approach to getting viral reads from 10X data is to align to concatenated macaque + SIVmac239 genomes with full mac239 annotation ("Mmul_10_mac239annot" or "Mmul_10_mac239full").
 
@@ -230,4 +230,101 @@ cat(
 )
 ```
 
+
+
+
+## Saturation
+
+### Summary
+```{r}
+reads_summary <- read.csv("/projects/b1042/GoyalLab/egrody/extractedData/EGS004/singleCell/bamsort/split/all_samples_summary.txt", header = TRUE)
+
+sample_names <- reads_summary$Sample
+df_numeric <- reads_summary[, -which(names(reads_summary) == "Sample")]
+df_transposed <- as.data.frame(t(df_numeric))
+colnames(df_transposed) <- sample_names
+rownames(df_transposed) <- c("Inside_Rows", "Inside_Total_Reads", "Outside_Rows", "Outside_Total_Reads")
+df_transposed <- rbind(df_transposed, Inside_Fraction = round(df_transposed["Inside_Total_Reads",] / df_transposed["Outside_Total_Reads",], 2), Avg_Inside_Reads = round(df_transposed["Inside_Total_Reads",] / df_transposed["Inside_Rows",], 2))
+```
+
+### Analysis
+
+cellID (without reads)
+```{r}
+input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS004/singleCell/bamsort/split/"
+reads_D13 <- read.csv(paste0(input.dir, "JK85_D13_bamsort_split_inside.csv"))
+reads_D195 <- read.csv(paste0(input.dir, "LP29_D195_bamsort_split_inside.csv"))
+reads_D83 <- read.csv(paste0(input.dir, "LP29_D83_bamsort_split_inside.csv"))
+
+molecules_D13 <- reads_D13 %>% select(-reads)
+molecules_D195 <- reads_D195 %>% select(-reads)
+molecules_D83 <- reads_D83 %>% select(-reads)
+
+output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS004/singleCell/saturation/"
+samples <- list(
+  D13 = molecules_D13,
+  D195 = molecules_D195,
+  D83 = molecules_D83)
+
+for (sample_name in names(samples)) {
+  sample_data <- samples[[sample_name]]
+  
+  results <- sample_cellID(sample_data)
+  summary <- analyze_cellID_sampling(results, title = paste0("cellID Saturation: ", sample_name))
+  
+  results_file <- paste0(output.dir, sample_name, "_sample_cellID_results.csv")
+  summary_file <- paste0(output.dir, sample_name, "_sample_cellID_summary.csv")
+  write.csv(results, results_file, row.names = FALSE)
+  write.csv(summary, summary_file, row.names = FALSE)
+  
+  cat("Processed sample:", sample_name, "\n")
+}
+
+for (sample_name in names(samples)) {
+  sample_data <- samples[[sample_name]]
+  
+  results <- sample_cellID(sample_data)
+  model_results <- fit_models(results, target_coverage = 95)
+  model_results <- fit_models(results, target_coverage = 99)
+  model_results <- fit_models(results, target_coverage = 100)
+  
+  cat("Processed sample:", sample_name, "\n")
+}
+
+```
+
+UMI (with reads)
+```{r}
+output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS004/singleCell/saturation/"
+samples <- list(
+  D13 = reads_D13,
+  D195 = reads_D195,
+  D83 = reads_D83)
+
+for (sample_name in names(samples)) {
+  sample_data <- samples[[sample_name]]
+  
+  results <- sample_UMI_weighted(sample_data)
+  summary <- analyze_UMI_sampling(results, title = paste0("Weighted UMI Saturation: ", sample_name))
+  
+  results_file <- paste0(output.dir, sample_name, "_sample_UMI_results.csv")
+  summary_file <- paste0(output.dir, sample_name, "_sample_UMI_summary.csv")
+  write.csv(results, results_file, row.names = FALSE)
+  write.csv(summary, summary_file, row.names = FALSE)
+  
+  cat("Processed sample:", sample_name, "\n")
+}
+
+for (sample_name in names(samples)) {
+  sample_data <- samples[[sample_name]]
+  
+  results <- sample_cellID(sample_data)
+  model_results <- fit_models(results, target_coverage = 95)
+  model_results <- fit_models(results, target_coverage = 99)
+  model_results <- fit_models(results, target_coverage = 100)
+  
+  cat("Processed sample:", sample_name, "\n")
+}
+
+```
 

@@ -12,92 +12,17 @@ source("~/SALVEseq/functions.R")
 ```
 
 
-# Single Cell Data
+# 2024
 
 We take as an input the count matrix(es). To get from base calls to count matrices, run cellranger with custom reference Mmu (no viral genes).
-
-## Functions
-```{r}
-
-# Function to analyze gene expression in multiple Seurat objects
-analyze_seurat_genes <- function(seurat_list, genes_of_interest, min_count = 0) {
-  # Initialize results list
-  results <- list()
-  
-  # Initialize empty dataframe for counts
-  count_df <- data.frame()
-  
-  # Loop through each Seurat object
-  for (i in seq_along(seurat_list)) {
-    seurat_obj <- seurat_list[[i]]
-    obj_name <- names(seurat_list)[i]
-    
-    # Check if genes exist in the object
-    genes_present <- genes_of_interest %in% rownames(GetAssayData(seurat_obj))
-    results[[obj_name]] <- data.frame(
-      gene = genes_of_interest,
-      present = genes_present
-    )
-    
-    # Get cell IDs and counts for present genes
-    if (any(genes_present)) {
-      counts <- GetAssayData(seurat_obj, slot = "counts")
-      present_genes <- genes_of_interest[genes_present]
-      
-      for (gene in present_genes) {
-        gene_counts <- counts[gene, ]
-        temp_df <- data.frame(
-          object = obj_name,
-          cell_id = colnames(seurat_obj),
-          gene = gene,
-          count = as.numeric(gene_counts)
-        )
-        # Filter for counts above minimum threshold
-        temp_df <- temp_df[temp_df$count > min_count, ]
-        count_df <- rbind(count_df, temp_df)
-      }
-    }
-  }
-  
-  return(list(
-    gene_presence = results,
-    expression_data = count_df
-  ))
-}
-
-# For exporting vRNA+ cells
-reshape_gene_data <- function(df) {
-  wide_df <- df %>%
-    pivot_wider(
-      id_cols = cell_id,
-      names_from = gene,
-      values_from = count,
-      values_fill = 0
-    )
-  
-  expected_cols <- c("pol", "env", "nef")
-  missing_cols <- setdiff(expected_cols, names(wide_df))
-  
-  if (length(missing_cols) > 0) {
-    for (col in missing_cols) {
-      wide_df[[col]] <- 0
-    }
-  }
-  
-  wide_df <- wide_df %>%
-    select(cell_id, all_of(expected_cols))
-  
-  return(wide_df)
-}
-```
 
 
 ## Current analysis
 ### Seurat loading
 
 ```{r}
-output_dir = "/projects/b1042/GoyalLab/egrody/20241127_EGS009/analysis/Seurat/"
-input_root = "/projects/b1042/GoyalLab/egrody/20241127_EGS009/analysis/counts/"
+output_dir = "/projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/Seurat/"
+input_root = "/projects/b1042/GoyalLab/egrody/extractedData/EGS009/counts/"
 
 objects <- list()
 tissues <- c("P","L","G")
@@ -111,6 +36,15 @@ for (i in tissues) {
     }
   }
 }
+
+#To load individually:
+#Pacute <- SeuratPipeline(
+#  paste0(input_root, "run_count_P_acute_GEX/outs/filtered_feature_bc_matrix"), 
+#  sample_name = "Pacute", output_dir = output_dir, plots = FALSE)
+#Lacute <- SeuratPipeline(
+#  paste0(input_root, "run_count_L_acute_GEX/outs/filtered_feature_bc_matrix"), 
+#  sample_name = "Lacute", output_dir = output_dir, plots = FALSE)
+
 ```
 
 ### Mmulmac alignment analysis
@@ -169,7 +103,7 @@ write.csv(comparecells_GEX, file_path)
 
 
 
-## Reuse code
+## Reuse code (not edited)
 
 ### Without virus UMAP coords
 If we are loading in the filtered data without viral gene annotation, we join the scPathoQuant output (not normalized?) to the cellIDs. 
@@ -281,4 +215,48 @@ plotUMAP(data = SingleCell_w2_painted_umap,
 ```
 
 
+
+
+
+# 2025
+## Saturation analysis
+### mac239 from GEX
+```{r summary}
+input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/bamsort/split/"
+reads_summary <- read.csv(paste0(input.dir, "all_samples_summary.txt"), header = TRUE)
+
+sample_names <- reads_summary$Sample
+df_numeric <- reads_summary[, -which(names(reads_summary) == "Sample")]
+df_transposed <- as.data.frame(t(df_numeric))
+colnames(df_transposed) <- sample_names
+rownames(df_transposed) <- c("Inside_Rows", "Inside_Total_Reads", "Outside_Rows", "Outside_Total_Reads")
+df_transposed <- rbind(df_transposed, Inside_Fraction = round(df_transposed["Inside_Total_Reads",] / df_transposed["Outside_Total_Reads",], 2), Avg_Inside_Reads = round(df_transposed["Inside_Total_Reads",] / df_transposed["Inside_Rows",], 2))
+
+```
+
+```{r}
+input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/bamsort/split/"
+reads_GEX <- read.csv(paste0(input.dir, "L_acute_GEX_bamsort_split_inside.csv"))
+
+molecules_GEX <- reads_GEX %>% select(-reads)
+
+output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/saturation/"
+results <- sample_cellID(molecules_GEX)
+summary <- analyze_cellID_sampling(results, title = "cellID Saturation: GEX")
+results_file <- paste0(output.dir, "Lacute_sample_cellID_results.csv")
+summary_file <- paste0(output.dir, "Lacute_sample_cellID_summary.csv")
+write.csv(results, results_file, row.names = FALSE)
+write.csv(summary, summary_file, row.names = FALSE)
+
+results <- sample_UMI_weighted(reads_GEX)
+summary <- analyze_UMI_sampling(results, title = paste0("Weighted UMI Saturation: GEX"))
+results_file <- paste0(output.dir, "Lacute_sample_UMI_results.csv")
+summary_file <- paste0(output.dir, "Lacute_sample_UMI_summary.csv")
+write.csv(results, results_file, row.names = FALSE)
+write.csv(summary, summary_file, row.names = FALSE)
+
+model_results <- fit_models(results, target_coverage = 95)
+model_results <- fit_models(results, target_coverage = 99)
+model_results <- fit_models(results, target_coverage = 100)
+```
 

@@ -394,13 +394,13 @@ w2 <- SeuratPipeline("/projects/b1042/GoyalLab/egrody/20231017_EGS002/counts/Mmu
 invitro <- SeuratPipeline("/projects/b1042/GoyalLab/egrody/20231017_EGS002/counts/Mmul_10_mac239full/run_count_invitro/outs/filtered_feature_bc_matrix/", "invitro")
 
 # alternatively, use alignment to Mmul_10_env
-invitro <- SeuratPipeline("/projects/b1042/GoyalLab/egrody/20231017_EGS002/counts/Mmul_10_mac239env/run_count_invitro/outs/filtered_feature_bc_matrix/", "invitro")
+invitro <- SeuratPipeline("/projects/b1042/GoyalLab/egrody/20231017_EGS002/counts/Mmul_10_env/run_count_invitro/outs/filtered_feature_bc_matrix/", "invitro")
 ```
 
 Next we isolate the viral counts from our Seurat object.
 ```{r targetExpressionDF}
 
-output.dir <- "/projects/b1042/GoyalLab/egrody/20231017_EGS002/counts/Mmul_10_mac239env/" #update
+output.dir <- "/projects/b1042/GoyalLab/egrody/20231017_EGS002/counts/Mmul_10_env/" #update
 SingleCell_w2 <- targetExpressionDF(w2, "env")
 write.csv(SingleCell_w2, paste0(output.dir, "w2_Mmulmac_env.csv"))
 SingleCell_w2 <- targetExpressionDF(w2, "tat") #no cells

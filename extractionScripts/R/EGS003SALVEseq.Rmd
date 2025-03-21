@@ -74,26 +74,26 @@ Currently no UMI cutoff set.
 ### Loading Single Cell data
 We load in the 10X data with viral counts and UMAP coordinates (see EGS002scRNAseq.Rm for the analysis that generated these datasets from invitro):
 ```{r}
-input.dir <- "/projects/b1042/GoyalLab/egrody/20240116_EGS003_004/EGS003/EGS002/Mmul_10_mac239full/"
+input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS002/singleCell/Seurat/Mmul_10_mac239full/"
 SingleCell_umap_env <- read.csv(paste0(input.dir, "invitro_Mmulmac_env.csv"))
 SingleCell_umap_env <- SingleCell_umap_env %>% 
   mutate(Count = ifelse(Count == 1, 0, Count)) %>%
   mutate(log1pSingleCell = log1p(Count)) %>% select(-X)
 
 # for reading in Mmul_mac239env aligned
-input.dir <- "/projects/b1042/GoyalLab/egrody/20231017_EGS002/counts/Mmul_10_mac239env/"
-SingleCell_umap_env <- read.csv(paste0(input.dir, "invitro_Mmulmacenv_mac239.csv"))
+input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS002/singleCell/counts/Mmul_10_env/"
+SingleCell_umap_env <- read.csv(paste0(input.dir, "invitro_Mmulmac_env.csv"))
 SingleCell_umap_env <- SingleCell_umap_env %>% 
-  rename(log1pSingleCell = mac239) %>% select(-X)
+  rename(log1pSingleCell = env) %>% select(-X)
 ```
 
 
 ### Loading in SALVEseq reads
-Now loading the SALVEseq v2 reads. To use cellranger count instead, jump down to chunk 13.
+Now loading the SALVEseq v2 reads.
 ```{r}
-PL_env <- SeuratSALVEseq("/projects/b1042/GoyalLab/egrody/20240116_EGS003_004/EGS003/counts/count_PLenv_Mmul10env/outs/filtered_feature_bc_matrix/", 
+PL_env <- SeuratSALVEseq("/projects/b1042/GoyalLab/egrody/extractedData/EGS003/counts/count_PLenv_Mmul10env/outs/filtered_feature_bc_matrix/", 
                      "PL_env", 
-                     output_dir = "/projects/b1042/GoyalLab/egrody/20240116_EGS003_004/EGS003/Seurat/Mmul_10_env/PL_env/", plots = FALSE)
+                     output_dir = "/projects/b1042/GoyalLab/egrody/extractedData/EGS003/Seurat/Mmul_10_env/PL_env/", plots = FALSE)
 PL_env_clean <- targetExpressionDF(PL_env, "env")
 PL_env_clean <- PL_env_clean %>% filter(env > 0.7) %>%
   rename(log1pSALVE = env)
@@ -119,7 +119,7 @@ cat("\n\nenv\nTotal cells: \t\t", nrow(env_paint_umap),
   "\nCells in 10X only: \t", nrow(left_onlySingleCell) - nrow(left_both),
     "\nCells in SALVE only: \t", nrow(left_onlySALVE) - nrow(left_both))
 
-output_dir <- "/projects/b1042/GoyalLab/egrody/20240116_EGS003_004/EGS003/Seurat/Mmul_10_env/PL_env/"
+output_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS003/Seurat/Mmul_10_env/PL_env/"
 write.csv(left_both, paste0(output_dir, "left_both.csv"))
 write.csv(left_onlySingleCell, paste0(output_dir, "left_onlySingleCell.csv"))
 write.csv(left_onlySALVE, paste0(output_dir, "left_onlySALVE.csv"))
@@ -236,25 +236,44 @@ barcodeRankPlot(input_dir, invitro_paint_umap_full, output_dir)
 ```
 
 
-## Mmul_10_env
+## Mmul_10_env (old?)
 Redo analyses after aligning to Mmul_10_env
-### Loading data
+
+### Compare PL alignment to Mmul+mac vs mac
 ```{r}
-PL_env <- SeuratSALVEseq("/projects/b1042/GoyalLab/egrody/20240116_EGS003_004/EGS003/counts/count_PLenv_Mmul10env/outs/filtered_feature_bc_matrix/", 
-                     "PL_env", 
-                     output_dir = "/projects/b1042/GoyalLab/egrody/20240116_EGS003_004/EGS003/Seurat/Mmul_10_env/PL_env/", plots = FALSE)
-PL_env_clean <- targetExpressionDF(PL_env, "env")
-PL_env_clean <- PL_env_clean %>% filter(env > 0.7) %>% mutate(cellID = str_sub(cellID, 1, -3)) %>%
+PL_Mmulmac <- SeuratSALVEseq("/projects/b1042/GoyalLab/egrody/20240116_EGS003_004/EGS003/counts/count_PLenv_Mmul10env/outs/filtered_feature_bc_matrix/", 
+                     "PL_env", plots = FALSE)
+PL_Mmulmac_clean <- targetExpressionDF(PL_Mmulmac, "env")
+PL_Mmulmac_clean <- PL_Mmulmac_clean %>% filter(env > 0.7) %>% mutate(cellID = str_sub(cellID, 1, -3)) %>%
   rename(log1pSALVE = env)
 
+PL_mac_data <- Read10X(data.dir = "/projects/b1042/GoyalLab/egrody/20240116_EGS003_004/EGS003/counts/count_PLenv_mac239annot/outs/filtered_feature_bc_matrix/")
+PL_mac  <- CreateSeuratObject(counts = PL_mac_data, project = "PL_env", min.cells = 3) #no minimum features
+PL_mac <- NormalizeData(PL_mac, verbose = FALSE)
+PL_mac_clean <- targetExpressionDF(PL_mac, "env")
+PL_mac_clean <- PL_mac_clean %>% filter(env > 0.7) %>% mutate(cellID = str_sub(cellID, 1, -3)) %>%
+  rename(log1pSALVE = env)
+
+alignments_yield <- full_join(PL_Mmulmac_clean, PL_mac_clean, by = "cellID") %>%
+  rename(log1pmac = log1pSALVE.y, log1pMmulmac = log1pSALVE.x)
+alignments_yield[is.na(alignments_yield)] <- 0
+alignments_both <- alignments_yield %>% filter(log1pMmulmac != 0 & log1pmac != 0)
+alignments_onlymac <- alignments_yield %>% filter(log1pmac != 0)
+alignments_onlyMmul <- alignments_yield %>% filter(log1pMmulmac != 0)
+cat("PL alignments\nTotal cells: \t\t", nrow(alignments_yield),
+  "\nCells in both: \t\t", nrow(alignments_both),
+  "\nCells in Mmulmac only: \t", nrow(alignments_onlyMmul) - nrow(alignments_both),
+    "\nCells in mac only: \t", nrow(alignments_onlymac) - nrow(alignments_both))
+
 ```
+
 
 ### env analysis
 
 
-## bam_sorted
+## bamsort
 
-### bam_sorted vs SVQ
+### bam_sorted vs SVQ (old)
 Reminder that the 10X results are from scViralQuant, not scPathoQuant
 ```{r}
 SVQ <- read.csv("/projects/b1042/GoyalLab/egrody/20231017_EGS002/analysis/scViralQuant/invitro/gtf/virus_al_gene_counts.csv")
@@ -296,7 +315,7 @@ corrplot
 ggsave(corrplot, file = paste0(output.dir, "bamsortSVQ_correlation.svg"))
 ```
 
-### Filter by 10X cellIDs
+### Filter by 10X cellIDs (old)
 ```{r}
 SingleCell_cells <- Cells(invitro_min200)
 bamsort_filter <- bamsort %>%
@@ -305,14 +324,17 @@ SVQ_filter <- SVQ_env %>%
   filter(cell_barcode %in% SingleCell_cells)
 ```
 
-### envupstream vs envdownstream vs SALVE
+### envupstream vs envdownstream vs SALVE (updated)
 When we did the joint analysis, there were >hundred cells that were env+ only in 10X. Is this because their env reads were upstream of our SALVE primer?
 ```{r}
-input_dir <- "/projects/b1042/GoyalLab/egrody/20231017_EGS002/analysis/bamsort/"
+input_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS002/singleCell/bamsort/alignment/"
 upstream <- read.csv(paste0(input_dir, "invitro_bamsort_env_upstream.csv")) %>% 
-  filter(Read_Count > 1) %>%
-  rename(cellID = Cell_ID) %>%
-  mutate(cellID = str_sub(cellID, end=-3))
+  unique() %>%
+  count(Cell_ID) %>%
+  rename(Count = n, cellID = Cell_ID) %>%
+  filter(Count > 1) 
+
+#older, skip
 downstream <- read.csv(paste0(input_dir, "invitro_bamsort_env_downstream.csv")) %>% 
   filter(Read_Count > 1) %>%
   rename(cellID = Cell_ID) %>%
@@ -326,6 +348,7 @@ upstream_any <- read.csv(paste0(input_dir, "invitro_bamsort_env_upstream_any.csv
   rename(cellID = Cell_ID) %>%
   mutate(cellID = str_sub(cellID, end=-3))
 
+#restart here
 upstream_valid <- upstream %>%
   filter(cellID %in% env_paint_umap$cellID)
 downstream_valid <- downstream %>%
@@ -413,6 +436,25 @@ cat(
   sum(upstream_any_only$cellID %in% SingleCell_only)
 )
 
+cat(
+  "# cells from bamsort upstream: \t\t",
+  nrow(unique(upstream)),
+  "\n# cells from bamsort upstream in 10X: \t",
+  nrow(unique(upstream_valid)),
+  "\n\n# cells in 10X only: \t\t\t",
+  length(SingleCell_only),
+  "\n# cells in SALVE only: \t\t\t",
+  length(SALVE_only),
+  "\n# cells in both: \t\t\t",
+  length(both),
+  "\n\n# cells in upstream in both: \t\t",
+  sum(upstream_valid$cellID %in% both),
+  "\n# cells in upstream in only SALVE: \t",
+  sum(upstream_valid$cellID %in% SALVE_only),
+  "\n# cells in upstream in only 10X: \t",
+  sum(upstream_valid$cellID %in% SingleCell_only)
+)
+
 
 ```
 
@@ -425,12 +467,11 @@ cat(
 ## Subset analysis
 
 ```{r}
-
-output_dir <- "/projects/b1042/GoyalLab/egrody/20240116_EGS003_004/EGS003/EGS002/Mmul_10_only/invitro/plots/"
-invitro <- SeuratPipeline("/projects/b1042/GoyalLab/egrody/20240116_EGS003_004/EGS003/EGS002/Mmul_10_only/invitro/filtered_feature_bc_matrix/", "invitro")
+output_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS003/EGS002/Mmul_10_only/invitro/plots/"
+invitro <- SeuratPipeline("/projects/b1042/GoyalLab/egrody/extractedData/EGS003/EGS002/Mmul_10_only/invitro/filtered_feature_bc_matrix/", "invitro")
 dplot <- DimPlot(invitro, reduction = "umap")
 ggsave(dplot, file = paste0(output_dir, "invitro_umap.svg"))
-invitro_coords <- export_cell_metadata(invitro,                            "/projects/b1042/GoyalLab/egrody/20240116_EGS003_004/EGS003/EGS002/invitro_umapclusters.csv")
+invitro_coords <- export_cell_metadata(invitro,                            "/projects/b1042/GoyalLab/egrody/extractedData/EGS003/EGS002/invitro_umapclusters.csv")
 
 output.dir <- "/projects/b1042/GoyalLab/egrody/20231017_EGS002/analysis/scViralQuant/outputs/"
 SingleCell_invitro_umap <- read.csv(paste0(output.dir, "invitro_SingleCellumap_env.csv"))
@@ -460,9 +501,9 @@ invitro_paint_umap[is.na(invitro_paint_umap)] <- 0
 
 ### SALVE
 ```{r}
-invitro_coords <- read.csv("/projects/b1042/GoyalLab/egrody/20240116_EGS003_004/EGS003/EGS002/invitro_umapclusters.csv")
+invitro_coords <- read.csv("/projects/b1042/GoyalLab/egrody/extractedData/EGS003/EGS002/invitro_umapclusters.csv")
 
-output.dir <- "/projects/b1042/GoyalLab/egrody/20240116_EGS003_004/EGS003/Seurat/"
+output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS003/Seurat/"
 SALVE_umap_env <- read.csv(paste0(output.dir, "PL_env/PLenv_mac239expression.csv"))
 SALVE_umap_tat <- read.csv(paste0(output.dir, "PL_tat1/PLtat1_mac239expression.csv"))
 SALVE_invitro <- SALVE_umap_env %>%
@@ -576,7 +617,7 @@ intersect_umap <- invitro_paint_umap %>%
   mutate(Count = ifelse(log2SingleCell == 0, 0, Count))
 xprn_plot_intersect <- plot_gene_expression(intersect_umap, "Count") #SALVE xprn in cells that are 10X+
 
-output_dir <- "/projects/b1042/GoyalLab/egrody/20240116_EGS003_004/EGS003/joint/Mmul_10_onlyclusters/"
+output_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS003/joint/Mmul_10_onlyclusters/"
 ggsave(cluster_plot, file = paste0(output_dir, "invitro_umap_cluster.svg"))
 ggsave(xprn_plot_SALVE, file = paste0(output_dir, "invitro_umap_SALVE.svg"))
 ggsave(xprn_plot_SingleCell, file = paste0(output_dir, "invitro_umap_SingleCell.svg"))
@@ -616,7 +657,7 @@ ggsave(corrplot, file = paste0(output_dir, "intersect_correlationplot.svg"))
 
 Let's pull the list of cellIDs that are vRNA positive (just from 10X itself (SPQ)).
 ```{r}
-input.dir <- "/projects/b1042/GoyalLab/egrody/20240116_EGS003_004/EGS003/EGS002/"
+input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS003/EGS002/"
 SingleCell_umap_env <- read.csv(paste0(input.dir, "invitro_scVQexpression_env.csv"))
 SingleCell_umap_env <- SingleCell_umap_env %>% mutate(log1pSingleCell = log1p(Count)) %>% select(-X)
 
@@ -640,7 +681,7 @@ Or use above's "SingleCell_invitro"
 list_of_cells <- invitro_paint_umap %>% filter(invitro_paint_umap$Count != 0) #for SALVE
 #list_of_cells <- invitro_paint_umap %>% filter(invitro_paint_umap$SingleCellcount != 0) #for 10X
 list_of_cells <- list_of_cells$cellID
-#invitro <- readRDS(file = paste0("/projects/b1042/GoyalLab/egrody/20240116_EGS003_004/EGS003/EGS002/", "invitro.rds")) #reload invitro from RDS
+#invitro <- readRDS(file = paste0("/projects/b1042/GoyalLab/egrody/extractedData/EGS003/EGS002/", "invitro.rds")) #reload invitro from RDS
 subset_cells <- subset(invitro, cells = list_of_cells) 
 
 
@@ -651,10 +692,10 @@ results <- analyze_cell_subset(invitro, list_of_cells)
 ### Saving results
 ```{r}
 
-output.dir <- "/projects/b1042/GoyalLab/egrody/20240116_EGS003_004/EGS003/joint/Mmul_10_onlyclusters/DEG_SALVE/"
+output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS003/joint/Mmul_10_onlyclusters/DEG_SALVE/"
 save_subset_analysis(results, output_dir = output.dir)
 
-output.dir <- "/projects/b1042/GoyalLab/egrody/20240116_EGS003_004/EGS003/joint/"
+output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS003/joint/"
 plot_subset_analysis(invitro, results, list_of_cells, output_dir = paste0(output.dir, "plots/"))
 ```
 
@@ -762,6 +803,6 @@ saveWorkbook(wb, paste0(output.dir, "conserved_markers_filtered.xlsx"), overwrit
 
 ```{r}
 input_dir <- "/projects/b1042/GoyalLab/egrody/20231017_EGS002/analysis/counts/Mmul_10_only/run_count_invitro/outs/raw_feature_bc_matrix_bbmap/"
-output_dir <- ("/projects/b1042/GoyalLab/egrody/20240116_EGS003_004/EGS003/joint/")
+output_dir <- ("/projects/b1042/GoyalLab/egrody/extractedData/EGS003/joint/")
 barcodeRankPlot(input_dir, invitro_paint_umap_full, output_dir)
 ```
