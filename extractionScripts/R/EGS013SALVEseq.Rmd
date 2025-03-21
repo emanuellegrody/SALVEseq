@@ -1,0 +1,686 @@
+---
+title: "EGS013SALVEseq"
+author: "Emanuelle Grody"
+date: "2025-03-17"
+output: html_document
+---
+
+```{r, echo = FALSE}
+source("~/SALVEseq/packages.R")
+source("~/SALVEseq/functions.R")
+```
+
+## GEX (skip)
+
+Outputting expression matrix
+```{r}
+Pacute <- SeuratPipeline("/projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/counts/Mmul_10_mac239/Mmul_10_mac239_P_acute_GEX/outs/filtered_feature_bc_matrix/", "Pacute", plots = FALSE)
+
+output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/counts/Mmul_10_mac239/"
+SingleCell_Pacute <- targetExpressionDF(Pacute, "mac239")
+write.csv(SingleCell_Pacute, paste0(output.dir, "Pacute_Mmulmac_mac239.csv"))
+
+nz_SingleCell_Pacute <- SingleCell_Pacute %>%
+  filter(mac239 > 0)
+hist(nz_SingleCell_Pacute$mac239,
+     xlab = "mac239 counts",
+     main = "Histogram of non-zero mac239 (log) counts in SingleCell_Pacute")
+```
+
+
+## SALVE (skip)
+
+Loading bamsort
+```{r}
+input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/bamsort/xf25"
+
+# Get all files from "Pacute"
+pacute_files <- list.files(input.dir, pattern = "Pacute_bamsort_.*\\.csv$", full.names = TRUE)
+pacute_data_list <- list()
+
+for (file in pacute_files) {
+  file_name <- sub(".*Pacute_bamsort_(.*)\\.csv$", "\\1", basename(file))
+  pacute_data_list[[file_name]] <- read.csv(file)
+  #cat("Loaded:", file_name, "\n")
+}
+
+# Combine nefs and LTRs
+pacute_data_list[["nef"]] <- rbind(
+  pacute_data_list[["nef_3"]],
+  pacute_data_list[["nef_5"]]
+)
+
+pacute_data_list[["nef"]] <- unique(pacute_data_list[["nef"]])
+
+pacute_data_list[["nef_3"]] <- NULL
+pacute_data_list[["nef_5"]] <- NULL
+pacute_data_list[["LTR"]] <- rbind(
+  pacute_data_list[["LTR_3"]],
+  pacute_data_list[["LTR_5"]]
+)
+
+pacute_data_list[["LTR"]] <- unique(pacute_data_list[["LTR"]])
+
+pacute_data_list[["LTR_3"]] <- NULL
+pacute_data_list[["LTR_5"]] <- NULL
+
+pacute_data_list[["absolute"]] <- anti_join(
+  pacute_data_list[["LTR"]],
+  pacute_data_list[["nef"]],
+  by = c("cellID", "UMI")
+)
+
+cat(
+  "Number of unique molecules total: \t",
+  nrow(pacute_data_list[["absolute"]]),
+  "\nNumber of vRNA+ cells from absolute: \t",
+  length(unique(pacute_data_list[["absolute"]]$cellID)),
+  "\nNumber of vRNA+ cells from all: \t",
+  length(unique(c(
+  pacute_data_list[["absolute"]]$cellID,
+  pacute_data_list[["D1_S"]]$cellID,
+  pacute_data_list[["D1_US"]]$cellID,
+  pacute_data_list[["tat_S"]]$cellID,
+  pacute_data_list[["tat_US"]]$cellID
+  )))
+)
+```
+
+Now making counts
+```{r}
+combined_umi_counts <- NULL
+
+# Process each dataframe
+for (name in names(pacute_data_list)) {
+  # Get the current dataframe
+  df <- pacute_data_list[[name]]
+  
+  # Count UMIs per cell
+  count_df <- df %>%
+    group_by(cellID) %>%
+    summarize(Count = n_distinct(UMI), .groups = "drop") %>%
+    rename(!!paste0(name) := Count)
+  
+  # Merge with the combined table
+  if (is.null(combined_umi_counts)) {
+    combined_umi_counts <- count_df
+  } else {
+    combined_umi_counts <- full_join(combined_umi_counts, count_df, by = "cellID")
+  }
+  remove(df, count_df)
+}
+
+# Replace NA values with 0 (cells not present in some datasets)
+combined_umi_counts[is.na(combined_umi_counts)] <- 0
+
+Pacute_SALVE <- combined_umi_counts %>%
+  mutate(total_lessLTR = rowSums(across(c("D1_S", "D1_US", "tat_S", "tat_US", "nef")))) %>%
+  select(-nef, -LTR) %>%
+  filter(absolute > 0) %>%
+  filter(total_lessLTR > 2) %>%
+  mutate(across(where(is.numeric), log1p)) #log1p transform
+
+output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/bamsort/"
+write.csv(combined_umi_counts, paste0(output.dir, "Pacute_SALVE_full.csv"))
+write.csv(Pacute_SALVE, paste0(output.dir, "Pacute_SALVE_filtered.csv"))
+
+```
+
+Experimenting, skip:
+```{r}
+# Deeper dive
+Pacute_SALVE <- combined_umi_counts %>%
+  mutate(total_lessLTR = rowSums(across(c("D1_S", "D1_US", "tat_S", "tat_US", "nef")))) %>%
+  mutate(total_D1tat = rowSums(across(c("D1_S", "D1_US", "tat_S", "tat_US"))))
+
+cat(
+  "Correlation between absolute and total_lessLTR:\n",
+    "  Pearson: ", round(cor(Pacute_SALVE$absolute, Pacute_SALVE$total_lessLTR, method="pearson"), 3),
+    "\n  Spearman: ", round(cor(Pacute_SALVE$absolute, Pacute_SALVE$total_lessLTR, method="spearman"), 3),
+    
+    "\n\nCorrelation between absolute and total_D1tat:\n",
+    "  Pearson: ", round(cor(Pacute_SALVE$absolute, Pacute_SALVE$total_D1tat, method="pearson"), 3),
+    "\n  Spearman: ", round(cor(Pacute_SALVE$absolute, Pacute_SALVE$total_D1tat, method="spearman"), 3)
+)
+
+# plotting
+plot <- ggplot(data = Pacute_SALVE, aes(x = absolute, y = total_lessLTR)) +
+      geom_point() +
+      labs(
+        x = "Absolute (5' LTR) counts",
+        y = "Total counts: D1 + tat + nef",
+        title = "Pacute SALVE bamsort") +
+      theme_minimal() + 
+    coord_fixed(ratio = 1)
+plot <- ggplot(data = Pacute_SALVE, aes(x = absolute, y = total_D1tat)) +
+      geom_point() +
+      labs(
+        x = "Absolute (5' LTR) counts",
+        y = "Total counts: D1 + tat",
+        title = "Pacute SALVE bamsort") +
+      theme_minimal() +
+    coord_fixed(ratio = 1)
+plot + theme(aspect.ratio = 1)
+
+#playing around with filtering
+Pacute_SALVE <- Pacute_SALVE %>%
+  select(-nef, -LTR) %>%
+  filter(total_lessLTR > 2) %>%
+  filter(absolute > 0) 
+```
+
+
+## Joint
+
+Loading both datasets and making left_join dataframe
+```{r}
+SingleCell_Pacute <- read.csv("/projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/counts/Mmul_10_mac239/Pacute_Mmulmac_mac239.csv", row.names = "X")
+Pacute_SALVE <- read.csv("/projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/bamsort/Pacute_SALVE_filtered.csv", row.names = "X")
+
+Pacute_paint_umap = left_join(SingleCell_Pacute, Pacute_SALVE, by = "cellID")
+Pacute_paint_umap[is.na(Pacute_paint_umap)] <- 0
+
+```
+
+To get metrics for the left_join dataframe:
+```{r}
+left_both <- Pacute_paint_umap %>% filter(mac239 != 0 & absolute != 0)
+left_onlySingleCell <- Pacute_paint_umap %>% filter(mac239 != 0) %>%
+  filter(!(cellID %in% left_both$cellID))
+left_onlySALVE <- Pacute_paint_umap %>% filter(absolute != 0)  %>%
+  filter(!(cellID %in% left_both$cellID))
+cat("Left_join\nTotal cells: \t\t", nrow(Pacute_paint_umap),
+  "\nCells in both: \t\t", nrow(left_both),
+  "\nCells in 10X only: \t", nrow(left_onlySingleCell),
+    "\nCells in SALVE only: \t", nrow(left_onlySALVE))
+
+
+output_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS013/joint/"
+write.csv(left_both, paste0(output_dir, "left_both.csv"))
+write.csv(left_onlySingleCell, paste0(output_dir, "left_onlySingleCell.csv"))
+write.csv(left_onlySALVE, paste0(output_dir, "left_onlySALVE.csv"))
+
+```
+To make full_join dataframe and get metrics:
+```{r}
+Pacute_paint_umap_full = full_join(SingleCell_Pacute, Pacute_SALVE, by = "cellID")
+Pacute_paint_umap_full[is.na(Pacute_paint_umap_full)] <- 0
+
+# how many mac239+ cells from each method?
+full_both <- Pacute_paint_umap_full %>% filter(mac239 != 0 & absolute != 0)
+full_onlySingleCell <- Pacute_paint_umap_full %>% filter(mac239 != 0) %>%
+  filter(!(cellID %in% full_both$cellID))
+full_onlySALVE <- Pacute_paint_umap_full %>% filter(absolute != 0) %>%
+  filter(!(cellID %in% full_both$cellID))
+unanchored <- full_onlySALVE %>% filter(!(cellID %in% left_onlySALVE$cellID))
+cat("Full_join\nTotal cells: \t\t", nrow(Pacute_paint_umap_full),
+  "\nCells in both: \t\t", nrow(full_both),
+  "\nCells in 10X only: \t", nrow(full_onlySingleCell),
+    "\nCells in SALVE only: \t", nrow(full_onlySALVE),
+  "\nUnanchored SALVE: \t", nrow(unanchored))
+
+output_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS013/joint/"
+write.csv(full_both, paste0(output_dir, "full_both.csv"))
+write.csv(full_onlySingleCell, paste0(output_dir, "full_onlySingleCell.csv"))
+write.csv(full_onlySALVE, paste0(output_dir, "full_onlySALVE.csv"))
+```
+
+### Correlation analysis
+Will do it custom for now and update correlation plot function later
+```{r}
+cat(
+  "Correlation between 10X mac239 and SALVE total_lessLTR:\n",
+    "  Pearson: ", round(cor(Pacute_paint_umap$mac239, Pacute_paint_umap$total_lessLTR, method="pearson"), 3),
+    "\n  Spearman: ", round(cor(Pacute_paint_umap$mac239, Pacute_paint_umap$total_lessLTR, method="spearman"), 3),
+    
+    "\n\nCorrelation between 10X mac239 and SALVE absolute:\n",
+    "  Pearson: ", round(cor(Pacute_paint_umap$mac239, Pacute_paint_umap$absolute, method="pearson"), 3),
+    "\n  Spearman: ", round(cor(Pacute_paint_umap$mac239, Pacute_paint_umap$absolute, method="spearman"), 3)
+)
+
+# plotting
+plot <- ggplot(data = Pacute_paint_umap, aes(x = total_lessLTR, y = mac239)) +
+      geom_point() +
+      labs(
+        x = "SALVE total counts: D1 + tat + nef (filter > 2)",
+        y = "SingleCell mac239 counts",
+        title = "Pacute joint: total count") +
+      theme_minimal() + 
+    coord_fixed(ratio = 1)
+plot <- ggplot(data = Pacute_paint_umap, aes(x = absolute, y = mac239)) +
+      geom_point() +
+      labs(
+        x = "SALVE absolute (5' LTR) counts (filter > 0)",
+        y = "SingleCell mac239 counts",
+        title = "Pacute joint: absolute count") +
+      theme_minimal() +
+    coord_fixed(ratio = 1)
+plot + theme(aspect.ratio = 1)
+```
+
+
+
+
+## Subset analysis
+
+### Making Mmul10 clusters dataframe (skip)
+```{r}
+output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/Seurat/Mmul_10/"
+Pacute <- SeuratPipeline("/projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/counts/Mmul_10/Mmul_10_P_acute_GEX/outs/filtered_feature_bc_matrix/", "Pacute", output.dir, plots = TRUE)
+
+output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/counts/Mmul_10/"
+SingleCell_Pacute <- targetExpressionDF(Pacute, "CD4")
+SingleCell_Pacute_clusters <- SingleCell_Pacute %>% select(-CD4)
+write.csv(SingleCell_Pacute_clusters, paste0(output.dir, "Pacute_Mmul10_clusters.csv"))
+```
+
+### Loading
+Combining the coordinates and clusters from SingleCell aligned to Mmul_10 with the mac239 expression from SingleCell aligned to Mmul_10_mac239
+```{r}
+SingleCell_Pacute_clusters <- read.csv("/projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/counts/Mmul_10/Pacute_Mmul10_clusters.csv", row.names = "X")
+SingleCell_Pacute_mac239 <- read.csv("/projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/counts/Mmul_10_mac239/Pacute_Mmulmac_mac239.csv", row.names = "X")
+Pacute_SALVE <- read.csv("/projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/bamsort/Pacute_SALVE_filtered.csv")
+
+SingleCell_Pacute_mac239 <- SingleCell_Pacute_mac239 %>% select(cellID, mac239)
+SingleCell_Pacute <- left_join(SingleCell_Pacute_clusters, SingleCell_Pacute_mac239, by = "cellID")
+
+Pacute_paint_umap = left_join(SingleCell_Pacute, Pacute_SALVE, by = "cellID")
+Pacute_paint_umap[is.na(Pacute_paint_umap)] <- 0
+```
+
+
+Quick plotting things
+```{r}
+# Function to create Seurat-style DimPlot
+plot_clusters <- function(data, 
+                         label_clusters = TRUE,
+                         pt_size = 0.5,
+                         label_size = 4) {
+  
+  # Convert the cluster column to a factor
+  data$cluster <- as.factor(data$cluster)
+  
+  n_clusters <- length(unique(data$cluster))
+  cluster_colors <- scales::hue_pal()(n_clusters)
+  
+  p1 <- ggplot(data, aes(x = UMAP1, y = UMAP2, color = cluster)) +
+    geom_point(size = pt_size) +
+    scale_color_manual(values = cluster_colors) +
+    theme_bw() +
+    theme(
+      panel.grid = element_blank(),
+      axis.title = element_text(size = 12),
+      legend.title = element_blank(),
+      panel.border = element_rect(colour = "black", fill = NA)
+    )
+  
+  if (label_clusters) {
+    cluster_centers <- data %>%
+      group_by(cluster) %>%
+      summarise(
+        UMAP1 = median(UMAP1),
+        UMAP2 = median(UMAP2)
+      )
+    
+    p1 <- p1 + geom_text(data = cluster_centers,
+                         aes(label = cluster),
+                         size = label_size,
+                         color = "black")
+  }
+  
+  return(p1)
+}
+
+# Function to create Seurat-style FeaturePlot
+plot_gene_expression <- function(data,
+                               countcolumn,
+                               pt_size = 0.5,
+                               min_cutoff = NA,
+                               max_cutoff = NA) {
+  
+  plot_data <- data
+  if (!is.na(min_cutoff)) {
+    plot_data[[countcolumn]][plot_data[[countcolumn]] < min_cutoff] <- min_cutoff
+  }
+  if (!is.na(max_cutoff)) {
+    plot_data[[countcolumn]][plot_data[[countcolumn]] > max_cutoff] <- max_cutoff
+  }
+  
+  p2 <- ggplot(plot_data, aes(x = UMAP1, y = UMAP2)) +
+    geom_point(data = subset(plot_data, plot_data[[countcolumn]] <= 0),
+               color = "gray93",
+               size = pt_size) +
+    geom_point(data = subset(plot_data, plot_data[[countcolumn]] > 0),
+               aes_string(color = countcolumn),  # Use aes_string instead
+               size = pt_size) +
+    scale_color_gradient(low = "gray93", high = "darkblue",
+                        name = "Expression") +
+    theme_bw() +
+    theme(
+      panel.grid = element_blank(),
+      axis.title = element_text(size = 12),
+      panel.border = element_rect(colour = "black", fill = NA)
+    )
+  
+  return(p2)
+}
+
+cluster_plot <- plot_clusters(Pacute_paint_umap)
+xprn_plot_SALVE <- plot_gene_expression(Pacute_paint_umap, "total_lessLTR")
+xprn_plot_SingleCell <- plot_gene_expression(Pacute_paint_umap, "mac239")
+intersect_umap <- Pacute_paint_umap %>%
+  mutate(total_lessLTR = ifelse(mac239 == 0, 0, total_lessLTR))
+xprn_plot_intersect <- plot_gene_expression(intersect_umap, "total_lessLTR") #SALVE xprn in cells that are 10X+
+
+output_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS013/joint/subset/"
+ggsave(cluster_plot, file = paste0(output_dir, "Pacute_umap_cluster.svg"))
+ggsave(xprn_plot_SALVE, file = paste0(output_dir, "Pacute_umap_SALVE.svg"))
+ggsave(xprn_plot_SingleCell, file = paste0(output_dir, "Pacute_umap_SingleCell.svg"))
+ggsave(xprn_plot_intersect, file = paste0(output_dir, "Pacute_umap_intersect.svg"))
+
+cat("SingleCell vRNA+: ", sum(invitro_paint_umap$log2SingleCell != 0, na.rm = TRUE),
+    "\nSALVE vRNA+: ", sum(invitro_paint_umap$Count != 0, na.rm = TRUE),
+    "\nCells in common: ", sum(intersect_umap$Count != 0, na.rm = TRUE))
+
+write.csv(invitro_paint_umap, paste0(output_dir, "invitro_paint_umap.csv"))
+
+
+```
+
+
+###Haven't gotten past here
+Quick correlation plot:
+```{r}
+innerjoin <- invitro_paint_umap %>%
+  mutate(log2SingleCell = ifelse(Count == 0, NA, log2SingleCell)) %>%
+  mutate(Count = ifelse(log2SingleCell == 0, 0, Count)) %>%
+  filter(!is.na(log2SingleCell)) %>% filter(!is.na(Count))
+
+innerjoin <- invitro_paint_umap %>%
+  mutate(log2SingleCell = ifelse(Count == 0, NA, log2SingleCell)) %>%
+  mutate(Count = ifelse(log2SingleCell == 0, 0, Count)) %>%
+  filter(log2SingleCell != 0)
+
+cat("Correlation of invitro between 10X and SALVE data:", cor(innerjoin$log2SingleCell, innerjoin$Count))
+corrplot <- ggplot(data = innerjoin, aes(x=Count, y=log2SingleCell)) +
+  geom_point() + 
+  xlim(0,10) + 
+  ylim(0,10)
+corrplot
+ggsave(corrplot, file = paste0(output_dir, "intersect_correlationplot.svg"))
+```
+
+
+Let's pull the list of cellIDs that are vRNA positive (just from 10X itself (SPQ)).
+```{r}
+input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS003/EGS002/"
+SingleCell_umap_env <- read.csv(paste0(input.dir, "invitro_scVQexpression_env.csv"))
+SingleCell_umap_env <- SingleCell_umap_env %>% mutate(log1pSingleCell = log1p(Count)) %>% select(-X)
+
+##cheap way out:
+list_of_cellIDs <- SingleCell_umap_env %>% filter(log1pSingleCell >= 1) %>%
+  select(cellID) %>% 
+  mutate(cellID = paste0(cellID, "-1"))
+list_of_cellIDs <- list_of_cellIDs$cellID
+
+##skip for now
+#invitro_paint_umap_full = full_join(SingleCell_umap_env, PL_env, by = "cellID")
+#invitro_paint_umap_full[is.na(invitro_paint_umap_full)] <- 0
+#SALVE_cellids <- invitro_paint_umap_full %>% filter(log1pSALVE > 0) %>% select(cellID) %>% mutate(cellID = paste0(cellID, "-1"))
+```
+Or use above's "SingleCell_invitro"
+
+### DEG analysis
+
+```{r}
+# Create your subset of cells
+list_of_cells <- invitro_paint_umap %>% filter(invitro_paint_umap$Count != 0) #for SALVE
+#list_of_cells <- invitro_paint_umap %>% filter(invitro_paint_umap$SingleCellcount != 0) #for 10X
+list_of_cells <- list_of_cells$cellID
+#invitro <- readRDS(file = paste0("/projects/b1042/GoyalLab/egrody/extractedData/EGS003/EGS002/", "invitro.rds")) #reload invitro from RDS
+subset_cells <- subset(invitro, cells = list_of_cells) 
+
+
+# Run analysis
+results <- analyze_cell_subset(invitro, list_of_cells)
+```
+
+### Saving results
+```{r}
+
+output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS003/joint/Mmul_10_onlyclusters/DEG_SALVE/"
+save_subset_analysis(results, output_dir = output.dir)
+
+output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS003/joint/"
+plot_subset_analysis(invitro, results, list_of_cells, output_dir = paste0(output.dir, "plots/"))
+```
+
+### Interpreting results
+```{r}
+# Create filtered results list
+filteredDEG <- lapply(results$cluster_specific, function(df) {
+  if (!is.null(df) && nrow(df) > 0) {
+    # Filter for significant adjusted p-value and log2FC threshold
+    df[df$p_val_adj < 0.05 & abs(df$avg_log2FC) > 0.5, ]
+  } else {
+    NULL
+  }
+})
+
+# Remove any empty results
+filteredDEG <- filteredDEG[sapply(filteredDEG, function(x) !is.null(x) && nrow(x) > 0)]
+
+# Print summary of how many genes passed filters in each cluster
+for (cluster in names(filteredDEG)) {
+  cat(sprintf("Cluster %s: %d genes\n", cluster, nrow(filteredDEG[[cluster]])))
+}
+
+# Saving
+wb <- createWorkbook()
+# Add each cluster's results as a separate worksheet
+for (cluster_name in names(filteredDEG)) {
+    de_results <- filteredDEG[[cluster_name]]
+    if (!is.null(de_results) && nrow(de_results) > 0) {
+        # Add cluster results as a worksheet
+        addWorksheet(wb, cluster_name)
+        # Add data with gene names as a column
+        de_results$gene <- rownames(de_results)
+        writeData(wb, cluster_name, de_results)
+    }
+}
+
+# Save the workbook
+saveWorkbook(wb, paste0(output.dir, "cluster_specific_DE_filtered.xlsx"), overwrite = TRUE)
+
+
+
+filteredConserv <- results$conserved_markers %>%
+    filter(p_val_adj < 0.05 & abs(avg_log2FC) > 0.5)
+
+# Print summary of how many genes passed filters in each cluster
+cat(sprintf("Conserved markers: %d genes\n", nrow(filteredConserv)))
+
+# For each gene in conserved_markers, let's check which clusters show it as significant
+check_gene_presence <- function(gene, cluster_results, p_val_thresh = 0.05, log2fc_thresh = 0.5) {
+  # Initialize list to store results
+  presence <- list()
+  
+  # Check each cluster
+  for(cluster in names(cluster_results)) {
+    de_results <- cluster_results[[cluster]]
+    if(!is.null(de_results) && gene %in% rownames(de_results)) {
+      # Get gene stats for this cluster
+      gene_stats <- de_results[gene,]
+      # Check if it meets significance criteria
+      if(gene_stats$p_val_adj < p_val_thresh && abs(gene_stats$avg_log2FC) > log2fc_thresh) {
+        presence[[cluster]] <- c(
+          p_val_adj = gene_stats$p_val_adj,
+          avg_log2FC = gene_stats$avg_log2FC
+        )
+      }
+    }
+  }
+  
+  # Return number of clusters and which clusters
+  return(list(
+    n_clusters = length(presence),
+    clusters = names(presence),
+    details = presence
+  ))
+}
+
+# First get cluster counts for each gene
+cluster_counts <- lapply(rownames(filteredConserv), function(gene) {
+  result <- check_gene_presence(gene, results$cluster_specific)
+  data.frame(
+    gene = gene,
+    num_clusters = result$n_clusters,
+    clusters = paste(result$clusters, collapse=",")
+  )
+}) %>% bind_rows()
+
+# Add cluster information to filtered results
+filteredConserv <- filteredConserv %>%
+  mutate(gene = rownames(.)) %>%
+  left_join(cluster_counts, by = "gene") %>%
+  arrange(desc(num_clusters), desc(abs(avg_log2FC)))
+
+# Save to Excel
+wb <- createWorkbook()
+addWorksheet(wb, "filtered_conserved")
+writeData(wb, "filtered_conserved", filteredConserv)
+saveWorkbook(wb, paste0(output.dir, "conserved_markers_filtered.xlsx"), overwrite = TRUE)
+
+```
+
+
+
+## Saturation analysis
+
+### SALVE
+This is to look at cellID sampling to ask: why don't we see those 10X only cells also in SALVE?
+```{r loading}
+input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/bamsort/split/"
+reads_D1 <- read.csv(paste0(input.dir, "D1_up_CI_bamsort_split_inside.csv"))
+reads_LTR <- read.csv(paste0(input.dir, "LTR_CI_bamsort_split_inside.csv"))
+reads_nef <- read.csv(paste0(input.dir, "nef_CI_bamsort_split_inside.csv"))
+reads_tat <- read.csv(paste0(input.dir, "tat_up_CI_bamsort_split_inside.csv"))
+
+reads_total <- bind_rows(reads_D1, reads_LTR, reads_nef, reads_tat) %>%
+  group_by(cellID, UMI) %>%
+  summarize(reads = sum(reads), .groups = "drop")
+
+molecules_D1 <- reads_D1 %>% select(-reads)
+molecules_LTR <- reads_LTR %>% select(-reads)
+molecules_nef <- reads_nef %>% select(-reads)
+molecules_tat <- reads_tat %>% select(-reads)
+molecules_total <- reads_total %>% select(-reads)
+```
+
+```{r sampling and plotting}
+output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/saturation/sample_cellID/"
+samples <- list(
+  D1 = molecules_D1,
+  nef = molecules_nef,
+  LTR = molecules_LTR,
+  tat = molecules_tat,
+  total = molecules_total)
+
+for (sample_name in names(samples)) {
+  sample_data <- samples[[sample_name]]
+  
+  results <- sample_cellID(sample_data)
+  summary <- analyze_cellID_sampling(results, title = paste0("cellID Saturation: ", sample_name))
+  
+  results_file <- paste0(output.dir, sample_name, "_sample_cellID_results.csv")
+  summary_file <- paste0(output.dir, sample_name, "_sample_cellID_summary.csv")
+  write.csv(results, results_file, row.names = FALSE)
+  write.csv(summary, summary_file, row.names = FALSE)
+  
+  cat("Processed sample:", sample_name, "\n")
+}
+```
+
+```{r model fitting}
+model_results <- fit_models(results, target_coverage = 95)
+model_results <- fit_models(results, target_coverage = 99)
+model_results <- fit_models(results, target_coverage = 100)
+model_results <- fit_models(results, target_coverage = 120)
+```
+
+Now looking at UMI sampling to get full picture of read saturation
+```{r}
+output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/saturation/sample_UMI/"
+samples <- list(
+  D1 = reads_D1,
+  nef = reads_nef,
+  LTR = reads_LTR,
+  tat = reads_tat,
+  total = reads_total)
+
+for (sample_name in names(samples)) {
+  sample_data <- samples[[sample_name]]
+  
+  results <- sample_UMI_weighted(sample_data)
+  summary <- analyze_UMI_sampling(results, title = paste0("Weighted UMI Saturation: ", sample_name))
+  
+  results_file <- paste0(output.dir, sample_name, "_sample_UMI_results.csv")
+  summary_file <- paste0(output.dir, sample_name, "_sample_UMI_summary.csv")
+  write.csv(results, results_file, row.names = FALSE)
+  write.csv(summary, summary_file, row.names = FALSE)
+  
+  cat("Processed sample:", sample_name, "\n")
+}
+
+```
+
+```{r}
+model_results <- fit_models(results, target_coverage = 95, coverage_column = "pair_coverage")
+model_results <- fit_models(results, target_coverage = 98.9, coverage_column = "pair_coverage")
+model_results <- fit_models(results, target_coverage = 100, coverage_column = "pair_coverage")
+model_results <- fit_models(results, target_coverage = 120)
+```
+
+
+### mac239 from GEX
+
+```{r}
+input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/bamsort/split/"
+reads_GEX <- read.csv(paste0(input.dir, "P_acute_GEX_bamsort_split_inside.csv"))
+
+molecules_GEX <- reads_GEX %>% select(-reads)
+
+output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/saturation/"
+results <- sample_cellID(molecules_GEX)
+summary <- analyze_cellID_sampling(results, title = "cellID Saturation: GEX")
+results_file <- paste0(output.dir, "GEX_sample_cellID_results.csv")
+summary_file <- paste0(output.dir, "GEX_sample_cellID_summary.csv")
+write.csv(results, results_file, row.names = FALSE)
+write.csv(summary, summary_file, row.names = FALSE)
+
+results <- sample_UMI_weighted(reads_GEX)
+summary <- analyze_UMI_sampling(results, title = paste0("Weighted UMI Saturation: GEX"))
+results_file <- paste0(output.dir, "GEX_sample_UMI_results.csv")
+summary_file <- paste0(output.dir, "GEX_sample_UMI_summary.csv")
+write.csv(results, results_file, row.names = FALSE)
+write.csv(summary, summary_file, row.names = FALSE)
+
+model_results <- fit_models(results, target_coverage = 95)
+model_results <- fit_models(results, target_coverage = 98.7)
+model_results <- fit_models(results, target_coverage = 100)
+```
+
+
+### SALVE mac239 vs Mmul_10
+```{r loading}
+input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/bamsort/split/"
+reads_summary <- read.csv("/projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/bamsort/split/all_samples_summary.txt", header = TRUE)
+
+sample_names <- reads_summary$Sample
+df_numeric <- reads_summary[, -which(names(reads_summary) == "Sample")]
+df_transposed <- as.data.frame(t(df_numeric))
+colnames(df_transposed) <- sample_names
+rownames(df_transposed) <- c("Inside_Rows", "Inside_Total_Reads", "Outside_Rows", "Outside_Total_Reads")
+df_transposed <- rbind(df_transposed, Inside_Fraction = round(df_transposed["Inside_Total_Reads",] / df_transposed["Outside_Total_Reads",], 2), Avg_Inside_Reads = round(df_transposed["Inside_Total_Reads",] / df_transposed["Inside_Rows",], 2))
+
+```
