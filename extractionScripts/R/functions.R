@@ -249,12 +249,17 @@ correlation_plots <- function(salve_data, single_cell_data, join = "inner") {
 
 # Plotting
 ## plot a UMAP
-plotUMAP <- function(data, colorby, title, output_dir, saveas, comparison = FALSE) {
+plotUMAP <- function(data, colorby, title, output_dir, saveas, comparison = FALSE, color_max = NULL) {
   # Convert unquoted column name to string
   colorby_str <- deparse(substitute(colorby))
   
   # Create a copy of the data and arrange it by the color column (low to high)
   data_ordered <- data[order(data[[colorby_str]]), ]
+  
+  # Set color_max to the maximum value in the data if not provided
+  if (is.null(color_max)) {
+    color_max <- max(data[[colorby_str]], na.rm = TRUE)
+  }
   
   umap <- ggplot(data_ordered, aes(x = UMAP1, y = UMAP2)) +
     geom_point(aes(color = .data[[colorby_str]]), size = 1, shape = 16) +
@@ -264,13 +269,14 @@ plotUMAP <- function(data, colorby, title, output_dir, saveas, comparison = FALS
           legend.text = element_text(size = rel(0.6), angle = 30),
           axis.text = element_blank(),
           axis.ticks = element_blank()) +
-    labs(title = title, color = "")
+    labs(title = title, color = "") +
+    coord_fixed(ratio = 1)
   
   if (comparison) {
     mid <- median(paint_umap$ratioSingleVISER)
     umap <- umap + scale_color_gradient2(midpoint = mid, low = "blue", mid = "gray93", high = "red")
   } else {
-    umap <- umap + scale_color_gradient(low = "lightgrey", high = "darkblue")
+    umap <- umap + scale_color_gradient(low = "lightgrey", high = "darkblue", limits = c(0, color_max))
   }
   ggsave(umap, file = paste0(output_dir, saveas))
   

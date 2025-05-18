@@ -225,6 +225,30 @@ write.csv(full_onlySingleCell, paste0(output_dir, "full_onlySingleCell.csv"))
 write.csv(full_onlySALVE, paste0(output_dir, "full_onlySALVE.csv"))
 ```
 
+Plotting
+```{r}
+output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS013/joint/"
+plotUMAP(Pacute_paint_umap, mac239, "Pacute: mac239", output.dir, "Pacute_umap_singleCell.svg")
+plotUMAP(Pacute_paint_umap, total_lessLTR, "Pacute: SALVE (total_lessLTR)", output.dir, "Pacute_umap_SALVE.svg")
+
+plotUMAP(Pacute_paint_umap, mac239, "Pacute: mac239", output.dir, "Pacute_umap_singleCell.svg", color_max = max(Pacute_paint_umap$total_lessLTR))
+plotUMAP(Pacute_paint_umap, total_lessLTR, "Pacute: SALVE (total_lessLTR)", output.dir, "Pacute_umap_SALVE_totallessLTR.svg")
+plotUMAP(Pacute_paint_umap, tat_S, "Pacute: SALVE (tat S)", output.dir, "Pacute_umap_SALVE_tatS.svg")
+plotUMAP(Pacute_paint_umap, tat_US, "Pacute: SALVE (tat US)", output.dir, "Pacute_umap_SALVE_tatUS.svg")
+plotUMAP(Pacute_paint_umap, D1_S, "Pacute: SALVE (D1 S)", output.dir, "Pacute_umap_SALVE_D1S.svg")
+plotUMAP(Pacute_paint_umap, D1_US, "Pacute: SALVE (D1 US)", output.dir, "Pacute_umap_SALVE_D1US.svg")
+plotUMAP(Pacute_paint_umap, absolute, "Pacute: SALVE (absolute)", output.dir, "Pacute_umap_SALVE_absolute.svg")
+
+cat(
+  "Number of US (unspliced) cells: \t",
+  sum(Pacute_paint_umap$D1_US > 0),
+  "\nNumber of S (spliced) cells: \t\t",
+  sum(Pacute_paint_umap$D1_S > 0 | Pacute_paint_umap$tat_S > 0),
+  "\nNumber of cells with both: \t\t",
+  sum(Pacute_paint_umap$D1_US > 0 & (Pacute_paint_umap$D1_S > 0 | Pacute_paint_umap$tat_S > 0))
+)
+```
+
 ### Correlation analysis
 Will do it custom for now and update correlation plot function later
 ```{r}
