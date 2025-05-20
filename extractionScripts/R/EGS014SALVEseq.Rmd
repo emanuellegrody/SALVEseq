@@ -109,7 +109,448 @@ for (i in 1:nrow(samples)) {
 
 
 
-### Current strategy: bamsort
+### Current strategy: bamsort (UPDATE)
+```{r}
+samples <- data.frame(
+  datasets = c(
+    "JK85_D13",
+    "LP29_D195",
+    "LP29_D83",
+    "G_ART_GEX",
+    "invitro",
+    "L_ART_GEX",
+    "L_acute_GEX",
+    "P_ART_GEX",
+    "W0"
+  ),
+  samples = c(
+    "D13",
+    "D195",
+    "D83",
+    "GART",
+    "Invitro",
+    "LART",
+    "Lacute",
+    "PART",
+    "Uninfected"
+  ),
+  folders = c(
+    "/projects/b1042/GoyalLab/egrody/extractedData/EGS004/singleCell/counts/Mmul_10_mac239/",
+    "/projects/b1042/GoyalLab/egrody/extractedData/EGS004/singleCell/counts/Mmul_10_mac239/",
+    "/projects/b1042/GoyalLab/egrody/extractedData/EGS004/singleCell/counts/Mmul_10_mac239/",
+    "/projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/counts/Mmul_10_mac239/",
+    "/projects/b1042/GoyalLab/egrody/extractedData/EGS002/singleCell/counts/Mmul_10_mac239/",
+    "/projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/counts/Mmul_10_mac239/",
+    "/projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/counts/Mmul_10_mac239/",
+    "/projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/counts/Mmul_10_mac239/",
+    "/projects/b1042/GoyalLab/egrody/extractedData/EGS002/singleCell/counts/Mmul_10_mac239/"
+  )
+)
+
+input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/singleCell/bamsort/alignment"
+
+# Function to identify the specific file type
+identify_file_type <- function(filename) {
+  alignment_part <- strsplit(filename, "_bamsort_alignment_")[[1]][2]
+  alignment_part <- sub("\\.csv$", "", alignment_part)
+  
+  if (grepl("LTR_D1$", alignment_part)) return("LTR_D1")
+  if (grepl("D1_A1$", alignment_part)) return("D1_A1")
+  if (grepl("A1_D4$", alignment_part)) return("A1_D4")
+  if (grepl("D4_A7$", alignment_part)) return("D4_A7")
+  if (grepl("A7_LTR$", alignment_part)) return("A7_LTR")
+  
+  return("other")
+}
+
+raw_cellIDs_df <- read.csv("/projects/b1042/GoyalLab/egrody/extractedData/EGS014/singleCell/raw_cellIDs/all_raw_cellIDs.csv")
+raw_cellIDs <- split(raw_cellIDs_df$cellID, raw_cellIDs_df$sample)
+
+
+
+
+output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/singleCell/bamsort/reads/20250518/"
+
+# Process each sample
+for (i in 1:nrow(samples)) {
+  sample <- samples$samples[i]
+  cat("\nProcessing sample:", sample, "\n")
+  
+  # Get all files for current sample
+  sample_files <- list.files(input.dir, 
+                             pattern = paste0("^", sample, ".*_bamsort_alignment_.*\\.csv$"), 
+                             full.names = TRUE)
+  
+  if (length(sample_files) == 0) {
+    cat("No files found for sample:", sample, "\n")
+    next
+  }
+  
+  # Filter to keep only files that contribute to total_lessLTR
+  filenames <- basename(sample_files)
+  is_relevant <- sapply(filenames, is_v4bamsort_file)
+  relevant_files <- sample_files[is_relevant]
+  relevant_filenames <- filenames[is_relevant]
+  
+  if (length(relevant_files) == 0) {
+    cat("No relevant files found for sample:", sample, "\n")
+    next
+  }
+  
+  # Extract categories for each file
+  categories <- sapply(relevant_filenames, extract_category)
+  
+  # Create a data frame to store the combined results
+  all_data <- data.frame()
+  
+  # Process each relevant file
+  for (j in seq_along(relevant_files)) {
+    extracted_data <- NULL  # Initialize as NULL for each file
+    
+    tryCatch({
+      # Read the CSV file, expecting standard column names
+      file_data <- fread(relevant_files[j], data.table = FALSE)
+      
+      # Check if file has content
+      if(nrow(file_data) == 0) {
+        cat("Warning: File is empty:", relevant_filenames[j], "\n")
+        next
+      }
+      
+      # Simplify column mapping - expect standard column names
+      required_cols <- c("cellID", "UMI", "count")
+      
+      # Check if all required columns exist
+      missing_cols <- setdiff(required_cols, colnames(file_data))
+      
+      if (length(missing_cols) > 0) {
+        cat("Warning: Missing required columns:", paste(missing_cols, collapse=", "), "\n")
+        cat("Available columns:", paste(colnames(file_data), collapse=", "), "\n")
+        next
+      }
+      
+      # Extract data with the required columns and add category
+      extracted_data <- file_data %>%
+        select(cellID, UMI, count) %>%
+        rename(read = count) %>%  # Rename count to read for consistency with later code
+        mutate(category = categories[j])
+      
+    }, error = function(e) {
+      cat("Error reading file:", relevant_filenames[j], "\n")
+      cat("Error message:", conditionMessage(e), "\n")
+      
+      # Try reading without header
+      tryCatch({
+        cat("Attempting to read without header...\n")
+        file_data <- fread(relevant_files[j], data.table = FALSE, header = FALSE)
+        
+        # If we got here, we were able to read the file without a header
+        # Assign column names based on position
+        if(ncol(file_data) >= 3) {
+          colnames(file_data) <- c("cellID", "UMI", "read", rep("extra", ncol(file_data) - 3))
+          
+          # Create extracted data
+          extracted_data <- file_data %>%
+            select(cellID, UMI, read) %>%
+            mutate(category = categories[j])
+            
+          cat("Successfully read file without header\n")
+        } else {
+          cat("File has fewer than 3 columns, cannot process:", ncol(file_data), "columns found\n")
+        }
+      }, error = function(e2) {
+        cat("Still failed to read file. Final error:", conditionMessage(e2), "\n")
+      })
+    })
+    
+    # Add to the combined data frame only if we have data
+    if (!is.null(extracted_data) && nrow(extracted_data) > 0) {
+      all_data <- rbind(all_data, extracted_data)
+    }
+  }
+  
+  # If we have data, process it
+  if (nrow(all_data) > 0) {
+    # Remove any rows with NA values
+    all_data <- all_data %>% 
+      filter(!is.na(cellID) & !is.na(UMI) & !is.na(read))
+    
+    # Count reads per UMI - no need to count distinct reads since each row represents a count
+    # read column originally contained count values
+    tryCatch({
+      umi_read_counts <- all_data %>%
+        group_by(cellID, UMI, category) %>%
+        summarize(
+          read_count = sum(as.numeric(read)),  # Sum the count values
+          .groups = 'drop'
+        )
+      
+      cat("Gathered read counts for", nrow(umi_read_counts), "UMIs from", 
+          n_distinct(umi_read_counts$cellID), "cells\n")
+      
+      # Count UMIs per cell
+      cell_umi_counts <- umi_read_counts %>%
+        group_by(cellID) %>%
+        summarize(
+          total_UMIs = n_distinct(UMI),
+          total_reads = sum(read_count),
+          .groups = 'drop'
+        )
+      
+      # Create a wide format with UMI counts per category
+      umi_by_category <- umi_read_counts %>%
+        group_by(cellID, category) %>%
+        summarize(
+          category_UMIs = n_distinct(UMI),
+          category_reads = sum(read_count),
+          .groups = 'drop'
+        )
+      
+      # Use pivot_wider to create a wide format
+      umi_by_category_wide <- tidyr::pivot_wider(
+        umi_by_category,
+        id_cols = cellID,
+        names_from = category,
+        names_sep = "_",
+        values_from = c(category_UMIs, category_reads),
+        values_fill = 0)
+
+      
+      # Combine the cell-level and category-level data
+      final_data <- cell_umi_counts %>%
+        left_join(umi_by_category_wide, by = "cellID")
+      
+      # Apply raw_cellIDs filtering
+      if (sample %in% names(raw_cellIDs) && !is.null(raw_cellIDs[[sample]])) {
+        valid_cells <- raw_cellIDs[[sample]]
+        cat("Keeping only cells in", 
+            length(valid_cells), "valid cells from 10X data\n")
+        
+        # Filter the UMI-level data
+        filtered_umi_read_counts <- umi_read_counts %>%
+          filter(cellID %in% valid_cells)
+        
+        # Filter the cell-level summary data
+        filtered_final_data <- final_data %>%
+          filter(cellID %in% valid_cells)
+        
+        cat("After filtering: kept", nrow(filtered_umi_read_counts), "UMIs from", 
+            n_distinct(filtered_umi_read_counts$cellID), "valid cells\n")
+      } else {
+        cat("Warning: No 10X data found for sample", sample, "- using unfiltered cell list\n")
+        filtered_umi_read_counts <- umi_read_counts
+        filtered_final_data <- final_data
+      }
+      
+      # Save the detailed UMI-level data (both filtered and unfiltered)
+      umi_level_file <- file.path(output.dir, paste0(sample, "_UMI_read_counts_raw.csv"))
+      write.csv(umi_read_counts, file = umi_level_file, row.names = FALSE)
+      
+      filtered_umi_level_file <- file.path(output.dir, paste0(sample, "_UMI_read_counts_full.csv"))
+      write.csv(filtered_umi_read_counts, file = filtered_umi_level_file, row.names = FALSE)
+      
+      # Save the cell-level summary data (both filtered and unfiltered)
+      cell_level_file_all <- file.path(output.dir, paste0(sample, "_cells_summary_raw.csv"))
+      write.csv(final_data, file = cell_level_file_all, row.names = FALSE)
+      
+      cell_level_file <- file.path(output.dir, paste0(sample, "_cell_summary_full.csv"))
+      write.csv(filtered_final_data, file = cell_level_file, row.names = FALSE)
+      
+      # Create a dataset for plotting (use filtered data)
+      #viz_data <- filtered_umi_read_counts %>%
+      #  mutate(sample_name = sample)
+      #viz_file <- file.path(output.dir, paste0(sample, "_plot_data.csv"))
+      #write.csv(viz_data, file = viz_file, row.names = FALSE)
+      
+      cat("Successfully processed\n")
+      rm(umi_by_category, umi_by_category_wide, umi_read_counts)
+    }, error = function(e) {
+      cat("Error processing data for sample", sample, ":", conditionMessage(e), "\n")
+      
+      # Try to save the raw data at least
+      raw_file <- file.path(output.dir, paste0(sample, "_raw_data.csv"))
+      write.csv(all_data, file = raw_file, row.names = FALSE)
+      cat("Saved raw data to:", raw_file, "\n")
+    })
+  } else {
+    cat("No data extracted for sample:", sample, "\n")
+  }
+}
+```
+
+
+```{r}
+convert_umi_to_salve <- function(umi_file, output_file, min_reads = 1, min_region_count = 1) {
+  # Reading in file
+  umi_data <- read.csv(umi_file, stringsAsFactors = FALSE)
+  # Extract sample name from file name
+  sample_name <- gsub("_UMI_read_counts_full.csv", "", basename(umi_file))
+  
+  # Apply minimum read count filter if specified
+  if (min_reads > 0) {
+    cell_counts <- aggregate(read_count ~ cellID, data = umi_data, FUN = sum)
+    valid_cells <- cell_counts$cellID[cell_counts$read_count >= min_reads]
+    #cat("Found", length(valid_cells), "cells with at least", min_reads, "reads\n")
+    umi_data <- umi_data[umi_data$cellID %in% valid_cells, ]
+  }
+  
+  # Define all possible categories we want in the output
+  categories <- c("D1_US", "D1_S", "tat_US", "tat_S", "nef", "LTR")
+  
+  # Use table to count unique UMIs
+  unique_combinations <- unique(umi_data[, c("cellID", "category", "UMI")])
+  
+  # Count UMIs per cellID and category
+  umi_counts <- table(unique_combinations$cellID, unique_combinations$category)
+  umi_counts_df <- as.data.frame.matrix(umi_counts)
+  
+  # Add cellID column and preserve rownames
+  umi_counts_df$cellID <- rownames(umi_counts_df)
+  rownames(umi_counts_df) <- NULL
+  
+  # Initialize SALVE data with cellIDs
+  salve_data <- data.frame(cellID = unique(umi_data$cellID), stringsAsFactors = FALSE)
+  
+  # Initialize all category columns with zeros
+  for (cat in categories) {
+    salve_data[[cat]] <- 0
+  }
+  
+  # Get categories that actually exist in the data
+  actual_categories <- colnames(umi_counts_df)
+  actual_categories <- actual_categories[actual_categories != "cellID"]
+  
+  # Fill in the SALVE data with UMI counts - safely
+  for (i in 1:nrow(umi_counts_df)) {
+    cell <- umi_counts_df$cellID[i]
+    
+    # Find the row index for this cell in salve_data
+    row_idx <- which(salve_data$cellID == cell)
+    if (length(row_idx) == 1) {
+      # For each category that exists in the actual data
+      for (cat in actual_categories) {
+        if (cat %in% colnames(umi_counts_df) && cat %in% colnames(salve_data)) {
+          # Get the count value safely
+          count_val <- umi_counts_df[i, cat]
+          if (!is.null(count_val) && !is.na(count_val)) {
+            salve_data[row_idx, cat] <- count_val
+          }
+        }
+      }
+    } else {
+      cat("Warning: Cell", cell, "not found or duplicated in salve_data\n")
+    }
+  }
+  
+  # Calculate region count
+  region_prefixes <- c("D1", "tat", "nef")
+  salve_data$region_count <- 0
+  
+  # For each region, check if the cell has any counts in columns with that prefix
+  for (prefix in region_prefixes) {
+    if (prefix %in% c("nef", "LTR")) {
+      if (prefix %in% colnames(salve_data)) {
+        salve_data$region_count <- salve_data$region_count + 
+          as.integer(salve_data[[prefix]] > 0)
+      }
+    } else {
+      # For prefixes like "D1" or "tat"
+      prefix_cols <- grep(paste0("^", prefix), colnames(salve_data), value = TRUE)
+      if (length(prefix_cols) > 0) {
+        has_prefix <- rowSums(salve_data[, prefix_cols, drop = FALSE], na.rm = TRUE) > 0
+        salve_data$region_count <- salve_data$region_count + as.integer(has_prefix)
+      }
+    }
+  }
+  
+  # Apply region count filter
+  filtered_salve_data <- salve_data[salve_data$region_count >= min_region_count, ]
+  
+  # Remove the helper column
+  filtered_salve_data$region_count <- NULL
+  
+  
+  # Write the output file
+  cat("Writing output file:", output_file, "\n")
+  write.csv(filtered_salve_data, output_file, row.names = FALSE)
+  
+  cat("Converted", nrow(umi_data), "UMI entries to", nrow(filtered_salve_data), "cells\n")
+  
+  return(filtered_salve_data)
+}
+
+
+# Function to process multiple samples
+process_all_samples_umi_to_salve <- function(sample_list, input_dir, output_dir, min_reads = 1, min_region_count = 1) {
+  # Ensure output directory exists
+  if (!dir.exists(output_dir)) {
+    dir.create(output_dir, recursive = TRUE)
+  }
+  
+  # Track successful and failed conversions
+  successful <- 0
+  failed <- 0
+  
+  for (sample in sample_list) {
+    # Construct input and output file paths
+    input_file <- file.path(input_dir, paste0(sample, "_UMI_read_counts_full.csv"))
+    output_file <- file.path(output_dir, paste0(sample, "_SALVE_filtered.csv"))
+    
+    # Process the file
+    cat("Processing sample:", sample, "\n")
+    tryCatch({
+      salve_data <- convert_umi_to_salve(input_file, output_file, min_reads, min_region_count)
+      if (!is.null(salve_data)) {
+        successful <- successful + 1
+      } else {
+        failed <- failed + 1
+      }
+    }, error = function(e) {
+      warning("Error processing sample ", sample, ": ", conditionMessage(e), "\n")
+      failed <- failed + 1
+    })
+  }
+  
+  cat("\nConversion summary:\n")
+  cat("  Successful conversions:", successful, "\n")
+  cat("  Failed conversions:", failed, "\n")
+  cat("All samples processed.\n")
+}
+
+# Example usage
+#umi_file <- "D195_UMI_read_counts.csv"
+#output_file <- "D195_SALVE_filtered.csv"
+#salve_data <- convert_umi_to_salve(umi_file, output_file, min_reads = 0)
+
+# Verify conversion with original SALVE file
+# verify_conversion(umi_file, "D195_SALVE_full.csv")
+
+# Example to process all samples
+samples <- c(
+  "D13",
+  "D195",
+  "D83",
+  "GART",
+  "Invitro",
+  "LART",
+  "Lacute",
+  "PART",
+  "Uninfected"
+)
+
+# Example paths
+input_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/bamsort/reads/20250518"
+output_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/bamsort/reads/20250518/converted/min2/nocountLTR"
+
+#input_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/singleCell/bamsort/reads"
+#output_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/singleCell/bamsort/reads/converted/min2"
+
+# Process all samples
+process_all_samples_umi_to_salve(samples, input_dir, output_dir, min_reads = 2, min_region_count = 2)
+
+```
+
+### Alternative: Read in and filter each file separately
 ```{r}
 samples <- data.frame(
   datasets = c(
@@ -560,7 +1001,852 @@ cat("Saved combined cell IDs to", combined_file, "\n")
 # raw_cellIDs <- split(raw_cellIDs_df$cellID, raw_cellIDs_df$sample)
 ```
 
-Read in and filter each file separately
+### Reads per UMI
+
+Making raw and full lists:
+```{r}
+# Function to detect if a file belongs to a specific category
+is_v4bamsort_file <- function(filename) {
+  
+  # Split the filename into parts
+  target_part <- strsplit(filename, "_bamsort_alignment_")[[1]][1]
+  
+  # Get the part after "_bamsort_alignment_"
+  alignment_part <- NA
+  if (length(strsplit(filename, "_bamsort_alignment_")[[1]]) > 1) {
+    alignment_part <- strsplit(filename, "_bamsort_alignment_")[[1]][2]
+    alignment_part <- sub("\\.csv$", "", alignment_part)
+  }
+  
+  # Categorize based on different parts of the filename
+  is_d1 <- grepl("D1", target_part)
+  is_tat <- grepl("tat", target_part)
+  is_nef_target <- grepl("nef", target_part)
+  is_nef_alignment <- !is.na(alignment_part) && grepl("nef", alignment_part)
+  is_ltr_target <- grepl("LTR", target_part)
+  is_ltr_alignment <- !is.na(alignment_part) && grepl("LTR", alignment_part)
+  
+  # We want to include any file that could be part of total_lessLTR
+  # This includes D1, tat, and nef files (but note: alignment part might also affect classification)
+  return(is_d1 || is_tat || is_nef_target || is_nef_alignment || is_ltr_target || is_ltr_alignment)
+}
+
+# Function to extract category from filename
+extract_category <- function(filename) {
+  # Split the filename into parts
+  target_part <- strsplit(filename, "_bamsort_alignment_")[[1]][1]
+  alignment_part <- NA
+  if (length(strsplit(filename, "_bamsort_alignment_")[[1]]) > 1) {
+    alignment_part <- strsplit(filename, "_bamsort_alignment_")[[1]][2]
+    alignment_part <- sub("\\.csv$", "", alignment_part)
+  }
+  
+  # First, prioritize the alignment part for categorization
+  if (!is.na(alignment_part)) {
+    # Check common categories in alignment
+    if (alignment_part == "D1_S") {
+      return("D1_S")
+    }
+    if (alignment_part == "D1_US") {
+      return("D1_US")
+    }
+    if (alignment_part == "tat_S") {
+      return("tat_S")
+    }
+    if (alignment_part == "tat_US") {
+      return("tat_US")
+    }
+    if (alignment_part == "nef_3" || alignment_part == "nef_5") {
+      return("nef")
+    }
+    if (alignment_part == "LTR_3" || alignment_part == "LTR_5") {
+      return("LTR")
+    }
+  }
+  
+  # If we couldn't categorize from alignment part, fall back to target part
+  # Only use these if we couldn't categorize from the alignment
+  if (grepl("D1", target_part)) {
+    if (grepl("_S[_\\.]", target_part) || grepl("_S$", target_part)) {
+      cat("  Categorized as: D1_S (from target)\n")
+      return("D1_S")
+    }
+    if (grepl("_US[_\\.]", target_part) || grepl("_US$", target_part)) {
+      cat("  Categorized as: D1_US (from target)\n")
+      return("D1_US")
+    }
+  }
+  
+  if (grepl("tat", target_part)) {
+    if (grepl("_S[_\\.]", target_part) || grepl("_S$", target_part)) {
+      cat("  Categorized as: tat_S (from target)\n")
+      return("tat_S")
+    }
+    if (grepl("_US[_\\.]", target_part) || grepl("_US$", target_part)) {
+      cat("  Categorized as: tat_US (from target)\n")
+      return("tat_US")
+    }
+  }
+  
+  # These are used as fallbacks only
+  if (grepl("nef", target_part)) {
+    cat("  Categorized as: nef (from target)\n")
+    return("nef")
+  }
+  
+  if (grepl("LTR", target_part)) {
+    cat("  Categorized as: LTR (from target)\n")
+    return("LTR")
+  }
+  
+  # Default case
+  cat("  Failed to categorize. Assigning as: other\n")
+  return("other")
+}
+
+resolve_multimap <- function(df, mode = "SALVE") {
+  df <- as.data.frame(df, stringsAsFactors = FALSE)
+  
+  if (mode == "SALVE") {
+    # Valid pairs for SALVE mode
+  valid_pairs <- list(
+    c("tat_S", "nef"),      # Keep nef
+    c("D1_S", "tat_US"),    # Keep tat_US
+    c("tat_US", "tat_S")    # Keep tat_S
+  )
+  } else if (mode == "GEX" | mode == "10X") {
+    # Valid pairs for GEX mode
+  valid_pairs <- list(
+    c("LTR_D1", "D1_A1"),  # Keep D1_A1
+    c("D1_A1", "A1_D4"),   # Keep A1_D4
+    c("A1_D4", "D4_A7"),   # Keep D4_A7
+    c("D4_A7", "A7_LTR")   # Keep A7_LTR
+  )
+  } else {
+    stop("Invalid mode input")
+  }
+  
+  # Create a composite key
+  df$key <- paste(df$cellID, df$UMI, sep = "_")
+  
+  # Identify multi-category keys
+  key_counts <- table(df$key)
+  multi_keys <- names(key_counts[key_counts > 1])
+  
+  # Statistics counters
+  total_multimapped <- length(multi_keys)
+  resolved_count <- 0
+  tossed_count <- 0
+  tossed_more_than_2_count <- 0
+  
+  # Split into single and multi entries
+  singles <- df[!df$key %in% multi_keys, ]
+  multis <- df[df$key %in% multi_keys, ]
+  
+  # Process the multi entries
+  result_rows <- list()
+  
+  if (nrow(singles) > 0) {
+    result_rows[[1]] <- singles
+  }
+  
+  # Process each unique key
+  if (nrow(multis) > 0) {
+    unique_keys <- unique(multis$key)
+    
+    for (k in unique_keys) {
+      # Get all rows for this key
+      rows <- multis[multis$key == k, ]
+      categories <- unique(rows$category)
+      
+      # Process based on number of categories
+      if (length(categories) == 1) {
+        # For keys with 1 category but multiple rows, consolidate by summing read_counts
+        total_reads <- sum(rows$read_count)
+        keep_row <- rows[1, ]  # Take the first row
+        keep_row$read_count <- total_reads  # Update the read count
+        result_rows[[length(result_rows) + 1]] <- keep_row
+        consolidated_same_category <- consolidated_same_category + 1
+      } else if (length(categories) == 2) {
+        # Check against valid pairs
+        valid_match <- FALSE
+        for (pair in valid_pairs) {
+          if (all(sort(categories) == sort(pair))) {
+            # Valid pair, keep the second category
+            keep_cat <- pair[2]
+            keep_row <- rows[rows$category == keep_cat, ][1, ]
+            keep_row$read_count <- sum(rows$read_count)
+            result_rows[[length(result_rows) + 1]] <- keep_row
+            resolved_count <- resolved_count + 1
+            valid_match <- TRUE
+            break
+          }
+        }
+        
+        # If no valid match found, count as tossed
+        if (!valid_match) {
+          tossed_count <- tossed_count + 1
+        }
+      } else if (length(categories) > 2) {
+        # Toss UMIs with more than 2 categories
+        tossed_more_than_2_count <- tossed_more_than_2_count + 1
+      }
+    }
+  }
+  
+  # Print statistics
+  cat("Total multi-mapped UMIs:", total_multimapped, "\n")
+  cat("UMIs successfully resolved:", resolved_count, 
+      sprintf("(%.1f%%)", resolved_count/total_multimapped*100), "\n")
+  cat("UMIs tossed (no valid pair):", tossed_count, 
+      sprintf("(%.1f%%)", tossed_count/total_multimapped*100), "\n")
+  cat("UMIs tossed (>2 categories):", tossed_more_than_2_count, 
+      sprintf("(%.1f%%)", ifelse(total_multimapped > 0, tossed_more_than_2_count/total_multimapped*100, 0)), "\n")
+  cat("Total UMIs tossed:", tossed_count + tossed_more_than_2_count, 
+      sprintf("(%.1f%%)", ifelse(total_multimapped > 0, 
+                                (tossed_count + tossed_more_than_2_count)/total_multimapped*100, 0)), "\n")
+  
+  # Combine all results
+  if (length(result_rows) > 0) {
+    result <- do.call(rbind, result_rows)
+    result$key <- NULL  # Remove the helper column
+    rownames(result) <- NULL
+    
+    return(result)
+  } else {
+    # Return empty frame with correct structure
+    empty <- df[0, ]
+    empty$key <- NULL
+    return(empty)
+  }
+}
+
+
+input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/bamsort/alignment/"
+output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/bamsort/reads/20250520"
+
+samples <- data.frame(
+  datasets = c(
+    "JK85_D13",
+    "LP29_D195",
+    "LP29_D83",
+    "G_ART_GEX",
+    "invitro",
+    "L_ART_GEX",
+    "L_acute_GEX",
+    "P_ART_GEX",
+    "W0"
+  ),
+  samples = c(
+    "D13",
+    "D195",
+    "D83",
+    "GART",
+    "Invitro",
+    "LART",
+    "Lacute",
+    "PART",
+    "Uninfected"
+  ),
+  folders = c(
+    "/projects/b1042/GoyalLab/egrody/extractedData/EGS004/singleCell/counts/Mmul_10_mac239/",
+    "/projects/b1042/GoyalLab/egrody/extractedData/EGS004/singleCell/counts/Mmul_10_mac239/",
+    "/projects/b1042/GoyalLab/egrody/extractedData/EGS004/singleCell/counts/Mmul_10_mac239/",
+    "/projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/counts/Mmul_10_mac239/",
+    "/projects/b1042/GoyalLab/egrody/extractedData/EGS002/singleCell/counts/Mmul_10_mac239/",
+    "/projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/counts/Mmul_10_mac239/",
+    "/projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/counts/Mmul_10_mac239/",
+    "/projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/counts/Mmul_10_mac239/",
+    "/projects/b1042/GoyalLab/egrody/extractedData/EGS002/singleCell/counts/Mmul_10_mac239/"
+  )
+)
+
+raw_cellIDs_df <- read.csv("/projects/b1042/GoyalLab/egrody/extractedData/EGS014/singleCell/raw_cellIDs/all_raw_cellIDs.csv")
+raw_cellIDs <- split(raw_cellIDs_df$cellID, raw_cellIDs_df$sample)
+
+# Process each sample
+for (i in 1:nrow(samples)) {
+  sample <- samples$samples[i]
+  cat("\nProcessing sample:", sample, "\n")
+  
+  # Get all files for current sample
+  sample_files <- list.files(input.dir, 
+                             pattern = paste0("^", sample, ".*_bamsort_alignment_.*\\.csv$"), 
+                             full.names = TRUE)
+  
+  if (length(sample_files) == 0) {
+    cat("No files found for sample:", sample, "\n")
+    next
+  }
+  
+  # Filter to keep only files that contribute to total_lessLTR
+  filenames <- basename(sample_files)
+  is_relevant <- sapply(filenames, is_v4bamsort_file)
+  relevant_files <- sample_files[is_relevant]
+  relevant_filenames <- filenames[is_relevant]
+  
+  if (length(relevant_files) == 0) {
+    cat("No relevant files found for sample:", sample, "\n")
+    next
+  }
+  
+  # Extract categories for each file
+  categories <- sapply(relevant_filenames, extract_category)
+  
+  # Create a data frame to store the combined results
+  all_data <- data.frame()
+  
+  # Process each relevant file
+  for (j in seq_along(relevant_files)) {
+    extracted_data <- NULL  # Initialize as NULL for each file
+    
+    tryCatch({
+      # Read the CSV file, expecting standard column names
+      file_data <- fread(relevant_files[j], data.table = FALSE)
+      
+      # Check if file has content
+      if(nrow(file_data) == 0) {
+        cat("Warning: File is empty:", relevant_filenames[j], "\n")
+        next
+      }
+      
+      # Simplify column mapping - expect standard column names
+      required_cols <- c("cellID", "UMI", "count")
+      
+      # Check if all required columns exist
+      missing_cols <- setdiff(required_cols, colnames(file_data))
+      
+      if (length(missing_cols) > 0) {
+        cat("Warning: Missing required columns:", paste(missing_cols, collapse=", "), "\n")
+        cat("Available columns:", paste(colnames(file_data), collapse=", "), "\n")
+        next
+      }
+      
+      # Extract data with the required columns and add category
+      extracted_data <- file_data %>%
+        select(cellID, UMI, count) %>%
+        rename(read = count) %>%  # Rename count to read for consistency with later code
+        mutate(category = categories[j])
+      
+    }, error = function(e) {
+      cat("Error reading file:", relevant_filenames[j], "\n")
+      cat("Error message:", conditionMessage(e), "\n")
+      
+      # Try reading without header
+      tryCatch({
+        cat("Attempting to read without header...\n")
+        file_data <- fread(relevant_files[j], data.table = FALSE, header = FALSE)
+        
+        # If we got here, we were able to read the file without a header
+        # Assign column names based on position
+        if(ncol(file_data) >= 3) {
+          colnames(file_data) <- c("cellID", "UMI", "read", rep("extra", ncol(file_data) - 3))
+          
+          # Create extracted data
+          extracted_data <- file_data %>%
+            select(cellID, UMI, read) %>%
+            mutate(category = categories[j])
+            
+          cat("Successfully read file without header\n")
+        } else {
+          cat("File has fewer than 3 columns, cannot process:", ncol(file_data), "columns found\n")
+        }
+      }, error = function(e2) {
+        cat("Still failed to read file. Final error:", conditionMessage(e2), "\n")
+      })
+    })
+    
+    # Add to the combined data frame only if we have data
+    if (!is.null(extracted_data) && nrow(extracted_data) > 0) {
+      all_data <- rbind(all_data, extracted_data)
+    }
+  }
+  
+  # If we have data, process it
+  if (nrow(all_data) > 0) {
+    # Remove any rows with NA values
+    all_data <- all_data %>% 
+      filter(!is.na(cellID) & !is.na(UMI) & !is.na(read))
+    
+    # Count reads per UMI - no need to count distinct reads since each row represents a count
+    # read column originally contained count values
+    tryCatch({
+      umi_read_counts <- all_data %>%
+        group_by(cellID, UMI, category) %>%
+        summarize(
+          read_count = sum(as.numeric(read)),  # Sum the count values
+          .groups = 'drop'
+        )
+      
+      cat("Gathered read counts for", nrow(umi_read_counts), "UMIs from", 
+          n_distinct(umi_read_counts$cellID), "cells\n")
+      
+      # Count UMIs per cell
+      cell_umi_counts <- umi_read_counts %>%
+        group_by(cellID) %>%
+        summarize(
+          total_UMIs = n_distinct(UMI),
+          total_reads = sum(read_count),
+          .groups = 'drop'
+        )
+      
+      # Create a wide format with UMI counts per category
+      umi_by_category <- umi_read_counts %>%
+        group_by(cellID, category) %>%
+        summarize(
+          category_UMIs = n_distinct(UMI),
+          category_reads = sum(read_count),
+          .groups = 'drop'
+        )
+      
+      # Use pivot_wider to create a wide format
+      umi_by_category_wide <- tidyr::pivot_wider(
+        umi_by_category,
+        id_cols = cellID,
+        names_from = category,
+        names_sep = "_",
+        values_from = c(category_UMIs, category_reads),
+        values_fill = 0)
+
+      
+      # Combine the cell-level and category-level data
+      # final_data <- cell_umi_counts %>%
+      #   left_join(umi_by_category_wide, by = "cellID")
+      
+      # Apply raw_cellIDs filtering
+      if (sample %in% names(raw_cellIDs) && !is.null(raw_cellIDs[[sample]])) {
+        valid_cells <- raw_cellIDs[[sample]]
+        cat("Keeping only cells in", 
+            length(valid_cells), "valid cells from 10X data\n")
+        
+        # Filter the UMI-level data
+        valid_umi_read_counts <- umi_read_counts %>%
+          filter(cellID %in% valid_cells) %>%
+          filter(category != "LTR") #removing LTR reads from consideration
+        
+        # Filter the cell-level summary data
+        # filtered_final_data <- final_data %>%
+        #   filter(cellID %in% valid_cells)
+        
+        # Multimap resolution
+        if (!is.null(names(valid_umi_read_counts$category))) {
+          category_values <- as.character(valid_umi_read_counts$category)
+          category_values <- gsub('^"(.*)"$', '\\1', category_values)
+          valid_umi_read_counts$category <- category_values
+        } else {
+          valid_umi_read_counts$category <- gsub('^"(.*)"$', '\\1', as.character(valid_umi_read_counts$category))
+        }
+
+        filtered_umi_read_counts <- resolve_multimap(valid_umi_read_counts, "SALVE")
+        
+        cat("After filtering: kept", nrow(filtered_umi_read_counts), "UMIs from", 
+            n_distinct(filtered_umi_read_counts$cellID), "valid cells\n")
+      } else {
+        cat("Warning: No 10X data found for sample", sample, "- using unfiltered cell list\n")
+        filtered_umi_read_counts <- umi_read_counts
+        filtered_final_data <- final_data
+      }
+      
+      # Save the detailed UMI-level data (both filtered and unfiltered)
+      umi_level_file <- file.path(output.dir, paste0(sample, "_UMI_read_counts_raw.csv"))
+      write.csv(umi_read_counts, file = umi_level_file, row.names = FALSE)
+      
+      filtered_umi_level_file <- file.path(output.dir, paste0(sample, "_UMI_read_counts_full.csv"))
+      write.csv(filtered_umi_read_counts, file = filtered_umi_level_file, row.names = FALSE)
+      
+      # Save the cell-level summary data (both filtered and unfiltered)
+      # cell_level_file_all <- file.path(output.dir, paste0(sample, "_cells_summary_raw.csv"))
+      # write.csv(final_data, file = cell_level_file_all, row.names = FALSE)
+      # 
+      # cell_level_file <- file.path(output.dir, paste0(sample, "_cell_summary_full.csv"))
+      # write.csv(filtered_final_data, file = cell_level_file, row.names = FALSE)
+      
+      # Create a visualization dataset for plotting (use filtered data)
+      #viz_data <- filtered_umi_read_counts %>%
+      #  mutate(sample_name = sample)
+      
+      # Save the visualization data
+      #viz_file <- file.path(output.dir, paste0(sample, "_plot_data.csv"))
+      #write.csv(viz_data, file = viz_file, row.names = FALSE)
+      
+      cat("Successfully processed\n")
+    }, error = function(e) {
+      cat("Error processing data for sample", sample, ":", conditionMessage(e), "\n")
+      
+      # Try to save the raw data at least
+      raw_file <- file.path(output.dir, paste0(sample, "_raw_data.csv"))
+      write.csv(all_data, file = raw_file, row.names = FALSE)
+      cat("Saved raw data to:", raw_file, "\n")
+    })
+  } else {
+    cat("No data extracted for sample:", sample, "\n")
+  }
+}
+
+```
+
+Filtering by minimums:
+```{r}
+convert_umi_to_salve <- function(umi_file, output_file, min_reads = 1, min_region_count = 1) {
+  # Reading in file
+  umi_data <- read.csv(umi_file, stringsAsFactors = FALSE)
+  # Extract sample name from file name
+  sample_name <- gsub("_UMI_read_counts_full.csv", "", basename(umi_file))
+  
+  # Apply minimum read count filter if specified
+  if (min_reads > 0) {
+    umi_data <- umi_data %>%
+      filter(read_count >= min_reads)
+  }
+  
+  # Define all possible categories we want in the output
+  categories <- c("D1_US", "D1_S", "tat_US", "tat_S", "nef", "LTR")
+  
+  # Use table to count unique UMIs
+  unique_combinations <- unique(umi_data[, c("cellID", "category", "UMI")])
+  
+  # Count UMIs per cellID and category
+  umi_counts <- table(unique_combinations$cellID, unique_combinations$category)
+  umi_counts_df <- as.data.frame.matrix(umi_counts)
+  
+  # Add cellID column and preserve rownames
+  umi_counts_df$cellID <- rownames(umi_counts_df)
+  rownames(umi_counts_df) <- NULL
+  
+  # Initialize SALVE data with cellIDs
+  salve_data <- data.frame(cellID = unique(umi_data$cellID), stringsAsFactors = FALSE)
+  
+  # Initialize all category columns with zeros
+  for (cat in categories) {
+    salve_data[[cat]] <- 0
+  }
+  
+  # Get categories that actually exist in the data
+  actual_categories <- colnames(umi_counts_df)
+  actual_categories <- actual_categories[actual_categories != "cellID"]
+  
+  # Fill in the SALVE data with UMI counts - safely
+  for (i in 1:nrow(umi_counts_df)) {
+    cell <- umi_counts_df$cellID[i]
+    
+    # Find the row index for this cell in salve_data
+    row_idx <- which(salve_data$cellID == cell)
+    if (length(row_idx) == 1) {
+      # For each category that exists in the actual data
+      for (cat in actual_categories) {
+        if (cat %in% colnames(umi_counts_df) && cat %in% colnames(salve_data)) {
+          # Get the count value safely
+          count_val <- umi_counts_df[i, cat]
+          if (!is.null(count_val) && !is.na(count_val)) {
+            salve_data[row_idx, cat] <- count_val
+          }
+        }
+      }
+    } else {
+      cat("Warning: Cell", cell, "not found or duplicated in salve_data\n")
+    }
+  }
+  
+  # Calculate region count
+  region_prefixes <- c("D1", "tat", "nef")
+  salve_data$region_count <- 0
+  
+  # For each region, check if the cell has any counts in columns with that prefix
+  for (prefix in region_prefixes) {
+    if (prefix %in% c("nef", "LTR")) {
+      if (prefix %in% colnames(salve_data)) {
+        salve_data$region_count <- salve_data$region_count + 
+          as.integer(salve_data[[prefix]] > 0)
+      }
+    } else {
+      # For prefixes like "D1" or "tat"
+      prefix_cols <- grep(paste0("^", prefix), colnames(salve_data), value = TRUE)
+      if (length(prefix_cols) > 0) {
+        has_prefix <- rowSums(salve_data[, prefix_cols, drop = FALSE], na.rm = TRUE) > 0
+        salve_data$region_count <- salve_data$region_count + as.integer(has_prefix)
+      }
+    }
+  }
+  
+  # Apply region count filter
+  filtered_salve_data <- salve_data[salve_data$region_count >= min_region_count, ]
+  
+  # Remove the helper column
+  filtered_salve_data$region_count <- NULL
+  
+  # Write the output file
+  write.csv(filtered_salve_data, output_file, row.names = FALSE)
+  
+  cat("Converted", nrow(umi_data), "UMI entries to", nrow(filtered_salve_data), "cells\n")
+  
+  return(filtered_salve_data)
+}
+
+
+# Function to process multiple samples
+process_all_samples_umi_to_salve <- function(sample_list, input_dir, output_dir, min_reads = 1, min_region_count = 1) {
+  # Ensure output directory exists
+  if (!dir.exists(output_dir)) {
+    dir.create(output_dir, recursive = TRUE)
+  }
+  
+  # Track successful and failed conversions
+  successful <- 0
+  failed <- 0
+  
+  for (sample in sample_list) {
+    # Construct input and output file paths
+    input_file <- file.path(input_dir, paste0(sample, "_UMI_read_counts_full.csv"))
+    output_file <- file.path(output_dir, paste0(sample, "_SALVE_filtered.csv"))
+    
+    # Process the file
+    cat("Processing sample:", sample, "\n")
+    tryCatch({
+      salve_data <- convert_umi_to_salve(input_file, output_file, min_reads, min_region_count)
+      if (!is.null(salve_data)) {
+        successful <- successful + 1
+      } else {
+        failed <- failed + 1
+      }
+    }, error = function(e) {
+      warning("Error processing sample ", sample, ": ", conditionMessage(e), "\n")
+      failed <- failed + 1
+    })
+  }
+  
+  cat("\nConversion summary:\n")
+  cat("  Successful conversions:", successful, "\n")
+  cat("  Failed conversions:", failed, "\n")
+  cat("All samples processed.\n")
+}
+
+# Example usage
+#umi_file <- "D195_UMI_read_counts.csv"
+#output_file <- "D195_SALVE_filtered.csv"
+#salve_data <- convert_umi_to_salve(umi_file, output_file, min_reads = 0)
+
+# Verify conversion with original SALVE file
+# verify_conversion(umi_file, "D195_SALVE_full.csv")
+
+# Example to process all samples
+samples <- c(
+  "D13",
+  "D195",
+  "D83",
+  "GART",
+  "Invitro",
+  "LART",
+  "Lacute",
+  "PART",
+  "Uninfected"
+)
+
+# Example paths
+input_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/bamsort/reads/20250520"
+output_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/bamsort/reads/20250520/converted/min1/nocountLTR"
+
+#input_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/singleCell/bamsort/reads"
+#output_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/singleCell/bamsort/reads/converted/min2"
+
+# Process all samples
+process_all_samples_umi_to_salve(samples, input_dir, output_dir, min_reads = 3, min_region_count = 1)
+
+```
+
+
+### Older: plotting expression distributions
+Plotting: beeswarm
+```{r}
+library(ggbeeswarm)
+
+create_swarm_plot_improved <- function(viz_data, sample_name = NULL) {
+  if (!is.null(sample_name)) {
+    viz_data <- viz_data %>% filter(sample_name == !!sample_name)
+  }
+  
+  # Calculate UMIs per cell and reads per cell for each category
+  summary_data <- viz_data %>%
+    group_by(cellID, category) %>%
+    summarize(
+      umis_per_cell = n_distinct(UMI),
+      total_reads = sum(read_count),
+      .groups = 'drop'
+    )
+  
+  # Create the swarm plot with wider distribution and less overlap
+  p <- ggplot(summary_data, aes(x = category, y = umis_per_cell)) +
+    # Use geom_quasirandom with increased width parameter
+    geom_quasirandom(
+      aes(size = total_reads, fill = total_reads), 
+      color = "black", 
+      shape = 21, 
+      alpha = 0.8, 
+      width = 0.5,     # Increase width for wider distribution
+      varwidth = TRUE, # Vary width based on density
+      method = "smiley", # Alternative distribution method
+      bandwidth = 0.8   # Control density of points
+    ) +
+    scale_fill_gradient2(
+      low = "blue", mid = "purple", high = "red", 
+      midpoint = median(summary_data$total_reads),
+      name = "Total Reads"
+    ) +
+    scale_size_continuous(
+      range = c(1.5, 7),  # Increased size range for better visibility
+      name = "Total Reads"
+    ) +
+    labs(
+      title = paste("UMIs per Cell by Category -", sample_name),
+      x = "Category",
+      y = "Number of UMIs per Cell"
+    ) +
+    theme_minimal() +
+    theme(
+      axis.text.x = element_text(angle = 45, hjust = 1),
+      panel.grid.major = element_line(color = "gray80"),
+      panel.background = element_rect(fill = "gray97"),
+      legend.key.size = unit(1, "cm")
+    )
+  
+  return(p)
+}
+
+# Directory setup and file processing code remains the same
+input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/bamsort/reads/"
+plot_dir <- file.path(input.dir, "swarm_plots")
+if (!dir.exists(plot_dir)) {
+  dir.create(plot_dir, recursive = TRUE)
+}
+
+# Find all visualization data files
+viz_files <- list.files(input.dir, pattern = "_plot_data\\.csv$", full.names = TRUE)
+
+# Process each file
+for (file in viz_files) {
+  sample_name <- gsub("_plot_data\\.csv$", "", basename(file))
+  cat("Processing sample:", sample_name, "\n")
+  
+  viz_data <- read.csv(file)
+  
+  cat("Categories in data:\n")
+  print(table(viz_data$category))
+  
+  # Create the improved swarm plot
+  p <- create_swarm_plot_improved(viz_data, sample_name)
+  
+  # Save the plot
+  output_file <- file.path(plot_dir, paste0(sample_name, "_swarm_plot_improved.svg"))
+  ggsave(output_file, p, width = 14, height = 10)
+  
+  cat("Saved improved swarm plot to:", output_file, "\n\n")
+}
+```
+
+Plotting: boxplot w jitter
+```{r}
+create_boxplot_with_jitter <- function(viz_data, sample_name = NULL) {
+  if (!is.null(sample_name)) {
+    viz_data <- viz_data %>% filter(sample_name == !!sample_name)
+  }
+  
+  # Calculate UMIs per cell and reads per cell for each category
+  summary_data <- viz_data %>%
+    group_by(cellID, category) %>%
+    summarize(
+      umis_per_cell = n_distinct(UMI),
+      total_reads = sum(read_count),
+      .groups = 'drop'
+    )
+  
+  # Create boxplot with jittered points
+  p <- ggplot(summary_data, aes(x = category, y = umis_per_cell)) +
+    # Add boxplot
+    geom_boxplot(
+      outlier.shape = NA,
+      alpha = 0.3,
+      width = 0.5,
+      color = "black",
+      size = 1
+    ) +
+    # Add jittered points
+    geom_jitter(
+      aes(size = total_reads, fill = total_reads),
+      shape = 21,
+      color = "black",
+      alpha = 0.8,
+      width = 0.25,
+      height = 0,
+      stroke = 0.5
+    ) +
+    # Color and size scales
+    scale_fill_gradient2(
+      low = "blue", mid = "purple", high = "red", 
+      midpoint = median(summary_data$total_reads),
+      name = "Total Reads",
+      guide = guide_colorbar(override.aes = list(size = 5, alpha = 1))
+    ) +
+    scale_size_continuous(
+      range = c(1.5, 7),
+      name = "Total Reads"
+    ) +
+    # Labels and theme
+    labs(
+      title = paste("UMIs per Cell by Category -", sample_name),
+      x = "Category",
+      y = "Number of UMIs per Cell"
+    ) +
+    theme_minimal(base_size = 16) +
+    theme(
+      axis.text.x = element_text(angle = 45, hjust = 1, size = 16),
+      axis.text.y = element_text(size = 16),
+      axis.title = element_text(size = 18, face = "bold"),
+      plot.title = element_text(size = 20, face = "bold"),
+      legend.title = element_text(size = 16, face = "bold"),
+      legend.text = element_text(size = 14),
+      panel.grid.major = element_line(color = "gray80"),
+      panel.background = element_rect(fill = "gray97"),
+      legend.key.size = unit(1.5, "cm")
+    )
+  
+  return(p)
+}
+
+# Directory setup
+input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/bamsort/reads"
+plot_dir <- file.path(input.dir, "boxplot_jitter")
+if (!dir.exists(plot_dir)) {
+  dir.create(plot_dir, recursive = TRUE)
+}
+
+# Find all visualization data files
+viz_files <- list.files(input.dir, pattern = "_plot_data\\.csv$", full.names = TRUE)
+
+# Process each file
+for (file in viz_files) {
+  sample_name <- gsub("_plot_data\\.csv$", "", basename(file))
+  cat("Processing sample:", sample_name, "\n")
+  
+  viz_data <- read.csv(file)
+  
+  cat("Categories in data:\n")
+  print(table(viz_data$category))
+  
+  # Create the boxplot with jittered points
+  p <- create_boxplot_with_jitter(viz_data, sample_name)
+  
+  # Save as PNG instead of SVG
+  output_file_png <- file.path(plot_dir, paste0(sample_name, "_boxplot_jitter.png"))
+  ggsave(output_file_png, p, width = 14, height = 10, dpi = 300)
+  
+  # Also save as PDF (more reliable for vector graphics)
+  output_file_pdf <- file.path(plot_dir, paste0(sample_name, "_boxplot_jitter.pdf"))
+  ggsave(output_file_pdf, p, width = 14, height = 10)
+  
+  cat("Saved plots to:", output_file_png, "and", output_file_pdf, "\n\n")
+}
+```
+
+### Alternative approach: Read in and filter each file separately
 ```{r}
 samples <- data.frame(
   datasets = c(
@@ -916,857 +2202,6 @@ for (i in 1:nrow(samples)) {
 
 
 
-### Reads per UMI
-
-```{r}
-# Function to detect if a file belongs to a specific category
-is_total_lessLTR_file <- function(filename) {
-  
-  # Split the filename into parts
-  target_part <- strsplit(filename, "_bamsort_alignment_")[[1]][1]
-  
-  # Get the part after "_bamsort_alignment_"
-  alignment_part <- NA
-  if (length(strsplit(filename, "_bamsort_alignment_")[[1]]) > 1) {
-    alignment_part <- strsplit(filename, "_bamsort_alignment_")[[1]][2]
-    alignment_part <- sub("\\.csv$", "", alignment_part)
-  }
-  
-  # Categorize based on different parts of the filename
-  is_d1 <- grepl("D1", target_part)
-  is_tat <- grepl("tat", target_part)
-  is_nef_target <- grepl("nef", target_part)
-  is_nef_alignment <- !is.na(alignment_part) && grepl("nef", alignment_part)
-  is_ltr_target <- grepl("LTR", target_part)
-  is_ltr_alignment <- !is.na(alignment_part) && grepl("LTR", alignment_part)
-  
-  # We want to include any file that could be part of total_lessLTR
-  # This includes D1, tat, and nef files (but note: alignment part might also affect classification)
-  return(is_d1 || is_tat || is_nef_target || is_nef_alignment || is_ltr_target || is_ltr_alignment)
-}
-
-# Function to extract category from filename
-extract_category <- function(filename) {
-  # Split the filename into parts
-  target_part <- strsplit(filename, "_bamsort_alignment_")[[1]][1]
-  alignment_part <- NA
-  if (length(strsplit(filename, "_bamsort_alignment_")[[1]]) > 1) {
-    alignment_part <- strsplit(filename, "_bamsort_alignment_")[[1]][2]
-    alignment_part <- sub("\\.csv$", "", alignment_part)
-  }
-  
-  # First, prioritize the alignment part for categorization
-  if (!is.na(alignment_part)) {
-    # Check common categories in alignment
-    if (alignment_part == "D1_S") {
-      return("D1_S")
-    }
-    if (alignment_part == "D1_US") {
-      return("D1_US")
-    }
-    if (alignment_part == "tat_S") {
-      return("tat_S")
-    }
-    if (alignment_part == "tat_US") {
-      return("tat_US")
-    }
-    if (alignment_part == "nef_3" || alignment_part == "nef_5") {
-      return("nef")
-    }
-    if (alignment_part == "LTR_3" || alignment_part == "LTR_5") {
-      return("LTR")
-    }
-  }
-  
-  # If we couldn't categorize from alignment part, fall back to target part
-  # Only use these if we couldn't categorize from the alignment
-  if (grepl("D1", target_part)) {
-    if (grepl("_S[_\\.]", target_part) || grepl("_S$", target_part)) {
-      cat("  Categorized as: D1_S (from target)\n")
-      return("D1_S")
-    }
-    if (grepl("_US[_\\.]", target_part) || grepl("_US$", target_part)) {
-      cat("  Categorized as: D1_US (from target)\n")
-      return("D1_US")
-    }
-  }
-  
-  if (grepl("tat", target_part)) {
-    if (grepl("_S[_\\.]", target_part) || grepl("_S$", target_part)) {
-      cat("  Categorized as: tat_S (from target)\n")
-      return("tat_S")
-    }
-    if (grepl("_US[_\\.]", target_part) || grepl("_US$", target_part)) {
-      cat("  Categorized as: tat_US (from target)\n")
-      return("tat_US")
-    }
-  }
-  
-  # These are used as fallbacks only
-  if (grepl("nef", target_part)) {
-    cat("  Categorized as: nef (from target)\n")
-    return("nef")
-  }
-  
-  if (grepl("LTR", target_part)) {
-    cat("  Categorized as: LTR (from target)\n")
-    return("LTR")
-  }
-  
-  # Default case
-  cat("  Failed to categorize. Assigning as: other\n")
-  return("other")
-}
-
-
-input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/bamsort/alignment/"
-output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/bamsort/reads/20250518/"
-
-# Process each sample
-for (i in 1:nrow(samples)) {
-  sample <- samples$samples[i]
-  cat("\nProcessing sample:", sample, "\n")
-  
-  # Get all files for current sample
-  sample_files <- list.files(input.dir, 
-                             pattern = paste0("^", sample, ".*_bamsort_alignment_.*\\.csv$"), 
-                             full.names = TRUE)
-  
-  if (length(sample_files) == 0) {
-    cat("No files found for sample:", sample, "\n")
-    next
-  }
-  
-  # Filter to keep only files that contribute to total_lessLTR
-  filenames <- basename(sample_files)
-  is_relevant <- sapply(filenames, is_total_lessLTR_file)
-  relevant_files <- sample_files[is_relevant]
-  relevant_filenames <- filenames[is_relevant]
-  
-  if (length(relevant_files) == 0) {
-    cat("No relevant files found for sample:", sample, "\n")
-    next
-  }
-  
-  # Extract categories for each file
-  categories <- sapply(relevant_filenames, extract_category)
-  
-  # Create a data frame to store the combined results
-  all_data <- data.frame()
-  
-  # Process each relevant file
-  for (j in seq_along(relevant_files)) {
-    extracted_data <- NULL  # Initialize as NULL for each file
-    
-    tryCatch({
-      # Read the CSV file, expecting standard column names
-      file_data <- fread(relevant_files[j], data.table = FALSE)
-      
-      # Check if file has content
-      if(nrow(file_data) == 0) {
-        cat("Warning: File is empty:", relevant_filenames[j], "\n")
-        next
-      }
-      
-      # Simplify column mapping - expect standard column names
-      required_cols <- c("cellID", "UMI", "count")
-      
-      # Check if all required columns exist
-      missing_cols <- setdiff(required_cols, colnames(file_data))
-      
-      if (length(missing_cols) > 0) {
-        cat("Warning: Missing required columns:", paste(missing_cols, collapse=", "), "\n")
-        cat("Available columns:", paste(colnames(file_data), collapse=", "), "\n")
-        next
-      }
-      
-      # Extract data with the required columns and add category
-      extracted_data <- file_data %>%
-        select(cellID, UMI, count) %>%
-        rename(read = count) %>%  # Rename count to read for consistency with later code
-        mutate(category = categories[j])
-      
-    }, error = function(e) {
-      cat("Error reading file:", relevant_filenames[j], "\n")
-      cat("Error message:", conditionMessage(e), "\n")
-      
-      # Try reading without header
-      tryCatch({
-        cat("Attempting to read without header...\n")
-        file_data <- fread(relevant_files[j], data.table = FALSE, header = FALSE)
-        
-        # If we got here, we were able to read the file without a header
-        # Assign column names based on position
-        if(ncol(file_data) >= 3) {
-          colnames(file_data) <- c("cellID", "UMI", "read", rep("extra", ncol(file_data) - 3))
-          
-          # Create extracted data
-          extracted_data <- file_data %>%
-            select(cellID, UMI, read) %>%
-            mutate(category = categories[j])
-            
-          cat("Successfully read file without header\n")
-        } else {
-          cat("File has fewer than 3 columns, cannot process:", ncol(file_data), "columns found\n")
-        }
-      }, error = function(e2) {
-        cat("Still failed to read file. Final error:", conditionMessage(e2), "\n")
-      })
-    })
-    
-    # Add to the combined data frame only if we have data
-    if (!is.null(extracted_data) && nrow(extracted_data) > 0) {
-      all_data <- rbind(all_data, extracted_data)
-    }
-  }
-  
-  # If we have data, process it
-  if (nrow(all_data) > 0) {
-    # Remove any rows with NA values
-    all_data <- all_data %>% 
-      filter(!is.na(cellID) & !is.na(UMI) & !is.na(read))
-    
-    # Count reads per UMI - no need to count distinct reads since each row represents a count
-    # read column originally contained count values
-    tryCatch({
-      umi_read_counts <- all_data %>%
-        group_by(cellID, UMI, category) %>%
-        summarize(
-          read_count = sum(as.numeric(read)),  # Sum the count values
-          .groups = 'drop'
-        )
-      
-      cat("Gathered read counts for", nrow(umi_read_counts), "UMIs from", 
-          n_distinct(umi_read_counts$cellID), "cells\n")
-      
-      # Count UMIs per cell
-      cell_umi_counts <- umi_read_counts %>%
-        group_by(cellID) %>%
-        summarize(
-          total_UMIs = n_distinct(UMI),
-          total_reads = sum(read_count),
-          .groups = 'drop'
-        )
-      
-      # Create a wide format with UMI counts per category
-      umi_by_category <- umi_read_counts %>%
-        group_by(cellID, category) %>%
-        summarize(
-          category_UMIs = n_distinct(UMI),
-          category_reads = sum(read_count),
-          .groups = 'drop'
-        )
-      
-      # Use pivot_wider to create a wide format
-      umi_by_category_wide <- tidyr::pivot_wider(
-        umi_by_category,
-        id_cols = cellID,
-        names_from = category,
-        names_sep = "_",
-        values_from = c(category_UMIs, category_reads),
-        values_fill = 0)
-
-      
-      # Combine the cell-level and category-level data
-      final_data <- cell_umi_counts %>%
-        left_join(umi_by_category_wide, by = "cellID")
-      
-      # Apply raw_cellIDs filtering
-      if (sample %in% names(raw_cellIDs) && !is.null(raw_cellIDs[[sample]])) {
-        valid_cells <- raw_cellIDs[[sample]]
-        cat("Keeping only cells in", 
-            length(valid_cells), "valid cells from 10X data\n")
-        
-        # Filter the UMI-level data
-        filtered_umi_read_counts <- umi_read_counts %>%
-          filter(cellID %in% valid_cells)
-        
-        # Filter the cell-level summary data
-        filtered_final_data <- final_data %>%
-          filter(cellID %in% valid_cells)
-        
-        cat("After filtering: kept", nrow(filtered_umi_read_counts), "UMIs from", 
-            n_distinct(filtered_umi_read_counts$cellID), "valid cells\n")
-      } else {
-        cat("Warning: No 10X data found for sample", sample, "- using unfiltered cell list\n")
-        filtered_umi_read_counts <- umi_read_counts
-        filtered_final_data <- final_data
-      }
-      
-      # Save the detailed UMI-level data (both filtered and unfiltered)
-      umi_level_file <- file.path(output.dir, paste0(sample, "_UMI_read_counts_raw.csv"))
-      write.csv(umi_read_counts, file = umi_level_file, row.names = FALSE)
-      
-      filtered_umi_level_file <- file.path(output.dir, paste0(sample, "_UMI_read_counts_full.csv"))
-      write.csv(filtered_umi_read_counts, file = filtered_umi_level_file, row.names = FALSE)
-      
-      # Save the cell-level summary data (both filtered and unfiltered)
-      cell_level_file_all <- file.path(output.dir, paste0(sample, "_cells_summary_raw.csv"))
-      write.csv(final_data, file = cell_level_file_all, row.names = FALSE)
-      
-      cell_level_file <- file.path(output.dir, paste0(sample, "_cell_summary_full.csv"))
-      write.csv(filtered_final_data, file = cell_level_file, row.names = FALSE)
-      
-      # Create a visualization dataset for plotting (use filtered data)
-      #viz_data <- filtered_umi_read_counts %>%
-      #  mutate(sample_name = sample)
-      
-      # Save the visualization data
-      #viz_file <- file.path(output.dir, paste0(sample, "_plot_data.csv"))
-      #write.csv(viz_data, file = viz_file, row.names = FALSE)
-      
-      cat("Successfully processed\n")
-    }, error = function(e) {
-      cat("Error processing data for sample", sample, ":", conditionMessage(e), "\n")
-      
-      # Try to save the raw data at least
-      raw_file <- file.path(output.dir, paste0(sample, "_raw_data.csv"))
-      write.csv(all_data, file = raw_file, row.names = FALSE)
-      cat("Saved raw data to:", raw_file, "\n")
-    })
-  } else {
-    cat("No data extracted for sample:", sample, "\n")
-  }
-}
-```
-
-Testing: filter reads on full v filtered on BAM
-```{r}
-input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/bamsort/reads/20250518/"
-D13 <- fread(paste0(input.dir, "D13_UMI_read_counts_full.csv"))
-filtered <- D13[D13$read_count > 1]
-
-
-uninfected <- fread(paste0(input.dir, "Uninfected_UMI_read_counts_full.csv"))
-
-```
-
-
-Testing: how many UMI are in multiple categories?
-```{r}
-# Function to analyze UMI categories across samples
-analyze_umi_categories <- function(dir_path, sample_names) {
-  results <- list()
-  
-  for (sample in sample_names) {
-    # Construct file path for this sample
-    file_path <- file.path(dir_path, paste0(sample, "_UMI_read_counts.csv"))
-    
-    # Check if file exists
-    if (!file.exists(file_path)) {
-      cat("File not found:", file_path, "\n")
-      next
-    }
-    
-    # Read the CSV file
-    cat("Reading file:", file_path, "\n")
-    data <- read.csv(file_path)
-    
-    # Check required columns exist
-    if (!all(c("cellID", "UMI", "category") %in% colnames(data))) {
-      cat("Missing required columns in", file_path, "\n")
-      next
-    }
-    
-    # Count unique cells
-    num_cells <- length(unique(data$cellID))
-    cat("Number of unique cells:", num_cells, "\n")
-    
-    # Count unique UMIs
-    num_umis <- length(unique(paste(data$cellID, data$UMI, sep = "_")))
-    cat("Number of unique cell-UMI pairs:", num_umis, "\n")
-    
-    # Group by cell and UMI, count categories
-    library(dplyr)
-    
-    # Count categories per UMI per cell
-    umi_category_counts <- data %>%
-      group_by(cellID, UMI) %>%
-      summarize(
-        num_categories = n_distinct(category),
-        categories = paste(sort(unique(category)), collapse = ","),
-        .groups = "drop"
-      )
-    
-    # Count UMIs with multiple categories
-    multi_category_umis <- umi_category_counts %>%
-      filter(num_categories > 1)
-    
-    # Count cells with multi-category UMIs
-    cells_with_multi_category_umis <- length(unique(multi_category_umis$cellID))
-    
-    # Get distribution of category counts
-    category_distribution <- table(umi_category_counts$num_categories)
-    
-    # Count most common category combinations
-    if (nrow(multi_category_umis) > 0) {
-      category_combinations <- table(multi_category_umis$categories)
-      top_combinations <- sort(category_combinations, decreasing = TRUE)[1:min(5, length(category_combinations))]
-    } else {
-      top_combinations <- "No multi-category UMIs found"
-    }
-    
-    # Calculate percent of UMIs with multiple categories
-    percent_multi <- (nrow(multi_category_umis) / nrow(umi_category_counts)) * 100
-    
-    # Store results for this sample
-    results[[sample]] <- list(
-      total_cells = num_cells,
-      total_umis = num_umis,
-      multi_category_umis = nrow(multi_category_umis),
-      percent_multi_category = percent_multi,
-      cells_with_multi_category = cells_with_multi_category_umis,
-      percent_cells_with_multi = (cells_with_multi_category_umis / num_cells) * 100,
-      category_distribution = category_distribution,
-      top_combinations = top_combinations
-    )
-    
-    # Print summary
-    cat("\nSummary for sample:", sample, "\n")
-    cat("Total cells:", num_cells, "\n")
-    cat("Total UMIs:", num_umis, "\n")
-    cat("UMIs with multiple categories:", nrow(multi_category_umis), 
-        sprintf("(%.2f%%)", percent_multi), "\n")
-    cat("Cells with at least one multi-category UMI:", cells_with_multi_category_umis,
-        sprintf("(%.2f%%)", (cells_with_multi_category_umis / num_cells) * 100), "\n")
-    
-    cat("\nDistribution of category counts per UMI:\n")
-    print(category_distribution)
-    
-    if (nrow(multi_category_umis) > 0) {
-      cat("\nTop category combinations:\n")
-      print(top_combinations)
-      
-      # Optional: Find cells with the most multi-category UMIs
-      cells_multi_count <- multi_category_umis %>%
-        group_by(cellID) %>%
-        summarize(count = n(), .groups = "drop") %>%
-        arrange(desc(count))
-      
-      cat("\nTop 5 cells with most multi-category UMIs:\n")
-      print(head(cells_multi_count, 5))
-    }
-    
-    cat("\n", rep("-", 50), "\n", sep = "")
-  }
-  
-  return(results)
-}
-
-# Example usage:
-output_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/bamsort/reads"
-
-# Run the analysis
-results <- analyze_umi_categories(output_dir, samples$samples)
-
-# Optional: Create a summary table across all samples
-summary_df <- data.frame(
-  sample = names(results),
-  total_cells = sapply(results, function(x) x$total_cells),
-  total_umis = sapply(results, function(x) x$total_umis),
-  multi_category_umis = sapply(results, function(x) x$multi_category_umis),
-  percent_multi = sapply(results, function(x) x$percent_multi_category),
-  cells_with_multi = sapply(results, function(x) x$cells_with_multi_category),
-  percent_cells_multi = sapply(results, function(x) x$percent_cells_with_multi)
-)
-
-# Write summary table to a file
-write.csv(summary_df, file.path(output_dir, "multi_category_umi_summary.csv"), row.names = FALSE)
-
-```
-
-
-### Older: plotting expression distributions
-Plotting: beeswarm
-```{r}
-library(ggbeeswarm)
-
-create_swarm_plot_improved <- function(viz_data, sample_name = NULL) {
-  if (!is.null(sample_name)) {
-    viz_data <- viz_data %>% filter(sample_name == !!sample_name)
-  }
-  
-  # Calculate UMIs per cell and reads per cell for each category
-  summary_data <- viz_data %>%
-    group_by(cellID, category) %>%
-    summarize(
-      umis_per_cell = n_distinct(UMI),
-      total_reads = sum(read_count),
-      .groups = 'drop'
-    )
-  
-  # Create the swarm plot with wider distribution and less overlap
-  p <- ggplot(summary_data, aes(x = category, y = umis_per_cell)) +
-    # Use geom_quasirandom with increased width parameter
-    geom_quasirandom(
-      aes(size = total_reads, fill = total_reads), 
-      color = "black", 
-      shape = 21, 
-      alpha = 0.8, 
-      width = 0.5,     # Increase width for wider distribution
-      varwidth = TRUE, # Vary width based on density
-      method = "smiley", # Alternative distribution method
-      bandwidth = 0.8   # Control density of points
-    ) +
-    scale_fill_gradient2(
-      low = "blue", mid = "purple", high = "red", 
-      midpoint = median(summary_data$total_reads),
-      name = "Total Reads"
-    ) +
-    scale_size_continuous(
-      range = c(1.5, 7),  # Increased size range for better visibility
-      name = "Total Reads"
-    ) +
-    labs(
-      title = paste("UMIs per Cell by Category -", sample_name),
-      x = "Category",
-      y = "Number of UMIs per Cell"
-    ) +
-    theme_minimal() +
-    theme(
-      axis.text.x = element_text(angle = 45, hjust = 1),
-      panel.grid.major = element_line(color = "gray80"),
-      panel.background = element_rect(fill = "gray97"),
-      legend.key.size = unit(1, "cm")
-    )
-  
-  return(p)
-}
-
-# Directory setup and file processing code remains the same
-input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/bamsort/reads/"
-plot_dir <- file.path(input.dir, "swarm_plots")
-if (!dir.exists(plot_dir)) {
-  dir.create(plot_dir, recursive = TRUE)
-}
-
-# Find all visualization data files
-viz_files <- list.files(input.dir, pattern = "_plot_data\\.csv$", full.names = TRUE)
-
-# Process each file
-for (file in viz_files) {
-  sample_name <- gsub("_plot_data\\.csv$", "", basename(file))
-  cat("Processing sample:", sample_name, "\n")
-  
-  viz_data <- read.csv(file)
-  
-  cat("Categories in data:\n")
-  print(table(viz_data$category))
-  
-  # Create the improved swarm plot
-  p <- create_swarm_plot_improved(viz_data, sample_name)
-  
-  # Save the plot
-  output_file <- file.path(plot_dir, paste0(sample_name, "_swarm_plot_improved.svg"))
-  ggsave(output_file, p, width = 14, height = 10)
-  
-  cat("Saved improved swarm plot to:", output_file, "\n\n")
-}
-```
-
-Plotting: boxplot w jitter
-```{r}
-create_boxplot_with_jitter <- function(viz_data, sample_name = NULL) {
-  if (!is.null(sample_name)) {
-    viz_data <- viz_data %>% filter(sample_name == !!sample_name)
-  }
-  
-  # Calculate UMIs per cell and reads per cell for each category
-  summary_data <- viz_data %>%
-    group_by(cellID, category) %>%
-    summarize(
-      umis_per_cell = n_distinct(UMI),
-      total_reads = sum(read_count),
-      .groups = 'drop'
-    )
-  
-  # Create boxplot with jittered points
-  p <- ggplot(summary_data, aes(x = category, y = umis_per_cell)) +
-    # Add boxplot
-    geom_boxplot(
-      outlier.shape = NA,
-      alpha = 0.3,
-      width = 0.5,
-      color = "black",
-      size = 1
-    ) +
-    # Add jittered points
-    geom_jitter(
-      aes(size = total_reads, fill = total_reads),
-      shape = 21,
-      color = "black",
-      alpha = 0.8,
-      width = 0.25,
-      height = 0,
-      stroke = 0.5
-    ) +
-    # Color and size scales
-    scale_fill_gradient2(
-      low = "blue", mid = "purple", high = "red", 
-      midpoint = median(summary_data$total_reads),
-      name = "Total Reads",
-      guide = guide_colorbar(override.aes = list(size = 5, alpha = 1))
-    ) +
-    scale_size_continuous(
-      range = c(1.5, 7),
-      name = "Total Reads"
-    ) +
-    # Labels and theme
-    labs(
-      title = paste("UMIs per Cell by Category -", sample_name),
-      x = "Category",
-      y = "Number of UMIs per Cell"
-    ) +
-    theme_minimal(base_size = 16) +
-    theme(
-      axis.text.x = element_text(angle = 45, hjust = 1, size = 16),
-      axis.text.y = element_text(size = 16),
-      axis.title = element_text(size = 18, face = "bold"),
-      plot.title = element_text(size = 20, face = "bold"),
-      legend.title = element_text(size = 16, face = "bold"),
-      legend.text = element_text(size = 14),
-      panel.grid.major = element_line(color = "gray80"),
-      panel.background = element_rect(fill = "gray97"),
-      legend.key.size = unit(1.5, "cm")
-    )
-  
-  return(p)
-}
-
-# Directory setup
-input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/bamsort/reads"
-plot_dir <- file.path(input.dir, "boxplot_jitter")
-if (!dir.exists(plot_dir)) {
-  dir.create(plot_dir, recursive = TRUE)
-}
-
-# Find all visualization data files
-viz_files <- list.files(input.dir, pattern = "_plot_data\\.csv$", full.names = TRUE)
-
-# Process each file
-for (file in viz_files) {
-  sample_name <- gsub("_plot_data\\.csv$", "", basename(file))
-  cat("Processing sample:", sample_name, "\n")
-  
-  viz_data <- read.csv(file)
-  
-  cat("Categories in data:\n")
-  print(table(viz_data$category))
-  
-  # Create the boxplot with jittered points
-  p <- create_boxplot_with_jitter(viz_data, sample_name)
-  
-  # Save as PNG instead of SVG
-  output_file_png <- file.path(plot_dir, paste0(sample_name, "_boxplot_jitter.png"))
-  ggsave(output_file_png, p, width = 14, height = 10, dpi = 300)
-  
-  # Also save as PDF (more reliable for vector graphics)
-  output_file_pdf <- file.path(plot_dir, paste0(sample_name, "_boxplot_jitter.pdf"))
-  ggsave(output_file_pdf, p, width = 14, height = 10)
-  
-  cat("Saved plots to:", output_file_png, "and", output_file_pdf, "\n\n")
-}
-```
-
-
-### Setting minimums
-```{r}
-convert_umi_to_salve <- function(umi_file, output_file, min_reads = 1, min_region_count = 1) {
-  # Read the UMI data
-  umi_data <- read.csv(umi_file, stringsAsFactors = FALSE)
-  
-  # Extract sample name from file name
-  sample_name <- gsub("_UMI_read_counts_full.csv", "", basename(umi_file))
-  
-  # Apply minimum read count filter if specified
-  if (min_reads > 0) {
-    # Aggregate reads by cellID
-    cell_counts <- aggregate(read_count ~ cellID, data = umi_data, FUN = sum)
-    
-    # Filter cells with at least min_reads
-    valid_cells <- cell_counts$cellID[cell_counts$read_count >= min_reads]
-    
-    # Apply the filter
-    umi_data <- umi_data[umi_data$cellID %in% valid_cells, ]
-  }
-  
-  # Get unique categories
-  categories <- unique(umi_data$category)
-  
-  # Get unique cell IDs
-  cell_ids <- unique(umi_data$cellID)
-  
-  # Initialize empty SALVE data frame with all categories as columns
-  salve_data <- data.frame(cellID = cell_ids)
-  
-  # Initialize all category columns with zeros
-  for (cat in categories) {
-    salve_data[[cat]] <- 0
-  }
-  
-  # Use table to count unique UMIs
-  unique_combinations <- unique(umi_data[, c("cellID", "category", "UMI")])
-  umi_counts <- table(unique_combinations$cellID, unique_combinations$category)
-  umi_counts_df <- as.data.frame.matrix(umi_counts)
-  umi_counts_df$cellID <- rownames(umi_counts_df)
-  rownames(umi_counts_df) <- NULL
-  
-  # Initialize SALVE data with cellIDs
-  salve_data <- data.frame(cellID = unique(umi_data$cellID), stringsAsFactors = FALSE)
-  
-  # Get all categories
-  categories <- colnames(umi_counts_df)[colnames(umi_counts_df) != "cellID"]
-  
-  # Initialize category columns with zeros
-  for (cat in categories) {
-    cat_col_name <- make.names(cat)
-    if (cat_col_name != cat) {
-      cat("Warning: Modified category name from", cat, "to", cat_col_name, "for R compatibility\n")
-    }
-    salve_data[[cat_col_name]] <- 0
-  }
-  
-  # Fill in the SALVE data with UMI counts
-  for (i in 1:nrow(umi_counts_df)) {
-    cell <- umi_counts_df$cellID[i]
-    
-    # Find the row index for this cell in salve_data
-    row_idx <- which(salve_data$cellID == cell)
-    if (length(row_idx) == 1) {
-      # For each category, set the UMI count
-      for (cat in categories) {
-        cat_col_name <- make.names(cat)
-        salve_data[row_idx, cat_col_name] <- umi_counts_df[i, cat]
-      }
-    } else {
-      cat("Warning: Cell", cell, "not found or duplicated in salve_data\n")
-    }
-  }
-  
-  # Calculate region count
-  region_prefixes <- c("D1", "tat", "nef")
-      
-  salve_data$region_count <- 0
-  
-  # For each region, check if the cell has any counts in columns with that prefix
-  for (prefix in region_prefixes) {
-    if (prefix == "nef" || prefix == "LTR") {
-      if (prefix %in% colnames(salve_data)) {
-        salve_data$region_count <- salve_data$region_count + 
-          as.integer(salve_data[[prefix]] > 0)
-      }
-    } else {
-      # For prefixes like "D1" or "tat"
-      prefix_cols <- grep(paste0("^", prefix), colnames(salve_data), value = TRUE)
-      if (length(prefix_cols) > 0) {
-        has_prefix <- rowSums(salve_data[, prefix_cols, drop = FALSE], na.rm = TRUE) > 0
-        salve_data$region_count <- salve_data$region_count + as.integer(has_prefix)
-      }
-    }
-  }
-  
-  valid_cells <- salve_data$cellID[salve_data$region_count >= min_region_count]
-  filtered_salve_data <- salve_data[salve_data$cellID %in% valid_cells, ]
-  
-  # Remove the helper column
-  filtered_salve_data$region_count <- NULL
-  
-  # # Calculate total_lessLTR (sum of all categories except LTR)
-  # ltr_col <- if ("LTR" %in% categories) "LTR" else NULL
-  # category_cols <- setdiff(categories, ltr_col)
-  # 
-  # salve_data$total_lessLTR <- 0
-  # for (cat in category_cols) {
-  #   salve_data$total_lessLTR <- salve_data$total_lessLTR + salve_data[[cat]]
-  # }
-  # 
-  # # Ensure columns are in the right order
-  # # Start with cellID, then categories, then total_lessLTR
-  # desired_order <- c("cellID", setdiff(colnames(filtered_salve_data), c("cellID", "total_lessLTR")), "total_lessLTR")
-  # filtered_salve_data <- filtered_salve_data[, desired_order]
-  
-  # Write the output file
-  write.csv(filtered_salve_data, output_file, row.names = FALSE)
-  
-  cat("Converted", nrow(umi_data), "UMI entries to", nrow(filtered_salve_data), "cells\n")
-  cat("Output written to:", output_file, "\n")
-  
-  return(filtered_salve_data)
-}
-
-
-# Function to process multiple samples
-process_all_samples_umi_to_salve <- function(sample_list, input_dir, output_dir, min_reads = 1, min_region_count = 1) {
-  # Ensure output directory exists
-  if (!dir.exists(output_dir)) {
-    dir.create(output_dir, recursive = TRUE)
-  }
-  
-  # Track successful and failed conversions
-  successful <- 0
-  failed <- 0
-  
-  for (sample in sample_list) {
-    # Construct input and output file paths
-    input_file <- file.path(input_dir, paste0(sample, "_UMI_read_counts_full.csv"))
-    output_file <- file.path(output_dir, paste0(sample, "_SALVE_filtered.csv"))
-    
-    # Process the file
-    cat("Processing sample:", sample, "\n")
-    tryCatch({
-      salve_data <- convert_umi_to_salve(input_file, output_file, min_reads, min_region_count)
-      if (!is.null(salve_data)) {
-        successful <- successful + 1
-      } else {
-        failed <- failed + 1
-      }
-    }, error = function(e) {
-      warning("Error processing sample ", sample, ": ", conditionMessage(e), "\n")
-      failed <- failed + 1
-    })
-  }
-  
-  cat("\nConversion summary:\n")
-  cat("  Successful conversions:", successful, "\n")
-  cat("  Failed conversions:", failed, "\n")
-  cat("All samples processed.\n")
-}
-
-# Example usage
-#umi_file <- "D195_UMI_read_counts.csv"
-#output_file <- "D195_SALVE_filtered.csv"
-#salve_data <- convert_umi_to_salve(umi_file, output_file, min_reads = 0)
-
-# Verify conversion with original SALVE file
-# verify_conversion(umi_file, "D195_SALVE_full.csv")
-
-# Example to process all samples
-samples <- c(
-  "D13",
-  "D195",
-  "D83",
-  "GART",
-  "Invitro",
-  "LART",
-  "Lacute",
-  "PART",
-  "Uninfected"
-)
-
-# Example paths
-input_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/bamsort/reads/20250518"
-output_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/bamsort/reads/20250518/converted/min2/nocountLTR"
-
-#input_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/singleCell/bamsort/reads"
-#output_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/singleCell/bamsort/reads/converted/min2"
-
-# Process all samples
-process_all_samples_umi_to_salve(samples, input_dir, output_dir, min_reads = 2, min_region_count = 2)
-
-```
-
-
-
 ### Older: compare bamsort to mkcounts
 ```{r}
 GEX_mkcounts <- read.csv("/projects/b1042/GoyalLab/egrody/extractedData/EGS004/singleCell/counts/Mmul_10_mac239/expressionDF/JK85_D13_Mmulmac_mac239.csv", row.names = "X")
@@ -1817,7 +2252,6 @@ cat(
 
 Loading both datasets
 ```{r}
-
 samples <- data.frame(
   datasets = c(
     "JK85_D13",
@@ -1857,11 +2291,14 @@ samples <- data.frame(
 #sample_output.dir <- "/projects/b1042/GoyalLab/egrody/extractionScripts/submissionScripts/"
 #write.csv(samples, paste0(sample_output.dir, "GEX_samples.csv"), row.names = FALSE)
 
-input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/bamsort/extracted"
+# filtered input
+#input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/bamsort/extracted"
+
+# filtered after join
+input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/bamsort/reads/20250518/converted/min2/nocountLTR/"
 SALVE_data <- read_sample_files(samples$samples, input.dir)
 input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/singleCell/bamsort/extracted"
 GEX_data <- read_sample_files(samples$samples, input.dir)
-
 
 GEX_UMAP <- list()
 
@@ -1936,15 +2373,15 @@ cat("\nSample\tTotal_cells\tboth\t10X_only\tSALVE_only\n")
 for (sample_name in names(joint_data)) {
   # Get the current dataframe
   current_df <- joint_data[[sample_name]] %>%
-    mutate(vgenes = (D1_US != 0) + (tat_S != 0) + (nef != 0))
+    mutate(vgenes = (D1_US != 0) + (D1_S != 0) + (tat_S != 0) + (tat_US != 0) + (nef != 0))
   
   # Create the subsets based on mac239 and total columns
-  both <- current_df %>% filter(mac239 != 0 & vgenes > 2)
+  both <- current_df %>% filter(mac239 != 0 & vgenes >= 2)
   onlySingleCell <- current_df %>% 
     filter(mac239 != 0) %>%
     filter(!(cellID %in% both$cellID))
   onlySALVE <- current_df %>% 
-    filter(vgenes > 2) %>%
+    filter(vgenes >= 2) %>%
     filter(!(cellID %in% both$cellID))
 
   
