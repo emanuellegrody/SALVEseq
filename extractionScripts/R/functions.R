@@ -1,5 +1,367 @@
 # functions.R
 
+# v4 functions
+# Loading and Processing
+## SALVE: detect if a file is valid v4 BAM
+is_v4bamsort_SALVE <- function(filename) {
+  
+  # Split the filename into parts
+  target_part <- strsplit(filename, "_bamsort_alignment_")[[1]][1]
+  
+  # Get the part after "_bamsort_alignment_"
+  alignment_part <- NA
+  if (length(strsplit(filename, "_bamsort_alignment_")[[1]]) > 1) {
+    alignment_part <- strsplit(filename, "_bamsort_alignment_")[[1]][2]
+    alignment_part <- sub("\\.csv$", "", alignment_part)
+  }
+  
+  # Categorize based on different parts of the filename
+  is_d1 <- grepl("D1", target_part)
+  is_tat <- grepl("tat", target_part)
+  is_nef_target <- grepl("nef", target_part)
+  is_nef_alignment <- !is.na(alignment_part) && grepl("nef", alignment_part)
+  is_ltr_target <- grepl("LTR", target_part)
+  is_ltr_alignment <- !is.na(alignment_part) && grepl("LTR", alignment_part)
+  
+  # We want to include any file that could be part of total_lessLTR
+  # This includes D1, tat, and nef files (but note: alignment part might also affect classification)
+  return(is_d1 || is_tat || is_nef_target || is_nef_alignment || is_ltr_target || is_ltr_alignment)
+}
+## GEX: detect if a file is valid v4 BAM
+is_v4bamsort_GEX <- function(filename) {
+  alignment_part <- strsplit(filename, "_bamsort_alignment_")[[1]][2]
+  alignment_part <- sub("\\.csv$", "", alignment_part)
+  
+  if (grepl("LTR_D1$", alignment_part)) return("LTR_D1")
+  if (grepl("D1_A1$", alignment_part)) return("D1_A1")
+  if (grepl("A1_D4$", alignment_part)) return("A1_D4")
+  if (grepl("D4_A7$", alignment_part)) return("D4_A7")
+  if (grepl("A7_LTR$", alignment_part)) return("A7_LTR")
+  
+  return("other")
+}
+## SALVE: extract category from filename
+extract_category <- function(filename) {
+  # Split the filename into parts
+  target_part <- strsplit(filename, "_bamsort_alignment_")[[1]][1]
+  alignment_part <- NA
+  if (length(strsplit(filename, "_bamsort_alignment_")[[1]]) > 1) {
+    alignment_part <- strsplit(filename, "_bamsort_alignment_")[[1]][2]
+    alignment_part <- sub("\\.csv$", "", alignment_part)
+  }
+  
+  # First, prioritize the alignment part for categorization
+  if (!is.na(alignment_part)) {
+    # Check common categories in alignment
+    if (alignment_part == "D1_S") {
+      return("D1_S")
+    }
+    if (alignment_part == "D1_US") {
+      return("D1_US")
+    }
+    if (alignment_part == "tat_S") {
+      return("tat_S")
+    }
+    if (alignment_part == "tat_US") {
+      return("tat_US")
+    }
+    if (alignment_part == "nef_3" || alignment_part == "nef_5") {
+      return("nef")
+    }
+    if (alignment_part == "LTR_3" || alignment_part == "LTR_5") {
+      return("LTR")
+    }
+  }
+  
+  # If we couldn't categorize from alignment part, fall back to target part
+  # Only use these if we couldn't categorize from the alignment
+  if (grepl("D1", target_part)) {
+    if (grepl("_S[_\\.]", target_part) || grepl("_S$", target_part)) {
+      cat("  Categorized as: D1_S (from target)\n")
+      return("D1_S")
+    }
+    if (grepl("_US[_\\.]", target_part) || grepl("_US$", target_part)) {
+      cat("  Categorized as: D1_US (from target)\n")
+      return("D1_US")
+    }
+  }
+  
+  if (grepl("tat", target_part)) {
+    if (grepl("_S[_\\.]", target_part) || grepl("_S$", target_part)) {
+      cat("  Categorized as: tat_S (from target)\n")
+      return("tat_S")
+    }
+    if (grepl("_US[_\\.]", target_part) || grepl("_US$", target_part)) {
+      cat("  Categorized as: tat_US (from target)\n")
+      return("tat_US")
+    }
+  }
+  
+  # These are used as fallbacks only
+  if (grepl("nef", target_part)) {
+    cat("  Categorized as: nef (from target)\n")
+    return("nef")
+  }
+  
+  if (grepl("LTR", target_part)) {
+    cat("  Categorized as: LTR (from target)\n")
+    return("LTR")
+  }
+  
+  # Default case
+  cat("  Failed to categorize. Assigning as: other\n")
+  return("other")
+}
+## SALVE and GEX: resolve UMI mapping to multiple genes/regions
+resolve_multimap <- function(df, mode = "SALVE") {
+  df <- as.data.frame(df, stringsAsFactors = FALSE)
+  
+  if (mode == "SALVE") {
+    # Valid pairs for SALVE mode
+    valid_pairs <- list(
+      c("tat_S", "nef"),      # Keep nef
+      c("D1_S", "tat_US"),    # Keep tat_US
+      c("tat_US", "tat_S")    # Keep tat_S
+    )
+  } else if (mode == "GEX" | mode == "10X") {
+    # Valid pairs for GEX mode
+    valid_pairs <- list(
+      c("LTR_D1", "D1_A1"),  # Keep D1_A1
+      c("D1_A1", "A1_D4"),   # Keep A1_D4
+      c("A1_D4", "D4_A7"),   # Keep D4_A7
+      c("D4_A7", "A7_LTR")   # Keep A7_LTR
+    )
+  } else {
+    stop("Invalid mode input")
+  }
+  
+  # Create a composite key
+  df$key <- paste(df$cellID, df$UMI, sep = "_")
+  
+  # Identify multi-category keys
+  key_counts <- table(df$key)
+  multi_keys <- names(key_counts[key_counts > 1])
+  
+  # Statistics counters
+  total_multimapped <- length(multi_keys)
+  resolved_count <- 0
+  tossed_count <- 0
+  tossed_more_than_2_count <- 0
+  
+  # Split into single and multi entries
+  singles <- df[!df$key %in% multi_keys, ]
+  multis <- df[df$key %in% multi_keys, ]
+  
+  # Process the multi entries
+  result_rows <- list()
+  
+  if (nrow(singles) > 0) {
+    result_rows[[1]] <- singles
+  }
+  
+  # Process each unique key
+  if (nrow(multis) > 0) {
+    unique_keys <- unique(multis$key)
+    
+    for (k in unique_keys) {
+      # Get all rows for this key
+      rows <- multis[multis$key == k, ]
+      categories <- unique(rows$category)
+      
+      # Process based on number of categories
+      if (length(categories) == 1) {
+        # For keys with 1 category but multiple rows, consolidate by summing read_counts
+        total_reads <- sum(rows$read_count)
+        keep_row <- rows[1, ]  # Take the first row
+        keep_row$read_count <- total_reads  # Update the read count
+        result_rows[[length(result_rows) + 1]] <- keep_row
+        consolidated_same_category <- consolidated_same_category + 1
+      } else if (length(categories) == 2) {
+        # Check against valid pairs
+        valid_match <- FALSE
+        for (pair in valid_pairs) {
+          if (all(sort(categories) == sort(pair))) {
+            # Valid pair, keep the second category
+            keep_cat <- pair[2]
+            keep_row <- rows[rows$category == keep_cat, ][1, ]
+            keep_row$read_count <- sum(rows$read_count)
+            result_rows[[length(result_rows) + 1]] <- keep_row
+            resolved_count <- resolved_count + 1
+            valid_match <- TRUE
+            break
+          }
+        }
+        
+        # If no valid match found, count as tossed
+        if (!valid_match) {
+          tossed_count <- tossed_count + 1
+        }
+      } else if (length(categories) > 2) {
+        # Toss UMIs with more than 2 categories
+        tossed_more_than_2_count <- tossed_more_than_2_count + 1
+      }
+    }
+  }
+  
+  # Print statistics
+  cat("Total multi-mapped UMIs:", total_multimapped, "\n")
+  cat("UMIs successfully resolved:", resolved_count, 
+      sprintf("(%.1f%%)", resolved_count/total_multimapped*100), "\n")
+  cat("UMIs tossed (no valid pair):", tossed_count, 
+      sprintf("(%.1f%%)", tossed_count/total_multimapped*100), "\n")
+  cat("UMIs tossed (>2 categories):", tossed_more_than_2_count, 
+      sprintf("(%.1f%%)", ifelse(total_multimapped > 0, tossed_more_than_2_count/total_multimapped*100, 0)), "\n")
+  cat("Total UMIs tossed:", tossed_count + tossed_more_than_2_count, 
+      sprintf("(%.1f%%)", ifelse(total_multimapped > 0, 
+                                 (tossed_count + tossed_more_than_2_count)/total_multimapped*100, 0)), "\n")
+  
+  # Combine all results
+  if (length(result_rows) > 0) {
+    result <- do.call(rbind, result_rows)
+    result$key <- NULL  # Remove the helper column
+    rownames(result) <- NULL
+    
+    return(result)
+  } else {
+    # Return empty frame with correct structure
+    empty <- df[0, ]
+    empty$key <- NULL
+    return(empty)
+  }
+}
+## SALVE: filtering data for minimums
+convert_umi_to_salve <- function(umi_file, output_file, min_reads = 1, min_region_count = 1, min_umi_count = 1) {
+  # Reading in file
+  umi_data <- read.csv(umi_file, stringsAsFactors = FALSE)
+  # Extract sample name from file name
+  sample_name <- gsub("_UMI_read_counts_full.csv", "", basename(umi_file))
+  
+  # Apply minimum read count filter if specified
+  if (min_reads > 0) {
+    umi_data <- umi_data %>%
+      filter(read_count >= min_reads)
+  }
+  
+  # Define all possible categories we want in the output
+  categories <- c("D1_US", "D1_S", "tat_US", "tat_S", "nef", "LTR")
+  
+  # Use table to count unique UMIs
+  unique_combinations <- unique(umi_data[, c("cellID", "category", "UMI")])
+  
+  # Count UMIs per cellID and category
+  umi_counts <- table(unique_combinations$cellID, unique_combinations$category)
+  umi_counts_df <- as.data.frame.matrix(umi_counts)
+  
+  # Add cellID column and preserve rownames
+  umi_counts_df$cellID <- rownames(umi_counts_df)
+  rownames(umi_counts_df) <- NULL
+  
+  # Initialize SALVE data with cellIDs
+  salve_data <- data.frame(cellID = unique(umi_data$cellID), stringsAsFactors = FALSE)
+  
+  # Initialize all category columns with zeros
+  for (cat in categories) {
+    salve_data[[cat]] <- 0
+  }
+  
+  # Get categories that actually exist in the data
+  actual_categories <- colnames(umi_counts_df)
+  actual_categories <- actual_categories[actual_categories != "cellID"]
+  
+  # Fill in the SALVE data with UMI counts - safely
+  for (i in 1:nrow(umi_counts_df)) {
+    cell <- umi_counts_df$cellID[i]
+    
+    # Find the row index for this cell in salve_data
+    row_idx <- which(salve_data$cellID == cell)
+    if (length(row_idx) == 1) {
+      # For each category that exists in the actual data
+      for (cat in actual_categories) {
+        if (cat %in% colnames(umi_counts_df) && cat %in% colnames(salve_data)) {
+          # Get the count value safely
+          count_val <- umi_counts_df[i, cat]
+          if (!is.null(count_val) && !is.na(count_val)) {
+            salve_data[row_idx, cat] <- count_val
+          }
+        }
+      }
+    } else {
+      cat("Warning: Cell", cell, "not found or duplicated in salve_data\n")
+    }
+  }
+  
+  # Calculate region count
+  region_prefixes <- c("D1", "tat", "nef")
+  salve_data$region_count <- 0
+  
+  # For each region, check if the cell has any counts in columns with that prefix
+  for (prefix in region_prefixes) {
+    if (prefix %in% c("nef", "LTR")) {
+      if (prefix %in% colnames(salve_data)) {
+        salve_data$region_count <- salve_data$region_count + 
+          as.integer(salve_data[[prefix]] > 0)
+      }
+    } else {
+      # For prefixes like "D1" or "tat"
+      prefix_cols <- grep(paste0("^", prefix), colnames(salve_data), value = TRUE)
+      if (length(prefix_cols) > 0) {
+        has_prefix <- rowSums(salve_data[, prefix_cols, drop = FALSE], na.rm = TRUE) > 0
+        salve_data$region_count <- salve_data$region_count + as.integer(has_prefix)
+      }
+    }
+  }
+  
+  # Apply region count filter
+  filtered_salve_data <- salve_data[salve_data$region_count >= min_region_count, ]
+  
+  # Remove the helper column
+  filtered_salve_data$region_count <- NULL
+  
+  # Calculate UMI count
+  filtered_salve_data <- filtered_salve_data %>%
+    mutate(total_lessLTR = rowSums(select_if(., is.numeric) %>% 
+                                     select(-any_of(c("LTR"))), na.rm = TRUE))
+  
+  # Apply UMI count filter
+  filtered_salve_data <- filtered_salve_data[filtered_salve_data$total_lessLTR >= min_umi_count, ]
+  
+  
+  cat("Converted", nrow(umi_data), "UMI entries to", nrow(filtered_salve_data), "cells\n")
+  
+  return(filtered_salve_data)
+}
+## SALVE: filter multiple samples
+process_all_samples_umi_to_salve <- function(sample_list, input_dir, output_dir, min_reads = 1, min_region_count = 1, min_umi_count = 1) {
+  # Ensure output directory exists
+  if (!dir.exists(output_dir)) {
+    dir.create(output_dir, recursive = TRUE)
+  }
+  
+  # Track successful and failed conversions
+  successful <- 0
+  failed <- 0
+  
+  for (sample in sample_list) {
+    # Construct input and output file paths
+    input_file <- file.path(input_dir, paste0(sample, "_UMI_read_counts_full.csv"))
+    output_file <- file.path(output_dir, paste0(sample, "_SALVE_filtered.csv"))
+    
+    # Process the file
+    cat("Processing sample:", sample, "\n")
+    tryCatch({
+      salve_data <- convert_umi_to_salve(input_file, output_file, min_reads, min_region_count, min_umi_count)
+      
+    }, error = function(e) {
+      warning("Error processing sample ", sample, ": ", conditionMessage(e), "\n")
+      failed <- failed + 1
+    })
+  }
+  
+  cat("\nAll samples processed!\n")
+}
+
+
+# v3 functions
 # Loading
 ## standard processing of counts matrices with Seurat
 SeuratPipeline <- function(file_location, sample_name, output_dir = "/projects/b1042/GoyalLab/egrody/", plots = FALSE, rds = FALSE) {
@@ -76,16 +438,57 @@ targetExpressionDF <- function(seurat_obj, genes, count_type = "normalized") {
     genes <- c(genes)
   }
   
-  if (count_type == "raw") {
-    expression <- GetAssayData(object = seurat_obj, assay = "RNA", layer = "counts")[genes,, drop=FALSE]
-  } else {
-    expression <- GetAssayData(object = seurat_obj, assay = "RNA", layer = "data")[genes,, drop=FALSE]
+  # Check if the genes exist in the dataset
+  available_genes <- rownames(seurat_obj)
+  genes_present <- genes %in% available_genes
+  
+  # If none of the requested genes are present, create empty dataframe with correct structure
+  if (!any(genes_present)) {
+    # Get cell IDs from the Seurat object
+    cell_ids <- colnames(seurat_obj)
+    
+    # Create an empty expression dataframe with zero values
+    expression_df <- data.frame(
+      cellID = cell_ids,
+      stringsAsFactors = FALSE
+    )
+    
+    # Add columns for each requested gene with zeros
+    for (gene in genes) {
+      expression_df[[gene]] <- rep(0, length(cell_ids))
+    }
+    
+    # Check if UMAP reduction exists
+    if ("umap" %in% names(seurat_obj@reductions)) {
+      umap_coords <- Embeddings(object = seurat_obj, reduction = "umap")
+      cluster <- Idents(object = seurat_obj)
+      
+      SingleCell <- expression_df %>%
+        mutate(
+          UMAP1 = umap_coords[, 1],
+          UMAP2 = umap_coords[, 2],
+          cluster = cluster
+        )
+    } else {
+      warning("UMAP not present, generating dataframe without UMAP coordinates.")
+      SingleCell <- expression_df
+    }
+    
+    warning(paste("None of the requested genes", paste(genes, collapse=", "), "were found in the dataset. Returning dataframe with zeros."))
+    return(SingleCell)
   }
   
-  if (length(genes) == 1) {
+  # Original function for when genes are present
+  if (count_type == "raw") {
+    expression <- GetAssayData(object = seurat_obj, assay = "RNA", layer = "counts")[genes[genes_present],, drop=FALSE]
+  } else {
+    expression <- GetAssayData(object = seurat_obj, assay = "RNA", layer = "data")[genes[genes_present],, drop=FALSE]
+  }
+  
+  if (length(genes[genes_present]) == 1) {
     expression_df <- data.frame(
       cellID = colnames(expression),
-      setNames(list(as.numeric(expression)), genes),
+      setNames(list(as.numeric(expression)), genes[genes_present]),
       stringsAsFactors = FALSE
     )
   } else {
@@ -94,6 +497,15 @@ targetExpressionDF <- function(seurat_obj, genes, count_type = "normalized") {
       t(expression),
       stringsAsFactors = FALSE
     )
+  }
+  
+  # Add columns for missing genes with zeros
+  if (!all(genes_present)) {
+    missing_genes <- genes[!genes_present]
+    for (gene in missing_genes) {
+      expression_df[[gene]] <- rep(0, nrow(expression_df))
+      warning(paste("Gene", gene, "not found in dataset. Adding column with zeros."))
+    }
   }
   
   # Check if UMAP reduction exists
@@ -171,6 +583,57 @@ save_scPQ_expression <- function(seurat_objects, gene_names, output_dir = ".") {
 
 # Joint Analyses
 ## joining and printing numbers
+read_sample_files <- function(samples, directory, filtered = TRUE) {
+  # Create an empty list to store data frames
+  data_list <- list()
+  
+  all_data <- NULL
+  
+  for (sample in samples) {
+    # Define file types to look for
+    file_types <- c("SALVE", "GEX")
+    
+    for (file_type in file_types) {
+      # Construct file suffix based on filtered parameter
+      suffix <- ifelse(filtered, "_filtered.csv", "_full.csv")
+      
+      # Construct file path
+      file_path <- file.path(directory, paste0(sample, "_", file_type, suffix))
+      
+      
+      # Check if file exists
+      if (file.exists(file_path)) {
+        # Read the file
+        tryCatch({
+          sample_data <- read.csv(file_path)
+          
+          sample_data$sample <- sample
+          
+          if (is.null(all_data)) {
+            all_data <- sample_data
+          } else {
+            # Get common columns
+            common_cols <- intersect(colnames(all_data), colnames(sample_data))
+            all_data <- rbind(all_data[, common_cols], sample_data[, common_cols])
+          }
+          
+          cat(sprintf("Successfully read %s\n", paste0(sample, "_", file_type, suffix)))
+        }, error = function(e) {
+          cat(sprintf("Error reading %s: %s\n", file_path, conditionMessage(e)))
+        })
+      }
+    }
+  }
+  
+  if (!is.null(all_data)) {
+    cat("Total cells loaded:", nrow(all_data), "\n")
+    return(all_data)
+  } else {
+    warning("No data was loaded for any of the provided samples")
+    return(NULL)
+  }
+}
+
 
 ## correlation analysis with plots of relationship between SALVE and SingleCell data
 correlation_plots <- function(salve_data, single_cell_data, join = "inner") {
@@ -249,17 +712,12 @@ correlation_plots <- function(salve_data, single_cell_data, join = "inner") {
 
 # Plotting
 ## plot a UMAP
-plotUMAP <- function(data, colorby, title, output_dir, saveas, comparison = FALSE, color_max = NULL) {
+plotUMAP <- function(data, colorby, title, output_dir, saveas, comparison = FALSE) {
   # Convert unquoted column name to string
   colorby_str <- deparse(substitute(colorby))
   
   # Create a copy of the data and arrange it by the color column (low to high)
   data_ordered <- data[order(data[[colorby_str]]), ]
-  
-  # Set color_max to the maximum value in the data if not provided
-  if (is.null(color_max)) {
-    color_max <- max(data[[colorby_str]], na.rm = TRUE)
-  }
   
   umap <- ggplot(data_ordered, aes(x = UMAP1, y = UMAP2)) +
     geom_point(aes(color = .data[[colorby_str]]), size = 1, shape = 16) +
@@ -269,14 +727,13 @@ plotUMAP <- function(data, colorby, title, output_dir, saveas, comparison = FALS
           legend.text = element_text(size = rel(0.6), angle = 30),
           axis.text = element_blank(),
           axis.ticks = element_blank()) +
-    labs(title = title, color = "") +
-    coord_fixed(ratio = 1)
+    labs(title = title, color = "")
   
   if (comparison) {
     mid <- median(paint_umap$ratioSingleVISER)
     umap <- umap + scale_color_gradient2(midpoint = mid, low = "blue", mid = "gray93", high = "red")
   } else {
-    umap <- umap + scale_color_gradient(low = "lightgrey", high = "darkblue", limits = c(0, color_max))
+    umap <- umap + scale_color_gradient(low = "lightgrey", high = "darkblue")
   }
   ggsave(umap, file = paste0(output_dir, saveas))
   
@@ -339,37 +796,51 @@ create_identity_umap <- function(data, title, output_file_name, output_dir = "/p
   return(identity_umap)
 }
 ## barcode rank plot
-barcodeRankPlot <- function(rawDataFolder, jointFullJoin, plotTitle = "Barcode Rank Plot", output_dir = "/projects/b1042/GoyalLab/egrody/", saveas = "barcodeRankPlot.svg") {
-  # add error for wrong format of jointFullJoin columns
-  if (!"log1pSALVE" %in% colnames(jointFullJoin)) {
-    stop("Error: jointFullJoin must contain a 'log1pSALVE' column")
+barcodeRankPlot <- function(rawDataFolder, jointFullJoin, plotTitle = "Barcode Rank Plot", 
+                            output_dir = "/projects/b1042/GoyalLab/egrody/", saveas = "barcodeRankPlot.svg") {
+  # Check for either log1pSALVE or total_lessLTR columns
+  has_log1p <- "log1pSALVE" %in% colnames(jointFullJoin)
+  has_total <- "total_lessLTR" %in% colnames(jointFullJoin)
+  if (!has_log1p && !has_total) {
+    stop("Error: jointFullJoin must contain either a 'log1pSALVE' or 'total_lessLTR' column")
   }
-  
   if (!"cellID" %in% colnames(jointFullJoin)) {
     stop("Error: jointFullJoin must contain a 'cellID' column")
   }
+  
+  # Determine which column to use
+  if (has_log1p) {
+    salve_col <- "log1pSALVE"
+  } else {
+    salve_col <- "total_lessLTR"
+  }
+  
   # Create a data frame with barcode and UMI count
   rawdata <- Read10X(rawDataFolder)
   umi_counts <- colSums(rawdata)
   plot_data <- data.frame(barcode = names(umi_counts), 
                           umi_count = umi_counts)
   plot_data <- plot_data %>% 
-    arrange(desc(umi_count)) %>%
-    mutate(barcode = substr(barcode, 1, nchar(barcode) - 2))
+    arrange(desc(umi_count))
   
-  # highlight the SALVE+ cellIDs
-  SALVE_cellids <- jointFullJoin %>% filter(log1pSALVE > 0) %>% select(cellID)
+  # Filter for positive SALVE values
+  # For log1pSALVE, use > 0; for total_lessLTR, use > 0 (raw counts)
+  SALVE_cellids <- jointFullJoin %>% 
+    filter(!!sym(salve_col) > 0) %>% 
+    select(cellID)
+  
   cat(sum(SALVE_cellids[[1]] %in% plot_data$barcode), "out of", nrow(SALVE_cellids), 
       "SALVEseq cellIDs are found in raw cellID list\n")
+  
   plot_data$highlight <- plot_data$barcode %in% SALVE_cellids[[1]]
   
-  #count SALVE+ cellIDs with transcriptomes
+  # Count SALVE+ cellIDs with transcriptomes
   SALVE_in_rawdata <- plot_data %>% 
     filter(barcode %in% SALVE_cellids[[1]])
   
   num_full_transcriptomes <- sum(SALVE_in_rawdata$umi_count >= 100)
   cat(num_full_transcriptomes, "out of", nrow(SALVE_cellids), 
-      "SALVEseq cellIDs have full transcriptomes (>= 100 UMI)")
+      "SALVEseq cellIDs have full transcriptomes (>= 100 UMI)\n")
   
   set.seed(123)
   plot_data <- plot_data %>%
@@ -378,7 +849,7 @@ barcodeRankPlot <- function(rawDataFolder, jointFullJoin, plotTitle = "Barcode R
       rank = row_number(),
       umi_count_adj = ifelse(umi_count <= 0, 0.1, umi_count)  # Replace 0 or negative with 0.1
     ) %>%
-    slice_sample(n = 20000) # Update if necessary
+    slice_sample(n = min(20000, nrow(.))) # Update if necessary, ensure n doesn't exceed available rows
   
   # Create the plot
   umi_rank_plot <- ggplot(plot_data %>% arrange(highlight), aes(x = rank, y = umi_count_adj)) +
@@ -399,7 +870,9 @@ barcodeRankPlot <- function(rawDataFolder, jointFullJoin, plotTitle = "Barcode R
     theme(legend.position = "none")
   
   # Save the plot
-  ggsave(paste0(output_dir, saveas), umi_rank_plot, width = 10, height = 8, device = "svg")
+  output_path <- file.path(output_dir, saveas)
+  cat("Saving plot to:", output_path, "\n")
+  ggsave(output_path, umi_rank_plot, width = 10, height = 8, device = "svg")
   
   return(umi_rank_plot)
 }
@@ -602,8 +1075,7 @@ plot_subset_analysis <- function(seurat_obj, analysis_results, subset_cells, sav
           filename = file.path(output_dir, filename),
           plot = plot,
           width = w,
-          height = h,
-          dpi = dpi
+          height = h
         )
         return(TRUE)
       }

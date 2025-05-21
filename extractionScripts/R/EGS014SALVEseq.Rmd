@@ -148,28 +148,11 @@ samples <- data.frame(
 )
 
 input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/singleCell/bamsort/alignment"
-
-# Function to identify the specific file type
-identify_file_type <- function(filename) {
-  alignment_part <- strsplit(filename, "_bamsort_alignment_")[[1]][2]
-  alignment_part <- sub("\\.csv$", "", alignment_part)
-  
-  if (grepl("LTR_D1$", alignment_part)) return("LTR_D1")
-  if (grepl("D1_A1$", alignment_part)) return("D1_A1")
-  if (grepl("A1_D4$", alignment_part)) return("A1_D4")
-  if (grepl("D4_A7$", alignment_part)) return("D4_A7")
-  if (grepl("A7_LTR$", alignment_part)) return("A7_LTR")
-  
-  return("other")
-}
+output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/singleCell/bamsort/reads/20250521/"
 
 raw_cellIDs_df <- read.csv("/projects/b1042/GoyalLab/egrody/extractedData/EGS014/singleCell/raw_cellIDs/all_raw_cellIDs.csv")
 raw_cellIDs <- split(raw_cellIDs_df$cellID, raw_cellIDs_df$sample)
 
-
-
-
-output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/singleCell/bamsort/reads/20250518/"
 
 # Process each sample
 for (i in 1:nrow(samples)) {
@@ -188,7 +171,7 @@ for (i in 1:nrow(samples)) {
   
   # Filter to keep only files that contribute to total_lessLTR
   filenames <- basename(sample_files)
-  is_relevant <- sapply(filenames, is_v4bamsort_file)
+  is_relevant <- sapply(filenames, is_v4bamsort_SALVE)
   relevant_files <- sample_files[is_relevant]
   relevant_filenames <- filenames[is_relevant]
   
@@ -379,176 +362,6 @@ for (i in 1:nrow(samples)) {
 ```
 
 
-```{r}
-convert_umi_to_salve <- function(umi_file, output_file, min_reads = 1, min_region_count = 1) {
-  # Reading in file
-  umi_data <- read.csv(umi_file, stringsAsFactors = FALSE)
-  # Extract sample name from file name
-  sample_name <- gsub("_UMI_read_counts_full.csv", "", basename(umi_file))
-  
-  # Apply minimum read count filter if specified
-  if (min_reads > 0) {
-    cell_counts <- aggregate(read_count ~ cellID, data = umi_data, FUN = sum)
-    valid_cells <- cell_counts$cellID[cell_counts$read_count >= min_reads]
-    #cat("Found", length(valid_cells), "cells with at least", min_reads, "reads\n")
-    umi_data <- umi_data[umi_data$cellID %in% valid_cells, ]
-  }
-  
-  # Define all possible categories we want in the output
-  categories <- c("D1_US", "D1_S", "tat_US", "tat_S", "nef", "LTR")
-  
-  # Use table to count unique UMIs
-  unique_combinations <- unique(umi_data[, c("cellID", "category", "UMI")])
-  
-  # Count UMIs per cellID and category
-  umi_counts <- table(unique_combinations$cellID, unique_combinations$category)
-  umi_counts_df <- as.data.frame.matrix(umi_counts)
-  
-  # Add cellID column and preserve rownames
-  umi_counts_df$cellID <- rownames(umi_counts_df)
-  rownames(umi_counts_df) <- NULL
-  
-  # Initialize SALVE data with cellIDs
-  salve_data <- data.frame(cellID = unique(umi_data$cellID), stringsAsFactors = FALSE)
-  
-  # Initialize all category columns with zeros
-  for (cat in categories) {
-    salve_data[[cat]] <- 0
-  }
-  
-  # Get categories that actually exist in the data
-  actual_categories <- colnames(umi_counts_df)
-  actual_categories <- actual_categories[actual_categories != "cellID"]
-  
-  # Fill in the SALVE data with UMI counts - safely
-  for (i in 1:nrow(umi_counts_df)) {
-    cell <- umi_counts_df$cellID[i]
-    
-    # Find the row index for this cell in salve_data
-    row_idx <- which(salve_data$cellID == cell)
-    if (length(row_idx) == 1) {
-      # For each category that exists in the actual data
-      for (cat in actual_categories) {
-        if (cat %in% colnames(umi_counts_df) && cat %in% colnames(salve_data)) {
-          # Get the count value safely
-          count_val <- umi_counts_df[i, cat]
-          if (!is.null(count_val) && !is.na(count_val)) {
-            salve_data[row_idx, cat] <- count_val
-          }
-        }
-      }
-    } else {
-      cat("Warning: Cell", cell, "not found or duplicated in salve_data\n")
-    }
-  }
-  
-  # Calculate region count
-  region_prefixes <- c("D1", "tat", "nef")
-  salve_data$region_count <- 0
-  
-  # For each region, check if the cell has any counts in columns with that prefix
-  for (prefix in region_prefixes) {
-    if (prefix %in% c("nef", "LTR")) {
-      if (prefix %in% colnames(salve_data)) {
-        salve_data$region_count <- salve_data$region_count + 
-          as.integer(salve_data[[prefix]] > 0)
-      }
-    } else {
-      # For prefixes like "D1" or "tat"
-      prefix_cols <- grep(paste0("^", prefix), colnames(salve_data), value = TRUE)
-      if (length(prefix_cols) > 0) {
-        has_prefix <- rowSums(salve_data[, prefix_cols, drop = FALSE], na.rm = TRUE) > 0
-        salve_data$region_count <- salve_data$region_count + as.integer(has_prefix)
-      }
-    }
-  }
-  
-  # Apply region count filter
-  filtered_salve_data <- salve_data[salve_data$region_count >= min_region_count, ]
-  
-  # Remove the helper column
-  filtered_salve_data$region_count <- NULL
-  
-  
-  # Write the output file
-  cat("Writing output file:", output_file, "\n")
-  write.csv(filtered_salve_data, output_file, row.names = FALSE)
-  
-  cat("Converted", nrow(umi_data), "UMI entries to", nrow(filtered_salve_data), "cells\n")
-  
-  return(filtered_salve_data)
-}
-
-
-# Function to process multiple samples
-process_all_samples_umi_to_salve <- function(sample_list, input_dir, output_dir, min_reads = 1, min_region_count = 1) {
-  # Ensure output directory exists
-  if (!dir.exists(output_dir)) {
-    dir.create(output_dir, recursive = TRUE)
-  }
-  
-  # Track successful and failed conversions
-  successful <- 0
-  failed <- 0
-  
-  for (sample in sample_list) {
-    # Construct input and output file paths
-    input_file <- file.path(input_dir, paste0(sample, "_UMI_read_counts_full.csv"))
-    output_file <- file.path(output_dir, paste0(sample, "_SALVE_filtered.csv"))
-    
-    # Process the file
-    cat("Processing sample:", sample, "\n")
-    tryCatch({
-      salve_data <- convert_umi_to_salve(input_file, output_file, min_reads, min_region_count)
-      if (!is.null(salve_data)) {
-        successful <- successful + 1
-      } else {
-        failed <- failed + 1
-      }
-    }, error = function(e) {
-      warning("Error processing sample ", sample, ": ", conditionMessage(e), "\n")
-      failed <- failed + 1
-    })
-  }
-  
-  cat("\nConversion summary:\n")
-  cat("  Successful conversions:", successful, "\n")
-  cat("  Failed conversions:", failed, "\n")
-  cat("All samples processed.\n")
-}
-
-# Example usage
-#umi_file <- "D195_UMI_read_counts.csv"
-#output_file <- "D195_SALVE_filtered.csv"
-#salve_data <- convert_umi_to_salve(umi_file, output_file, min_reads = 0)
-
-# Verify conversion with original SALVE file
-# verify_conversion(umi_file, "D195_SALVE_full.csv")
-
-# Example to process all samples
-samples <- c(
-  "D13",
-  "D195",
-  "D83",
-  "GART",
-  "Invitro",
-  "LART",
-  "Lacute",
-  "PART",
-  "Uninfected"
-)
-
-# Example paths
-input_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/bamsort/reads/20250518"
-output_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/bamsort/reads/20250518/converted/min2/nocountLTR"
-
-#input_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/singleCell/bamsort/reads"
-#output_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/singleCell/bamsort/reads/converted/min2"
-
-# Process all samples
-process_all_samples_umi_to_salve(samples, input_dir, output_dir, min_reads = 2, min_region_count = 2)
-
-```
 
 ### Alternative: Read in and filter each file separately
 ```{r}
@@ -591,7 +404,7 @@ samples <- data.frame(
 input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/singleCell/bamsort/alignment"
 
 # Function to identify the specific file type
-identify_file_type <- function(filename) {
+is_v4bamsort_GEX <- function(filename) {
   alignment_part <- strsplit(filename, "_bamsort_alignment_")[[1]][2]
   alignment_part <- sub("\\.csv$", "", alignment_part)
   
@@ -637,8 +450,8 @@ for (i in 1:nrow(samples)) {
     targets[j] <- target_part
     alignments[j] <- alignment
     
-    # Use the identify_file_type function to get the key
-    file_type <- identify_file_type(filenames[j])
+    # Use the is_v4bamsort_GEX function to get the key
+    file_type <- is_v4bamsort_GEX(filenames[j])
     keys[j] <- file_type
     
     # Skip files that don't match our patterns of interest
@@ -1005,225 +818,8 @@ cat("Saved combined cell IDs to", combined_file, "\n")
 
 Making raw and full lists:
 ```{r}
-# Function to detect if a file belongs to a specific category
-is_v4bamsort_file <- function(filename) {
-  
-  # Split the filename into parts
-  target_part <- strsplit(filename, "_bamsort_alignment_")[[1]][1]
-  
-  # Get the part after "_bamsort_alignment_"
-  alignment_part <- NA
-  if (length(strsplit(filename, "_bamsort_alignment_")[[1]]) > 1) {
-    alignment_part <- strsplit(filename, "_bamsort_alignment_")[[1]][2]
-    alignment_part <- sub("\\.csv$", "", alignment_part)
-  }
-  
-  # Categorize based on different parts of the filename
-  is_d1 <- grepl("D1", target_part)
-  is_tat <- grepl("tat", target_part)
-  is_nef_target <- grepl("nef", target_part)
-  is_nef_alignment <- !is.na(alignment_part) && grepl("nef", alignment_part)
-  is_ltr_target <- grepl("LTR", target_part)
-  is_ltr_alignment <- !is.na(alignment_part) && grepl("LTR", alignment_part)
-  
-  # We want to include any file that could be part of total_lessLTR
-  # This includes D1, tat, and nef files (but note: alignment part might also affect classification)
-  return(is_d1 || is_tat || is_nef_target || is_nef_alignment || is_ltr_target || is_ltr_alignment)
-}
-
-# Function to extract category from filename
-extract_category <- function(filename) {
-  # Split the filename into parts
-  target_part <- strsplit(filename, "_bamsort_alignment_")[[1]][1]
-  alignment_part <- NA
-  if (length(strsplit(filename, "_bamsort_alignment_")[[1]]) > 1) {
-    alignment_part <- strsplit(filename, "_bamsort_alignment_")[[1]][2]
-    alignment_part <- sub("\\.csv$", "", alignment_part)
-  }
-  
-  # First, prioritize the alignment part for categorization
-  if (!is.na(alignment_part)) {
-    # Check common categories in alignment
-    if (alignment_part == "D1_S") {
-      return("D1_S")
-    }
-    if (alignment_part == "D1_US") {
-      return("D1_US")
-    }
-    if (alignment_part == "tat_S") {
-      return("tat_S")
-    }
-    if (alignment_part == "tat_US") {
-      return("tat_US")
-    }
-    if (alignment_part == "nef_3" || alignment_part == "nef_5") {
-      return("nef")
-    }
-    if (alignment_part == "LTR_3" || alignment_part == "LTR_5") {
-      return("LTR")
-    }
-  }
-  
-  # If we couldn't categorize from alignment part, fall back to target part
-  # Only use these if we couldn't categorize from the alignment
-  if (grepl("D1", target_part)) {
-    if (grepl("_S[_\\.]", target_part) || grepl("_S$", target_part)) {
-      cat("  Categorized as: D1_S (from target)\n")
-      return("D1_S")
-    }
-    if (grepl("_US[_\\.]", target_part) || grepl("_US$", target_part)) {
-      cat("  Categorized as: D1_US (from target)\n")
-      return("D1_US")
-    }
-  }
-  
-  if (grepl("tat", target_part)) {
-    if (grepl("_S[_\\.]", target_part) || grepl("_S$", target_part)) {
-      cat("  Categorized as: tat_S (from target)\n")
-      return("tat_S")
-    }
-    if (grepl("_US[_\\.]", target_part) || grepl("_US$", target_part)) {
-      cat("  Categorized as: tat_US (from target)\n")
-      return("tat_US")
-    }
-  }
-  
-  # These are used as fallbacks only
-  if (grepl("nef", target_part)) {
-    cat("  Categorized as: nef (from target)\n")
-    return("nef")
-  }
-  
-  if (grepl("LTR", target_part)) {
-    cat("  Categorized as: LTR (from target)\n")
-    return("LTR")
-  }
-  
-  # Default case
-  cat("  Failed to categorize. Assigning as: other\n")
-  return("other")
-}
-
-resolve_multimap <- function(df, mode = "SALVE") {
-  df <- as.data.frame(df, stringsAsFactors = FALSE)
-  
-  if (mode == "SALVE") {
-    # Valid pairs for SALVE mode
-  valid_pairs <- list(
-    c("tat_S", "nef"),      # Keep nef
-    c("D1_S", "tat_US"),    # Keep tat_US
-    c("tat_US", "tat_S")    # Keep tat_S
-  )
-  } else if (mode == "GEX" | mode == "10X") {
-    # Valid pairs for GEX mode
-  valid_pairs <- list(
-    c("LTR_D1", "D1_A1"),  # Keep D1_A1
-    c("D1_A1", "A1_D4"),   # Keep A1_D4
-    c("A1_D4", "D4_A7"),   # Keep D4_A7
-    c("D4_A7", "A7_LTR")   # Keep A7_LTR
-  )
-  } else {
-    stop("Invalid mode input")
-  }
-  
-  # Create a composite key
-  df$key <- paste(df$cellID, df$UMI, sep = "_")
-  
-  # Identify multi-category keys
-  key_counts <- table(df$key)
-  multi_keys <- names(key_counts[key_counts > 1])
-  
-  # Statistics counters
-  total_multimapped <- length(multi_keys)
-  resolved_count <- 0
-  tossed_count <- 0
-  tossed_more_than_2_count <- 0
-  
-  # Split into single and multi entries
-  singles <- df[!df$key %in% multi_keys, ]
-  multis <- df[df$key %in% multi_keys, ]
-  
-  # Process the multi entries
-  result_rows <- list()
-  
-  if (nrow(singles) > 0) {
-    result_rows[[1]] <- singles
-  }
-  
-  # Process each unique key
-  if (nrow(multis) > 0) {
-    unique_keys <- unique(multis$key)
-    
-    for (k in unique_keys) {
-      # Get all rows for this key
-      rows <- multis[multis$key == k, ]
-      categories <- unique(rows$category)
-      
-      # Process based on number of categories
-      if (length(categories) == 1) {
-        # For keys with 1 category but multiple rows, consolidate by summing read_counts
-        total_reads <- sum(rows$read_count)
-        keep_row <- rows[1, ]  # Take the first row
-        keep_row$read_count <- total_reads  # Update the read count
-        result_rows[[length(result_rows) + 1]] <- keep_row
-        consolidated_same_category <- consolidated_same_category + 1
-      } else if (length(categories) == 2) {
-        # Check against valid pairs
-        valid_match <- FALSE
-        for (pair in valid_pairs) {
-          if (all(sort(categories) == sort(pair))) {
-            # Valid pair, keep the second category
-            keep_cat <- pair[2]
-            keep_row <- rows[rows$category == keep_cat, ][1, ]
-            keep_row$read_count <- sum(rows$read_count)
-            result_rows[[length(result_rows) + 1]] <- keep_row
-            resolved_count <- resolved_count + 1
-            valid_match <- TRUE
-            break
-          }
-        }
-        
-        # If no valid match found, count as tossed
-        if (!valid_match) {
-          tossed_count <- tossed_count + 1
-        }
-      } else if (length(categories) > 2) {
-        # Toss UMIs with more than 2 categories
-        tossed_more_than_2_count <- tossed_more_than_2_count + 1
-      }
-    }
-  }
-  
-  # Print statistics
-  cat("Total multi-mapped UMIs:", total_multimapped, "\n")
-  cat("UMIs successfully resolved:", resolved_count, 
-      sprintf("(%.1f%%)", resolved_count/total_multimapped*100), "\n")
-  cat("UMIs tossed (no valid pair):", tossed_count, 
-      sprintf("(%.1f%%)", tossed_count/total_multimapped*100), "\n")
-  cat("UMIs tossed (>2 categories):", tossed_more_than_2_count, 
-      sprintf("(%.1f%%)", ifelse(total_multimapped > 0, tossed_more_than_2_count/total_multimapped*100, 0)), "\n")
-  cat("Total UMIs tossed:", tossed_count + tossed_more_than_2_count, 
-      sprintf("(%.1f%%)", ifelse(total_multimapped > 0, 
-                                (tossed_count + tossed_more_than_2_count)/total_multimapped*100, 0)), "\n")
-  
-  # Combine all results
-  if (length(result_rows) > 0) {
-    result <- do.call(rbind, result_rows)
-    result$key <- NULL  # Remove the helper column
-    rownames(result) <- NULL
-    
-    return(result)
-  } else {
-    # Return empty frame with correct structure
-    empty <- df[0, ]
-    empty$key <- NULL
-    return(empty)
-  }
-}
-
-
 input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/bamsort/alignment/"
-output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/bamsort/reads/20250520"
+output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/bamsort/reads/20250520/withLTR"
 
 samples <- data.frame(
   datasets = c(
@@ -1281,7 +877,7 @@ for (i in 1:nrow(samples)) {
   
   # Filter to keep only files that contribute to total_lessLTR
   filenames <- basename(sample_files)
-  is_relevant <- sapply(filenames, is_v4bamsort_file)
+  is_relevant <- sapply(filenames, is_v4bamsort_SALVE)
   relevant_files <- sample_files[is_relevant]
   relevant_filenames <- filenames[is_relevant]
   
@@ -1421,8 +1017,8 @@ for (i in 1:nrow(samples)) {
         
         # Filter the UMI-level data
         valid_umi_read_counts <- umi_read_counts %>%
-          filter(cellID %in% valid_cells) %>%
-          filter(category != "LTR") #removing LTR reads from consideration
+          filter(cellID %in% valid_cells) #%>%
+          #filter(category != "LTR") #removing LTR reads from consideration
         
         # Filter the cell-level summary data
         # filtered_final_data <- final_data %>%
@@ -1487,148 +1083,6 @@ for (i in 1:nrow(samples)) {
 
 Filtering by minimums:
 ```{r}
-convert_umi_to_salve <- function(umi_file, output_file, min_reads = 1, min_region_count = 1) {
-  # Reading in file
-  umi_data <- read.csv(umi_file, stringsAsFactors = FALSE)
-  # Extract sample name from file name
-  sample_name <- gsub("_UMI_read_counts_full.csv", "", basename(umi_file))
-  
-  # Apply minimum read count filter if specified
-  if (min_reads > 0) {
-    umi_data <- umi_data %>%
-      filter(read_count >= min_reads)
-  }
-  
-  # Define all possible categories we want in the output
-  categories <- c("D1_US", "D1_S", "tat_US", "tat_S", "nef", "LTR")
-  
-  # Use table to count unique UMIs
-  unique_combinations <- unique(umi_data[, c("cellID", "category", "UMI")])
-  
-  # Count UMIs per cellID and category
-  umi_counts <- table(unique_combinations$cellID, unique_combinations$category)
-  umi_counts_df <- as.data.frame.matrix(umi_counts)
-  
-  # Add cellID column and preserve rownames
-  umi_counts_df$cellID <- rownames(umi_counts_df)
-  rownames(umi_counts_df) <- NULL
-  
-  # Initialize SALVE data with cellIDs
-  salve_data <- data.frame(cellID = unique(umi_data$cellID), stringsAsFactors = FALSE)
-  
-  # Initialize all category columns with zeros
-  for (cat in categories) {
-    salve_data[[cat]] <- 0
-  }
-  
-  # Get categories that actually exist in the data
-  actual_categories <- colnames(umi_counts_df)
-  actual_categories <- actual_categories[actual_categories != "cellID"]
-  
-  # Fill in the SALVE data with UMI counts - safely
-  for (i in 1:nrow(umi_counts_df)) {
-    cell <- umi_counts_df$cellID[i]
-    
-    # Find the row index for this cell in salve_data
-    row_idx <- which(salve_data$cellID == cell)
-    if (length(row_idx) == 1) {
-      # For each category that exists in the actual data
-      for (cat in actual_categories) {
-        if (cat %in% colnames(umi_counts_df) && cat %in% colnames(salve_data)) {
-          # Get the count value safely
-          count_val <- umi_counts_df[i, cat]
-          if (!is.null(count_val) && !is.na(count_val)) {
-            salve_data[row_idx, cat] <- count_val
-          }
-        }
-      }
-    } else {
-      cat("Warning: Cell", cell, "not found or duplicated in salve_data\n")
-    }
-  }
-  
-  # Calculate region count
-  region_prefixes <- c("D1", "tat", "nef")
-  salve_data$region_count <- 0
-  
-  # For each region, check if the cell has any counts in columns with that prefix
-  for (prefix in region_prefixes) {
-    if (prefix %in% c("nef", "LTR")) {
-      if (prefix %in% colnames(salve_data)) {
-        salve_data$region_count <- salve_data$region_count + 
-          as.integer(salve_data[[prefix]] > 0)
-      }
-    } else {
-      # For prefixes like "D1" or "tat"
-      prefix_cols <- grep(paste0("^", prefix), colnames(salve_data), value = TRUE)
-      if (length(prefix_cols) > 0) {
-        has_prefix <- rowSums(salve_data[, prefix_cols, drop = FALSE], na.rm = TRUE) > 0
-        salve_data$region_count <- salve_data$region_count + as.integer(has_prefix)
-      }
-    }
-  }
-  
-  # Apply region count filter
-  filtered_salve_data <- salve_data[salve_data$region_count >= min_region_count, ]
-  
-  # Remove the helper column
-  filtered_salve_data$region_count <- NULL
-  
-  # Write the output file
-  write.csv(filtered_salve_data, output_file, row.names = FALSE)
-  
-  cat("Converted", nrow(umi_data), "UMI entries to", nrow(filtered_salve_data), "cells\n")
-  
-  return(filtered_salve_data)
-}
-
-
-# Function to process multiple samples
-process_all_samples_umi_to_salve <- function(sample_list, input_dir, output_dir, min_reads = 1, min_region_count = 1) {
-  # Ensure output directory exists
-  if (!dir.exists(output_dir)) {
-    dir.create(output_dir, recursive = TRUE)
-  }
-  
-  # Track successful and failed conversions
-  successful <- 0
-  failed <- 0
-  
-  for (sample in sample_list) {
-    # Construct input and output file paths
-    input_file <- file.path(input_dir, paste0(sample, "_UMI_read_counts_full.csv"))
-    output_file <- file.path(output_dir, paste0(sample, "_SALVE_filtered.csv"))
-    
-    # Process the file
-    cat("Processing sample:", sample, "\n")
-    tryCatch({
-      salve_data <- convert_umi_to_salve(input_file, output_file, min_reads, min_region_count)
-      if (!is.null(salve_data)) {
-        successful <- successful + 1
-      } else {
-        failed <- failed + 1
-      }
-    }, error = function(e) {
-      warning("Error processing sample ", sample, ": ", conditionMessage(e), "\n")
-      failed <- failed + 1
-    })
-  }
-  
-  cat("\nConversion summary:\n")
-  cat("  Successful conversions:", successful, "\n")
-  cat("  Failed conversions:", failed, "\n")
-  cat("All samples processed.\n")
-}
-
-# Example usage
-#umi_file <- "D195_UMI_read_counts.csv"
-#output_file <- "D195_SALVE_filtered.csv"
-#salve_data <- convert_umi_to_salve(umi_file, output_file, min_reads = 0)
-
-# Verify conversion with original SALVE file
-# verify_conversion(umi_file, "D195_SALVE_full.csv")
-
-# Example to process all samples
 samples <- c(
   "D13",
   "D195",
@@ -1642,14 +1096,14 @@ samples <- c(
 )
 
 # Example paths
-input_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/bamsort/reads/20250520"
-output_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/bamsort/reads/20250520/converted/min1/nocountLTR"
+input_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/bamsort/reads/20250520/withoutLTR"
+output_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/bamsort/reads/20250520/converted/withoutLTR"
 
 #input_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/singleCell/bamsort/reads"
 #output_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/singleCell/bamsort/reads/converted/min2"
 
 # Process all samples
-process_all_samples_umi_to_salve(samples, input_dir, output_dir, min_reads = 3, min_region_count = 1)
+process_all_samples_umi_to_salve(samples, input_dir, output_dir, min_reads = 1, min_region_count = 1, min_umi_count = 2)
 
 ```
 
@@ -2200,50 +1654,6 @@ for (i in 1:nrow(samples)) {
 }
 ```
 
-
-
-### Older: compare bamsort to mkcounts
-```{r}
-GEX_mkcounts <- read.csv("/projects/b1042/GoyalLab/egrody/extractedData/EGS004/singleCell/counts/Mmul_10_mac239/expressionDF/JK85_D13_Mmulmac_mac239.csv", row.names = "X")
-GEX_bamsort <- read.csv("/projects/b1042/GoyalLab/egrody/extractedData/EGS004/singleCell/bamsort/split/JK85_D13_bamsort_split_inside.csv")
-
-GEX_mkcounts_minimal <- GEX_mkcounts %>%
-  filter(mac239 > 0) %>%
-  select(cellID, mac239)
-GEX_bamsort_clean <- GEX_bamsort %>%
-  #filter(reads > 1) %>%
-  count(cellID) %>% rename(UMI = n) #%>%
-  filter(UMI > 1)
-cat(
-  "Cells in both bamsort and mkcounts: \t",
-  sum(GEX_bamsort_clean$cellID %in% GEX_mkcounts_minimal$cellID),
-  "\t", (sum(GEX_bamsort_clean$cellID %in% GEX_mkcounts_minimal$cellID) / length(GEX_bamsort_clean$cellID)*100),"%",
-  "\nCells in bamsort in original GEX: \t",
-  sum(GEX_bamsort_clean$cellID %in% GEX_mkcounts$cellID),
-  "\t", (sum(GEX_bamsort_clean$cellID %in% GEX_mkcounts$cellID) / length(GEX_bamsort_clean$cellID)*100),"%")
-full_GEX <- full_join(GEX_bamsort_clean, GEX_mkcounts_minimal, by = join_by(cellID)) %>%
-  mutate(bamsort = log1p(UMI)) %>% rename(mkcounts = mac239)
-full_GEX[is.na(full_GEX)] <- 0
-
-max_value <- max(max(full_GEX$mkcounts, na.rm = TRUE), 
-                 max(full_GEX$bamsort, na.rm = TRUE))
-
-full_GEX_filter <- full_GEX %>%
-  filter(!(bamsort > 0 & mkcounts == 0))
-
-ggplot(full_GEX_filter, aes(x = mkcounts, y = bamsort)) + 
-  geom_point() + 
-  theme_minimal() +
-  coord_fixed(ratio = 1) + 
-  scale_x_continuous(limits = c(0, max_value)) + 
-  scale_y_continuous(limits = c(0, max_value)) +
-  labs(title= "D13 mac239 counts from two sources")
-
-cat(
-    "Correlation between bamsort and mkcounts (read and UMI filter):",
-    round(cor(full_GEX$bamsort, full_GEX$mkcounts, method="pearson"), 3))
-
-```
 
 
 
