@@ -668,7 +668,7 @@ process_bamsort("SALVE", samples$samples, input.dir, output.dir, raw_cellIDs)
 input_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/bamsort/reads/newcoords"
 output_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/bamsort/reads/newcoords/minimum"
 
-process_all_set_minimums("SALVE", samples$samples, input_dir, output_dir, min_reads = 2, min_region_count = 2, min_umi = 2, min_cells = 2)
+process_all_set_minimums("SALVE", samples$samples, input_dir, output_dir, min_reads = 1, min_region_count = 1, min_umi = 2, min_cells = 2)
 
 ```
 
