@@ -40,8 +40,9 @@ extract_category <- function(filename) {
   if (grepl("A7_LTR$", alignment_part)) return("any")
   
   # SALVE categories
+  if (grepl("KLRB1$", alignment_part)) return("KLRB1")
   # Parse primer target
-  if (grepl("D1", target_part)) {
+  if (grepl("_D1", target_part)) {
     targets <- "D1"
   } else if (grepl("tat", target_part)) {
     targets <- "tat"
@@ -84,8 +85,8 @@ resolve_multimap <- function(df, mode) {
       c("US", "spliced"),  # Keep spliced
       c("spliced", "SS"),    # Keep SS
       c("MS", "SS"),         # Keep SS
-      c("MS", "any"),        # Keep SS
-      c("S", "any"),         # Keep SS
+      c("MS", "any"),        # Keep any
+      c("S", "any"),         # Keep any
       c("US", "any")         # Keep any
     )
   } else if (mode == "GEX") {
@@ -282,9 +283,10 @@ process_bamsort <- function(mode, samples_list, input.dir, output.dir, raw_cellI
     
     # If we have data, process it
     if (nrow(all_data) > 0) {
-      # Remove any rows with NA values
+      # Remove any rows with NA values and unique
       all_data <- all_data %>% 
-        filter(!is.na(cellID) & !is.na(UMI) & !is.na(read))
+        filter(!is.na(cellID) & !is.na(UMI) & !is.na(read)) %>%
+        unique()
       
       # Count reads per UMI
       tryCatch({
@@ -422,6 +424,8 @@ set_minimums <- function(mode, umi_file, output_file, min_reads = 1, min_region_
     categories <- c("US", "spliced", "S", "SS", "MS", "any")
   } else if (mode == "GEX") {
     categories <- c("US", "spliced", "any")
+  } else if (mode == "KLRB1") {
+    categories <- c("KLRB1")
   }
   
   # Count UMIs per cellID and category
@@ -511,6 +515,8 @@ process_all_set_minimums <- function(mode, sample_list, input_dir, output_dir, m
       output_file <- file.path(output_dir, paste0(sample, "_SALVE_filtered.csv"))
     } else if (mode == "GEX") {
       output_file <- file.path(output_dir, paste0(sample, "_GEX_filtered.csv"))
+    } else if (mode == "KLRB1") {
+      output_file <- file.path(output_dir, paste0(sample, "_KLRB1_filtered.csv"))
     }
     
     tryCatch({
@@ -601,97 +607,53 @@ SeuratSALVEseq <- function(file_location, sample_name, output_dir = "/projects/b
 # Output Dataframes
 ## isolate specific gene(s) expression from a Seurat object
 targetExpressionDF <- function(seurat_obj, genes, count_type = "normalized") {
+  # Ensure genes is a vector
   if (!is.vector(genes)) {
     genes <- c(genes)
   }
   
-  # Check if the genes exist in the dataset
+  # Get cell IDs
+  cell_ids <- colnames(seurat_obj)
+  
+  # Initialize dataframe with cellID
+  expression_df <- data.frame(
+    cellID = cell_ids,
+    stringsAsFactors = FALSE
+  )
+  
+  # Check which genes are available
   available_genes <- rownames(seurat_obj)
-  genes_present <- genes %in% available_genes
   
-  # If none of the requested genes are present, create empty dataframe with correct structure
-  if (!any(genes_present)) {
-    # Get cell IDs from the Seurat object
-    cell_ids <- colnames(seurat_obj)
-    
-    # Create an empty expression dataframe with zero values
-    expression_df <- data.frame(
-      cellID = cell_ids,
-      stringsAsFactors = FALSE
-    )
-    
-    # Add columns for each requested gene with zeros
-    for (gene in genes) {
-      expression_df[[gene]] <- rep(0, length(cell_ids))
-    }
-    
-    # Check if UMAP reduction exists
-    if ("umap" %in% names(seurat_obj@reductions)) {
-      umap_coords <- Embeddings(object = seurat_obj, reduction = "umap")
-      cluster <- Idents(object = seurat_obj)
-      
-      SingleCell <- expression_df %>%
-        mutate(
-          UMAP1 = umap_coords[, 1],
-          UMAP2 = umap_coords[, 2],
-          cluster = cluster
-        )
-    } else {
-      warning("UMAP not present, generating dataframe without UMAP coordinates.")
-      SingleCell <- expression_df
-    }
-    
-    warning(paste("None of the requested genes", paste(genes, collapse=", "), "were found in the dataset. Returning dataframe with zeros."))
-    return(SingleCell)
-  }
-  
-  # Original function for when genes are present
+  # Get expression data (choose raw or normalized)
   if (count_type == "raw") {
-    expression <- GetAssayData(object = seurat_obj, assay = "RNA", layer = "counts")[genes[genes_present],, drop=FALSE]
+    expression_data <- GetAssayData(object = seurat_obj, assay = "RNA", layer = "counts")
   } else {
-    expression <- GetAssayData(object = seurat_obj, assay = "RNA", layer = "data")[genes[genes_present],, drop=FALSE]
+    expression_data <- GetAssayData(object = seurat_obj, assay = "RNA", layer = "data")
   }
   
-  if (length(genes[genes_present]) == 1) {
-    expression_df <- data.frame(
-      cellID = colnames(expression),
-      setNames(list(as.numeric(expression)), genes[genes_present]),
-      stringsAsFactors = FALSE
-    )
-  } else {
-    expression_df <- data.frame(
-      cellID = colnames(expression),
-      t(expression),
-      stringsAsFactors = FALSE
-    )
-  }
-  
-  # Add columns for missing genes with zeros
-  if (!all(genes_present)) {
-    missing_genes <- genes[!genes_present]
-    for (gene in missing_genes) {
-      expression_df[[gene]] <- rep(0, nrow(expression_df))
-      warning(paste("Gene", gene, "not found in dataset. Adding column with zeros."))
+  # Add column for each requested gene
+  for (gene in genes) {
+    if (gene %in% available_genes) {
+      # Gene present: extract expression values
+      expression_df[[gene]] <- as.numeric(expression_data[gene, ])
+    } else {
+      # Gene absent: add zeros and warn
+      expression_df[[gene]] <- rep(0, length(cell_ids))
+      warning(paste("Gene", gene, "not found in dataset. \n"))
     }
   }
   
-  # Check if UMAP reduction exists
+  # Add UMAP coordinates if available
   if ("umap" %in% names(seurat_obj@reductions)) {
     umap_coords <- Embeddings(object = seurat_obj, reduction = "umap")
-    cluster <- Idents(object = seurat_obj)
-    
-    SingleCell <- expression_df %>%
-      mutate(
-        UMAP1 = umap_coords[, 1],
-        UMAP2 = umap_coords[, 2],
-        cluster = cluster
-      )
+    expression_df$UMAP1 <- umap_coords[, 1]
+    expression_df$UMAP2 <- umap_coords[, 2]
+    expression_df$cluster <- Idents(object = seurat_obj)
   } else {
-    warning("UMAP not present, generating dataframe without UMAP coordinates.")
-    SingleCell <- expression_df
+    warning("UMAP not present, generating dataframe without UMAP coordinates.\n")
   }
   
-  return(SingleCell)
+  return(expression_df)
 }
 ## load scPathoQuant data
 scPathoCountCellID <- function(seurat_obj, viral_gene, count_type = "normalized") {
@@ -757,16 +719,38 @@ read_sample_files <- function(samples, directory, filtered = TRUE) {
   all_data <- NULL
   
   for (sample in samples) {
-    # Define file types to look for
-    file_types <- c("SALVE", "GEX")
-    
-    for (file_type in file_types) {
-      # Construct file suffix based on filtered parameter
-      suffix <- ifelse(filtered, "_filtered.csv", "_full.csv")
+    if (filtered) {
+      # Define file types to look for when filtered = TRUE
+      file_types <- c("SALVE", "GEX", "KLRB1")
       
-      # Construct file path
-      file_path <- file.path(directory, paste0(sample, "_", file_type, suffix))
-      
+      for (file_type in file_types) {
+        file_path <- file.path(directory, paste0(sample, "_", file_type, "_filtered.csv"))
+        
+        # Check if file exists
+        if (file.exists(file_path)) {
+          # Read the file
+          tryCatch({
+            sample_data <- read.csv(file_path)
+            
+            sample_data$sample <- sample
+            
+            if (is.null(all_data)) {
+              all_data <- sample_data
+            } else {
+              # Get common columns
+              common_cols <- intersect(colnames(all_data), colnames(sample_data))
+              all_data <- rbind(all_data[, common_cols], sample_data[, common_cols])
+            }
+            
+            cat(sprintf("Successfully read %s\n", paste0(sample, "_", file_type, "_filtered.csv")))
+          }, error = function(e) {
+            cat(sprintf("Error reading %s: %s\n", file_path, conditionMessage(e)))
+          })
+        }
+      }
+    } else {
+      # When filtered = FALSE, only look for one file type per sample
+      file_path <- file.path(directory, paste0(sample, "_UMI_read_counts_full.csv"))
       
       # Check if file exists
       if (file.exists(file_path)) {
@@ -784,7 +768,7 @@ read_sample_files <- function(samples, directory, filtered = TRUE) {
             all_data <- rbind(all_data[, common_cols], sample_data[, common_cols])
           }
           
-          cat(sprintf("Successfully read %s\n", paste0(sample, "_", file_type, suffix)))
+          cat(sprintf("Successfully read %s\n", paste0(sample, "_UMI_read_counts_full.csv")))
         }, error = function(e) {
           cat(sprintf("Error reading %s: %s\n", file_path, conditionMessage(e)))
         })
@@ -800,8 +784,6 @@ read_sample_files <- function(samples, directory, filtered = TRUE) {
     return(NULL)
   }
 }
-
-
 ## correlation analysis with plots of relationship between SALVE and SingleCell data
 correlation_plots <- function(salve_data, single_cell_data, join = "inner") {
   if ("VISERcount" %in% colnames(salve_data)) {
@@ -1479,6 +1461,8 @@ sample_UMI_weighted <- function(df, percentages = seq(10, 100, by = 10), replica
   total_unique_pairs <- nrow(df)
   total_unique_cellIDs <- length(unique(df$cellID))
   
+  cat("Dataset info - Total reads:", total_reads, "Unique pairs:", total_unique_pairs, "\n")
+  
   # Create a data frame to store results
   results <- data.frame(
     percentage = numeric(),
@@ -1489,18 +1473,47 @@ sample_UMI_weighted <- function(df, percentages = seq(10, 100, by = 10), replica
     cellID_coverage = numeric()
   )
   
+  # Pre-calculate weights once
+  weights <- df$reads / total_reads
+  
   # Loop through each sampling percentage
   for (pct in percentages) {
+    cat("Processing", pct, "% sampling...\n")
+    
     # Calculate sample size (number of reads to sample)
     sample_size <- round(total_reads * (pct/100))
     
+    # If sample size is larger than total reads, just use all data
+    if (sample_size >= total_reads) {
+      for (rep in 1:replicates) {
+        results <- rbind(results, data.frame(
+          percentage = pct,
+          replicate = rep,
+          unique_pairs = total_unique_pairs,
+          unique_cellIDs = total_unique_cellIDs,
+          pair_coverage = 100,
+          cellID_coverage = 100
+        ))
+      }
+      next
+    }
+    
     # Perform multiple replicates for each percentage
     for (rep in 1:replicates) {
-      # Create probability weights based on read counts
-      weights <- df$reads / total_reads
+      start_time <- Sys.time()
       
-      # Sample rows with replacement according to read count weights
-      sampled_indices <- sample(1:nrow(df), size = sample_size, replace = TRUE, prob = weights)
+      # More efficient sampling approach
+      if (sample_size > nrow(df) * 10) {
+        # For very large sample sizes, use a different approach
+        # Sample based on cumulative probabilities
+        cumprobs <- cumsum(weights)
+        random_vals <- sort(runif(sample_size))
+        sampled_indices <- findInterval(random_vals, cumprobs) + 1
+      } else {
+        # Use standard sampling for smaller sizes
+        sampled_indices <- sample(1:nrow(df), size = sample_size, replace = TRUE, prob = weights)
+      }
+      
       sampled_data <- df[sampled_indices, ]
       
       # Count unique cellID,UMI pairs and cellIDs in the sample
@@ -1520,6 +1533,11 @@ sample_UMI_weighted <- function(df, percentages = seq(10, 100, by = 10), replica
         pair_coverage = pair_coverage,
         cellID_coverage = cellID_coverage
       ))
+      
+      # elapsed <- Sys.time() - start_time
+      # if (elapsed > 5) {  # Warn if taking more than 5 seconds per replicate
+      #   cat("  Replicate", rep, "took", round(elapsed, 1), "seconds\n")
+      # }
     }
   }
   
