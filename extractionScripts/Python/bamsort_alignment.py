@@ -1,17 +1,20 @@
 import pysam
 import argparse
-from collections import Counter
 import csv
 
 
-def count_reads_per_cell(bam_file, chrom, start, end):
+def extract_reads_info(bam_file, chrom, start, end):
     # Open the BAM file
     bam = pysam.AlignmentFile(bam_file, "rb")
 
-    # Initialize counters
-    cell_counts = Counter()
+    # Track statistics
     total_reads = 0
     reads_without_cb = 0
+    reads_without_umi = 0
+    reads_wrong_xf = 0
+    
+    # List to store read information
+    read_info = []
 
     # Iterate over reads in the specified region
     for read in bam.fetch(chrom, start, end):
@@ -23,19 +26,33 @@ def count_reads_per_cell(bam_file, chrom, start, end):
             continue
 
         total_reads += 1
+        
+        # Check for the xf:i:25 tag
+        try:
+            xf_tag = read.get_tag("xf")
+            if xf_tag != 25:
+                reads_wrong_xf += 1
+                continue  # Skip this read if xf tag is not 25
+        except KeyError:
+            reads_wrong_xf += 1
+            continue  # Skip this read if xf tag doesn't exist
 
         try:
             cell_barcode = read.get_tag("CB")
-            cell_counts[cell_barcode] += 1
+            try:
+                umi = read.get_tag("UB")  # Get the UMI tag
+                read_info.append((umi, cell_barcode))
+            except KeyError:
+                reads_without_umi += 1
         except KeyError:
             reads_without_cb += 1
 
     bam.close()
-    return cell_counts, total_reads, reads_without_cb
+    return read_info, total_reads, reads_without_cb, reads_without_umi, reads_wrong_xf
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Count reads per cell ID in a genomic region")
+    parser = argparse.ArgumentParser(description="Extract UMI and cell ID for reads in a genomic region with xf:i:25 tag")
     parser.add_argument("bam_file", help="Path to the input BAM file")
     parser.add_argument("chrom", help="Chromosome name")
     parser.add_argument("start", type=int, help="Start position")
@@ -44,18 +61,20 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    counts, total_reads, reads_without_cb = count_reads_per_cell(
+    reads, total_reads, reads_without_cb, reads_without_umi, reads_wrong_xf = extract_reads_info(
         args.bam_file, args.chrom, args.start, args.end
     )
 
     # Write results to CSV file
     with open(args.output, 'w', newline='') as csvfile:
         csvwriter = csv.writer(csvfile)
-        csvwriter.writerow(['Cell_ID', 'Read_Count'])
-        for cell, count in counts.items():
-            csvwriter.writerow([cell, count])
+        csvwriter.writerow(['UMI', 'cellID'])
+        for umi, cell in reads:
+            csvwriter.writerow([umi, cell])
 
     print(f"Results written to {args.output}")
     print(f"Total reads processed: {total_reads}")
+    print(f"Reads without xf:i:25 tag: {reads_wrong_xf}")
     print(f"Reads without CB tag: {reads_without_cb}")
-    print(f"Reads with valid cell barcodes: {total_reads - reads_without_cb}")
+    print(f"Reads without UMI tag: {reads_without_umi}")
+    print(f"Reads with valid cell barcodes, UMIs, and xf:i:25: {len(reads)}")
