@@ -1,4 +1,0 @@
-Results written to /projects/b1042/GoyalLab/egrody/20231017_VISER/analysis/bam_sorted/invitro_bam_dedup_subset_env.csv
-Total reads processed: 16157
-Reads without CB tag: 875
-Reads with valid cell barcodes: 15282

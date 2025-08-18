@@ -1,0 +1,9 @@
+Name,Start,End,File
+D1_US,439,4650,/projects/b1042/GoyalLab/egrody/extractedData/EGS013/counts/mac239_Pacute_D1_up_CI/outs/possorted_genome_bam.bam
+D1_S,4655,8252,/projects/b1042/GoyalLab/egrody/extractedData/EGS013/counts/mac239_Pacute_D1_up_CI/outs/possorted_genome_bam.bam
+tat_US,6045,8252,/projects/b1042/GoyalLab/egrody/extractedData/EGS013/counts/mac239_Pacute_tat_up_CI/outs/possorted_genome_bam.bam
+tat_S,8253,8908,/projects/b1042/GoyalLab/egrody/extractedData/EGS013/counts/mac239_Pacute_tat_up_CI/outs/possorted_genome_bam.bam
+LTR_5,1,430,/projects/b1042/GoyalLab/egrody/extractedData/EGS013/counts/mac239_Pacute_LTR_CI/outs/possorted_genome_bam.bam
+LTR_3,8987,9578,/projects/b1042/GoyalLab/egrody/extractedData/EGS013/counts/mac239_Pacute_LTR_CI/outs/possorted_genome_bam.bam
+nef_5,1,117,/projects/b1042/GoyalLab/egrody/extractedData/EGS013/counts/mac239_Pacute_nef_CI/outs/possorted_genome_bam.bam
+nef_3,8747,9578,/projects/b1042/GoyalLab/egrody/extractedData/EGS013/counts/mac239_Pacute_nef_CI/outs/possorted_genome_bam.bam

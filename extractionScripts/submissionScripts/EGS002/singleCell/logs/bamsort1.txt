@@ -1,4 +1,0 @@
-Results written to /projects/b1042/GoyalLab/egrody/20231017_EGS002/analysis/bam_sorted/invitro_bamsort_env_upstream.csv
-Total reads processed: 6121
-Reads without CB tag: 408
-Reads with valid cell barcodes: 5713

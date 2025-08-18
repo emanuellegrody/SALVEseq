@@ -1,8 +1,0 @@
-Traceback (most recent call last):
-  File "/projects/b1042/GoyalLab/egrody/EGS007LongRead/scripts/bamsort.py", line 47, in <module>
-    counts, total_reads, reads_without_cb = count_reads_per_cell(
-  File "/projects/b1042/GoyalLab/egrody/EGS007LongRead/scripts/bamsort.py", line 17, in count_reads_per_cell
-    for read in bam.fetch(chrom, start, end):
-  File "pysam/libcalignmentfile.pyx", line 1091, in pysam.libcalignmentfile.AlignmentFile.fetch
-  File "pysam/libchtslib.pyx", line 685, in pysam.libchtslib.HTSFile.parse_region
-ValueError: invalid contig `mac239`
