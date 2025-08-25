@@ -15,4 +15,9 @@
 - EGS_011 – HCR lymph node slides
 - EGS_012 – Why don’t we see full-length vRNA? Trying 45 sec denat during SALVEe
 - EGS_013 – SALVEseq v4 primers D1/tat/nef
+- EGS_014 – SALVEseq v4 CI primers on (almost) all samples
+- EGS_015 – SALVEseq v4 primers in negative samples
+- EGS_016 – SALVEseq v4 PL on almost all samples
+- EGS_017 – FISH in acute PBMCs
+
 
