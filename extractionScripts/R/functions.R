@@ -75,6 +75,35 @@ extract_category <- function(filename) {
   #cat("  Failed to categorize. Assigning as: NA\n")
   return(NA)
 }
+extract_categoryv5 <- function(filename) {
+  # Split the filename into parts
+  target_part <- basename(filename)
+  target_part <- strsplit(target_part, "_bamsort_alignment_")[[1]][1]
+  alignment_part <- strsplit(filename, "_bamsort_alignment_")[[1]][2]
+  alignment_part <- sub("\\.csv$", "", alignment_part)
+  
+  # SALVE categories: special cases
+  if (grepl("KLRB1$", alignment_part)) return("KLRB1")
+
+  target <- strsplit(target_part, "_")[[1]][2]
+  # if (!is.na(target) && target == "D1") {
+  #   if (alignment_part == "D1_A1") return()
+  # }
+  if (!is.na(target) && target == "SSenv") {
+    if (alignment_part == "D4_A7") return("SS")
+  }
+  
+  # Categorize rest, including GEX
+  if (alignment_part == "LTR_D1") return("any")
+  if (alignment_part == "D1_A1") return("US")
+  if (alignment_part == "A1_D4") return("spliced")
+  if (alignment_part == "D4_A7") return("spliced")
+  if (alignment_part == "A7_LTR") return("any")
+  
+  # Default case
+  #cat("  Failed to categorize. Assigning as: NA\n")
+  return(NA)
+}
 ## SALVE and GEX: resolve UMI mapping to multiple genes/regions
 resolve_multimap <- function(df, mode) {
   df <- as.data.frame(df, stringsAsFactors = FALSE)
@@ -194,6 +223,126 @@ resolve_multimap <- function(df, mode) {
     return(empty)
   }
 }
+resolve_multimapv5 <- function(df) {
+  df <- as.data.frame(df, stringsAsFactors = FALSE)
+  
+  valid_pairs <- list(
+    c("spliced", "US"),  # Keep US
+    c("spliced", "any"), # Keep any
+    c("US", "any")       # Keep any
+  )
+  
+  # Create a composite key
+  df$key <- paste(df$cellID, df$UMI, sep = "_")
+  
+  # Identify multi-category keys
+  key_counts <- table(df$key)
+  multi_keys <- names(key_counts[key_counts > 1])
+  
+  # Statistics counters
+  total_multimapped <- length(multi_keys)
+  resolved_count <- 0
+  tossed_count <- 0
+  tossed_more_than_2_count <- 0
+  consolidated_same_category <- 0  # Initialize this variable
+  
+  # Split into single and multi entries
+  singles <- df[!df$key %in% multi_keys, ]
+  multis <- df[df$key %in% multi_keys, ]
+  
+  # Initialize result as empty data frame with correct structure
+  result <- data.frame(
+    cellID = character(0),
+    UMI = character(0),
+    category = character(0),
+    read_count = numeric(0),
+    stringsAsFactors = FALSE
+  )
+  
+  # Add singles to result
+  if (nrow(singles) > 0) {
+    singles_clean <- data.frame(
+      cellID = as.character(singles$cellID),
+      UMI = as.character(singles$UMI),
+      category = as.character(singles$category),
+      read_count = as.numeric(singles$read_count),
+      stringsAsFactors = FALSE
+    )
+    result <- rbind(result, singles_clean)
+  }
+  
+  # Process each unique key in multis
+  if (nrow(multis) > 0) {
+    unique_keys <- unique(multis$key)
+    
+    for (k in unique_keys) {
+      # Get all rows for this key
+      rows <- multis[multis$key == k, ]
+      categories <- unique(rows$category)
+      
+      # Process based on number of categories
+      if (length(categories) == 1) {
+        # For keys with 1 category but multiple rows, consolidate by summing read_counts
+        total_reads <- sum(as.numeric(rows$read_count))
+        keep_row <- data.frame(
+          cellID = as.character(rows$cellID[1]),
+          UMI = as.character(rows$UMI[1]),
+          category = as.character(rows$category[1]),
+          read_count = total_reads,
+          stringsAsFactors = FALSE
+        )
+        result <- rbind(result, keep_row)
+        consolidated_same_category <- consolidated_same_category + 1
+      } else if (length(categories) == 2) {
+        # Check against valid pairs
+        valid_match <- FALSE
+        for (pair in valid_pairs) {
+          if (all(sort(categories) == sort(pair))) {
+            # Valid pair, keep the second category
+            keep_cat <- pair[2]
+            keep_rows <- rows[rows$category == keep_cat, ]
+            keep_row <- data.frame(
+              cellID = as.character(keep_rows$cellID[1]),
+              UMI = as.character(keep_rows$UMI[1]),
+              category = as.character(keep_cat),
+              read_count = sum(as.numeric(rows$read_count)),
+              stringsAsFactors = FALSE
+            )
+            result <- rbind(result, keep_row)
+            resolved_count <- resolved_count + 1
+            valid_match <- TRUE
+            break
+          }
+        }
+        
+        # If no valid match found, count as tossed
+        if (!valid_match) {
+          tossed_count <- tossed_count + 1
+        }
+      } else if (length(categories) > 2) {
+        # Toss UMIs with more than 2 categories
+        tossed_more_than_2_count <- tossed_more_than_2_count + 1
+      }
+    }
+  }
+  
+  # Print statistics
+  cat("Total multi-mapped UMIs:", total_multimapped, "\n")
+  cat("UMIs successfully resolved:", resolved_count, 
+      sprintf("(%.1f%%)", ifelse(total_multimapped > 0, resolved_count/total_multimapped*100, 0)), "\n")
+  cat("UMIs tossed (no valid pair):", tossed_count, 
+      sprintf("(%.1f%%)", ifelse(total_multimapped > 0, tossed_count/total_multimapped*100, 0)), "\n")
+  cat("UMIs tossed (>2 categories):", tossed_more_than_2_count, 
+      sprintf("(%.1f%%)", ifelse(total_multimapped > 0, tossed_more_than_2_count/total_multimapped*100, 0)), "\n")
+  cat("Total UMIs tossed:", tossed_count + tossed_more_than_2_count, 
+      sprintf("(%.1f%%)", ifelse(total_multimapped > 0, 
+                                 (tossed_count + tossed_more_than_2_count)/total_multimapped*100, 0)), "\n")
+  
+  # Clean up row names
+  rownames(result) <- NULL
+  
+  return(result)
+}
 ## SALVE and GEX: read and process BAM
 process_bamsort <- function(mode, samples_list, input.dir, output.dir, raw_cellIDs) {
   if (class(samples_list) != "character") {
@@ -219,9 +368,9 @@ process_bamsort <- function(mode, samples_list, input.dir, output.dir, raw_cellI
       # Extract categories for each file
       categories <- sapply(sample_files, extract_category)
     } else if (mode == "SALVE") {
-      # Filter to keep only files that contribute to total_lessLTR
+
       filenames <- basename(sample_files)
-      is_relevant <- sapply(filenames, is_v4bamsort)
+      is_relevant <- vapply(filenames, is_v4bamsort, FUN.VALUE = logical(1))
       sample_files <- sample_files[is_relevant]
       filenames <- filenames[is_relevant]
       
@@ -229,10 +378,160 @@ process_bamsort <- function(mode, samples_list, input.dir, output.dir, raw_cellI
         cat("No relevant files found for sample:", sample, "\n")
         next
       }
-      # Extract categories for each file
       categories <- sapply(filenames, extract_category)
       sample_files <- sample_files[!is.na(categories)]
     }
+    
+    all_data <- data.frame()
+    filenames <- basename(sample_files)
+    
+    for (j in seq_along(sample_files)) {
+      extracted_data <- NULL
+      tryCatch({
+        file_data <- fread(sample_files[j], data.table = FALSE)
+        if(nrow(file_data) == 0) {
+          cat("Warning: File is empty:", filenames[j], "\n")
+          next
+        }
+        
+        required_cols <- c("cellID", "UMI", "count")
+        missing_cols <- setdiff(required_cols, colnames(file_data))
+        
+        if (length(missing_cols) > 0) {
+          cat("Warning: Missing required columns:", paste(missing_cols, collapse=", "), "\n")
+          cat("Available columns:", paste(colnames(file_data), collapse=", "), "\n")
+          next
+        }
+        
+        # Extract data with the required columns and add category
+        extracted_data <- file_data %>%
+          select(cellID, UMI, count) %>%
+          rename(read = count) %>%  
+          mutate(category = categories[j])
+        
+      }, error = function(e) {
+        cat("Error reading file:", filenames[j], "\nLikely bad data file\n")
+        cat("Error message:", conditionMessage(e), "\n")
+      })
+      
+      # Add to the combined data frame only if we have data
+      if (!is.null(extracted_data) && nrow(extracted_data) > 0) {
+        all_data <- rbind(all_data, extracted_data)
+      }
+    }
+    
+    # If we have data, process it
+    if (nrow(all_data) > 0) {
+      # Remove any rows with NA values and unique
+      all_data <- all_data %>% 
+        filter(!is.na(cellID) & !is.na(UMI) & !is.na(read)) %>%
+        unique()
+      
+      # Count reads per UMI
+      tryCatch({
+        umi_read_counts <- all_data %>%
+          group_by(cellID, UMI, category) %>%
+          summarize(
+            read_count = sum(as.numeric(read)),  # Sum the count values
+            .groups = 'drop'
+          )
+        
+        cat("Gathered read counts for", nrow(umi_read_counts), "UMIs from", 
+            n_distinct(umi_read_counts$cellID), "cells\n")
+        
+        # Create a wide format with UMI counts per category
+        umi_by_category <- umi_read_counts %>%
+          group_by(cellID, category) %>%
+          summarize(
+            category_UMIs = n_distinct(UMI),
+            category_reads = sum(read_count),
+            .groups = 'drop'
+          )
+        
+        # Use pivot_wider to create a wide format
+        umi_by_category_wide <- tidyr::pivot_wider(
+          umi_by_category,
+          id_cols = cellID,
+          names_from = category,
+          names_sep = "_",
+          values_from = c(category_UMIs, category_reads),
+          values_fill = 0)
+        
+        # Apply raw_cellIDs filtering
+        if (sample %in% names(raw_cellIDs) && !is.null(raw_cellIDs[[sample]])) {
+          valid_cells <- raw_cellIDs[[sample]]
+          cat("Keeping only cells in", 
+              length(valid_cells), "valid cells from 10X data\n")
+          
+          # Filter the UMI-level data
+          valid_umi_read_counts <- umi_read_counts %>%
+            filter(cellID %in% valid_cells)
+          
+          # Filter the UMI-level data
+          filtered_umi_read_counts <- umi_read_counts %>%
+            filter(cellID %in% valid_cells)
+          
+          # Multimap resolution
+          if (!is.null(names(valid_umi_read_counts$category))) {
+            category_values <- as.character(valid_umi_read_counts$category)
+            category_values <- gsub('^"(.*)"$', '\\1', category_values)
+            valid_umi_read_counts$category <- category_values
+          } else {
+            valid_umi_read_counts$category <- gsub('^"(.*)"$', '\\1', as.character(valid_umi_read_counts$category))
+          }
+          
+          filtered_umi_read_counts <- resolve_multimap(valid_umi_read_counts, mode)
+          
+          cat("After filtering: kept", nrow(filtered_umi_read_counts), "UMIs from", 
+              n_distinct(filtered_umi_read_counts$cellID), "valid cells\n")
+        } else {
+          cat("Warning: No 10X data found for sample", sample, "- using unfiltered cell list\n")
+          filtered_umi_read_counts <- umi_read_counts
+          #filtered_final_data <- final_data
+        }
+        
+        # Save the detailed UMI-level data (both filtered and unfiltered)
+        umi_level_file <- file.path(output.dir, paste0(sample, "_UMI_read_counts_raw.csv"))
+        write.csv(umi_read_counts, file = umi_level_file, row.names = FALSE)
+        
+        filtered_umi_level_file <- file.path(output.dir, paste0(sample, "_UMI_read_counts_full.csv"))
+        write.csv(filtered_umi_read_counts, file = filtered_umi_level_file, row.names = FALSE)
+        
+        cat("Successfully processed\n")
+        rm(umi_by_category, umi_by_category_wide, umi_read_counts)
+      }, error = function(e) {
+        cat("Error processing data for sample", sample, ":", conditionMessage(e), "\n")
+        
+        # Try to save the raw data at least
+        raw_file <- file.path(output.dir, paste0(sample, "_raw_data.csv"))
+        write.csv(all_data, file = raw_file, row.names = FALSE)
+        cat("Saved raw data to:", raw_file, "\n")
+      })
+    } else {
+      cat("No data extracted for sample:", sample, "\n")
+    }
+  }
+}
+process_bamsortv5 <- function(samples_list, input.dir, output.dir, raw_cellIDs) {
+  if (class(samples_list) != "character") {
+    stop("samples_list input must be a list of sample names")
+  }
+  
+  for (sample in samples_list) {
+    cat("\nProcessing sample:", sample, "\n")
+    
+    # Get all files for current sample
+    sample_files <- list.files(input.dir, 
+                               pattern = paste0(".*", sample, ".*_bamsort_alignment_.*\\.csv$"),
+                               full.names = TRUE)
+    
+    if (length(sample_files) == 0) {
+      cat("No files found for sample:", sample, "\n")
+      next
+    }
+    # Extract categories for each file
+    categories <- sapply(sample_files, extract_categoryv5)
+    sample_files <- sample_files[!is.na(categories)]
     
     # Create a data frame to store the combined results
     all_data <- data.frame()
@@ -300,14 +599,6 @@ process_bamsort <- function(mode, samples_list, input.dir, output.dir, raw_cellI
         cat("Gathered read counts for", nrow(umi_read_counts), "UMIs from", 
             n_distinct(umi_read_counts$cellID), "cells\n")
         
-        # For summary: Count UMIs per cell
-        # cell_umi_counts <- umi_read_counts %>%
-        #   group_by(cellID) %>%
-        #   summarize(
-        #     total_UMIs = n_distinct(UMI),
-        #     total_reads = sum(read_count),
-        #     .groups = 'drop'
-        #   )
         
         # Create a wide format with UMI counts per category
         umi_by_category <- umi_read_counts %>%
@@ -328,10 +619,6 @@ process_bamsort <- function(mode, samples_list, input.dir, output.dir, raw_cellI
           values_fill = 0)
         
         
-        # For summary: Combine the cell-level and category-level data
-        # final_data <- cell_umi_counts %>%
-        #   left_join(umi_by_category_wide, by = "cellID")
-        
         # Apply raw_cellIDs filtering
         if (sample %in% names(raw_cellIDs) && !is.null(raw_cellIDs[[sample]])) {
           valid_cells <- raw_cellIDs[[sample]]
@@ -340,16 +627,8 @@ process_bamsort <- function(mode, samples_list, input.dir, output.dir, raw_cellI
           
           # Filter the UMI-level data
           valid_umi_read_counts <- umi_read_counts %>%
-            filter(cellID %in% valid_cells) #%>%
-          #filter(category != "LTR") #removing LTR reads from consideration
-          
-          # Filter the UMI-level data
-          filtered_umi_read_counts <- umi_read_counts %>%
             filter(cellID %in% valid_cells)
           
-          # For summary: Filter the cell-level summary data
-          # filtered_final_data <- final_data %>%
-          #   filter(cellID %in% valid_cells)
           
           # Multimap resolution
           if (!is.null(names(valid_umi_read_counts$category))) {
@@ -360,7 +639,16 @@ process_bamsort <- function(mode, samples_list, input.dir, output.dir, raw_cellI
             valid_umi_read_counts$category <- gsub('^"(.*)"$', '\\1', as.character(valid_umi_read_counts$category))
           }
           
-          filtered_umi_read_counts <- resolve_multimap(valid_umi_read_counts, mode)
+          filtered_umi_read_counts <- resolve_multimapv5(valid_umi_read_counts)
+          
+          # Convert all columns to basic types to avoid list columns
+          filtered_umi_read_counts <- data.frame(
+            cellID = as.character(filtered_umi_read_counts$cellID),
+            UMI = as.character(filtered_umi_read_counts$UMI),
+            category = as.character(filtered_umi_read_counts$category),
+            read_count = as.numeric(filtered_umi_read_counts$read_count),
+            stringsAsFactors = FALSE
+          )
           
           cat("After filtering: kept", nrow(filtered_umi_read_counts), "UMIs from", 
               n_distinct(filtered_umi_read_counts$cellID), "valid cells\n")
@@ -370,35 +658,51 @@ process_bamsort <- function(mode, samples_list, input.dir, output.dir, raw_cellI
           #filtered_final_data <- final_data
         }
         
+        # Convert all_data to basic types as well
+        all_data_clean <- data.frame(
+          cellID = as.character(all_data$cellID),
+          UMI = as.character(all_data$UMI),
+          read = as.numeric(all_data$read),
+          category = as.character(all_data$category),
+          stringsAsFactors = FALSE
+        )
+        
+        umi_read_counts_clean <- data.frame(
+          cellID = as.character(umi_read_counts$cellID),
+          UMI = as.character(umi_read_counts$UMI),
+          category = as.character(umi_read_counts$category),
+          read_count = as.numeric(umi_read_counts$read_count),
+          stringsAsFactors = FALSE
+        )
+        
         # Save the detailed UMI-level data (both filtered and unfiltered)
         umi_level_file <- file.path(output.dir, paste0(sample, "_UMI_read_counts_raw.csv"))
-        write.csv(umi_read_counts, file = umi_level_file, row.names = FALSE)
+        write.csv(umi_read_counts_clean, file = umi_level_file, row.names = FALSE)
         
         filtered_umi_level_file <- file.path(output.dir, paste0(sample, "_UMI_read_counts_full.csv"))
         write.csv(filtered_umi_read_counts, file = filtered_umi_level_file, row.names = FALSE)
-        
-        # Save the cell-level summary data (both filtered and unfiltered)
-        # cell_level_file_all <- file.path(output.dir, paste0(sample, "_cells_summary_raw.csv"))
-        # write.csv(final_data, file = cell_level_file_all, row.names = FALSE)
-        # 
-        # cell_level_file <- file.path(output.dir, paste0(sample, "_cell_summary_full.csv"))
-        # write.csv(filtered_final_data, file = cell_level_file, row.names = FALSE)
-        
-        # Create a dataset for plotting (use filtered data)
-        #viz_data <- filtered_umi_read_counts %>%
-        #  mutate(sample_name = sample)
-        #viz_file <- file.path(output.dir, paste0(sample, "_plot_data.csv"))
-        #write.csv(viz_data, file = viz_file, row.names = FALSE)
         
         cat("Successfully processed\n")
         rm(umi_by_category, umi_by_category_wide, umi_read_counts)
       }, error = function(e) {
         cat("Error processing data for sample", sample, ":", conditionMessage(e), "\n")
         
-        # Try to save the raw data at least
-        raw_file <- file.path(output.dir, paste0(sample, "_raw_data.csv"))
-        write.csv(all_data, file = raw_file, row.names = FALSE)
-        cat("Saved raw data to:", raw_file, "\n")
+        # Try to save the raw data at least - convert to basic types first
+        tryCatch({
+          all_data_clean <- data.frame(
+            cellID = as.character(all_data$cellID),
+            UMI = as.character(all_data$UMI),
+            read = as.numeric(all_data$read),
+            category = as.character(all_data$category),
+            stringsAsFactors = FALSE
+          )
+          
+          raw_file <- file.path(output.dir, paste0(sample, "_raw_data.csv"))
+          write.csv(all_data_clean, file = raw_file, row.names = FALSE)
+          cat("Saved raw data to:", raw_file, "\n")
+        }, error = function(e2) {
+          cat("Could not save raw data:", conditionMessage(e2), "\n")
+        })
       })
     } else {
       cat("No data extracted for sample:", sample, "\n")
@@ -406,138 +710,276 @@ process_bamsort <- function(mode, samples_list, input.dir, output.dir, raw_cellI
   }
 }
 ## SALVE and GEX: filtering data for minimums
-set_minimums <- function(mode, umi_file, output_file, min_reads = 1, min_region_count = 1, 
-                         min_umi = 1, min_cells = 0) {
-  # Reading in file
+set_minimums <- function(mode, umi_file, min_reads = 1, min_region_count = 1, 
+                         min_umi = 1, min_cells = 0, min_reads_cell = 1) {
+  
+  # Define categories based on mode
+  categories <- switch(mode,
+                       "SALVE" = c("US", "spliced", "S", "SS", "MS", "any"),
+                       "GEX" = c("US", "spliced", "any"),
+                       "KLRB1" = c("KLRB1"),
+                       stop("Invalid mode. Must be 'SALVE', 'GEX', or 'KLRB1'")
+  )
+  
+  # Helper function to return empty result
+  return_empty <- function(message = "", umi_entries = 0) {
+    if (nzchar(message)) cat(message, "\n")
+    empty_data <- data.frame(cellID = character(0), stringsAsFactors = FALSE)
+    empty_data[categories] <- lapply(categories, function(x) numeric(0))
+    empty_data$total <- numeric(0)
+    cat("Converted", umi_entries, "UMI entries to 0 cells\n")
+    return(empty_data)
+  }
+  
+  # Read and validate data
   umi_data <- read.csv(umi_file, stringsAsFactors = FALSE)
-  # Extract sample name from file name
-  sample_name <- gsub("_UMI_read_counts_full.csv", "", basename(umi_file))
+  if (nrow(umi_data) == 0) {
+    return(return_empty("No UMI data found in file"))
+  }
   
-  # Apply minimum read count filter if specified
+  original_entries <- nrow(umi_data)
+  
+  # Apply read count filter and check for empty result
   if (min_reads > 0) {
-    umi_data <- umi_data %>%
-      filter(read_count >= min_reads)
+    umi_data <- umi_data[umi_data$read_count >= min_reads, ]
+    if (nrow(umi_data) == 0) {
+      return(return_empty("All UMI data filtered out by min_reads threshold", original_entries))
+    }
   }
   
-  # Define all possible categories we want in the output
-  if (mode == "SALVE") {
-    categories <- c("US", "spliced", "S", "SS", "MS", "any")
-  } else if (mode == "GEX") {
-    categories <- c("US", "spliced", "any")
-  } else if (mode == "KLRB1") {
-    categories <- c("KLRB1")
+  # Calculate cell-level metrics using dplyr for efficiency
+  cell_stats <- umi_data %>%
+    group_by(cellID) %>%
+    summarize(
+      total_reads = sum(read_count, na.rm = TRUE),
+      .groups = 'drop'
+    )
+  
+  # Apply reads per cell filter early
+  if (min_reads_cell > 0) {
+    valid_cells <- cell_stats$cellID[cell_stats$total_reads >= min_reads_cell]
+    umi_data <- umi_data[umi_data$cellID %in% valid_cells, ]
+    if (nrow(umi_data) == 0) {
+      return(return_empty("All cells filtered out by min_reads_cell threshold", original_entries))
+    }
   }
   
-  # Count UMIs per cellID and category
-  umi_counts <- table(umi_data$cellID, umi_data$category)
-  umi_counts_df <- as.data.frame.matrix(umi_counts)
+  # Create UMI count matrix more efficiently
+  umi_counts <- umi_data %>%
+    count(cellID, category, name = "umi_count") %>%
+    pivot_wider(names_from = category, values_from = umi_count, values_fill = 0)
   
-  # Add cellID column from rownames
-  umi_counts_df$cellID <- rownames(umi_counts_df)
-  rownames(umi_counts_df) <- NULL
+  # Initialize result with all categories (including missing ones as 0)
+  result <- umi_counts %>%
+    select(cellID, any_of(categories)) %>%
+    mutate(across(-cellID, ~replace_na(.x, 0)))
   
-  # Initialize SALVE data with cellIDs
-  salve_data <- data.frame(cellID = unique(umi_data$cellID), stringsAsFactors = FALSE)
-  
-  # Initialize all category columns with zeros
-  for (cat in categories) {
-    salve_data[[cat]] <- 0
+  # Add missing categories as zero columns
+  missing_cats <- setdiff(categories, colnames(result))
+  if (length(missing_cats) > 0) {
+    result[missing_cats] <- 0
   }
   
-  # Get categories that actually exist in the data
-  actual_categories <- colnames(umi_counts_df)
-  actual_categories <- actual_categories[actual_categories != "cellID"]
+  # Reorder columns to match expected order
+  result <- result[c("cellID", categories)]
   
-  # Fill in the SALVE data with UMI counts - safely
-  for (i in 1:nrow(umi_counts_df)) {
-    cell <- umi_counts_df$cellID[i]
-    
-    # Find the row index for this cell in salve_data
-    row_idx <- which(salve_data$cellID == cell)
-    if (length(row_idx) == 1) {
-      # For each category that exists in the actual data
-      for (cat in actual_categories) {
-        if (cat %in% colnames(umi_counts_df) && cat %in% colnames(salve_data)) {
-          # Get the count value safely
-          count_val <- umi_counts_df[i, cat]
-          if (!is.null(count_val) && !is.na(count_val)) {
-            salve_data[row_idx, cat] <- count_val
-          }
-        }
+  # Apply minimum cells per region filter
+  if (min_cells > 0) {
+    for (cat in categories) {
+      if (sum(result[[cat]] > 0) < min_cells) {
+        result[[cat]] <- 0
       }
-    } else {
-      cat("Warning: Cell", cell, "not found or duplicated in salve_data\n")
     }
   }
   
-  # Minimum cells per region
-  for (cat in categories) {
-    if (sum(salve_data[[cat]] > 0) < min_cells) {
-      salve_data[[cat]] <- 0
-    }
+  # Calculate metrics for filtering
+  result <- result %>%
+    mutate(
+      region_count = rowSums(across(all_of(categories), ~ .x > 0)),
+      total = rowSums(across(all_of(categories)))
+    )
+  
+  # Apply filters
+  result <- result %>%
+    filter(
+      region_count >= min_region_count,
+      total >= min_umi
+    ) %>%
+    select(-region_count)  # Remove helper column
+  
+  # Check for empty result
+  if (nrow(result) == 0) {
+    return(return_empty("All cells filtered out by region_count or UMI thresholds", original_entries))
   }
   
-  # Calculate region count
-  filtered_salve_data <- salve_data %>%
-    mutate(region_count = rowSums(across(where(is.numeric), ~ . > 0)))
-  # Apply region count filter
-  filtered_salve_data <- filtered_salve_data[filtered_salve_data$region_count >= min_region_count, ]
-  # Remove the helper column
-  filtered_salve_data$region_count <- NULL
-  
-  # Calculate total UMI count
-  filtered_salve_data <- filtered_salve_data %>%
-    mutate(total = rowSums(across(where(is.numeric)), na.rm = TRUE))
-  # Apply UMI count filter
-  filtered_salve_data <- filtered_salve_data[filtered_salve_data$total >= min_umi, ]
-  
-  cat("Converted", nrow(umi_data), "UMI entries to", nrow(filtered_salve_data), "cells\n")
-  
-  return(filtered_salve_data)
-}
-## SALVE and GEX: filter multiple samples
-process_all_set_minimums <- function(mode, sample_list, input_dir, output_dir, min_reads = 1, 
-                                     min_region_count = 1, min_umi = 1, min_cells = 0) {
-  # Ensure output directory exists
-  if (!dir.exists(output_dir)) {
-    dir.create(output_dir, recursive = TRUE)
-  }
-  
-  # Track successful and failed conversions
-  successful <- 0
-  failed <- 0
-  
-  for (sample in sample_list) {
-    cat("Processing sample:", sample, "\n")
-    
-    input_file <- file.path(input_dir, paste0(sample, "_UMI_read_counts_full.csv"))
-    if (mode == "SALVE") {
-      output_file <- file.path(output_dir, paste0(sample, "_SALVE_filtered.csv"))
-    } else if (mode == "GEX") {
-      output_file <- file.path(output_dir, paste0(sample, "_GEX_filtered.csv"))
-    } else if (mode == "KLRB1") {
-      output_file <- file.path(output_dir, paste0(sample, "_KLRB1_filtered.csv"))
-    }
-    
-    tryCatch({
-      salve_data <- set_minimums(mode, input_file, output_file, min_reads, min_region_count, 
-                                 min_umi, min_cells)
-      write.csv(salve_data, file = output_file, row.names = FALSE)
-    }, error = function(e) {
-      warning("Error processing sample ", sample, ": ", conditionMessage(e), "\n")
-      failed <- failed + 1
-    })
-  }
-  
-  cat("\nAll samples processed!\n")
+  cat("Converted", original_entries, "UMI entries to", nrow(result), "cells\n")
+  return(result)
 }
 
+## SALVE and GEX: filter multiple samples
+process_all_set_minimums <- function(mode, sample_list, input_dir, output_dir, min_reads = 1, 
+                                     min_region_count = 1, min_umi = 1, min_cells = 0, min_reads_cell = 1) {
+  
+  # Create output directory if needed
+  dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
+  
+  # Write filters to file
+  filters_file <- file.path(output_dir, "filters.txt")
+  filter_params <- c(
+    paste("min_reads =", min_reads),
+    paste("min_region_count =", min_region_count),
+    paste("min_umi =", min_umi),
+    paste("min_cells =", min_cells),
+    paste("min_reads_cell =", min_reads_cell),
+    paste("mode =", mode),
+    paste("processed_date =", Sys.Date())
+  )
+  writeLines(filter_params, filters_file)
+  
+  # Define output suffix based on mode
+  suffix <- paste0("_", mode, "_filtered.csv")
+  
+  # Process samples with better error handling
+  results <- sapply(sample_list, function(sample) {
+    cat("\nProcessing sample:", sample, "\n")
+    
+    input_file <- file.path(input_dir, paste0(sample, "_UMI_read_counts_full.csv"))
+    output_file <- file.path(output_dir, paste0(sample, suffix))
+    
+    # Check if input exists
+    if (!file.exists(input_file)) {
+      warning("Input file not found: ", input_file)
+      return("failed")
+    }
+    
+    # Process with error handling
+    tryCatch({
+      result <- set_minimums(
+        mode = mode, 
+        umi_file = input_file, 
+        min_reads = min_reads, 
+        min_region_count = min_region_count, 
+        min_umi = min_umi, 
+        min_cells = min_cells,
+        min_reads_cell = min_reads_cell
+      )
+      
+      write.csv(result, file = output_file, row.names = FALSE)
+      return("success")
+      
+    }, error = function(e) {
+      cat("Error processing sample", sample, ":", conditionMessage(e), "\n")
+      return("failed")
+    })
+  }, USE.NAMES = FALSE)
+  
+  # Summary
+  successful <- sum(results == "success")
+  failed <- sum(results == "failed")
+  cat("\nProcessing complete! Successful:", successful, "Failed:", failed, "\n")
+  
+  return(invisible(list(successful = successful, failed = failed)))
+}
+## SeuratSALVE isoforms deconvolve
+isoforms_deconvolve <- function(df, mode) {
+  if (mode != "SALVE" & mode != "GEX") {
+    stop("Invalid mode input")
+  }
+  # Convert dots to dashes in column names
+  colnames(df) <- gsub("\\.", "-", colnames(df))
+  # Helper function to safely get column values
+  get_col_safe <- function(df, col_name) {
+    if (col_name %in% colnames(df)) {
+      return(df[[col_name]])
+    } else {
+      return(rep(0, nrow(df)))
+    }
+  }
+  
+  if (mode == "GEX") {
+    new_df <- data.frame(
+      cellID = df$cellID,
+      sample = df$sample,
+      UMAP1 = df$UMAP1,
+      UMAP2 = df$UMAP2,
+      cluster = df$cluster,
+      stringsAsFactors = FALSE
+    )
+      
+      # Initialize new columns with zeros
+      new_df$US <- 0
+      new_df$spliced <- 0
+      new_df$any <- 0
+      
+      new_df$US <- get_col_safe(df, "D1-US")
+      new_df$spliced <- get_col_safe(df, "D1-S") + get_col_safe(df, "tat-US")
+      new_df$any <- get_col_safe(df, "tat-S") + 
+        get_col_safe(df, "nef-5") + 
+        get_col_safe(df, "nef-3") + 
+        get_col_safe(df, "LTR-5") + 
+        get_col_safe(df, "LTR-3")
+  } else {
+      # Create base dataframe with metadata
+      new_df <- data.frame(
+        cellID = df$cellID,
+        sample = df$sample,
+        target = df$target,
+        stringsAsFactors = FALSE
+      )
+      
+      # Create logical vectors for target types
+      is_D1 <- grepl("D1", df$target)
+      is_tat <- grepl("tat", df$target)
+      is_v3 <- df$target %in% c("nef", "pol", "SSenv")
+      
+      # Initialize new columns with zeros
+      new_df$US <- 0
+      new_df$spliced <- 0
+      new_df$S <- 0
+      new_df$SS <- 0
+      new_df$MS <- 0
+      new_df$any <- 0
+      
+      # Calculate values for D1 targets
+      new_df$US[is_D1] <- get_col_safe(df, "D1-US")[is_D1]
+      new_df$spliced[is_D1] <- get_col_safe(df, "D1-S")[is_D1] + get_col_safe(df, "tat-US")[is_D1]
+      new_df$any[is_D1] <- get_col_safe(df, "tat-S")[is_D1] + 
+        get_col_safe(df, "nef-5")[is_D1] + 
+        get_col_safe(df, "nef-3")[is_D1] + 
+        get_col_safe(df, "LTR-5")[is_D1] + 
+        get_col_safe(df, "LTR-3")[is_D1]
+      
+      # Calculate values for tat targets
+      new_df$US[is_tat] <- get_col_safe(df, "D1-US")[is_tat]
+      new_df$S[is_tat] <- get_col_safe(df, "D1-S")[is_tat]
+      new_df$SS[is_tat] <- get_col_safe(df, "tat-US")[is_tat]
+      new_df$MS[is_tat] <- get_col_safe(df, "tat-S")[is_tat]
+      new_df$any[is_tat] <- get_col_safe(df, "nef-5")[is_tat] + 
+        get_col_safe(df, "nef-3")[is_tat] + 
+        get_col_safe(df, "LTR-5")[is_tat] + 
+        get_col_safe(df, "LTR-3")[is_tat]
+      
+      # Calculate values for v3 targets
+      new_df$US[is_v3] <- get_col_safe(df, "D1-US")[is_v3]
+      new_df$spliced[is_v3] <- get_col_safe(df, "D1-S")[is_v3]
+      new_df$SS[is_v3] <- get_col_safe(df, "tat-US")[is_v3]
+      new_df$any[is_v3] <- get_col_safe(df, "tat-S")[is_v3] + 
+        get_col_safe(df, "nef-5")[is_v3] + 
+        get_col_safe(df, "nef-3")[is_v3] + 
+        get_col_safe(df, "LTR-5")[is_v3] + 
+        get_col_safe(df, "LTR-3")[is_v3]
+
+  }
+  
+  return(new_df)
+}
 
 
 # v3 functions
 # Loading
 ## standard processing of counts matrices with Seurat
-SeuratPipeline <- function(file_location, sample_name, output_dir = "/projects/b1042/GoyalLab/egrody/", plots = FALSE, rds = FALSE) {
+SeuratPipeline <- function(file_location, sample_name, output_dir = "/projects/b1042/GoyalLab/egrody/", 
+                           plots = FALSE, rds = FALSE, remove_mac = TRUE) {
   #if you would like to output plots from this pipeline, pass entries for the plots and output_dir variables
   
   # Reading in feature matrices
@@ -554,6 +996,24 @@ SeuratPipeline <- function(file_location, sample_name, output_dir = "/projects/b
   if (plots) {
     vplot <- VlnPlot(sample, features = c("nFeature_RNA", "nCount_RNA", "percent_mito"), ncol = 3)
     ggsave(vplot, file = paste0(output_dir, sample_name, "_postQC_violinplot.svg"))
+  }
+  # Remove CD4/CD8 doublets
+  if ("CD4" %in% rownames(sample) && ("CD8A" %in% rownames(sample) || "CD8B" %in% rownames(sample))) {
+    cd4_expr <- GetAssayData(sample, slot = "counts")["CD4", ]
+    cd8a_expr <- if ("CD8A" %in% rownames(sample)) GetAssayData(sample, slot = "counts")["CD8A", ] else rep(0, ncol(sample))
+    cd8b_expr <- if ("CD8B" %in% rownames(sample)) GetAssayData(sample, slot = "counts")["CD8B", ] else rep(0, ncol(sample))
+    
+    cd4_pos <- cd4_expr > 0
+    cd8_pos <- (cd8a_expr > 0) | (cd8b_expr > 0)
+    doublets <- cd4_pos & cd8_pos
+    
+    sample <- subset(sample, cells = colnames(sample)[!doublets])
+  }
+  # Remove mac239 gene
+  if (remove_mac == TRUE) {
+    if ("mac239" %in% rownames(sample)) {
+      sample <- sample[!rownames(sample) %in% "mac239", ]
+    }
   }
   # Normalizing
   sample <- NormalizeData(sample, verbose = FALSE)
@@ -861,7 +1321,7 @@ correlation_plots <- function(salve_data, single_cell_data, join = "inner") {
 
 # Plotting
 ## plot a UMAP
-plotUMAP <- function(data, colorby, title, output_dir, saveas, comparison = FALSE) {
+plotUMAP <- function(data, colorby, title, output_dir, saveas, comparison = FALSE, color = "darkblue") {
   # Convert unquoted column name to string
   colorby_str <- deparse(substitute(colorby))
   
@@ -882,7 +1342,7 @@ plotUMAP <- function(data, colorby, title, output_dir, saveas, comparison = FALS
     mid <- median(paint_umap$ratioSingleVISER)
     umap <- umap + scale_color_gradient2(midpoint = mid, low = "blue", mid = "gray93", high = "red")
   } else {
-    umap <- umap + scale_color_gradient(low = "lightgrey", high = "darkblue")
+    umap <- umap + scale_color_gradient(low = "lightgrey", high = color)
   }
   ggsave(umap, file = paste0(output_dir, saveas))
   
@@ -1089,7 +1549,7 @@ analyze_cell_subset <- function(seurat_obj, subset_cells, min_pct = 0.1) {
     n_other <- sum(cluster_cells) - n_subset
     
     if (n_subset < 3 || n_other < 3) {
-      warning(sprintf("Skipping cluster %s: insufficient cells (subset: %d, other: %d)",
+      warning(sprintf("Skipping cluster %s: insufficient cells (subset: %d, other: %d)\n",
                       cluster, n_subset, n_other))
       next
     }
@@ -1117,13 +1577,14 @@ analyze_cell_subset <- function(seurat_obj, subset_cells, min_pct = 0.1) {
   }
   results$cluster_specific <- cluster_results
   
-  # 2. Calculate average expression profiles
-  results$avg_expression <- tryCatch({
-    AverageExpression(seurat_obj,
-                      group.by = "in_subset",
-                      assays = "RNA")$RNA
+  # 2. Calculate pseudo-bulk expression profiles using AggregateExpression
+  results$pseudobulk_expression <- tryCatch({
+    AggregateExpression(seurat_obj,
+                        group.by = "in_subset",
+                        assays = "RNA",
+                        return.seurat = FALSE)$RNA
   }, error = function(e) {
-    warning("Error calculating average expression: ", e$message)
+    warning("Error calculating pseudo-bulk expression: ", e$message)
     return(NULL)
   })
   
@@ -1144,7 +1605,7 @@ analyze_cell_subset <- function(seurat_obj, subset_cells, min_pct = 0.1) {
       return(NULL)
     })
   } else {
-    warning("Not enough clusters with sufficient cells for conserved marker analysis")
+    warning("Not enough clusters with sufficient cells for conserved marker analysis\n")
     results$conserved_markers <- NULL
   }
   
@@ -1161,8 +1622,336 @@ analyze_cell_subset <- function(seurat_obj, subset_cells, min_pct = 0.1) {
   # Summary of analysis
   cat("\nAnalysis Summary:\n")
   cat(sprintf("- Analyzed %d clusters\n", length(cluster_results)))
-  cat(sprintf("- Found average expression profiles: %s\n", !is.null(results$avg_expression)))
+  cat(sprintf("- Found pseudo-bulk expression profiles: %s\n", !is.null(results$pseudobulk_expression)))
   cat(sprintf("- Found conserved markers: %s\n", !is.null(results$conserved_markers)))
+  
+  return(results)
+}
+## new analyze_cell_subset function with pseudobulking
+analyze_cell_subset_pseudo <- function(seurat_obj, subset_cells, min_pct = 0.1) {
+  require(Seurat)
+  require(dplyr)
+  
+  # Input validation
+  if (!is(seurat_obj, "Seurat")) {
+    stop("First argument must be a Seurat object")
+  }
+  
+  if (!is.vector(subset_cells)) {
+    stop("subset_cells must be a vector of cell IDs")
+  }
+  
+  # Convert cell names to character vector if they aren't already
+  subset_cells <- as.character(subset_cells)
+  
+  # Check if the subset cells exist in the Seurat object
+  valid_cells <- subset_cells %in% colnames(seurat_obj)
+  if (!any(valid_cells)) {
+    stop("None of the provided cell IDs were found in the Seurat object")
+  }
+  
+  if (!all(valid_cells)) {
+    warning(sprintf("%d cells from the subset were not found in the Seurat object",
+                    sum(!valid_cells)))
+    subset_cells <- subset_cells[valid_cells]
+  }
+  
+  # Print diagnostic information
+  cat(sprintf("Found %d cells in the subset\n", length(subset_cells)))
+  
+  # Add metadata column for subset membership
+  seurat_obj$in_subset <- colnames(seurat_obj) %in% subset_cells
+  
+  # Get unique clusters containing subset cells
+  if (!"seurat_clusters" %in% colnames(seurat_obj@meta.data)) {
+    stop("No 'seurat_clusters' column found in metadata. Please run FindClusters() first")
+  }
+  
+  subset_clusters <- unique(seurat_obj$seurat_clusters[colnames(seurat_obj) %in% subset_cells])
+  
+  # Print cluster information
+  cat(sprintf("Subset cells are found in %d clusters: %s\n",
+              length(subset_clusters),
+              paste(subset_clusters, collapse = ", ")))
+  
+  # Initialize results list
+  results <- list()
+  
+  # 1. Cluster-specific analysis using AggregateExpression + FindMarkers
+  # First, create multiple pseudobulk replicates by sampling cells
+  cluster_results <- list()
+  n_replicates <- 5  # Number of pseudobulk replicates to create
+  
+  for(cluster in subset_clusters) {
+    # Create logical vectors for the comparison
+    cluster_cells <- seurat_obj$seurat_clusters == cluster
+    subset_in_cluster <- colnames(seurat_obj)[cluster_cells] %in% subset_cells
+    
+    # Check if we have enough cells in both groups for comparison
+    n_subset <- sum(subset_in_cluster)
+    n_other <- sum(cluster_cells) - n_subset
+    
+    if (n_subset < 3 || n_other < 3) {
+      warning(sprintf("Skipping cluster %s: insufficient cells (subset: %d, other: %d)\n",
+                      cluster, n_subset, n_other))
+      next
+    }
+    
+    # Create a temporary Seurat object for this cluster
+    cluster_obj <- subset(seurat_obj, cells = colnames(seurat_obj)[cluster_cells])
+    
+    # Create pseudobulk replicates by randomly sampling cells
+    tryCatch({
+      cat(sprintf("Creating pseudobulk replicates for cluster %s...\n", cluster))
+      
+      # Get cell names for each group
+      subset_cells_in_cluster <- colnames(cluster_obj)[cluster_obj$in_subset]
+      other_cells_in_cluster <- colnames(cluster_obj)[!cluster_obj$in_subset]
+      
+      # Calculate cells per replicate (use smaller group to determine size)
+      min_group_size <- min(length(subset_cells_in_cluster), length(other_cells_in_cluster))
+      cells_per_replicate <- max(3, floor(min_group_size / n_replicates))
+      
+      cat(sprintf("  Cluster %s: subset cells = %d, other cells = %d, cells per replicate = %d\n",
+                  cluster, length(subset_cells_in_cluster), length(other_cells_in_cluster), cells_per_replicate))
+      
+      # Create replicate assignments
+      replicate_assignments <- c()
+      cell_names <- c()
+      
+      for(rep in 1:n_replicates) {
+        # Sample from subset cells
+        if(length(subset_cells_in_cluster) >= cells_per_replicate) {
+          sampled_subset <- sample(subset_cells_in_cluster, cells_per_replicate, replace = FALSE)
+          replicate_assignments <- c(replicate_assignments, rep(paste0("subset_rep", rep), length(sampled_subset)))
+          cell_names <- c(cell_names, sampled_subset)
+          # Remove sampled cells to avoid replacement
+          subset_cells_in_cluster <- setdiff(subset_cells_in_cluster, sampled_subset)
+        }
+        
+        # Sample from other cells
+        if(length(other_cells_in_cluster) >= cells_per_replicate) {
+          sampled_other <- sample(other_cells_in_cluster, cells_per_replicate, replace = FALSE)
+          replicate_assignments <- c(replicate_assignments, rep(paste0("other_rep", rep), length(sampled_other)))
+          cell_names <- c(cell_names, sampled_other)
+          # Remove sampled cells to avoid replacement
+          other_cells_in_cluster <- setdiff(other_cells_in_cluster, sampled_other)
+        }
+      }
+      
+      cat(sprintf("  Created %d total samples for aggregation\n", length(cell_names)))
+      
+      # Create temporary metadata for aggregation
+      temp_meta <- data.frame(
+        cell_id = cell_names,
+        replicate_group = replicate_assignments,
+        stringsAsFactors = FALSE
+      )
+      
+      # Subset cluster object to only sampled cells
+      sampled_cluster_obj <- subset(cluster_obj, cells = cell_names)
+      
+      # Add replicate grouping to metadata
+      sampled_cluster_obj$replicate_group <- temp_meta$replicate_group[match(colnames(sampled_cluster_obj), temp_meta$cell_id)]
+      
+      # Aggregate expression by replicate groups
+      agg_expr <- AggregateExpression(sampled_cluster_obj,
+                                      group.by = "replicate_group",
+                                      assays = "RNA",
+                                      return.seurat = TRUE,
+                                      verbose = FALSE)
+      
+      # Check which groups actually exist (NOTE: AggregateExpression converts _ to -)
+      replicate_ids <- colnames(agg_expr)
+      subset_reps <- replicate_ids[grepl("^subset-", replicate_ids)]
+      other_reps <- replicate_ids[grepl("^other-", replicate_ids)]
+      
+      # Only proceed if we have replicates from both groups
+      if (length(subset_reps) == 0 || length(other_reps) == 0) {
+        warning(sprintf("Cluster %s: Missing replicates (subset: %d, other: %d)", 
+                        cluster, length(subset_reps), length(other_reps)))
+        next
+      }
+      
+      group_ids <- ifelse(grepl("^subset-", replicate_ids), "subset", "other")
+      names(group_ids) <- replicate_ids
+      
+      Idents(agg_expr) <- factor(group_ids)
+      
+      # Verify the identities were set correctly
+      actual_idents <- levels(Idents(agg_expr))
+      if (!all(c("subset", "other") %in% actual_idents)) {
+        warning(sprintf("Cluster %s: Could not create proper group identities. Found: %s", 
+                        cluster, paste(actual_idents, collapse = ", ")))
+        next
+      }
+      
+      # Perform differential expression analysis
+      de_results <- FindMarkers(agg_expr,
+                                ident.1 = "subset",
+                                ident.2 = "other",
+                                min.pct = min_pct,
+                                test.use = "wilcox",
+                                verbose = FALSE)
+      
+      cluster_results[[paste0("cluster_", cluster)]] <- de_results
+      
+      cat(sprintf("Successfully analyzed cluster %s (subset: %d, other: %d, replicates: %d each)\n",
+                  cluster, n_subset, n_other, n_replicates))
+      
+    }, error = function(e) {
+      warning(sprintf("Error in pseudobulk analysis for cluster %s: %s", cluster, e$message))
+    })
+  }
+  results$cluster_specific <- cluster_results
+  
+  # 2. Overall pseudobulk analysis with multiple replicates
+  cat("Performing overall pseudobulk analysis with replicates...\n")
+  results$overall_pseudobulk <- tryCatch({
+    # Get all subset and non-subset cells
+    all_subset_cells <- colnames(seurat_obj)[seurat_obj$in_subset]
+    all_other_cells <- colnames(seurat_obj)[!seurat_obj$in_subset]
+    
+    # Create pseudobulk replicates
+    min_group_size <- min(length(all_subset_cells), length(all_other_cells))
+    cells_per_replicate <- max(50, floor(min_group_size / n_replicates))  # Use more cells for overall analysis
+    
+    # Create replicate assignments
+    replicate_assignments <- c()
+    cell_names <- c()
+    
+    for(rep in 1:n_replicates) {
+      # Sample from subset cells
+      if(length(all_subset_cells) >= cells_per_replicate) {
+        sampled_subset <- sample(all_subset_cells, cells_per_replicate, replace = FALSE)
+        replicate_assignments <- c(replicate_assignments, rep(paste0("subset_rep", rep), length(sampled_subset)))
+        cell_names <- c(cell_names, sampled_subset)
+        all_subset_cells <- setdiff(all_subset_cells, sampled_subset)
+      }
+      
+      # Sample from other cells
+      if(length(all_other_cells) >= cells_per_replicate) {
+        sampled_other <- sample(all_other_cells, cells_per_replicate, replace = FALSE)
+        replicate_assignments <- c(replicate_assignments, rep(paste0("other_rep", rep), length(sampled_other)))
+        cell_names <- c(cell_names, sampled_other)
+        all_other_cells <- setdiff(all_other_cells, sampled_other)
+      }
+    }
+    
+    # Subset Seurat object to sampled cells
+    sampled_obj <- subset(seurat_obj, cells = cell_names)
+    sampled_obj$replicate_group <- replicate_assignments[match(colnames(sampled_obj), cell_names)]
+    
+    # Aggregate expression by replicate groups
+    agg_overall <- AggregateExpression(sampled_obj,
+                                       group.by = "replicate_group",
+                                       assays = "RNA",
+                                       return.seurat = TRUE,
+                                       verbose = FALSE)
+    
+    # Check which groups actually exist (NOTE: AggregateExpression converts _ to -)
+    replicate_ids <- colnames(agg_overall)
+    subset_reps <- replicate_ids[grepl("^subset-", replicate_ids)]
+    other_reps <- replicate_ids[grepl("^other-", replicate_ids)]
+    
+    # Only proceed if we have replicates from both groups
+    if (length(subset_reps) == 0 || length(other_reps) == 0) {
+      stop(sprintf("Missing replicates in overall analysis (subset: %d, other: %d)", 
+                   length(subset_reps), length(other_reps)))
+    }
+    
+    group_ids <- ifelse(grepl("^subset-", replicate_ids), "subset", "other")
+    names(group_ids) <- replicate_ids
+    
+    Idents(agg_overall) <- factor(group_ids)
+    
+    # Verify the identities were set correctly
+    actual_idents <- levels(Idents(agg_overall))
+    if (!all(c("subset", "other") %in% actual_idents)) {
+      stop(sprintf("Could not create proper group identities. Found: %s", 
+                   paste(actual_idents, collapse = ", ")))
+    }
+    
+    # Perform DE analysis
+    de_overall <- FindMarkers(agg_overall,
+                              ident.1 = "subset",
+                              ident.2 = "other",
+                              min.pct = min_pct,
+                              test.use = "wilcox",
+                              verbose = FALSE)
+    
+    cat("Overall pseudobulk analysis completed successfully\n")
+    de_overall  # Return the results, don't use return()
+    
+  }, error = function(e) {
+    warning("Error in overall pseudobulk analysis: ", e$message)
+    return(NULL)
+  })
+  
+  # 3. Calculate raw pseudobulk expression profiles for reference
+  results$pseudobulk_expression <- tryCatch({
+    AggregateExpression(seurat_obj,
+                        group.by = "in_subset",
+                        assays = "RNA",
+                        return.seurat = FALSE,
+                        verbose = FALSE)$RNA
+  }, error = function(e) {
+    warning("Error calculating raw pseudo-bulk expression: ", e$message)
+    return(NULL)
+  })
+  
+  # 4. Get top genes from differential expression results
+  get_top_genes <- function(de_results, n = 40) {
+    if (is.null(de_results) || nrow(de_results) == 0) return(character(0))
+    
+    # Filter for significant genes with meaningful effect size
+    sig_genes <- de_results[de_results$p_val_adj < 0.05 & abs(de_results$avg_log2FC) > 0.5, ]
+    
+    if (nrow(sig_genes) == 0) return(character(0))
+    
+    # Order by significance and effect size
+    sig_genes <- sig_genes[order(sig_genes$p_val_adj, -abs(sig_genes$avg_log2FC)), ]
+    
+    return(head(rownames(sig_genes), n))
+  }
+  
+  # Extract top genes from all analyses
+  results$top_genes <- list()
+  
+  # Handle cluster-specific results
+  if (length(cluster_results) > 0) {
+    top_genes_by_cluster <- lapply(cluster_results, get_top_genes)
+    results$top_genes$cluster_specific <- top_genes_by_cluster
+  } else {
+    results$top_genes$cluster_specific <- list()
+  }
+  
+  # Handle other analyses
+  results$top_genes$overall_pseudobulk <- get_top_genes(results$overall_pseudobulk)
+  
+  # Summary of analysis
+  cat("\n=== Analysis Summary ===\n")
+  cat(sprintf("- Analyzed %d clusters with sufficient cells\n", length(cluster_results)))
+  cat(sprintf("- Overall pseudobulk analysis: %s\n", 
+              ifelse(!is.null(results$overall_pseudobulk), "SUCCESS", "FAILED")))
+  cat(sprintf("- Raw pseudobulk expression profiles: %s\n", 
+              ifelse(!is.null(results$pseudobulk_expression), "SUCCESS", "FAILED")))
+  
+  # Print summary of significant genes found
+  for (analysis_type in names(results$top_genes)) {
+    if (analysis_type == "cluster_specific") {
+      if (length(results$top_genes[[analysis_type]]) > 0) {
+        total_genes <- sum(sapply(results$top_genes[[analysis_type]], length))
+        cat(sprintf("- Top genes from cluster-specific analysis: %d total across %d clusters\n", 
+                    total_genes, length(results$top_genes[[analysis_type]])))
+      } else {
+        cat("- Top genes from cluster-specific analysis: 0 (no clusters analyzed)\n")
+      }
+    } else {
+      n_genes <- length(results$top_genes[[analysis_type]])
+      cat(sprintf("- Top genes from %s: %d\n", gsub("_", " ", analysis_type), n_genes))
+    }
+  }
   
   return(results)
 }
@@ -1363,9 +2152,10 @@ save_subset_analysis <- function(analysis_results, output_dir) {
     cat(sep = "\n")
 }
 
+
 # Saturation
 ## Function to perform sampling analysis on cellID data without reads
-sample_cellID <- function(df, percentages = seq(10, 100, by = 10), replicates = 5) {
+sample_cellID <- function(df, percentages = seq(10, 99, by = 10), replicates = 5) {
   # Get total number of rows and unique cellIDs in the full dataset
   total_rows <- nrow(df)
   total_unique_cellIDs <- length(unique(df$cellID))
@@ -1455,7 +2245,7 @@ analyze_cellID_sampling <- function(results, title = "cellID Saturation Analysis
   return(summary_df)
 }
 ## Function to perform sampling analysis on UMI-cellID data with reads
-sample_UMI_weighted <- function(df, percentages = seq(10, 100, by = 10), replicates = 5) {
+sample_UMI_weighted <- function(df, percentages = seq(10, 99, by = 10), replicates = 5) {
   # Get total number of reads and unique cellID,UMI pairs in the full dataset
   total_reads <- sum(df$reads)
   total_unique_pairs <- nrow(df)
@@ -1614,12 +2404,12 @@ fit_models <- function(results, target_coverage = 100, coverage_column = NULL) {
     if ("percent_coverage" %in% colnames(results)) {
       coverage_column <- "percent_coverage"
       message("Using 'percent_coverage' column")
-    } else if ("cellID_coverage" %in% colnames(results)) {
-      coverage_column <- "cellID_coverage"
-      message("Using 'cellID_coverage' column")
     } else if ("pair_coverage" %in% colnames(results)) {
       coverage_column <- "pair_coverage"
       message("Using 'pair_coverage' column")
+    } else if ("cellID_coverage" %in% colnames(results)) {
+      coverage_column <- "cellID_coverage"
+      message("Using 'cellID_coverage' column")
     } else {
       stop("No coverage column found in results. Please specify 'coverage_column'")
     }
@@ -1638,51 +2428,57 @@ fit_models <- function(results, target_coverage = 100, coverage_column = NULL) {
   # Rename column for consistent processing
   names(agg_data)[names(agg_data) == coverage_column] <- "coverage"
   
+  # Remove any rows with invalid coverage values
+  agg_data <- agg_data[is.finite(agg_data$coverage) & agg_data$coverage >= 0, ]
+  
+  if (nrow(agg_data) == 0) {
+    stop("No valid coverage data found after cleaning")
+  }
+  
   # Fit several models
   models <- list()
   
-  # 1. Asymptotic model (y = a * (1 - exp(-b * x)))
-  asymp_model <- try(nls(coverage ~ a * (1 - exp(-b * percentage)), 
-                         data = agg_data,
-                         start = list(a = 100, b = 0.05),
-                         control = nls.control(maxiter = 200)),
-                     silent = TRUE)
-  
-  if (!inherits(asymp_model, "try-error")) {
-    models$asymptotic <- asymp_model
-  }
-  
-  # 2. Michaelis-Menten model (y = (Vmax * x) / (Km + x))
-  mm_model <- try(nls(coverage ~ (Vmax * percentage) / (Km + percentage),
-                      data = agg_data,
-                      start = list(Vmax = 100, Km = 20),
-                      control = nls.control(maxiter = 200)),
-                  silent = TRUE)
+  # 1. Michaelis-Menten model (y = (Vmax * x) / (Km + x))
+  mm_model <- try({
+    nls(coverage ~ (Vmax * percentage) / (Km + percentage),
+        data = agg_data,
+        start = list(Vmax = max(agg_data$coverage) * 1.1, 
+                     Km = median(agg_data$percentage)),
+        control = nls.control(maxiter = 200))
+  }, silent = TRUE)
   
   if (!inherits(mm_model, "try-error")) {
     models$michaelis_menten <- mm_model
   }
   
-  # 3. Log model (y = a + b * log(x))
-  log_model <- try(nls(coverage ~ a + b * log(percentage),
-                       data = agg_data,
-                       start = list(a = 0, b = 20),
-                       control = nls.control(maxiter = 200)),
-                   silent = TRUE)
-  
-  if (!inherits(log_model, "try-error")) {
-    models$logarithmic <- log_model
+  # 2. Log model (y = a + b * log(x)) - only if percentage > 0
+  if (min(agg_data$percentage) > 0) {
+    log_model <- try({
+      nls(coverage ~ a + b * log(percentage),
+          data = agg_data,
+          start = list(a = min(agg_data$coverage), 
+                       b = (max(agg_data$coverage) - min(agg_data$coverage)) / 
+                         log(max(agg_data$percentage))),
+          control = nls.control(maxiter = 200))
+    }, silent = TRUE)
+    
+    if (!inherits(log_model, "try-error")) {
+      models$logarithmic <- log_model
+    }
   }
   
-  # 4. Logistic model (y = L / (1 + exp(-k * (x - x0))))
-  logistic_model <- try(nls(coverage ~ L / (1 + exp(-k * (percentage - x0))),
-                            data = agg_data,
-                            start = list(L = 100, k = 0.1, x0 = 50),
-                            control = nls.control(maxiter = 200)),
-                        silent = TRUE)
-  
-  if (!inherits(logistic_model, "try-error")) {
-    models$logistic <- logistic_model
+  # 3. Power model (y = a * x^b)
+  if (min(agg_data$percentage) > 0 && min(agg_data$coverage) > 0) {
+    power_model <- try({
+      nls(coverage ~ a * percentage^b,
+          data = agg_data,
+          start = list(a = 1, b = 0.5),
+          control = nls.control(maxiter = 200))
+    }, silent = TRUE)
+    
+    if (!inherits(power_model, "try-error")) {
+      models$power <- power_model
+    }
   }
   
   # If all models failed, try a simple loess smoother
@@ -1693,14 +2489,25 @@ fit_models <- function(results, target_coverage = 100, coverage_column = NULL) {
   }
   
   # Create prediction grid for plotting
-  pred_grid <- data.frame(percentage = seq(0, max(agg_data$percentage) * 1.5, length.out = 100))
+  pred_grid <- data.frame(percentage = seq(max(1, min(agg_data$percentage)), 
+                                           max(agg_data$percentage) * 1.2, 
+                                           length.out = 100))
   
   # Make predictions for each model
   for (model_name in names(models)) {
-    if (model_name == "loess") {
-      pred_grid[[model_name]] <- predict(models[[model_name]], newdata = pred_grid)
-    } else {
-      pred_grid[[model_name]] <- predict(models[[model_name]], newdata = pred_grid)
+    predicted_values <- try({
+      if (model_name == "loess") {
+        predict(models[[model_name]], newdata = pred_grid)
+      } else {
+        predict(models[[model_name]], newdata = pred_grid)
+      }
+    }, silent = TRUE)
+    
+    if (!inherits(predicted_values, "try-error")) {
+      # Clean predictions - remove negative values and extreme outliers
+      predicted_values[predicted_values < 0] <- 0
+      predicted_values[predicted_values > 200] <- NA  # Remove unrealistic values
+      pred_grid[[model_name]] <- predicted_values
     }
   }
   
@@ -1709,31 +2516,47 @@ fit_models <- function(results, target_coverage = 100, coverage_column = NULL) {
     library(ggplot2)
     library(reshape2)
     
-    # Melt the prediction data for plotting
-    pred_long <- melt(pred_grid, id.vars = "percentage", 
-                      variable.name = "model", value.name = "predicted_coverage")
-    
-    # Get title based on coverage column used
-    plot_title <- paste("Model Fitting for", gsub("_", " ", coverage_column))
-    y_label <- paste("Percentage of", gsub("_", " ", coverage_column))
-    
-    # Create the plot
-    p <- ggplot() +
-      geom_point(data = agg_data, aes(x = percentage, y = coverage), alpha = 0.6, size = 3) +
-      geom_line(data = pred_long, aes(x = percentage, y = predicted_coverage, color = model), size = 1) +
-      geom_hline(yintercept = target_coverage, linetype = "dashed", color = "red") +
-      labs(
-        title = plot_title,
-        x = "Sampling Percentage",
-        y = y_label,
-        color = "Model"
-      ) +
-      theme_minimal() +
-      theme(aspect.ratio = 1) +
-      scale_x_continuous(breaks = seq(0, max(pred_grid$percentage), by = 20)) +
-      scale_y_continuous(limits = c(0, 105), breaks = seq(0, 100, by = 10))
-    
-    print(p)
+    # Only include columns that actually have predictions
+    pred_cols <- intersect(names(models), colnames(pred_grid))
+    if (length(pred_cols) > 0) {
+      pred_subset <- pred_grid[, c("percentage", pred_cols)]
+      
+      # Melt the prediction data for plotting
+      pred_long <- melt(pred_subset, id.vars = "percentage", 
+                        variable.name = "model", value.name = "predicted_coverage")
+      
+      # Remove rows with NA predictions
+      pred_long <- pred_long[!is.na(pred_long$predicted_coverage), ]
+      
+      if (nrow(pred_long) > 0) {
+        # Get title based on coverage column used
+        plot_title <- paste("Model Fitting for", gsub("_", " ", coverage_column))
+        y_label <- paste("Percentage of", gsub("_", " ", coverage_column))
+        
+        # Create the plot
+        p <- ggplot() +
+          geom_point(data = agg_data, aes(x = percentage, y = coverage), 
+                     alpha = 0.6, size = 3) +
+          geom_line(data = pred_long, aes(x = percentage, y = predicted_coverage, 
+                                          color = model), size = 1) +
+          geom_hline(yintercept = target_coverage, linetype = "dashed", color = "red") +
+          labs(
+            title = plot_title,
+            x = "Sampling Percentage",
+            y = y_label,
+            color = "Model"
+          ) +
+          theme_minimal() +
+          theme(aspect.ratio = 1) +
+          scale_x_continuous(breaks = seq(0, max(pred_grid$percentage), by = 20)) +
+          scale_y_continuous(limits = c(0, min(105, max(c(agg_data$coverage, 
+                                                          pred_long$predicted_coverage), 
+                                                        na.rm = TRUE) * 1.1)), 
+                             breaks = seq(0, 100, by = 10))
+        
+        print(p)
+      }
+    }
   }
   
   # Estimate required percentage for target coverage
@@ -1745,42 +2568,346 @@ fit_models <- function(results, target_coverage = 100, coverage_column = NULL) {
   )
   
   for (model_name in names(models)) {
-    # Predict coverage for a wide range of percentages
-    extended_grid <- data.frame(percentage = seq(0, 1000, by = 0.1))
-    
-    if (model_name == "loess") {
-      # For loess, we can only predict within the original data range
-      extended_grid <- data.frame(percentage = seq(0, max(agg_data$percentage), by = 0.1))
-      predicted <- predict(models[[model_name]], newdata = extended_grid)
-    } else {
-      predicted <- predict(models[[model_name]], newdata = extended_grid)
+    if (model_name %in% colnames(pred_grid)) {
+      predicted <- pred_grid[[model_name]]
+      predicted <- predicted[is.finite(predicted)]
+      
+      if (length(predicted) > 0) {
+        # Find max achievable coverage
+        max_achievable <- max(predicted, na.rm = TRUE)
+        
+        # Calculate required percentage
+        if (max_achievable >= target_coverage) {
+          # Find the first percentage where we achieve target coverage
+          target_indices <- which(predicted >= target_coverage)
+          if (length(target_indices) > 0) {
+            required_pct <- pred_grid$percentage[min(target_indices)]
+          } else {
+            required_pct <- NA
+          }
+        } else {
+          required_pct <- NA
+        }
+        
+        # Add to results
+        result_table <- rbind(result_table, data.frame(
+          model = model_name,
+          required_percentage = required_pct,
+          max_achievable = max_achievable
+        ))
+      }
     }
-    
-    # Find max achievable coverage
-    max_achievable <- max(predicted, na.rm = TRUE)
-    
-    # Calculate required percentage
-    if (max_achievable >= target_coverage) {
-      required_pct <- min(extended_grid$percentage[predicted >= target_coverage], na.rm = TRUE)
-    } else {
-      required_pct <- NA
-    }
-    
-    # Add to results
-    result_table <- rbind(result_table, data.frame(
-      model = model_name,
-      required_percentage = required_pct,
-      max_achievable = max_achievable
-    ))
   }
   
   # Print results
-  print(result_table)
+  if (nrow(result_table) > 0) {
+    print(result_table)
+  } else {
+    message("No valid model predictions available")
+  }
   
   return(list(
     models = models, 
     predictions = pred_grid, 
     required = result_table, 
-    coverage_column = coverage_column
+    coverage_column = coverage_column,
+    aggregated_data = agg_data
+  ))
+}
+
+
+### Prognostic functions: let Claude tell you what to do!
+analyze_sequencing_value <- function(model_results, target_coverage = 90) {
+  
+  # Get coverage data from successful model predictions
+  pred_data <- model_results$predictions
+  
+  # Find all model prediction columns (exclude 'percentage')
+  model_columns <- setdiff(colnames(pred_data), "percentage")
+  valid_maxes <- c()
+  
+  # Extract maximum coverage from each valid model
+  for (col in model_columns) {
+    if (col %in% colnames(pred_data)) {
+      model_data <- pred_data[[col]]
+      # Remove infinite, NA, and unrealistic values
+      model_data <- model_data[is.finite(model_data) & model_data >= 0 & model_data <= 200]
+      
+      if (length(model_data) > 0) {
+        model_max <- max(model_data, na.rm = TRUE)
+        valid_maxes <- c(valid_maxes, model_max)
+      }
+    }
+  }
+  
+  # Use the best estimate from valid models
+  if (length(valid_maxes) > 0) {
+    current_max_coverage <- max(valid_maxes)
+  } else {
+    # Fallback: try to get coverage from aggregated data
+    if ("aggregated_data" %in% names(model_results) && 
+        nrow(model_results$aggregated_data) > 0) {
+      current_max_coverage <- max(model_results$aggregated_data$coverage, na.rm = TRUE)
+      message("Using maximum observed coverage from data since models failed")
+    } else {
+      current_max_coverage <- NA
+    }
+  }
+  
+  cat(sprintf("Overall max coverage from valid models: %.1f%%\n", current_max_coverage))
+  
+  # Calculate and display saturation levels
+  if (!is.na(current_max_coverage)) {
+    sequencing_saturation <- min(100, current_max_coverage)  # Current sequencing relative to max possible
+    cat(sprintf("📊 SATURATION ANALYSIS:\n"))
+    cat(sprintf("   Sequencing saturation: %.1f%% (how much of library complexity you've captured)\n", sequencing_saturation))
+    cat(sprintf("   Library saturation: %.1f%% (max coverage this library can achieve)\n", current_max_coverage))
+    cat("\n")
+  }
+  
+  # Check if target is achievable
+  if (is.na(current_max_coverage) || current_max_coverage < target_coverage) {
+    cat("❌ DECISION A (More sequencing): NOT RECOMMENDED\n")
+    if (is.na(current_max_coverage)) {
+      cat("   Unable to determine library coverage (model fitting failed)\n")
+    } else {
+      cat(sprintf("   Your current library can only achieve %.1f%% coverage\n", current_max_coverage))
+      cat(sprintf("   Even infinite sequencing won't reach your %.0f%% target\n", target_coverage))
+    }
+    cat("   -> This library is molecularly limited\n\n")
+    
+    return(list(
+      more_sequencing_recommended = FALSE,
+      reason = ifelse(is.na(current_max_coverage), "Model fitting failed", "Library complexity limitation"),
+      max_achievable = current_max_coverage,
+      already_sufficient = FALSE
+    ))
+  }
+  
+  # If we can achieve the target, find required sampling percentage
+  cat("✅ Library can achieve target coverage!\n")
+  
+  # Find required sampling percentage from results table
+  required_results <- model_results$required
+  valid_requirements <- required_results[is.finite(required_results$required_percentage) & 
+                                           !is.na(required_results$required_percentage), ]
+  
+  if (nrow(valid_requirements) > 0) {
+    # Take the most conservative (highest) estimate
+    required_pct <- max(valid_requirements$required_percentage, na.rm = TRUE)
+    
+    # Calculate percentage increase needed (not fold increase)
+    percent_increase <- required_pct - 100
+    
+    if (required_pct <= 100) {
+      cat("✅ DECISION A (More sequencing): RECOMMENDED\n")
+      cat(sprintf("   You need ~%.0f%% sampling to reach %.0f%% coverage\n", 
+                  required_pct, target_coverage))
+      if (required_pct < 100) {
+        cat(sprintf("   You're already sequencing enough (could reduce by %.0f%%)\n", 
+                    100 - required_pct))
+      } else {
+        cat("   Your current sequencing depth is optimal\n")
+      }
+    } else if (required_pct <= 120) {
+      cat("⚠️  DECISION A (More sequencing): MARGINAL VALUE\n")
+      cat(sprintf("   You need %.0f%% sampling to reach %.0f%% coverage\n", 
+                  required_pct, target_coverage))
+      cat(sprintf("   Increase sequencing by %.0f%% more reads\n", percent_increase))
+      cat("   This is close to your library's complexity limit\n")
+    } else {
+      cat("❌ DECISION A (More sequencing): NOT RECOMMENDED\n")
+      cat(sprintf("   You would need %.0f%% sampling to reach %.0f%% coverage\n", 
+                  required_pct, target_coverage))
+      cat(sprintf("   This would require %.0f%% more reads\n", percent_increase))
+      cat("   This indicates you're near the library complexity limit\n")
+    }
+    
+    # Check if already sufficient
+    already_sufficient <- required_pct <= 100
+    
+  } else {
+    required_pct <- NA
+    percent_increase <- NA
+    already_sufficient <- FALSE
+    cat("⚠️  DECISION A (More sequencing): UNCERTAIN\n")
+    cat("   Models couldn't determine required sampling percentage\n")
+    cat("   But your library appears capable of reaching the target\n")
+  }
+  
+  return(list(
+    more_sequencing_recommended = !is.na(required_pct) && required_pct <= 120,
+    required_fold_increase = ifelse(is.na(required_pct), NA, required_pct/100),
+    percent_increase_needed = percent_increase,
+    max_achievable = current_max_coverage,
+    already_sufficient = already_sufficient
+  ))
+}
+
+analyze_library_scaling <- function(reads_GEX, model_results, target_coverage = 90) {
+  
+  # Current library stats
+  current_cells <- length(unique(reads_GEX$cellID))
+  current_pairs <- nrow(reads_GEX)
+  current_reads <- sum(reads_GEX$reads)
+  
+  # Efficiency metrics
+  pairs_per_cell <- current_pairs / current_cells
+  reads_per_cell <- current_reads / current_cells
+  
+  # Get max coverage safely from model predictions
+  pred_data <- model_results$predictions
+  model_columns <- setdiff(colnames(pred_data), "percentage")
+  valid_maxes <- c()
+  
+  for (col in model_columns) {
+    if (col %in% colnames(pred_data)) {
+      model_data <- pred_data[[col]]
+      # Remove infinite, NA, and negative values
+      model_data <- model_data[is.finite(model_data) & model_data >= 0]
+      
+      if (length(model_data) > 0) {
+        model_max <- max(model_data, na.rm = TRUE)
+        valid_maxes <- c(valid_maxes, model_max)
+      }
+    }
+  }
+  
+  # Take the best estimate from valid models
+  if (length(valid_maxes) > 0) {
+    current_max <- max(valid_maxes)
+  } else {
+    current_max <- NA
+  }
+  
+  cat("📊 CURRENT LIBRARY EFFICIENCY:\n")
+  cat(sprintf("   Cells captured: %d\n", current_cells))
+  cat(sprintf("   Unique pairs per cell: %.1f\n", pairs_per_cell))
+  cat(sprintf("   Reads per cell: %.1f\n", reads_per_cell))
+  if (!is.na(current_max)) {
+    cat(sprintf("   Current max coverage: %.1f%%\n", current_max))
+  } else {
+    cat("   Current max coverage: Unable to determine\n")
+  }
+  
+  # Estimate scaling needed
+  if (is.na(current_max)) {
+    cat("\n⚠️  DECISION B (Bigger library): UNCERTAIN\n")
+    cat("   Unable to determine current coverage efficiency\n")
+    recommend_bigger <- TRUE  # Conservative recommendation
+    scaling_factor <- 2  # Default guess
+  } else if (current_max >= target_coverage) {
+    cat("\n✅ DECISION B (Bigger library): NOT NEEDED\n")
+    cat("   Your current library size is sufficient\n")
+    recommend_bigger <- FALSE
+    scaling_factor <- 1
+  } else {
+    # Rough estimate: if we're capturing X% of cells efficiently,
+    # we might need ~1/X times more input to capture target%
+    scaling_factor <- target_coverage / current_max
+    
+    cat(sprintf("\n🔄 DECISION B (Bigger library): RECOMMENDED\n"))
+    cat(sprintf("   Estimated scaling needed: %.1fx more input\n", scaling_factor))
+    cat(sprintf("   Try ~%.0f cells instead of %d\n", 
+                current_cells * scaling_factor, current_cells))
+    recommend_bigger <- TRUE
+  }
+  
+  return(list(
+    bigger_library_recommended = recommend_bigger,
+    current_efficiency = list(
+      cells = current_cells,
+      pairs_per_cell = pairs_per_cell,
+      max_coverage = current_max
+    ),
+    scaling_estimate = scaling_factor
+  ))
+}
+
+make_sequencing_decision <- function(reads_GEX, target_coverage = 90, 
+                                     percentages = c(seq(10, 80, by = 10), 
+                                                     seq(85, 99, by = 2.5)),
+                                     coverage_column = NULL) {
+  
+  tryCatch({
+    results <- sample_UMI_weighted(reads_GEX, percentages = percentages)
+    
+    # Check if results are valid
+    if (is.null(results) || nrow(results) == 0) {
+      stop("No results from sampling function")
+    }
+    
+    model_results <- fit_models(results, target_coverage = target_coverage, coverage_column = coverage_column)
+    
+  }, error = function(e) {
+    cat("Error in analysis pipeline:\n")
+    cat(paste("  ", e$message, "\n"))
+    return(NULL)
+  })
+  
+  # Analyze both scenarios
+  seq_analysis <- analyze_sequencing_value(model_results, target_coverage)
+  lib_analysis <- analyze_library_scaling(reads_GEX, model_results, target_coverage)
+  
+  # Print summary with fixed string concatenation
+  separator <- paste(rep("=", 50), collapse = "")
+  cat(paste(separator, "\n", sep = ""))
+  
+  # Decision tree
+  seq_recommended <- seq_analysis$more_sequencing_recommended
+  lib_recommended <- lib_analysis$bigger_library_recommended
+  already_sufficient <- seq_analysis$already_sufficient
+  
+  if (!is.na(already_sufficient) && already_sufficient) {
+    cat("✅ RECOMMENDATION: Current sequencing depth is sufficient\n")
+    cat(sprintf("   You have already achieved/exceeded the %.0f%% coverage target\n", target_coverage))
+    if (!is.na(seq_analysis$required_fold_increase) && seq_analysis$required_fold_increase < 0.8) {
+      cat("   You may be sequencing to excess - consider reducing depth for cost savings\n")
+    }
+    
+  } else if (!is.na(seq_recommended) && seq_recommended && !lib_recommended) {
+    cat("📈 RECOMMENDATION: Sequence deeper\n")
+    if (!is.na(seq_analysis$percent_increase_needed)) {
+      cat(sprintf("   Increase sequencing by %.0f%% more reads to reach %.0f%% coverage\n",
+                  seq_analysis$percent_increase_needed, target_coverage))
+    } else if (!is.na(seq_analysis$required_fold_increase)) {
+      # Fallback to fold increase if percent increase not available
+      percent_inc <- (seq_analysis$required_fold_increase - 1) * 100
+      cat(sprintf("   Increase sequencing by %.0f%% more reads to reach %.0f%% coverage\n",
+                  percent_inc, target_coverage))
+    }
+    
+  } else if ((is.na(seq_recommended) || !seq_recommended) && lib_recommended) {
+    cat("🔬 RECOMMENDATION: Make bigger library\n")
+    if (!is.na(seq_analysis$max_achievable)) {
+      cat(sprintf("   Your current library is complexity-limited at %.1f%%\n",
+                  seq_analysis$max_achievable))
+    }
+    scaling_percent <- (lib_analysis$scaling_estimate - 1) * 100
+    cat(sprintf("   Try %.0f%% more input material\n", scaling_percent))
+    
+  } else if (!is.na(seq_recommended) && seq_recommended && lib_recommended) {
+    cat("⚖️  RECOMMENDATION: Both options viable\n")
+    cat("   Choice depends on cost and timeline:\n")
+    if (!is.na(seq_analysis$percent_increase_needed)) {
+      cat(sprintf("   - More sequencing: %.0f%% more reads\n", 
+                  seq_analysis$percent_increase_needed))
+    }
+    scaling_percent <- (lib_analysis$scaling_estimate - 1) * 100
+    cat(sprintf("   - Bigger library: %.0f%% more input material\n", scaling_percent))
+    
+  } else {
+    cat("✅ RECOMMENDATION: Current setup is sufficient\n")
+    if (!is.na(seq_analysis$max_achievable)) {
+      cat(sprintf("   You can already achieve %.1f%% coverage\n",
+                  seq_analysis$max_achievable))
+    }
+  }
+  
+  return(list(
+    sequencing = seq_analysis,
+    library = lib_analysis,
+    target_coverage = target_coverage,
+    model_results = model_results
   ))
 }

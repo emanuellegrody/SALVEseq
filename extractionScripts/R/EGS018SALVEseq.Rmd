@@ -1,0 +1,35 @@
+---
+title: "EGS018 SALVEseq"
+author: "Emanuelle Grody"
+date: "2025-09-19"
+output: html_document
+---
+
+```{r, echo = FALSE}
+source("~/SALVEseq/packages.R")
+source("~/SALVEseq/functions.R")
+```
+
+## SALVE
+Loading in from custom pipeline since cellranger caused early fail due to low agreement with whitelist. Let's do KLRB1 only for now.
+
+```{r}
+
+input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/SALVE/bamsort/"
+output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/SALVE/bamsort/reads/"
+
+raw_cellIDs_df <- read.csv("/projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/raw_cellIDs/all_raw_cellIDs.csv")
+raw_cellIDs <- split(raw_cellIDs_df$cellID, raw_cellIDs_df$sample)
+
+#process_bamsort("SALVE", samples$samples, input.dir, output.dir, raw_cellIDs)
+process_bamsortv5(c("W2"), input.dir, output.dir, raw_cellIDs)
+
+# minimums
+input_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/bamsort/reads/v5/"
+output_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/bamsort/reads/v5/minimum" 
+
+process_all_set_minimums("SALVE", samples$samples, input_dir, output_dir, min_reads = 5, min_umi = 3)
+
+```
+
+

@@ -395,3 +395,92 @@ umi_rank_plot
 # Save the plot
 ggsave("/projects/b1042/GoyalLab/egrody/20240116_VISER_SALVEseq/EGS003/joint/barcodeRankPlot_total_env.svg", umi_rank_plot, width = 10, height = 8, device = "svg")
 ```
+# SALVE v4
+
+### SeuratSALVE
+```{r}
+samples <- data.frame(
+  samples = c(
+    "D13_acute",
+    "G_acute",
+    "G_ART",
+    "L_acute",
+    "L_ART",
+    "P_acute",
+    "P_ART"
+  )
+)
+
+genes <- c(
+  "D1-US",
+  "D1-S",
+  "tat-US",
+  "tat-S",
+  "nef-3",
+  "nef-5",
+  "LTR-3",
+  "LTR-5"
+)
+# Initialize empty list
+SALVE_list <- list()
+
+for (i in 1:nrow(samples)) {
+  sample_name <- samples$samples[i]
+  targets <- c("nef", "pol", "SSenv")
+  
+  for (k in 1:length(targets)) {
+    target_name <- targets[k]
+    folder_path <- paste0("/projects/b1042/GoyalLab/egrody/extractedData/EGS009/SALVE/counts/v4/Mmul_10_mac239v4_", 
+                          sample_name, "_", target_name, "/outs/raw_feature_bc_matrix/")
+    
+    tryCatch({
+      # Process the current sample
+      data <- Read10X(data.dir = folder_path)
+      seurat_obj <- CreateSeuratObject(counts = data, project = sample_name, min.cells = 3)
+      #seurat_obj <- NormalizeData(seurat_obj, verbose = FALSE) #for raw, comment this out
+      # Extract viral genes
+      sample_df <- targetExpressionDF(seurat_obj, genes, count_type = "raw") #
+      
+      # Add sample and target columns to the dataframe
+      sample_df$sample <- sample_name
+      sample_df$target <- target_name
+      
+      # Add to list
+      SALVE_list[[length(SALVE_list) + 1]] <- sample_df
+      
+      cat("Processed sample:", sample_name, "with target:", target_name, "\n")
+      
+    }, error = function(e) {
+      cat("Error processing sample", sample_name, "with target", target_name, ":", conditionMessage(e), "\n\n")
+    })
+  }
+}
+
+SALVE_combined <- data.frame()
+SALVE_combined <- bind_rows(SALVE_list)
+SALVE_combined <- SALVE_combined %>%
+  filter(!(`D1-US` == 0 & 
+             `D1-S` == 0 & 
+             `tat-US` == 0 &
+             `tat-S` == 0 &
+             `nef-3` == 0 & 
+             `nef-5` == 0 & 
+             `LTR-3` == 0 & 
+             `LTR-5` == 0))
+rm(SALVE_list)
+
+output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS009/SALVE/counts/v4/expressionDF/"
+write.csv(SALVE_combined, paste0(output.dir, "SALVE_combined_rawcounts.csv"))
+
+output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS009/SALVE/counts/v4/expressionDF/"
+SALVE_combined <- read.csv(paste0(output.dir, "SALVE_combined_rawcounts.csv"))
+```
+
+Calculating isoforms
+```{r}
+SALVE_isoforms <- isoforms_deconvolve(SALVE_combined, "SALVE")
+output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS009/SALVE/counts/v4/expressionDF/"
+write.csv(SALVE_isoforms, paste0(output.dir, "SALVE_isoforms_rawcounts.csv"))
+
+SALVE_isoforms <- read.csv(paste0(output.dir, "SALVE_isoforms_rawcounts.csv"))
+```

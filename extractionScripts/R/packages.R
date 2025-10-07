@@ -6,7 +6,6 @@ packages <- c(
   "stringr",
   "data.table",
   "dplyr",
-  "tidyr",
   "patchwork",
   "ggplot2",
   "scales",
@@ -21,7 +20,7 @@ packages <- c(
   "parallel",
   "doParallel",
   "foreach",
-  "openxlsx"
+  "tidyr"
 )
 
 

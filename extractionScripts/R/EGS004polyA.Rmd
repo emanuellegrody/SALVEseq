@@ -1,0 +1,394 @@
+---
+title: "EGS004polyA"
+author: "Emanuelle Grody"
+date: "2025-06-16"
+output: html_document
+---
+
+```{r, echo = FALSE}
+source("~/SALVEseq/packages.R")
+source("~/SALVEseq/functions.R")
+```
+
+```{r}
+round_to_common_clustering <- function(values, distance = 2) {
+  if (length(unique(values)) <= 1) return(values)
+  
+  # Sort unique values
+  unique_vals <- sort(unique(values))
+  clusters <- list()
+  used <- rep(FALSE, length(unique_vals))
+  
+  # Create clusters of nearby values
+  for (i in seq_along(unique_vals)) {
+    if (!used[i]) {
+      cluster_vals <- unique_vals[abs(unique_vals - unique_vals[i]) <= distance]
+      clusters <- append(clusters, list(cluster_vals))
+      used[unique_vals %in% cluster_vals] <- TRUE
+    }
+  }
+  
+  # For each cluster, find the most common value
+  result <- values
+  for (cluster in clusters) {
+    # Count occurrences of each value in the cluster
+    counts <- sapply(cluster, function(x) sum(values == x))
+    most_common <- cluster[which.max(counts)]
+    
+    # Replace all values in this cluster with the most common
+    result[values %in% cluster] <- most_common
+  }
+  
+  return(result)
+}
+
+cluster_reads <- function(df, min_match_length = 10, pos_distance = 5) {
+  
+  cat("Starting improved clustering...\n")
+  cat("Input dataframe has", nrow(df), "rows\n")
+  
+  # Filter valid sequences
+  df_valid <- df %>%
+    mutate(original_row_index = row_number()) %>%
+    filter(!is.na(genomic_alignment_sequence), 
+           nchar(genomic_alignment_sequence) >= min_match_length) %>%
+    arrange(read1_pos)  # Sort by position for efficient processing
+  
+  cat("Processing", nrow(df_valid), "valid sequences\n")
+  
+  # Create sequence signatures
+  df_valid <- df_valid %>%
+    mutate(
+      first_kmer = substr(genomic_alignment_sequence, 1, min_match_length),
+      last_kmer = substr(genomic_alignment_sequence, 
+                        pmax(1, nchar(genomic_alignment_sequence) - min_match_length + 1), 
+                        nchar(genomic_alignment_sequence)),
+      sequence_signature = paste(first_kmer, last_kmer, sep = "_"),
+      full_sequence = genomic_alignment_sequence  # For exact matching
+    )
+  
+  # Initialize cluster assignments
+  df_valid$cluster_id <- NA_integer_
+  current_cluster_id <- 1
+  
+  # Process each sequence
+  for (i in 1:nrow(df_valid)) {
+    if (is.na(df_valid$cluster_id[i])) {  # Not yet assigned
+      
+      current_pos <- df_valid$read1_pos[i]
+      current_seq <- df_valid$full_sequence[i]
+      current_sig <- df_valid$sequence_signature[i]
+      
+      # Find potential matches
+      # Look for sequences with same signature within position distance
+      candidates <- which(
+        df_valid$sequence_signature == current_sig &
+        abs(df_valid$read1_pos - current_pos) <= pos_distance &
+        is.na(df_valid$cluster_id)
+      )
+      
+      # For exact sequence matches, be more lenient with position
+      exact_matches <- which(
+        df_valid$full_sequence == current_seq &
+        abs(df_valid$read1_pos - current_pos) <= pos_distance &
+        is.na(df_valid$cluster_id)
+      )
+      
+      # Combine candidates (exact matches take priority)
+      all_matches <- unique(c(exact_matches, candidates))
+      
+      # Assign all matches to current cluster
+      df_valid$cluster_id[all_matches] <- current_cluster_id
+      
+      current_cluster_id <- current_cluster_id + 1
+    }
+    
+    if (i %% 1000 == 0) cat("Processed", i, "sequences\n")
+  }
+  
+  cat("Created", max(df_valid$cluster_id, na.rm = TRUE), "clusters\n")
+  
+  # Assign back to original dataframe
+  df$cluster_id <- NA_integer_
+  df$cluster_id[df_valid$original_row_index] <- df_valid$cluster_id
+  
+  n_assigned <- sum(!is.na(df$cluster_id))
+  cat("Successfully assigned cluster IDs to", n_assigned, "sequences\n")
+  
+  return(df)
+}
+
+# Test with your data
+dualread_clustered_fixed <- cluster_reads(dualread_clean, min_match_length = 10, pos_distance = 5)
+dualread_df %>%
+  filter(read1_mapq == 255) %>%
+  group_by(cell_barcode, umi) %>%
+  slice_head(n = 3) %>%
+  ungroup() %>%
+  head(10)
+
+
+sequence_length_check <- dualread_clustered %>%
+  mutate(
+    reported_length = genomic_sequence_length,
+    actual_length = nchar(genomic_alignment_sequence),
+    length_mismatch = reported_length != actual_length
+  ) %>%
+  filter(length_mismatch == TRUE)
+
+cat("Rows where reported length ≠ actual sequence length:", nrow(sequence_length_check), "\n")
+
+```
+
+
+```{r}
+input.file <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS004/300cy/counts/polyA/bam_polyA/D13_polyA_polya_structure_analysis.csv"
+output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS004/300cy/counts/polyA/bam_polyA/"
+
+dualread_df <- read.csv(input.file)
+dualread_clean <- dualread_df %>%
+  filter(read1_mapq == 255) %>%
+  filter(genomic_sequence_length > 10) %>%
+  select(cell_barcode, umi, read1_pos, read2_pos, 
+         polya_length, genomic_sequence_length,
+         genomic_alignment_sequence)
+#dualread_clean$read1_pos <- round_to_common_clustering(dualread_clean$read1_pos, distance = 2)
+# hist(dualread_clean$read1_pos,
+#      breaks = 100)
+
+dualread_clustered <- cluster_reads(dualread_clean, min_match_length = 10, pos_distance = 5)
+
+
+
+# Check results
+cat("Clustering results:\n")
+cat("Total rows:", nrow(dualread_clustered), "\n")
+cat("Rows with cluster_id:", sum(!is.na(dualread_clustered$cluster_id)), "\n")
+cat("Unique clusters:", length(unique(dualread_clustered$cluster_id[!is.na(dualread_clustered$cluster_id)])), "\n")
+
+library(dplyr)
+
+# Calculate consensus position for each cluster
+consensus_positions <- dualread_clustered %>%
+  filter(!is.na(cluster_id)) %>%
+  group_by(cluster_id) %>%
+  summarise(
+    cluster_size = n(),
+    consensus_read1_pos = round(mean(read1_pos)),  # Or use median for robustness
+    median_read1_pos = round(median(read1_pos)),
+    min_read1_pos = min(read1_pos),
+    max_read1_pos = max(read1_pos),
+    pos_range = max_read1_pos - min_read1_pos,
+    pos_std = round(sd(read1_pos), 2),
+    
+    # Additional consensus info
+    consensus_read2_pos = round(mean(read2_pos)),
+    mean_polya_length = round(mean(polya_length, na.rm = TRUE), 1),
+    total_reads = n(),
+    unique_cells = n_distinct(cell_barcode),
+    
+    # Representative sequence info
+    representative_sequence = first(genomic_alignment_sequence),
+    
+    .groups = 'drop'
+  ) %>%
+  arrange(consensus_read1_pos)
+
+# Create a final summary for your insertion site analysis
+final_summary <- list(
+  original_positions = sum(!is.na(dualread_clustered$read1_pos)),
+  consensus_sites = nrow(consensus_positions),
+  reduction_count = sum(!is.na(dualread_clustered$read1_pos)) - nrow(consensus_positions),
+  reduction_percent = round((1 - nrow(consensus_positions)/sum(!is.na(dualread_clustered$read1_pos))) * 100, 1),
+  high_confidence_sites = sum(consensus_positions$cluster_size >= 3),
+  multi_cell_sites = sum(consensus_positions$unique_cells > 1),
+  multi_multi = sum(consensus_positions$cluster_size >= 3 & consensus_positions$unique_cells > 1),
+  max_supporting_reads = max(consensus_positions$cluster_size)
+)
+```
+```{r}
+cat("POLYA SITE MAPPING SUMMARY\n")
+cat("Original read1 positions:", final_summary$original_positions, "\n")
+cat("Consensus polyA sites:", final_summary$consensus_sites, "\n")
+cat("High-confidence sites (≥3 UMI):", final_summary$high_confidence_sites, "\n")
+cat("Sites found in multiple cells:", final_summary$multi_cell_sites, "\n")
+cat("Sites in multiple cells and ≥3 UMI:", final_summary$multi_multi, "\n")
+cat("Maximum supporting UMI:", final_summary$max_supporting_reads, "\n")
+```
+
+```{r}
+cluster_by_umi_cell <- function(df) {
+  
+  cat("Starting UMI + Cell Barcode clustering...\n")
+  cat("Input dataframe has", nrow(df), "rows\n")
+  
+  # Filter rows with valid UMI and cell barcode data
+  df_valid <- df %>%
+    filter(!is.na(cell_barcode), !is.na(umi), 
+           cell_barcode != "", umi != "") %>%
+    mutate(original_row_index = row_number())
+  
+  cat("Rows with valid UMI + cell barcode:", nrow(df_valid), "\n")
+  
+  # Create UMI + cell barcode groups
+  umi_clusters <- df_valid %>%
+    group_by(cell_barcode, umi) %>%
+    mutate(
+      umi_cluster_size = n(),
+      umi_cluster_id = cur_group_id()
+    ) %>%
+    ungroup()
+  
+  cat("Created", max(umi_clusters$umi_cluster_id), "UMI-based clusters\n")
+  
+  # Check for position consistency within UMI groups
+  position_check <- umi_clusters %>%
+    group_by(cell_barcode, umi) %>%
+    summarise(
+      cluster_size = n(),
+      unique_read1_pos = n_distinct(read1_pos, na.rm = TRUE),
+      min_read1_pos = min(read1_pos, na.rm = TRUE),
+      max_read1_pos = max(read1_pos, na.rm = TRUE),
+      pos_range = max_read1_pos - min_read1_pos,
+      .groups = 'drop'
+    )
+  
+  # Report inconsistencies
+  inconsistent_umis <- position_check %>%
+    filter(unique_read1_pos > 1)
+  
+  cat("UMI groups with inconsistent read1_pos:", nrow(inconsistent_umis), "\n")
+  if (nrow(inconsistent_umis) > 0) {
+    cat("Max position range within UMI group:", max(inconsistent_umis$pos_range), "bp\n")
+    cat("Mean position range for inconsistent groups:", round(mean(inconsistent_umis$pos_range), 1), "bp\n")
+  }
+  
+  # Initialize cluster_id column in original dataframe
+  df$umi_cluster_id <- NA_integer_
+  
+  # Assign cluster IDs using original row indices
+  df$umi_cluster_id[umi_clusters$original_row_index] <- umi_clusters$umi_cluster_id
+  
+  # Add additional info
+  df$umi_cluster_size <- NA_integer_
+  df$umi_cluster_size[umi_clusters$original_row_index] <- umi_clusters$umi_cluster_size
+  
+  n_assigned <- sum(!is.na(df$umi_cluster_id))
+  cat("Successfully assigned UMI cluster IDs to", n_assigned, "rows\n")
+  
+  # Return both the dataframe and diagnostic info
+  result <- list(
+    data = df,
+    diagnostics = list(
+      total_umi_clusters = max(umi_clusters$umi_cluster_id),
+      inconsistent_groups = nrow(inconsistent_umis),
+      position_check = position_check
+    )
+  )
+  
+  return(df) #change to result to get diagnostic
+}
+
+# Apply UMI-based clustering
+dualread_umi_clustered <- cluster_by_umi_cell(dualread_clean)
+
+
+```
+
+```{r}
+create_umi_consensus_df_filtered <- function(df) {
+  
+  cat("Creating UMI consensus dataframe with outlier filtering...\n")
+  cat("Input rows:", nrow(df), "\n")
+  
+  # Step 1: Calculate consensus position for each UMI + cell_barcode group
+  umi_consensus_positions <- df %>%
+    filter(!is.na(cell_barcode), !is.na(umi), 
+           cell_barcode != "", umi != "") %>%
+    group_by(cell_barcode, umi) %>%
+    summarise(
+      consensus_read1_pos = round(median(read1_pos, na.rm = TRUE)),
+      total_reads_before_filter = n(),
+      position_range = max(read1_pos, na.rm = TRUE) - min(read1_pos, na.rm = TRUE),
+      .groups = 'drop'
+    )
+  
+  cat("Found", nrow(umi_consensus_positions), "unique UMI+cell combinations\n")
+  
+  # Step 2: Filter original data to keep only reads matching consensus positions
+  df_with_consensus <- df %>%
+    filter(!is.na(cell_barcode), !is.na(umi), 
+           cell_barcode != "", umi != "") %>%
+    left_join(umi_consensus_positions, by = c("cell_barcode", "umi")) %>%
+    mutate(matches_consensus = read1_pos == consensus_read1_pos) %>%
+    filter(matches_consensus == TRUE) %>%
+    select(-matches_consensus, -total_reads_before_filter, -position_range)
+  
+  reads_discarded <- nrow(df) - nrow(df_with_consensus)
+  cat("Discarded", reads_discarded, "reads that didn't match consensus positions\n")
+  
+  # Step 3: Create final consensus dataframe from filtered data
+  umi_consensus_final <- df_with_consensus %>%
+    group_by(cell_barcode, umi) %>%
+    summarise(
+      read1_pos = first(consensus_read1_pos),  # All should be identical now
+      read2_pos = round(median(read2_pos, na.rm = TRUE)),
+      read_count = n(),  # Count of reads that matched consensus
+      
+      # Consensus of other measurements from matching reads only
+      polya_length = round(median(polya_length, na.rm = TRUE), 1),
+      genomic_sequence_length = round(median(genomic_sequence_length, na.rm = TRUE)),
+      
+      # Representative sequence from matching reads
+      genomic_alignment_sequence = {
+        seqs <- genomic_alignment_sequence[!is.na(genomic_alignment_sequence)]
+        if (length(seqs) > 0) {
+          seq_counts <- table(seqs)
+          names(seq_counts)[which.max(seq_counts)]
+        } else {
+          NA_character_
+        }
+      },
+      
+      .groups = 'drop'
+    ) %>%
+    select(-consensus_read1_pos) %>%
+    arrange(cell_barcode, read1_pos)
+  
+  cat("Final consensus rows:", nrow(umi_consensus_final), "\n")
+  cat("Total reads retained:", sum(umi_consensus_final$read_count), "\n")
+  cat("Reads discarded:", reads_discarded, "(", round(reads_discarded/nrow(df)*100, 1), "%)\n")
+  
+  # Report on filtering impact
+  groups_with_outliers <- umi_consensus_positions %>%
+    filter(position_range > 0) %>%
+    nrow()
+  
+  cat("UMI groups that had position outliers:", groups_with_outliers, "\n")
+  
+  return(list(
+    consensus_df = umi_consensus_final,
+    filtering_stats = list(
+      original_reads = nrow(df),
+      reads_retained = sum(umi_consensus_final$read_count),
+      reads_discarded = reads_discarded,
+      groups_with_outliers = groups_with_outliers,
+      consensus_positions = umi_consensus_positions
+    )
+  ))
+}
+
+# Apply the filtering function
+result <- create_umi_consensus_df_filtered(dualread_umi_clustered)
+umi_consensus_filtered <- result$consensus_df
+filtering_stats <- result$filtering_stats
+
+# Display results
+cat("\n", "="*50, "\n")
+cat("FILTERED UMI CONSENSUS RESULTS\n")
+cat("="*50, "\n")
+
+print("Filtering Statistics:")
+print(filtering_stats[1:4])  # Don't print the full consensus_positions table
+```
+

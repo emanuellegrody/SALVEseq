@@ -1,22 +1,23 @@
 #!/usr/bin/env python3
 
 """
-BAM Splice Site Analysis Tool
+BAM Splice Site Analysis Tool for Long Read Sequencing
 
 Description:
     Extracts splice junction information from BAM files by identifying reads with
     large introns (N ≥1000bp) preceded by substantial alignments (M ≥20bp).
+    Consolidates identical splice junctions and properly handles UMI information
+    for long read sequencing data.
 
 Input:
     - BAM file: Aligned reads
-    - Output CSV path: File to write splice junction data
+    - Output CSV path: File to write consolidated splice junction data
 
 Output CSV Columns:
     - CB: Cell barcode (10x Genomics format)
-    - UB: UMI barcode (Unique Molecular Identifier)
-    - CIGAR: CIGAR string of the read alignment
-    - Read sequence: Full query sequence of the read
-    - Sequence after the N: Sequence portion after the splice junction
+    - UMI_list: Comma-separated list of unique UMIs for this splice junction (from UR tag)
+    - CIGAR: CIGAR strings (semicolon-separated)
+    - Sequence_after_N: Sequence portion after the splice junction (from first occurrence)
     - Before_N_M_coords: Genomic coordinates of alignment before splice (chr:start-end)
     - After_N_M_coords: Genomic coordinates of alignment after splice (chr:start-end)
     - Donor: Last nucleotide position of the splice donor site (0-based)
@@ -30,7 +31,7 @@ Filtering Criteria:
     - Requires alignment pattern: ≥20M + ≥1000N + M (match-intron-match)
 
 Usage:
-    python3 bamsort_splice.py input.bam output.csv [--include-all-splicing]
+    python3 bamsort_splice_longread.py input.bam output.csv [--include-all-splicing]
 
 """
 
@@ -39,6 +40,7 @@ import csv
 import sys
 import argparse
 import os
+from collections import defaultdict
 
 
 def find_splice_junctions(read, min_intron_size=1000, min_match_size=20):
@@ -108,7 +110,7 @@ def find_splice_junctions(read, min_intron_size=1000, min_match_size=20):
                         next_op, next_length = read.cigartuples[i + 1]
                         if next_op == 0:  # Next operation is M
                             afterM_coords = (
-                            read.reference_name, after_intron_ref_pos, after_intron_ref_pos + next_length)
+                                read.reference_name, after_intron_ref_pos, after_intron_ref_pos + next_length)
 
                             # Extract sequence after the intron (fixed)
                             query_start_after_intron = query_positions[i + 1]
@@ -133,6 +135,55 @@ def validate_inputs(bam_file, output_csv):
         raise PermissionError(f"Cannot write to output directory: {output_dir}")
 
 
+class SpliceJunctionData:
+    """Class to store and consolidate splice junction information."""
+
+    def __init__(self, cb, umi, cigar, seq_after_n, before_coords, after_coords, donor, acceptor, reference):
+        self.cb = cb
+        self.umis = set([umi]) if umi else set()
+        self.cigars = [cigar]
+        self.seq_after_n = seq_after_n
+        self.before_coords = before_coords
+        self.after_coords = after_coords
+        self.donor = donor
+        self.acceptor = acceptor
+        self.reference = reference
+        self.read_count = 1
+
+    def add_read(self, umi, cigar):
+        """Add another read with the same splice junction."""
+        if umi:
+            self.umis.add(umi)
+        if len(self.cigars) < 3:  # Keep up to 3 example CIGARs
+            self.cigars.append(cigar)
+        self.read_count += 1
+
+    def get_junction_key(self):
+        """Generate unique key for this splice junction."""
+        return (self.cb, self.before_coords, self.after_coords, self.donor, self.acceptor, self.reference)
+
+    def to_csv_row(self):
+        """Convert to CSV row format."""
+        umi_list = ",".join(sorted(self.umis)) if self.umis else ""
+        umi_count = len(self.umis)
+        cigar_examples = ";".join(self.cigars[:3])
+
+        before_str = f"{self.before_coords[0]}:{self.before_coords[1]}-{self.before_coords[2]}" if self.before_coords else ""
+        after_str = f"{self.after_coords[0]}:{self.after_coords[1]}-{self.after_coords[2]}" if self.after_coords else ""
+
+        return [
+            self.cb,
+            umi_list,
+            cigar_examples,
+            self.seq_after_n,
+            before_str,
+            after_str,
+            self.donor,
+            self.acceptor,
+            self.reference
+        ]
+
+
 def main(bam_file, output_csv, include_all_splicing=False,
          min_intron_size=1000, min_match_size=20):
     # Validate inputs
@@ -147,94 +198,128 @@ def main(bam_file, output_csv, include_all_splicing=False,
     total_reads = 0
     reads_processed = 0
     reads_wrong_ref = 0
-    reads_wrong_xf = 0
     reads_no_splice = 0
-    junctions_found = 0
+    raw_junctions_found = 0
+
+    # Dictionary to store consolidated splice junctions
+    # Key: (CB, before_coords, after_coords, donor, acceptor, reference)
+    junction_data = {}
 
     try:
+        for read in bam:
+            total_reads += 1
+
+            if read.is_unmapped or read.cigartuples is None:
+                continue
+
+            reads_processed += 1
+
+            # Reference filtering
+            if not include_all_splicing:
+                if read.reference_name != "mac239":
+                    reads_wrong_ref += 1
+                    continue
+
+
+            # Find all splice junctions in this read
+            junctions = find_splice_junctions(read, min_intron_size, min_match_size)
+
+            if junctions:
+                # Extract read-level information
+                cb = read.get_tag("CB") if read.has_tag("CB") else ""
+
+                # Handle UMI extraction - try different possible tag names for long reads
+                umi = ""
+                if read.has_tag("UB"):
+                    umi = read.get_tag("UB")
+                elif read.has_tag("UR"):
+                    umi = read.get_tag("UR")
+
+                # Convert UMI to string if it exists
+                umi = str(umi) if umi is not None else ""
+
+                cigarstring = read.cigarstring
+
+                # Process each junction found in this read
+                for seq_after_N, beforeM_coords, afterM_coords in junctions:
+                    raw_junctions_found += 1
+
+                    # Extract donor and acceptor positions
+                    donor = beforeM_coords[2] - 1 if beforeM_coords else ""  # Last base of before_M (0-based)
+                    acceptor = afterM_coords[1] if afterM_coords else ""  # First base of after_M
+
+                    # Create junction data object
+                    junction_obj = SpliceJunctionData(
+                        cb, umi, cigarstring, seq_after_N, beforeM_coords,
+                        afterM_coords, donor, acceptor, read.reference_name
+                    )
+
+                    # Get unique key for this junction
+                    junction_key = junction_obj.get_junction_key()
+
+                    # Consolidate identical junctions
+                    if junction_key in junction_data:
+                        junction_data[junction_key].add_read(umi, cigarstring)
+                    else:
+                        junction_data[junction_key] = junction_obj
+            else:
+                reads_no_splice += 1
+
+        # Write consolidated results to CSV
         with open(output_csv, "w", newline="") as csvfile:
             writer = csv.writer(csvfile)
             writer.writerow([
-                "CB", "UB", "CIGAR", "Read sequence",
-                "Sequence after the N",
-                "Before_N_M_coords", "After_N_M_coords",
+                "CB", "UMI", "CIGAR",
+                "Sequence_after_N", "Before_N_M_coords", "After_N_M_coords",
                 "Donor", "Acceptor", "Reference"
             ])
 
-            for read in bam:
-                total_reads += 1
+            # Sort junctions by CB, then by genomic position
+            sorted_junctions = sorted(
+                junction_data.values(),
+                key=lambda x: (x.cb, x.reference, x.donor, x.acceptor)
+            )
 
-                if read.is_unmapped or read.cigartuples is None:
-                    continue
-
-                reads_processed += 1
-
-                # Reference filtering
-                if not include_all_splicing:
-                    if read.reference_name != "mac239":
-                        reads_wrong_ref += 1
-                        continue
-
-                # Check xf tag
-                if not (read.has_tag("xf") and read.get_tag("xf") == 25):
-                    reads_wrong_xf += 1
-                    continue
-
-                # Find all splice junctions in this read
-                junctions = find_splice_junctions(read, min_intron_size, min_match_size)
-
-                if junctions:
-                    # Extract read-level information
-                    cb = read.get_tag("CB") if read.has_tag("CB") else ""
-                    ub = read.get_tag("UB") if read.has_tag("UB") else ""
-                    cigarstring = read.cigarstring
-                    sequence = read.query_sequence or ""
-
-                    # Process each junction found in this read
-                    for seq_after_N, beforeM_coords, afterM_coords in junctions:
-                        before_str = f"{beforeM_coords[0]}:{beforeM_coords[1]}-{beforeM_coords[2]}" if beforeM_coords else ""
-                        after_str = f"{afterM_coords[0]}:{afterM_coords[1]}-{afterM_coords[2]}" if afterM_coords else ""
-
-                        # Extract donor and acceptor positions
-                        donor = beforeM_coords[2] - 1 if beforeM_coords else ""  # Last base of before_M (0-based)
-                        acceptor = afterM_coords[1] if afterM_coords else ""  # First base of after_M
-
-                        writer.writerow([cb, ub, cigarstring, sequence, seq_after_N,
-                                         before_str, after_str, donor, acceptor, read.reference_name])
-                        junctions_found += 1
-                else:
-                    reads_no_splice += 1
+            for junction in sorted_junctions:
+                writer.writerow(junction.to_csv_row())
 
     finally:
         bam.close()
 
     # Print statistics
+    consolidated_junctions = len(junction_data)
+    total_umis = sum(len(j.umis) for j in junction_data.values())
+    total_consolidated_reads = sum(j.read_count for j in junction_data.values())
+
     print(f"Processing complete!")
     print(f"Total reads examined: {total_reads}")
     print(f"Reads processed (mapped with CIGAR): {reads_processed}")
     if not include_all_splicing:
         print(f"Reads from non-mac239 references: {reads_wrong_ref}")
-    print(f"Reads without xf:i:25 tag: {reads_wrong_xf}")
     print(f"Reads without qualifying splice pattern: {reads_no_splice}")
-    print(f"Splice junctions found: {junctions_found}")
+    print(f"Raw splice junctions found: {raw_junctions_found}")
+    print(f"Consolidated unique junctions: {consolidated_junctions}")
+    print(f"Total unique UMIs across all junctions: {total_umis}")
+    print(f"Total reads supporting junctions: {total_consolidated_reads}")
+    print(f"Average reads per junction: {total_consolidated_reads / consolidated_junctions:.2f}")
     print(f"Parameters: min_intron={min_intron_size}bp, min_match={min_match_size}bp")
     print(f"Output file: {output_csv}")
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Extract splice junctions using reverse lookup (N-first) method",
+        description="Extract splice junctions with enhanced UMI detection for long reads",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
   # Default: N≥1000bp, M≥20bp, mac239 only
-  python3 bamsort_splice.py input.bam output.csv
+  python3 bamsort_splice_longread.py input.bam output.csv
 
   # Custom thresholds
-  python3 bamsort_splice.py input.bam output.csv --min-intron 500 --min-match 15
+  python3 bamsort_splice_longread.py input.bam output.csv --min-intron 500 --min-match 15
 
   # Include all references
-  python3 bamsort_splice.py input.bam output.csv --include-all-splicing
+  python3 bamsort_splice_longread.py input.bam output.csv --include-all-splicing
         """
     )
 

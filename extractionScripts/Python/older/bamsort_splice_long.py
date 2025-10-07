@@ -26,7 +26,6 @@ Output CSV Columns:
 Filtering Criteria:
     - Default: Only processes reads mapped to 'mac239' reference
     - With --include-all-splicing: Processes reads from all references
-    - Only includes reads with xf tag = 25 (specific alignment flag)
     - Requires alignment pattern: ≥20M + ≥1000N + M (match-intron-match)
 
 Usage:
@@ -147,7 +146,6 @@ def main(bam_file, output_csv, include_all_splicing=False,
     total_reads = 0
     reads_processed = 0
     reads_wrong_ref = 0
-    reads_wrong_xf = 0
     reads_no_splice = 0
     junctions_found = 0
 
@@ -174,11 +172,6 @@ def main(bam_file, output_csv, include_all_splicing=False,
                     if read.reference_name != "mac239":
                         reads_wrong_ref += 1
                         continue
-
-                # Check xf tag
-                if not (read.has_tag("xf") and read.get_tag("xf") == 25):
-                    reads_wrong_xf += 1
-                    continue
 
                 # Find all splice junctions in this read
                 junctions = find_splice_junctions(read, min_intron_size, min_match_size)
@@ -214,7 +207,6 @@ def main(bam_file, output_csv, include_all_splicing=False,
     print(f"Reads processed (mapped with CIGAR): {reads_processed}")
     if not include_all_splicing:
         print(f"Reads from non-mac239 references: {reads_wrong_ref}")
-    print(f"Reads without xf:i:25 tag: {reads_wrong_xf}")
     print(f"Reads without qualifying splice pattern: {reads_no_splice}")
     print(f"Splice junctions found: {junctions_found}")
     print(f"Parameters: min_intron={min_intron_size}bp, min_match={min_match_size}bp")

@@ -1,0 +1,995 @@
+---
+title: "F31"
+author: "Emanuelle Grody"
+date: "2024-11-22"
+output: html_document
+---
+
+The goals of this scRNAseq analysis is to observe host factor heterogeneity from 10X data. I performed this analysis in both uninfected and infected samples.
+
+```{r, echo = FALSE}
+library(dplyr)
+library(stringr)
+library(Seurat)
+library(patchwork)
+library(scCustomize)
+library(ggplot2)
+library(reshape2)
+library(svglite)
+library(DescTools)
+library(ggrepel)
+```
+
+
+# Host data
+## Functions
+
+```{r}
+# for creating Seurat objects and standard processing
+SeuratPipeline <- function(file_location, sample_name, output_dir = "/projects/b1042/GoyalLab/egrody/", plots = FALSE, rds = FALSE) {
+  #if you would like to output plots from this pipeline, pass entries for the plots and output_dir variables
+  
+  # Reading in feature matrices
+  data <- Read10X(data.dir = file_location)
+  # Initialize the Seurat object with the raw (non-normalized data)
+  sample <- CreateSeuratObject(counts = data, project = sample_name, min.cells = 3, min.features = 200)
+  # QC
+  sample <- Add_Mito_Ribo(sample, species = "macaque")
+  if (plots) {
+    vplot <- VlnPlot(sample, features = c("nFeature_RNA", "nCount_RNA", "percent_mito"), ncol = 3)
+    ggsave(vplot, file = paste0(output_dir, sample_name, "_preQC_violinplot.svg"))
+  }
+  sample <- subset(sample, subset = nFeature_RNA > 200 & nFeature_RNA < 3500 & nCount_RNA < 20000 & percent_mito < 5)
+  if (plots) {
+    vplot <- VlnPlot(sample, features = c("nFeature_RNA", "nCount_RNA", "percent_mito"), ncol = 3)
+    ggsave(vplot, file = paste0(output_dir, sample_name, "_postQC_violinplot.svg"))
+  }
+  # Normalizing
+  sample <- NormalizeData(sample, verbose = FALSE)
+  # Feature selection
+  sample <- FindVariableFeatures(sample, selection.method = "vst", nfeatures = 2000, verbose = FALSE)
+  # Scaling
+  genes <- rownames(sample)
+  sample <- ScaleData(sample, features = genes, verbose = FALSE)
+  # Linear dimension reduction
+  sample <- RunPCA(sample, features = VariableFeatures(object = sample), verbose = FALSE)
+  if (plots) {
+    eplot <- ElbowPlot(sample, ndims = 50)
+    ggsave(eplot, file = paste0(output_dir, sample_name, "_elbow.svg"))
+  }
+  # Clustering
+  sample <- FindNeighbors(sample, dims = 1:30, verbose = FALSE)
+  sample <- FindClusters(sample, resolution = 0.5, verbose = FALSE)
+  # Dimension reduction
+  sample <- RunUMAP(sample, dims = 1:30, verbose = FALSE)#, umap.method = "umap-learn", metric = "correlation")
+  if (plots) {
+    dplot <- DimPlot(sample, reduction = "umap")
+    ggsave(dplot, file = paste0(output_dir, sample_name, "_umap.svg"))
+  }
+  if (rds) {
+    saveRDS(sample, file = paste0(output_dir, sample_name, ".rds"))
+  }
+  
+  # Return the variable
+  return(sample)
+}
+
+# for isolating a single/list of gene's expression from Seurat object
+geneCountCellID <- function(seurat_obj, genes, count_type = "normalized") {
+  if (!is.vector(genes)) {
+    genes <- c(genes)
+  }
+  all_results <- list()
+  
+  for (gene in genes) {
+    tryCatch({
+      if (count_type == "raw") {
+        expression <- GetAssayData(object = seurat_obj, assay = "RNA", layer = "counts")[gene,]
+      } else {
+        expression <- GetAssayData(object = seurat_obj, assay = "RNA", layer = "data")[gene,]
+      }
+      
+      SingleCell <- data.frame(
+        cellID = names(expression),
+        Count = unname(expression), 
+        gene = gene,
+        stringsAsFactors = FALSE
+      ) %>%
+        mutate(cellID = str_sub(cellID, end = -3))
+      
+      all_results[[gene]] <- SingleCell
+      
+    }, error = function(e) {
+      message(paste("Error processing gene:", gene))
+      message(e)
+      all_results[[gene]] <- NULL  # Store NULL for failed genes
+    })
+  }
+  
+  if (length(genes) == 1) {
+    return(all_results[[1]])
+  }
+  return(all_results)
+}
+
+# for creating gene count, cellID, UMAP dataframes
+# requires geneCountCellID() output passed as geneCellID_var
+geneUMAPCellID <- function(seurat_obj, geneCellID_var) {
+  coords <- as.data.frame(seurat_obj[["umap"]]@cell.embeddings)
+  umap_base <- data.frame(
+    cellID = rownames(coords), 
+    UMAP1 = coords[,1],
+    UMAP2 = coords[,2]
+  ) %>%
+    mutate(cellID = str_sub(cellID, end = -3))
+  
+  if (is.data.frame(geneCellID_var)) {
+    gene_name <- unique(geneCellID_var$gene)
+    geneCellID_var <- list(geneCellID_var)
+    names(geneCellID_var) <- gene_name
+  }
+  
+  all_results <- list()
+  
+  for (gene_name in names(geneCellID_var)) {
+    tryCatch({
+      joint <- inner_join(umap_base, geneCellID_var[[gene_name]], by = "cellID")
+      
+      all_results[[gene_name]] <- joint
+      
+    }, error = function(e) {
+      message(paste("Error processing UMAP for gene:", gene_name))
+      message(e)
+      all_results[[gene_name]] <- NULL
+    })
+  }
+  
+  if (length(all_results) == 1) {
+    return(all_results[[1]])
+  }
+  
+  return(all_results)
+}
+
+# for plotting geneUMAPCellID dataframes
+plotGeneUMAPs <- function(umap_data, output_dir = "umap_plots", width = 7, height = 7) {
+  if (is.data.frame(umap_data)) {
+    gene_name <- unique(umap_data$gene)
+    umap_data <- list(umap_data)
+    names(umap_data) <- gene_name
+  }
+
+  for (gene_name in names(umap_data)) {
+    tryCatch({
+      plot <- ggplot(umap_data[[gene_name]], aes(x = UMAP1, y = UMAP2)) +
+        geom_point(aes(color = Count), size = 1, shape = 16) +
+        scale_color_gradient(low = "gray93", high = "darkblue") +
+        theme_classic() +
+        theme(legend.position = "bottom",
+              legend.title = element_text(size = rel(0.6)),
+              legend.text = element_text(size = rel(0.6), angle = 30),
+              axis.text = element_blank(),
+              axis.ticks = element_blank()) +
+        labs(title = gene_name, color = "")
+      
+      output_file <- file.path(output_dir, paste0(gene_name, "_umap.svg"))
+      ggsave(output_file, plot, width = width, height = height)
+      
+    }, error = function(e) {
+      message(paste("Error creating plot for gene:", gene_name))
+      message(e)
+    })
+  }
+}
+
+# for plotting gene expression violin plots, plots by cell cluster
+plotGeneViolin <- function(seurat_obj, genes, output_dir = "violin_plots", width = 7, height = 5, 
+                          group.by = "seurat_clusters", split.by = NULL) {
+  if (!is.vector(genes)) {
+    genes <- c(genes)
+  }
+
+  for (gene in genes) {
+    tryCatch({
+      output_file <- file.path(output_dir, paste0(gene, "_violin.svg"))
+      svg(output_file, width = width, height = height)
+
+      plot <- VlnPlot(seurat_obj, 
+                      features = gene,
+                      group.by = group.by,
+                      split.by = split.by,
+                      pt.size = 0) + # Remove points for cleaner look
+        theme_classic() +
+        theme(legend.position = "bottom",
+              axis.text.x = element_text(angle = 45, hjust = 1),
+              plot.title = element_text(hjust = 0.5)) +
+        labs(x = group.by, y = "Expression")
+      
+      print(plot)
+      dev.off()
+      
+    }, error = function(e) {
+      message(paste("Error creating violin plot for gene:", gene))
+      message(e)
+      if (dev.cur() > 1) dev.off()  # Close device if error occurs
+    })
+  }
+}
+
+# for plotting gene expression violin plots of multiple genes per Seurat object
+plotGenesViolinCombined <- function(seurat_obj, genes, output_dir = "violin_plots", 
+                                   width = 7, height = 5) {
+  if (!is.vector(genes)) {
+    genes <- c(genes)
+  }
+  
+  tryCatch({
+    exp_data <- FetchData(seurat_obj, vars = genes)
+    exp_data_long <- exp_data %>%
+      tidyr::pivot_longer(cols = everything(),
+                         names_to = "Gene",
+                         values_to = "Expression")
+    output_file <- file.path(output_dir, "combined_violin.svg")
+    svg(output_file, width = width, height = height)
+    
+    plot <- ggplot(exp_data_long, aes(x = Gene, y = Expression)) +
+      geom_violin(fill = "lightblue", alpha = 0.5) +
+      theme_classic() +
+      theme(axis.text.x = element_text(angle = 45, hjust = 1),
+            plot.title = element_text(hjust = 0.5)) +
+      labs(title = "Gene Expression Distribution",
+           x = "Gene",
+           y = "Expression")
+    
+    print(plot)
+    dev.off()
+    
+  }, error = function(e) {
+    message("Error creating combined violin plot")
+    message(e)
+    if (dev.cur() > 1) dev.off()
+  })
+}
+
+# For calculating the Gini index of a gene
+calculateGeneGini <- function(seurat_obj, gene, assay = "RNA", layer = "data") {
+    if (!gene %in% rownames(seurat_obj)) {
+        stop("Gene not found in the expression matrix")
+    }
+    expr_values <- GetAssayData(seurat_obj, assay = assay, layer = layer)[gene,]
+    gini_coef <- Gini(expr_values)
+    
+    return(list(
+        gene = gene,
+        gini_coefficient = gini_coef,
+        mean_expression = mean(expr_values),
+        percent_expressed = mean(expr_values > 0) * 100,
+        total_cells = length(expr_values)
+    ))
+}
+
+# Function to calculate Gini for multiple genes
+calculateMultiGeneGini <- function(seurat_obj, genes = NULL, assay = "RNA", layer = "data") {
+    # If no genes provided, use all genes in the assay
+    if (is.null(genes)) {
+        genes <- rownames(seurat_obj)
+    }
+    
+    results <- lapply(genes, function(g) {
+        tryCatch({
+            calculateGeneGini(seurat_obj, g, assay, layer)
+        }, error = function(e) {
+            message("Error processing gene ", g, ": ", e$message)
+            return(NULL)
+        })
+    })
+    results_df <- do.call(rbind, lapply(results[!sapply(results, is.null)], function(x) {
+        data.frame(
+            gene = x$gene,
+            gini_coefficient = x$gini_coefficient,
+            mean_expression = x$mean_expression,
+            percent_expressed = x$percent_expressed,
+            total_cells = x$total_cells
+        )
+    }))
+    results_df <- results_df[order(-results_df$gini_coefficient),]
+    rownames(results_df) <- NULL
+    
+    return(results_df)
+}
+```
+
+
+## Figure 1B
+
+### Load data
+
+```{r Seurat function}
+output_dir = "/projects/b1042/GoyalLab/egrody/F31/Resubmission/"
+d0 <- SeuratPipeline("/projects/b1042/GoyalLab/egrody/20240116_VISER_SALVEseq/EGS004/scRNAseq/counts/cellranger_count_D0/outs/filtered_feature_bc_matrix/", "d0", output_dir = output_dir, plots = "FALSE")
+d13 <- SeuratPipeline("/projects/b1042/GoyalLab/egrody/20240116_VISER_SALVEseq/EGS004/scRNAseq/counts/cellranger_count_D13/outs/filtered_feature_bc_matrix_scPathoQuant_bbmap/", "d13", output_dir = output_dir, plots = "FALSE")
+```
+
+### Host factors
+
+```{r}
+host_genes <- c(
+  "APOBEC3G",
+  "BST2",
+  "CCNT1",
+  "PSIP1",
+  "SAMHD1",
+  "TRIM5",
+  "CD4"
+)
+
+d0_hostgenes <- geneCountCellID(d0, host_genes)
+d13_hostgenes <- geneCountCellID(d13, host_genes)
+
+d0_hostgenes_umap <- geneUMAPCellID(d0, d0_hostgenes)
+d13_hostgenes_umap <- geneUMAPCellID(d13, d13_hostgenes)
+#write.csv(SingleCell_KLRB1_umap, paste0(output.dir, "KLRB1_SingleCellUMAP.csv"))
+```
+
+```{r}
+output_dir = "/projects/b1042/GoyalLab/egrody/F31/Resubmission/"
+plotGeneUMAPs(d0_hostgenes_umap, output_dir = paste0(output_dir, "d0/"))
+plotGeneUMAPs(d13_hostgenes_umap, output_dir = paste0(output_dir, "d13/"))
+```
+
+```{r}
+plotGeneViolin(d0, host_genes, output_dir = paste0(output_dir, "d0/"))
+plotGeneViolin(d13, host_genes, output_dir = paste0(output_dir, "d13/"))
+
+plotGenesViolinCombined(d0, host_genes, output_dir = paste0(output_dir, "d0/"))
+plotGenesViolinCombined(d13, host_genes, output_dir = paste0(output_dir, "d13/"))
+```
+
+### Gini coefficient
+```{r}
+d0$CD4_yn <- ifelse(GetAssayData(d0, layer = "data")["CD4",] > 0.5, "+", "-")
+d0.cd4 <- subset(d0, CD4_yn == "+")
+results_d0 <- calculateMultiGeneGini(d0.cd4)
+
+d13$CD4_yn <- ifelse(GetAssayData(d13, layer = "data")["CD4",] > 0.5, "+", "-")
+d13.cd4 <- subset(d13, CD4_yn == "+")
+results_d13 <- calculateMultiGeneGini(d13.cd4)
+```
+
+Saving
+```{r}
+output_dir <- "/projects/b1042/GoyalLab/egrody/F31/Resubmission/"
+write.csv(results_d0, file = paste0(output_dir, "d0/d0_gini_allgenes.csv"), row.names = FALSE)
+write.csv(results_d13, file = paste0(output_dir, "d13/d13_gini_allgenes.csv"), row.names = FALSE)
+```
+
+Plotting each
+```{r}
+plotGiniHistogram <- function(results_df, genes_to_label = c("CD4", "TRIM5", "APOBEC3G", "CCNT1", "SAMHD1", "BST2", "PSIP1")) {
+    # Create breaks and labels for coloring
+    breaks <- c(-Inf, 0.2, 0.4, 0.6, 0.8, 0.9, Inf)
+    labels <- c("Very Low", "Low", "Moderate", "High", "Very High", "Extreme")
+    colors <- c("#FEF0D9", "#FDCC8A", "#FC8D59", "#E34A33", "#B30000", "#7A0000")
+    
+    # Add category to data
+    results_df$category <- cut(results_df$gini_coefficient, 
+                             breaks = breaks,
+                             labels = labels,
+                             include.lowest = TRUE)
+    
+    # Basic histogram with colored bins
+    p <- ggplot(results_df, aes(x = gini_coefficient, fill = category)) +
+        geom_histogram(binwidth = 0.02, 
+                      color = "black",
+                      linewidth = 0.2,
+                      alpha = 0.9) +
+        
+        # Add labels for genes of interest
+        geom_text_repel(
+            data = subset(results_df, gene %in% genes_to_label),
+            aes(x = gini_coefficient, 
+                y = 0,
+                label = sprintf("%s\n(%.2f)", gene, gini_coefficient)),
+            direction = "y",
+            hjust = 0,
+            nudge_y = 1,
+            min.segment.length = 0,
+            size = 4.5,
+            fontface = "bold"
+        ) +
+        
+        # Color scheme
+        scale_fill_manual(values = colors,
+                         name = "Expression\nSpecificity") +
+        
+        # Log1p scale for y-axis
+        scale_y_continuous(
+            trans = "log1p",
+            breaks = c(0, 10, 100, 1000, 10000),
+            labels = scales::comma
+        ) +
+        
+        # Customize theme
+        theme_minimal() +
+        labs(
+            x = "Gini Coefficient",
+            y = "Number of Genes (log1p scale)",
+            title = "Distribution of Gene Expression Specificity",
+            subtitle = paste("Number of cells:", unique(results_df$total_cells))
+        ) +
+        theme(
+            panel.grid.minor = element_blank(),
+            panel.grid.major = element_line(color = "gray90"),
+            legend.position = "right",
+            axis.text = element_text(size = 10),
+            axis.title = element_text(size = 12),
+            title = element_text(size = 14)
+        )
+    
+    return(p)
+}
+
+# For your specific genes
+plot <- plotGiniHistogram(results_df)
+output_dir <- "/projects/b1042/GoyalLab/egrody/F31/Resubmission/" #update
+ggsave(plot, file = paste0(output_dir, "d0_gini_barplot.svg"))
+```
+
+Plotting Sankey
+```{r}
+# Install required packages if you haven't already
+library(ggalluvial)
+library(tidyr)
+
+category_levels <- c("Extreme", "Very High", "High", "Moderate", "Low", "Very Low")
+# Example data structure - replace with your actual data
+data <- left_join(results_d0, results_d13, by = "gene") %>%
+  mutate(
+    d0_category = case_when(
+      gini_coefficient.x <= 0.2 ~ "Very Low",
+      gini_coefficient.x <= 0.4 ~ "Low",
+      gini_coefficient.x <= 0.6 ~ "Moderate",
+      gini_coefficient.x <= 0.8 ~ "High",
+      gini_coefficient.x <= 0.9 ~ "Very High",
+      TRUE ~ "Extreme"
+    ),
+    d13_category = case_when(
+      gini_coefficient.y <= 0.2 ~ "Very Low",
+      gini_coefficient.y <= 0.4 ~ "Low",
+      gini_coefficient.y <= 0.6 ~ "Moderate",
+      gini_coefficient.y <= 0.8 ~ "High",
+      gini_coefficient.y <= 0.9 ~ "Very High",
+      TRUE ~ "Extreme"
+    ),
+    # Add highlight for genes of interest
+    highlight = gene %in% host_genes
+  ) %>%
+  mutate(
+    d0_category = factor(d0_category, levels = category_levels),
+    d13_category = factor(d13_category, levels = category_levels)
+  )
+
+# Create annotation data for labels
+# Calculate positions for the start timepoint
+label_data_start <- data %>%
+  filter(highlight) %>%
+  mutate(
+    x = 1,
+    y = -as.numeric(d0_category),  # Use category position for initial y
+    xend = 1,
+    yend = -as.numeric(d0_category),
+    label_x = 0.7,  # Position labels to the left
+    label_y = -as.numeric(d0_category)
+  )
+
+# Calculate positions for the end timepoint
+label_data_end <- data %>%
+  filter(highlight) %>%
+  mutate(
+    x = 2,
+    y = -as.numeric(d13_category),  # Use category position for initial y
+    xend = 2,
+    yend = -as.numeric(d13_category),
+    label_x = 2.3,  # Position labels to the right
+    label_y = -as.numeric(d13_category)
+  )
+
+sankey <- ggplot(data,
+       aes(y = 1, 
+           axis1 = d0_category, 
+           axis2 = d13_category)) +
+  # Main flow diagram
+  geom_alluvium(aes(fill = d0_category,
+                    alpha = highlight)) +
+  geom_stratum(width = 1/12) +
+  geom_text(stat = "stratum", 
+            aes(label = after_stat(stratum))) +
+  
+  # Add connecting lines for labels
+  geom_segment(data = label_data_start,
+              aes(x = x, xend = label_x,
+                  y = yend, yend = label_y),
+              arrow = arrow(length = unit(0.2, "cm")),
+              color = "black",
+              size = 0.5) +
+  geom_segment(data = label_data_end,
+              aes(x = x, xend = label_x,
+                  y = yend, yend = label_y),
+              arrow = arrow(length = unit(0.2, "cm")),
+              color = "black",
+              size = 0.5) +
+  
+  # Add labels
+  geom_text(data = label_data_start,
+            aes(x = label_x, y = label_y, label = gene),
+            hjust = 1,  # Right-align text for left side
+            size = 4,
+            fontface = "bold") +
+  geom_text(data = label_data_end,
+            aes(x = label_x, y = label_y, label = gene),
+            hjust = 0,  # Left-align text for right side
+            size = 4,
+            fontface = "bold") +
+  
+  scale_x_continuous(breaks = 1:2, 
+                    labels = c("d0", "d13"),
+                    limits = c(0.5, 2.5)) +  # Expanded limits for labels
+  scale_fill_manual(values = c(
+    "Very Low" = "#F5E6D3",
+    "Low" = "#FFAD60",
+    "Moderate" = "#FF7F00",
+    "High" = "#FF4040",
+    "Very High" = "#AA0000",
+    "Extreme" = "#550000"
+  )) +
+  scale_alpha_manual(values = c("TRUE" = 1, "FALSE" = 0.3)) +
+  theme_minimal() +
+  theme(axis.title = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks = element_blank(),
+        plot.margin = margin(1, 1, 1, 1, "cm")) +  # Add margin for labels
+  labs(fill = "Gini Category",
+       alpha = "Highlighted Genes")
+ggsave(sankey, file = paste0(output_dir, "sankey.svg"))
+```
+
+
+### Gini with minimum threshold
+```{r}
+# Get normalized data
+expr_matrix <- GetAssayData(d0.cd4, layer = "data")
+
+# Set threshold
+expression_threshold <- 0.5
+expr_matrix_thresholded <- expr_matrix
+expr_matrix_thresholded[expr_matrix_thresholded < expression_threshold] <- 0
+
+# Calculate Gini for all genes
+all_genes <- rownames(expr_matrix)
+results_df <- calculateMultiGeneGini(all_genes, expr_matrix_thresholded)
+```
+
+
+
+
+## Integrated Analysis
+
+### Integration (SKIP)
+
+```{r}
+d0_dir <- "/projects/b1042/GoyalLab/egrody/20240116_VISER_SALVEseq/EGS004/scRNAseq/counts/cellranger_count_D0/outs/filtered_feature_bc_matrix/"
+d13_dir <- "/projects/b1042/GoyalLab/egrody/20240116_VISER_SALVEseq/EGS004/scRNAseq/counts/cellranger_count_D13/outs/filtered_feature_bc_matrix_scPathoQuant_bbmap/"
+
+d0.data <- Read10X(data.dir = d0_dir)
+d0 <- CreateSeuratObject(counts = d0.data, project = "d0", min.cells = 3, min.features = 100)
+d0@meta.data$orig.ident <- factor(rep("d0", nrow(d0@meta.data)))
+Idents(d0) <- d0@meta.data$orig.ident
+
+d13.data <- Read10X(data.dir = d13_dir)
+d13 <- CreateSeuratObject(counts = d13.data, project = "d13", min.cells = 3, min.features = 100)
+d13@meta.data$orig.ident <- factor(rep("d13", nrow(d13@meta.data)))
+Idents(d13) <- d13@meta.data$orig.ident
+
+bothobjects <- list(d0, d13)
+
+# QC
+
+bothobjects <- lapply(bothobjects, function(x) Add_Mito_Ribo(x, species = "macaque"))
+
+bothobjects[[1]] <- subset(bothobjects[[1]], subset = nFeature_RNA > 200 & nFeature_RNA < 3500 & nCount_RNA < 20000 & percent_mito < 5)
+bothobjects[[2]] <- subset(bothobjects[[2]], subset = nFeature_RNA > 200 & nFeature_RNA < 3500 & nCount_RNA < 20000 & percent_mito < 5)
+
+
+# SCTransform
+
+bothobjects <- lapply(X = bothobjects, FUN = SCTransform)
+
+# Integration
+
+##free up memory by removing unneeded variables
+variables_to_remove <- ls()
+variable_to_keep <- c("bothobjects")
+variables_to_remove <- variables_to_remove[variables_to_remove != variable_to_keep]
+rm(list = variables_to_remove)
+
+bothobjects.pre <- bothobjects
+features <- SelectIntegrationFeatures(object.list = bothobjects, nfeatures = 3000)
+bothobjects <- PrepSCTIntegration(object.list = bothobjects, anchor.features = features)
+
+anchors <- FindIntegrationAnchors(object.list = bothobjects, normalization.method = "SCT",
+                                  anchor.features = features)
+bothobjects <- IntegrateData(anchorset = anchors, normalization.method = "SCT")
+
+# Dimension reduction
+
+bothobjects <- RunPCA(bothobjects, verbose = FALSE)
+bothobjects <- RunUMAP(bothobjects, reduction = "pca", dims = 1:35)
+bothobjects <- FindNeighbors(bothobjects, reduction = "pca", dims = 1:35)
+bothobjects <- FindClusters(bothobjects, resolution = 0.5)
+
+output_dir = "/projects/b1042/GoyalLab/egrody/F31/Resubmission/"
+saveRDS(bothobjects, file = paste0(output_dir,"integrated/bothobjects.rds"))
+```
+
+### Reload integrated object
+```{r}
+output_dir = "/projects/b1042/GoyalLab/egrody/F31/Resubmission/"
+bothobjects <- readRDS(file = paste0(output_dir,"integrated/bothobjects.rds"))
+
+host_genes <- c(
+  "APOBEC3G",
+  "BST2",
+  "CCNT1",
+  "PSIP1",
+  "SAMHD1",
+  "TRIM5",
+  "CD4"
+)
+```
+
+### First attempt
+
+From Seurat
+```{r}
+plots <- VlnPlot(bothobjects, features = host_genes, split.by = "orig.ident",
+    pt.size = 0, combine = FALSE)
+wrap_plots(plots = plots, ncol = 1)
+```
+
+Still not quite working
+```{r}
+prepare_data_v5 <- function(integrated_obj, assay = "RNA") {
+  # Set assay
+  DefaultAssay(integrated_obj) <- assay
+  
+  # Check if data needs normalization
+  if(!"data" %in% Layers(integrated_obj) || 
+     length(integrated_obj[[assay]]$data) == 0) {
+    message("Normalizing data...")
+    integrated_obj <- NormalizeData(integrated_obj)
+  }
+  
+  return(integrated_obj)
+}
+
+# Modified plotting function
+plotIntegratedViolin <- function(integrated_obj, genes, 
+                                assay = "RNA",
+                                output_dir = "violin_plots",
+                                width = 7, height = 5,
+                                color1 = "#4292C6", color2 = "#41AB5D") {
+  
+  if (!dir.exists(output_dir)) {
+    dir.create(output_dir)
+  }
+  
+  # Initialize results
+  stats_results <- data.frame(
+    gene = genes,
+    pvalue = NA,
+    fold_change = NA,
+    median_diff = NA,
+    mean_diff = NA,
+    higher_in = NA,
+    n_cells_d0 = NA,
+    n_cells_d13 = NA,
+    stringsAsFactors = FALSE
+  )
+  
+  # Process each gene
+  for (i in seq_along(genes)) {
+    gene <- genes[i]
+    tryCatch({
+      message(paste("Processing gene:", gene))
+      
+      # Get expression data directly from the layers
+      DefaultAssay(integrated_obj) <- assay
+      
+      # Get d0 data
+      d0_exp <- integrated_obj[[assay]]$data.d0[gene,]
+      d0_valid <- !is.na(d0_exp)
+      d0_data <- d0_exp[d0_valid]
+      
+      # Get d13 data
+      d13_exp <- integrated_obj[[assay]]$data.d13[gene,]
+      d13_valid <- !is.na(d13_exp)
+      d13_data <- d13_exp[d13_valid]
+      
+      # Create combined data frame
+      exp_data <- data.frame(
+        expression = c(d0_data, d13_data),
+        sample = factor(c(rep("d0", length(d0_data)), 
+                         rep("d13", length(d13_data))),
+                       levels = c("d0", "d13"))  # Set factor levels for consistent ordering
+      )
+      
+      # Store cell counts
+      stats_results$n_cells_d0[i] <- length(d0_data)
+      stats_results$n_cells_d13[i] <- length(d13_data)
+      
+      # Calculate statistics if we have data in both conditions
+      if (length(d0_data) > 0 && length(d13_data) > 0) {
+        wilcox_test <- wilcox.test(d0_data, d13_data)
+        median_diff <- median(d13_data) - median(d0_data)
+        mean_diff <- mean(d13_data) - mean(d0_data)
+        fold_change <- log2((mean(d13_data) + 1) / (mean(d0_data) + 1))
+        
+        # Store results
+        stats_results$pvalue[i] <- wilcox_test$p.value
+        stats_results$fold_change[i] <- fold_change
+        stats_results$median_diff[i] <- median_diff
+        stats_results$mean_diff[i] <- mean_diff
+        stats_results$higher_in[i] <- ifelse(median_diff > 0, "d13", "d0")
+        
+        # Create plot
+        output_file <- file.path(output_dir, paste0(gene, "_violin.svg"))
+        svg(output_file, width = width, height = height)
+        
+        # Create main plot
+        plot <- ggplot(exp_data, aes(x = sample, y = expression, fill = sample)) +
+          geom_violin(alpha = 0.7) +
+          geom_boxplot(width = 0.1, fill = "white", alpha = 0.5) +
+          scale_fill_manual(values = c(color1, color2)) +
+          theme_classic() +
+          theme(axis.text.x = element_text(angle = 45, hjust = 1),
+                plot.title = element_text(hjust = 0.5),
+                legend.position = "none") +
+          labs(x = "Sample", 
+               y = "Expression Level",
+               title = sprintf("%s\nlog2FC = %.2f (%s higher)\nn=%d vs n=%d", 
+                             gene, fold_change, stats_results$higher_in[i],
+                             length(d0_data), length(d13_data)))
+        
+        # Add significance stars
+        if (wilcox_test$p.value < 0.001) {
+          sig <- "***"
+        } else if (wilcox_test$p.value < 0.01) {
+          sig <- "**"
+        } else if (wilcox_test$p.value < 0.05) {
+          sig <- "*"
+        } else {
+          sig <- "ns"
+        }
+        
+        # Add significance annotation
+        y_max <- max(exp_data$expression)
+        plot <- plot +
+          annotate("text", x = 1.5, y = y_max * 1.1,
+                  label = sig, size = 6)
+        
+        print(plot)
+        dev.off()
+        
+        message(paste("Successfully processed gene:", gene))
+      } else {
+        message(paste("Insufficient data for gene:", gene))
+      }
+      
+    }, error = function(e) {
+      message(paste("Error processing gene:", gene))
+      message(e)
+      if (dev.cur() > 1) dev.off()
+    })
+  }
+  
+  # Round numeric columns for display
+  stats_results <- stats_results %>%
+    mutate(across(where(is.numeric), ~round(., 3)))
+  
+  # Write results
+  write.csv(stats_results, file.path(output_dir, "statistical_results.csv"), 
+            row.names = FALSE)
+  
+  return(stats_results)
+}
+
+
+integrated_obj <- prepare_data_v5(bothobjects)
+
+results <- plotIntegratedViolin(
+    integrated_obj, 
+    genes = host_genes,
+    output_dir = paste0(output_dir, "integrated/")
+)
+
+output_dir = "/projects/b1042/GoyalLab/egrody/F31/Resubmission/"
+plotIntegratedViolin(
+  integrated_obj = bothobjects,
+  genes = host_genes,
+  output_dir = paste0(output_dir, "integrated/")
+)
+
+```
+
+Also not working.
+
+### New strategy
+```{r}
+library(tidyr)
+
+analyze_gene_expression <- function(seurat_obj, gene_list, dataset_column = "orig.ident") {
+  # Fetch normalized data for specified genes
+  DefaultAssay(seurat_obj) <- "SCT"
+  
+  # Create expression matrix for selected genes
+  expr_matrix <- GetAssayData(seurat_obj, slot = "data")[gene_list, ]
+  
+  # Prepare data for plotting
+  expr_data <- data.frame(
+    t(expr_matrix),
+    Dataset = seurat_obj@meta.data[[dataset_column]]
+  ) %>%
+    pivot_longer(
+      cols = -Dataset,
+      names_to = "Gene",
+      values_to = "Expression"
+    )
+  
+  # Calculate statistics
+  stat_results <- lapply(gene_list, function(gene) {
+    gene_expr <- GetAssayData(seurat_obj, slot = "data")[gene, ]
+    dataset_labels <- seurat_obj@meta.data[[dataset_column]]
+    
+    wilcox_test <- wilcox.test(
+      gene_expr[dataset_labels == unique(dataset_labels)[1]],
+      gene_expr[dataset_labels == unique(dataset_labels)[2]]
+    )
+    
+    data.frame(
+      Gene = gene,
+      PValue = wilcox_test$p.value
+    )
+  }) %>% bind_rows()
+  
+  # Calculate maximum expression per gene for label positioning
+  y_max_per_gene <- expr_data %>%
+    group_by(Gene) %>%
+    summarize(max_expr = max(Expression))
+  
+  # Adjust p-values and format for display
+  stat_results <- stat_results %>%
+    mutate(
+      AdjPValue = p.adjust(PValue, method = "BH"),
+      PValueLabel = paste0("p = ", sprintf("%.2e", AdjPValue))
+    ) %>%
+    left_join(y_max_per_gene, by = "Gene")
+  
+  # Create violin plot
+  plot <- ggplot(expr_data, aes(x = Gene, y = Expression, fill = Dataset)) +
+    geom_violin(position = position_dodge(0.7), alpha = 0.7, width = 1.3) +
+    geom_boxplot(position = position_dodge(0.7), width = 0.1, alpha = 0.7) +
+    geom_text(
+      data = stat_results,
+      aes(x = Gene, y = max_expr * 1.2, label = PValueLabel),
+      inherit.aes = FALSE,
+      size = 3,
+      vjust = 0
+    ) +
+    scale_y_continuous(
+      trans = "log1p",
+      labels = function(x) sprintf("%.1f", x)
+    ) +
+    theme_minimal() +
+    theme(
+      axis.text.x = element_text(angle = 45, hjust = 1),
+      plot.title = element_text(hjust = 0.5)
+    ) +
+    labs(
+      title = "Gene Expression Comparison Between Datasets",
+      y = "Expression (log1p SCT-normalized)",
+      x = "Gene"
+    )
+  
+  # Return results as a list
+  return(list(
+    expression_data = expr_data,
+    statistics = stat_results,
+    plot = plot
+  ))
+}
+
+
+results <- analyze_gene_expression(bothobjects, host_genes)
+
+print(results$plot)
+print(results$statistics)
+```
+
+
+### LD02
+```{r}
+potential_heritable_genes <- readRDS("/projects/b1042/GoyalLab/egrody/20240925_LD02/analysis/rajlab_heritable/potential_heritable_genes.RDS")
+potential_heritable_genes <- potential_heritable_genes %>%
+  mutate(highest = (CV_tpm + Mean_tpm) / 2)
+```
+
+
+
+
+# SALVEseq
+## Figure 6D
+```{r}
+library(readxl)
+library(writexl)
+library(dplyr)
+
+# Read the Excel file
+df <- read_excel("/projects/b1042/GoyalLab/egrody/F31/Resubmission/DEG/conserved_markers.xlsx")
+
+# Filter by adjusted p-value and split into up/down regulated
+filtered_df <- df %>% 
+  filter(p_val_adj < 0.01)
+
+up_regulated <- filtered_df %>% 
+  filter(avg_log2FC > 0.25) %>%
+  arrange(desc(avg_log2FC))
+
+down_regulated <- filtered_df %>% 
+  filter(avg_log2FC < -0.25) %>%
+  arrange(avg_log2FC)
+
+# Create a list of dataframes to write to separate sheets
+sheets <- list("upregulated" = up_regulated,
+               "downregulated" = down_regulated)
+
+# Write to new Excel file
+write_xlsx(sheets, "/projects/b1042/GoyalLab/egrody/F31/Resubmission/DEG/conserved_markers_filtered.xlsx")
+```
+
+
+
+# Barcodeseq data
+## Figure 3C
+
+```{r}
+library(forcats)
+input_dir <- "/projects/b1042/GoyalLab/egrody/20241211_EGW019/analysis/gDNAPipeline/Emmie_019/analyzed/Multiple_Samples/separated/"
+txt_files <- list.files(path = input_dir, pattern = "*.txt", full.names = TRUE)
+
+barcodes_all <- do.call(rbind, lapply(txt_files, function(file) {
+  read.table(file, sep = "\t")
+}))
+
+set.seed(123)
+colnames(barcodes_all) <- c("barcode", "count")
+barcodes_unique <- barcodes_all %>%
+  group_by(barcode) %>%
+  summarize(count = sum(count)) %>%
+  mutate(barcode = fct_reorder(barcode, count, .desc = TRUE)) #%>%
+  slice_sample(n = 10000)
+
+splot <- ggplot(barcodes_unique, aes(x = reorder(barcode, -count), y = count)) +
+  geom_point(size = 0.5) +  # reduce point size
+  theme_minimal() +
+  theme(
+    axis.text.x = element_blank(),  # remove x-axis labels if too crowded
+    axis.ticks.x = element_blank()  # remove x-axis ticks
+  ) +
+  labs(x = "Barcode", y = "Count") + 
+  scale_y_continuous(trans='log10')
+
+
+output_dir <- "/projects/b1042/GoyalLab/egrody/F31/Resubmission/"
+ggsave(splot, file = paste0(output_dir, "EGW019_subsample.svg"))
+```
+
