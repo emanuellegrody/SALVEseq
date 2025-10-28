@@ -10,6 +10,7 @@ source("~/SALVEseq/packages.R")
 source("~/SALVEseq/functions.R")
 ```
 
+# Individual Datasets
 ## GEX 
 
 ### bamsort
@@ -63,11 +64,81 @@ process_bamsort("GEX", samples$samples, input.dir, output.dir, raw_cellIDs)
 input_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/singleCell/bamsort/reads/newcoords"
 output_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/singleCell/bamsort/reads/newcoords/minimum"
 
-process_all_set_minimums("GEX", samples$samples, input_dir, output_dir, min_reads = 2, min_region_count = 2, min_umi = 2, min_cells = 2)
+process_all_set_minimums("GEX", samples$samples, input_dir, output_dir, min_reads_cell = 2)
 
 ```
 
-### Seurat
+### UMAP coords
+
+```{r}
+samples <- data.frame(
+  datasets = c(
+    "JK85_D13",
+    "LP29_D195",
+    "LP29_D83",
+    "G_ART_GEX",
+    "invitro",
+    "L_ART_GEX",
+    "L_acute_GEX",
+    "P_ART_GEX",
+    "W0"
+  ),
+  samples = c(
+    "D13",
+    "D195",
+    "D83",
+    "GART",
+    "Invitro",
+    "LART",
+    "Lacute",
+    "PART",
+    "Uninfected"
+  ),
+  folders = c(
+    "/projects/b1042/GoyalLab/egrody/extractedData/EGS004/singleCell/counts/Mmul_10_mac239/",
+    "/projects/b1042/GoyalLab/egrody/extractedData/EGS004/singleCell/counts/Mmul_10_mac239/",
+    "/projects/b1042/GoyalLab/egrody/extractedData/EGS004/singleCell/counts/Mmul_10_mac239/",
+    "/projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/counts/Mmul_10_mac239/",
+    "/projects/b1042/GoyalLab/egrody/extractedData/EGS002/singleCell/counts/Mmul_10_mac239/",
+    "/projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/counts/Mmul_10_mac239/",
+    "/projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/counts/Mmul_10_mac239/",
+    "/projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/counts/Mmul_10_mac239/",
+    "/projects/b1042/GoyalLab/egrody/extractedData/EGS002/singleCell/counts/Mmul_10_mac239/"
+  )
+)
+
+output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/singleCell/Seurat/UMAPcoords/"
+if (!dir.exists(output.dir)) {
+  dir.create(output.dir, recursive = TRUE)
+}
+
+for (i in 1:nrow(samples)) {
+  sample_name <- samples$samples[i]
+  dataset <- samples$datasets[i]
+  folder <- samples$folders[i]
+  input.dir <- paste0(folder, "Mmul_10_mac239_", dataset, "/outs/filtered_feature_bc_matrix/")
+  
+  tryCatch({
+    seurat_obj <- SeuratPipeline(input.dir, sample_name, 
+                                 output_dir = "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/singleCell/Seurat/plots/", 
+                                 plots = TRUE, rds = TRUE)
+    
+    # Generate expression data frame without gene expression
+    sample_df <- targetExpressionDF(seurat_obj, genes = "")
+
+    # Add sample and target columns to the dataframe
+    sample_df$sample <- sample_name
+
+    write.csv(sample_df, paste0(output.dir, sample_name, "UMAP_coords.csv"))
+    
+    cat("Processed sample:", sample_name, "\n")
+  }, error = function(e) {
+    cat("Error processing sample", sample_name, ":", conditionMessage(e), "\n\n")
+  })
+}
+```
+
+### expressionDF (skip)
 Outputting expression matrices
 ```{r}
 samples <- data.frame(
@@ -272,97 +343,6 @@ output_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/bamsor
 
 process_all_set_minimums("SALVE", samples$samples, input_dir, output_dir, min_reads = 5, min_umi = 3)
 
-```
-
-
-### SeuratSALVE
-```{r}
-samples <- data.frame(
-  samples = c(
-    "D13",
-    "D195",
-    "D83",
-    "GART",
-    "Invitro",
-    "LART",
-    "Lacute",
-    "PART",
-    "Uninfected"
-  )
-)
-
-genes <- c(
-  "D1-US",
-  "D1-S",
-  "tat-US",
-  "tat-S",
-  "nef-3",
-  "nef-5",
-  "LTR-3",
-  "LTR-5"
-)
-# Initialize empty list
-SALVE_list <- list()
-
-for (i in 1:nrow(samples)) {
-  sample_name <- samples$samples[i]
-  targets <- c("D1_nef", "LTR_tat")
-  
-  for (k in 1:length(targets)) {
-    target_name <- targets[k]
-    folder_path <- paste0("/projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/counts/mac239v4_", 
-                          sample_name, "_", target_name, "/outs/raw_feature_bc_matrix/")
-    
-    tryCatch({
-      # Process the current sample
-      data <- Read10X(data.dir = folder_path)
-      seurat_obj <- CreateSeuratObject(counts = data, project = sample_name, min.cells = 3)
-      #seurat_obj <- NormalizeData(seurat_obj, verbose = FALSE) #for raw, comment this out
-      # Extract viral genes
-      sample_df <- targetExpressionDF(seurat_obj, genes, count_type = "raw") #
-      
-      # Add sample and target columns to the dataframe
-      sample_df$sample <- sample_name
-      sample_df$target <- target_name
-      
-      # Add to list
-      SALVE_list[[length(SALVE_list) + 1]] <- sample_df
-      
-      cat("Processed sample:", sample_name, "with target:", target_name, "\n")
-      
-    }, error = function(e) {
-      cat("Error processing sample", sample_name, "with target", target_name, ":", conditionMessage(e), "\n\n")
-    })
-  }
-}
-
-SALVE_combined <- data.frame()
-SALVE_combined <- bind_rows(SALVE_list)
-SALVE_combined <- SALVE_combined %>%
-  filter(!(`D1-US` == 0 & 
-             `D1-S` == 0 & 
-             `tat-US` == 0 &
-             `tat-S` == 0 &
-             `nef-3` == 0 & 
-             `nef-5` == 0 & 
-             `LTR-3` == 0 & 
-             `LTR-5` == 0))
-rm(SALVE_list)
-
-output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/counts/expressionDF/"
-write.csv(SALVE_combined, paste0(output.dir, "SALVE_combined_rawcounts.csv"))
-
-output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/counts/expressionDF/"
-SALVE_combined <- read.csv(paste0(output.dir, "SALVE_combined_rawcounts.csv"))
-```
-
-Calculating isoforms
-```{r}
-SALVE_isoforms <- isoforms_deconvolve(SALVE_combined, "SALVE")
-output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/counts/expressionDF/"
-write.csv(SALVE_isoforms, paste0(output.dir, "SALVE_isoforms_rawcounts.csv"))
-
-SALVE_isoforms <- read.csv(paste0(output.dir, "SALVE_isoforms_rawcounts.csv"))
 ```
 
 
@@ -608,1111 +588,134 @@ for (sample_name in names(samples)) {
 
 ```
 
-
-## Joint
-
-### bamsort
-Loading both datasets
+Single cell splicing
 ```{r}
-samples <- data.frame(
-  datasets = c(
-    "JK85_D13",
-    "LP29_D195",
-    "LP29_D83",
-    "G_ART_GEX",
-    "invitro",
-    "L_ART_GEX",
-    "L_acute_GEX",
-    "P_ART_GEX",
-    "W0"
-  ),
-  samples = c(
-    "D13",
-    "D195",
-    "D83",
-    "GART",
-    "Invitro",
-    "LART",
-    "Lacute",
-    "PART",
-    "Uninfected"
-  ),
-  folders = c(
-    "/projects/b1042/GoyalLab/egrody/extractedData/EGS004/singleCell/counts/Mmul_10_mac239/",
-    "/projects/b1042/GoyalLab/egrody/extractedData/EGS004/singleCell/counts/Mmul_10_mac239/",
-    "/projects/b1042/GoyalLab/egrody/extractedData/EGS004/singleCell/counts/Mmul_10_mac239/",
-    "/projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/counts/Mmul_10_mac239/",
-    "/projects/b1042/GoyalLab/egrody/extractedData/EGS002/singleCell/counts/Mmul_10_mac239/",
-    "/projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/counts/Mmul_10_mac239/",
-    "/projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/counts/Mmul_10_mac239/",
-    "/projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/counts/Mmul_10_mac239/",
-    "/projects/b1042/GoyalLab/egrody/extractedData/EGS002/singleCell/counts/Mmul_10_mac239/"
-  )
+input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/bamsort/splice/mac239/"
+samples <- c("D13", "Invitro")
+targets <- c("D1_nef", "LTR_tat")
+
+acceptors <- data.frame(
+  Acceptor = c(4658, 5141, 5746, 5818, 5959, 8249),
+  AcceptorSite = c("A1", "A2", "A3", "A4", "A5", "A7")
+)
+donors <- data.frame(
+  Donor = c(431, 4730, 5217, 6043),
+  DonorSite = c("D1", "D2", "D3", "D4")
 )
 
-#sample_output.dir <- "/projects/b1042/GoyalLab/egrody/extractionScripts/submissionScripts/"
-#write.csv(samples, paste0(sample_output.dir, "GEX_samples.csv"), row.names = FALSE)
+comparison <- data.frame()
 
-# filtered input
-#input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/bamsort/extracted"
-
-# filtered after join
-#input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/bamsort/reads/20250518/converted/min2/nocountLTR/"
-input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/bamsort/reads/newcoords/minimum"
-SALVE_data <- read_sample_files(samples$samples, input.dir)
-input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/singleCell/bamsort/reads/newcoords/minimum"
-GEX_data <- read_sample_files(samples$samples, input.dir)
-
-GEX_UMAP <- list()
-
-for (i in 1:nrow(samples)) {
-  dataset_name <- samples$datasets[i]
-  sample_name <- samples$samples[i]
-  folder_path <- paste0(samples$folders[i], "expressionDF/")
+classify_site <- function(value, reference_values, reference_sites) {
+  distances <- abs(value - reference_values)
+  min_dist <- min(distances)
+  closest_site <- reference_sites[which.min(distances)]
   
-  tryCatch({
-    # Read CSV
-    input_filename <- paste0(folder_path, dataset_name, "_Mmulmac_mac239.csv")
-    data <- read.csv(input_filename)
-    data <- data %>%
-      select(-X, -mac239)
-   
-    # Store the data with the sample name
-    GEX_UMAP[[sample_name]] <- data
-   
-    cat("Processed sample:", dataset_name, "as", sample_name, "\n")
- }, error = function(e) {
-    cat("Error processing", dataset_name, ":", conditionMessage(e), "\n")
- })
-  rm(data)
-}
-
-
-
-
-regions_to_isoforms <- function(mode, dataframe) {
-  if (mode != "SALVE" & mode != "GEX") {
-    stop("mode must be either SALVE or GEX")
-  }
-  if (class(dataframe != "data.frame")) {
-    stop("Input data must be in data.frame format (i.e. not a list)")
-  }
-  if (mode == "SALVE") {
-    dataframe <- dataframe %>%
-      mutate(SALVE_any = (LTR + nef), SALVE_Sspliced = (D1_S + tat_US), SALVE_Mspliced = tat_S) %>% #not correct, update
-      rename(SALVE_unspliced = D1_US) %>%
-      select(cellID, SALVE_any, SALVE_unspliced, SALVE_Sspliced, SALVE_Mspliced) %>%
-      mutate(SALVE_total = (SALVE_any + SALVE_unspliced + SALVE_Sspliced + SALVE_Mspliced))
-  } else if (mode == "GEX") {
-    dataframe <- dataframe %>%
-      mutate(GEX_any = (LTR_D1 + A7_LTR), GEX_spliced = (A1_D4 + D4_A7)) %>%
-      rename(GEX_unspliced = D1_A1) %>%
-      select(cellID, GEX_any, GEX_unspliced, GEX_spliced) %>%
-      mutate(GEX_total = (GEX_any + GEX_unspliced + GEX_spliced))
-  }
-  return(dataframe)
-}
-```
-
-
-Making left_join dataframe
-```{r}
-joint_data <- list()
-for (i in 1:nrow(samples)) {
-  sample_name <- samples$samples[i]
-  
-  tryCatch({
-    SALVE <- SALVE_data %>%
-      filter(sample == sample_name) %>%
-      select(-sample) %>%
-      rename(SALVE = total)
-    GEX <- GEX_data %>%
-      filter(sample == sample_name) %>%
-      select(-sample) %>%
-      rename(GEX = total)
-    GEX_UMAPs <- GEX_UMAP[[sample_name]]
-    temp <- left_join(GEX_UMAPs, GEX, by = "cellID")
-    joint_data[[sample_name]] <- left_join(temp, SALVE, by = "cellID")
-    
-    cat("Processed sample:", sample_name, "\n")
-  }, error = function(e) {
-    cat("Error processing", sample_name, ":", conditionMessage(e), "\n")
-  })
-}
-
-joint_data <- lapply(joint_data, function(x) {
-  x[is.na(x)] <- 0
-  return(x)
-})
-
-#rm(list = setdiff(ls(), c("joint_data", "SALVE_data", "GEX_data", "GEX_UMAP", 
-#                          ls()[sapply(ls(), function(x) is.function(get(x)))])))
-
-```
-
-To get metrics for the left_join dataframes:
-```{r}
-#output_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/joint/filtered/"
-
-# Create directories if they don't exist
-#dir.create(output_dir, showWarnings = FALSE, recursive = TRUE)
-
-cat("\nSample\tTotal_cells\tboth\t10X_only\tSALVE_only\n")
-
-# Process each dataset in the joint_data list
-for (sample_name in names(joint_data)) {
-  # Get the current dataframe
-  current_df <- joint_data[[sample_name]] #%>%
-    #mutate(SALVE = (D1_US + D1_S + tat_S + tat_US + nef )) %>%
-    #mutate(GEX = (LTR_D1  + D1_A1  + A1_D4 + D4_A7 + A7_LTR))
-  
-  # Create the subsets based on mac239 and total columns
-  both <- current_df %>% filter(GEX != 0 & SALVE != 0)
-  onlySingleCell <- current_df %>% 
-    filter(GEX != 0) %>%
-    filter(!(cellID %in% both$cellID))
-  onlySALVE <- current_df %>% 
-    filter(SALVE != 0) %>%
-    filter(!(cellID %in% both$cellID))
-
-  
-  # Print data row for each sample
-  cat(sample_name, "\t", 
-      nrow(current_df), "\t", 
-      nrow(both), "\t", 
-      nrow(onlySingleCell), "\t", 
-      nrow(onlySALVE), "\n")
-  
-  # Save CSVs
-  #write.csv(both, paste0(output_dir, "left_", sample_name, "_both.csv"), row.names = FALSE)
-  #write.csv(onlySingleCell, paste0(output_dir, "left_", sample_name, "_onlySingleCell.csv"), row.names = FALSE)
-  #write.csv(onlySALVE, paste0(output_dir, "left_", sample_name, "_onlySALVE.csv"), row.names = FALSE)
-  #write.csv(current_df, paste0(output_dir, "left_", sample_name, "_all.csv"), row.names = FALSE)
-}
-
-```
-
-
-Plotting
-```{r}
-output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS013/joint/"
-plotUMAP(Pacute_paint_umap, mac239, "Pacute: mac239", output.dir, "Pacute_umap_singleCell.svg")
-plotUMAP(Pacute_paint_umap, total_lessLTR, "Pacute: SALVE (total_lessLTR)", output.dir, "Pacute_umap_SALVE.svg")
-
-plotUMAP(Pacute_paint_umap, mac239, "Pacute: mac239", output.dir, "Pacute_umap_singleCell.svg", color_max = max(Pacute_paint_umap$total_lessLTR))
-plotUMAP(Pacute_paint_umap, total_lessLTR, "Pacute: SALVE (total_lessLTR)", output.dir, "Pacute_umap_SALVE_totallessLTR.svg")
-plotUMAP(Pacute_paint_umap, tat_S, "Pacute: SALVE (tat S)", output.dir, "Pacute_umap_SALVE_tatS.svg")
-plotUMAP(Pacute_paint_umap, tat_US, "Pacute: SALVE (tat US)", output.dir, "Pacute_umap_SALVE_tatUS.svg")
-plotUMAP(Pacute_paint_umap, D1_S, "Pacute: SALVE (D1 S)", output.dir, "Pacute_umap_SALVE_D1S.svg")
-plotUMAP(Pacute_paint_umap, D1_US, "Pacute: SALVE (D1 US)", output.dir, "Pacute_umap_SALVE_D1US.svg")
-plotUMAP(Pacute_paint_umap, absolute, "Pacute: SALVE (absolute)", output.dir, "Pacute_umap_SALVE_absolute.svg")
-
-cat(
-  "Number of US (unspliced) cells: \t",
-  sum(Pacute_paint_umap$D1_US > 0),
-  "\nNumber of S (spliced) cells: \t\t",
-  sum(Pacute_paint_umap$D1_S > 0 | Pacute_paint_umap$tat_S > 0),
-  "\nNumber of cells with both: \t\t",
-  sum(Pacute_paint_umap$D1_US > 0 & (Pacute_paint_umap$D1_S > 0 | Pacute_paint_umap$tat_S > 0))
-)
-```
-
-### Seurat
-```{r}
-# Loading
-output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/counts/expressionDF/"
-SALVE_isoforms <- read.csv(paste0(output.dir, "SALVE_isoforms_rawcounts.csv"))
-output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/singleCell/counts/expressionDF/"
-GEX_isoforms <- read.csv(paste0(output.dir, "GEX_isoforms.csv"))
-
-samples <- data.frame(
-  GEX <- c(
-    "JK85_D13",
-    "LP29_D195",
-    "LP29_D83",
-    "invitro",
-    "L_acute_GEX",
-    "HD88_W0"
-  ),
-  SALVE = c(
-    "D13",
-    "D195",
-    "D83",
-    "Invitro",
-    "Lacute",
-    "Uninfected"
-  )
-)
-
-# Joint
-joint_data <- list()
-for (i in 1:nrow(samples)) {
-  gex_sample <- samples$GEX[i]
-  salve_sample <- samples$SALVE[i]
-  
-  tryCatch({
-    SALVE <- SALVE_isoforms %>%
-      filter(sample == salve_sample) %>%
-      group_by(cellID) %>%
-      filter(n_distinct(target) == 2 & 
-         all(c("D1_nef", "LTR_tat") %in% target)) %>% # in both sequencing libs
-      summarise(across(c(US, spliced, S, SS, MS, any), \(x) sum(x, na.rm = TRUE)), .groups = 'drop') %>%
-      ungroup() %>%
-      #filter(US > 0) %>%
-      #filter(rowSums(across(c(US, spliced, S, SS, MS, any)) > 0) > 2) %>% #more than 2 genes
-      mutate(SALVE = rowSums(across(c(US, spliced, S, SS, MS)))) %>% #remove any
-      mutate(SALVE = ifelse(SALVE == min(SALVE[SALVE != 0], na.rm = TRUE), 
-                              0, SALVE)) %>%
-      mutate(SALVE = if(nrow(.) > 0) log1p(SALVE) else numeric(0))
-    GEX <- GEX_isoforms %>%
-      filter(sample == gex_sample) %>%
-       mutate(GEX = rowSums(across(c(US, spliced, any))))%>%
-      mutate(GEX = if(nrow(.) > 0) log1p(GEX) else numeric(0))
-    
-    joint_data[[salve_sample]] <- left_join(GEX, SALVE, by = "cellID")
-    
-    cat("Processed sample:", salve_sample, "\n")
-  }, error = function(e) {
-    cat("Error processing", salve_sample, ":", conditionMessage(e), "\n")
-  })
-}
-
-joint_data <- lapply(joint_data, function(x) {
-  x[is.na(x)] <- 0
-  return(x)
-})
-
-```
-
-```{r}
-cat("\nSample\tTotal_cells\tboth\t10X_only\tSALVE_only\n")
-
-# Process each dataset in the joint_data list
-for (sample_name in names(joint_data)) {
-  # Get the current dataframe
-  current_df <- joint_data[[sample_name]]
-  current_df <- current_df %>%
-    mutate(all_spliced = spliced.y + S + SS + MS)
-  
-  # Create the subsets based on mac239 and total columns
-  both <- current_df %>% filter(GEX != 0 & SALVE != 0)
-  onlySingleCell <- current_df %>% 
-    filter(GEX != 0) %>%
-    filter(!(cellID %in% both$cellID))
-  onlySALVE <- current_df %>% 
-    filter(SALVE != 0) %>%
-    filter(!(cellID %in% both$cellID))
-
-  
-  cat(sample_name, "\t",
-      nrow(current_df), "\t",
-      nrow(both), "\t",
-      nrow(onlySingleCell), "\t",
-      nrow(onlySALVE), "\n")
-
-  #cat(sample_name, "\tCorrelation:", cor(both$GEX, both$SALVE), "\n")
-  
-  
-  # p <- ggplot(current_df, aes(x = SALVE, y = GEX)) +
-  #   geom_point() +
-  #   labs(
-  #       x = "SALVE total",
-  #       y = "GEX total",
-  #       title = paste("Correlation for ", sample_name)
-  #     ) +
-  #     theme_minimal()
-  # 
-  # print(p)
-  
-  
-
-  # pearson_cor <- cor(current_df$all_spliced, current_df$spliced.x, use = "complete.obs")
-  # r_squared <- pearson_cor^2
-  # lm_model <- lm(spliced.x ~ all_spliced, data = current_df)
-  # slope <- coef(lm_model)[2]
-  # p <- ggplot(data = current_df, aes(x = all_spliced, y = spliced.x)) +
-  #     geom_point() +
-  #   geom_smooth(method = "lm", se = TRUE, color = "red") +
-  #     labs(
-  #       x = "SALVE spliced",
-  #       y = "GEX spliced",
-  #       title = paste("Correlation for ", sample_name)
-  #     ) +
-  #     theme_minimal()# +
-  #     # annotate("text", 
-  #     #      x = -Inf, y = Inf, 
-  #     #      label = paste("Slope =", round(slope, 3), "\n",
-  #     #                   "R² =", round(r_squared, 3), "\n",
-  #     #                   "r =", round(pearson_cor, 3)), 
-  #     #      hjust = -0.1, vjust = 1.2, 
-  #     #      size = 4, color = "black")
-  # print(p)
-  # 
-  
-  # Save CSVs
-  #write.csv(both, paste0(output_dir, "left_", sample_name, "_both.csv"), row.names = FALSE)
-  #write.csv(onlySingleCell, paste0(output_dir, "left_", sample_name, "_onlySingleCell.csv"), row.names = FALSE)
-  #write.csv(onlySALVE, paste0(output_dir, "left_", sample_name, "_onlySALVE.csv"), row.names = FALSE)
-  #write.csv(current_df, paste0(output_dir, "left_", sample_name, "_all.csv"), row.names = FALSE)
-}
-```
-
-Exploring correlations
-```{r}
-D13 <- joint_data[["D13"]]
-either <- D13 %>% filter(GEX != 0 | SALVE != 0) #%>%
-  # mutate(US = log1p(US)) %>%
-  # mutate(all_spliced = log1p(spliced) + log1p(S) + log1p(SS) + log1p(MS)) %>%
-  # mutate(any = log1p(any))
-columns_to_plot <- c("US", "all_spliced", "any", "SALVE")
-
-for (col_name in columns_to_plot) {
-  p <- ggplot(data = either, aes(x = .data[[col_name]], y = GEX)) +
-    geom_point() +
-    geom_abline(intercept = 0, slope = 1, color = "red") +
-    labs(
-      x = col_name,
-      y = "GEX",
-      title = paste("D13 Correlation:", col_name, "vs GEX")
-    ) +
-    theme_minimal()
-  print(p)
-}
-
-library(ggpubr)
-p <- ggplot(data = either, aes(x = all_spliced, y = SALVE)) +
-  geom_point() +
-  geom_smooth(method = "nls", 
-              formula = y ~ a * x^b, 
-              method.args = list(start = list(a = 1, b = 1)),
-              se = TRUE, color = "blue") +
-  labs(
-    x = "spliced",
-    y = "total",
-    title = paste("D13 Correlation: spliced vs total")
-  ) +
-  theme_minimal()
-print(p)
-
-
-
-
-# Remove zeros for fitting
-either_nonzero <- either %>% filter(SALVE > 0)
-
-# Log-transform both variables
-log_salve <- log1p(either_nonzero$SALVE)
-log_gex <- log1p(either_nonzero$GEX)
-
-# Fit linear model to log-log data
-power_model <- lm(log_gex ~ log_salve)
-slope <- coef(power_model)[2]  # This is your power law exponent
-intercept <- coef(power_model)[1]  # log(scaling constant)
-scaling_constant <- exp(intercept)
-
-# Calculate correlations
-pearson_cor <- cor(log_salve, log_gex, use = "complete.obs")
-r_squared <- summary(power_model)$r.squared
-
-# Plot with stats
-p <- ggplot(data = either_nonzero, aes(x = SALVE, y = GEX)) +
-  geom_point(alpha = 0.6) +
-  geom_smooth(method = "lm", se = TRUE, color = "blue") +
-  scale_x_log10() +
-  scale_y_log10() +
-  labs(
-    x = "SALVE (log scale)",
-    y = "GEX (log scale)",
-    title = "D13 Correlation: Power Law Fit"
-  ) +
-  theme_minimal() +
-  annotate("text", 
-           x = -Inf, y = Inf,
-           label = paste("Power Law: GEX = ", round(scaling_constant, 3), " × SALVE^", round(slope, 3), "\n",
-                        "R² =", round(r_squared, 3), "\n",
-                        "r =", round(pearson_cor, 3)),
-           hjust = -0.1, vjust = 1.2,
-           size = 4, color = "black")
-
-p <- ggplot(data = either_nonzero, aes(x = SALVE, y = GEX)) +
-  geom_point(alpha = 0.6) +
-  geom_smooth(method = "lm", se = TRUE, color = "blue") +
-  scale_x_log10() +
-  scale_y_log10() +
-  labs(
-    x = "SALVE (log scale)",
-    y = "GEX (log scale)", 
-    title = "D13 Correlation: Power Law Fit (Log-Log Scale)"
-  ) +
-  theme_minimal()
-print(p)
-
-
-  
-```
-
-
-```{r}
-output <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/plots"
-UMAP <- plotUMAP(joint_data[["Invitro"]], SALVE, "SALVE Invitro UMAP", output, "Invitro_SALVE.svg", comparison = FALSE)
-UMAP
-
-
-
-samples <- data.frame(
-  samples = c(
-    "JK85_D13",
-    "invitro"
-  )
-)
-
-
-input_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/singleCell/counts/"
-
-# Process each sample
-for (i in 1:nrow(samples)) {
-  sample_name <- samples$samples[i]
-  input.dir <- paste0(input_dir, "Mmul_10_mac239v4_", sample_name, "/outs/filtered_feature_bc_matrix/")
-  
-    seurat_obj <- SeuratPipeline(input.dir, sample_name, plots = FALSE)
-    p <- FeaturePlot(seurat_obj, "CD4")
-    print(p)
-}
-```
-
-
-
-
-
-## Other Joint Analyses
-### Counts histograms
-What is the distribution of counts for SALVE?
-```{r}
-SALVE_data <- SALVE_data %>%
-  #mutate(log1pSALVE = log1p(total_lessLTR)) %>%
-  filter(!(sample == "Pacute"))
-#max_value <- max(SALVE_data$log1pSALVE, na.rm = TRUE) 
-max_value <- max(150) #for counts expression, update the indicated fields
-output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/histograms/"
-
-library(patchwork)
-plot_list <- list()
-
-for (i in 1:nrow(samples)) {
-  if (samples$samples[i] != "Pacute") {
-    sample_name <- samples$samples[i]
-    expression <- SALVE_data %>%
-      filter(sample == sample_name)
-    p <- ggplot(expression, aes(x=total_lessLTR)) + #update
-      geom_histogram(binwidth=1) + 
-      theme_minimal() +
-      scale_x_continuous(limits = c(0, max_value)) + 
-      labs(title = paste0(sample_name, " SALVE counts"),
-           x = "total_lessLTR") #update
-    plot_list[[i]] <- p
-    #print(p)
-    #output_file <- file.path(output.dir, paste0(sample_name, "_log_expression.svg")) #update
-    #ggsave(filename = output_file, plot = p, device = "svg", width = 8, height = 6)
-  }
-}
-
-plot_list <- plot_list[!sapply(plot_list, is.null)]
-
-if (length(plot_list) <= 9) {
-  # If 9 or fewer plots, create a clean 3x3 grid
-  combined_plot <- (plot_list[[1]] | plot_list[[2]] | plot_list[[3]]) /
-                   (plot_list[[4]] | plot_list[[5]] | plot_list[[6]]) /
-                   (plot_list[[7]] | plot_list[[8]] | plot_list[[9]])
-  
-  # Handle cases with fewer than 9 plots
-  combined_plot <- wrap_plots(plot_list, ncol = 3)
-  
-  # Add a shared title if desired
-  combined_plot <- combined_plot + 
-    plot_annotation(title = "SALVE Expression Across Samples",
-                   theme = theme(plot.title = element_text(hjust = 0.5, size = 16)))
-  
-  # Print the combined plot
-  print(combined_plot)
-}
-```
-
-For absolute:
-```{r}
-SALVE_data <- SALVE_data %>%
-  mutate(log1pSALVE = log1p(total_lessLTR))
-max_value <- max(SALVE_data$log1pSALVE, na.rm = TRUE) 
-#max_value <- max(SALVE_data$total_lessLTR, na.rm = TRUE) #for counts expression, update the indicated fields
-output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/histograms/"
-
-for (i in 1:nrow(samples)) {
-  sample_name <- samples$samples[i]
-  expression <- SALVE_data %>%
-    filter(sample == sample_name)
-  p <- ggplot(expression, aes(x=log1pSALVE)) + #update
-    geom_histogram() + 
-    theme_minimal() +
-    scale_x_continuous(limits = c(0, max_value)) + 
-    labs(title = paste0(sample_name, " SALVE expression"),
-         x = "log1p(total_lessLTR)") #update
-  print(p)
-  output_file <- file.path(output.dir, paste0(sample_name, "_log_absolute.svg")) #update
-  #ggsave(filename = output_file, plot = p, device = "svg", width = 8, height = 6)
-}
-```
-
-### Barcode rank plot
-```{r}
-for (i in 1:nrow(samples)) {
-  sample_name <- samples$samples[i]
-  cat("\nProcessing barcodeRankPlot for sample:", sample_name, "\n")
-  
-  # Filter SALVE_data to get only rows for the current sample
-  sample_data <- SALVE_data %>% 
-    filter(sample == sample_name)
-  
-  # Skip if no data for this sample
-  if (nrow(sample_data) == 0) {
-    cat("No data found for sample", sample_name, "in SALVE_data. Skipping.\n")
-    next
-  }
-  
-  # Construct the path to the raw data folder
-  rawDataFolder <- paste0(samples$folders[i], "Mmul_10_mac239_", samples$datasets[i], "/outs/raw_feature_bc_matrix/")
-  
-  # Check if the raw data folder exists
-  if (!dir.exists(rawDataFolder)) {
-    cat("Raw data folder not found:", rawDataFolder, "\nSkipping.\n")
-    next
-  }
-  
-  # Set output directory and filename
-  output_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/joint/"
-  saveas <- paste0("barcodeRankPlot_", sample_name, ".svg")
-  
-  # Make sure output directory exists
-  if (!dir.exists(output_dir)) {
-    dir.create(output_dir, recursive = TRUE)
-    cat("Created output directory:", output_dir, "\n")
-  }
-  
-  # Run the barcodeRankPlot function with the sample-specific data
-  tryCatch({
-    barcodeRankPlot(
-      rawDataFolder = rawDataFolder,
-      jointFullJoin = sample_data,
-      plotTitle = paste0("Barcode Rank Plot: ", sample_name),
-      output_dir = output_dir,
-      saveas = saveas
-    )
-    
-    cat("Successfully generated plot for", sample_name, "\n")
-  }, error = function(e) {
-    cat("Error generating barcodeRankPlot for", sample_name, ":", conditionMessage(e), "\n")
-  })
-}
-```
-
-
-### joint with bamsort (skip)
-
-This section was used for troubleshooting
-Run first chunk of Joint and last chunk of SALVE
-
-```{r}
-SALVE_D13 <- SALVE_data %>%
-  filter(sample == "D13") %>%
-  select(-sample)
-
-#skip
-cat(
-  "Cells in both bamsort and SALVE: \t",
-  sum(GEX_bamsort_clean$cellID %in% GEX_mkcounts_minimal$cellID),
-  "\t", (sum(GEX_bamsort_clean$cellID %in% GEX_mkcounts_minimal$cellID) / length(GEX_bamsort_clean$cellID)*100),"%",
-  "\nCells in bamsort in original GEX: \t",
-  sum(GEX_bamsort_clean$cellID %in% GEX_mkcounts$cellID),
-  "\t", (sum(GEX_bamsort_clean$cellID %in% GEX_mkcounts$cellID) / length(GEX_bamsort_clean$cellID)*100),"%")
-#/skip
-
-full_SALVE <- full_join(GEX_bamsort_clean, SALVE_D13, by = join_by(cellID)) %>%
-  mutate(bamsort = log1p(UMI))
-full_SALVE[is.na(full_SALVE)] <- 0
-
-max_value <- max(max(full_SALVE$total_lessLTR, na.rm = TRUE), 
-                 max(full_SALVE$bamsort, na.rm = TRUE))
-
-ggplot(full_SALVE, aes(x = total_lessLTR, y = bamsort)) + 
-  geom_point() + 
-  theme_minimal() +
-  coord_fixed(ratio = 1) + 
-  scale_x_continuous(limits = c(0, max_value)) + 
-  scale_y_continuous(limits = c(0, max_value)) +
-  labs(title= "D13 SALVE vs bamsort no filters")
-
-cat(
-    "Correlation between bamsort and SALVE (read and UMI filter):",
-    round(cor(full_SALVE$bamsort, full_SALVE$total_lessLTR, method="pearson"), 3))
-
-nozeros <- full_SALVE %>%
-  filter(!(total_lessLTR == 0 | bamsort == 0))
-
-cat(
-    "Correlation between bamsort and SALVE (read and UMI filter):",
-    round(cor(nozeros$bamsort, nozeros$total_lessLTR, method="pearson"), 3))
-```
-
-Filtering SALVE by raw barcodes from GEX
-```{r}
-raw_cellIDs <- list()
-
-for (i in 1:nrow(samples)) {
-  dataset_name <- samples$datasets[i]
-  sample_name <- samples$samples[i]
-
-  rawDataFolder <- paste0(samples$folders[i], "Mmul_10_mac239_", samples$datasets[i], "/outs/raw_feature_bc_matrix/")
-
-  tryCatch({
-    rawdata <- Read10X(rawDataFolder)
-    umi_counts <- colSums(rawdata)
-    cell_ids <- names(umi_counts[umi_counts > 100]) # keep only cells with transcriptomes
-    raw_cellIDs[[sample_name]] <- cell_ids
-
-    
-  }, error = function(e) {
-    cat("Error processing", dataset_name, ":", conditionMessage(e), "\n")
-  })
-  
-  if (exists("rawdata")) {
-    rm(rawdata)
-    gc()
-  }
-}
-
-SALVE_brp <- SALVE_D13 %>%
-  filter(cellID %in% raw_cellIDs$D13)
-
-full_SALVE <- full_join(GEX_bamsort_clean, SALVE_brp, by = join_by(cellID)) %>%
-  mutate(bamsort = log1p(UMI))
-full_SALVE[is.na(full_SALVE)] <- 0
-
-max_value <- max(max(full_SALVE$total_lessLTR, na.rm = TRUE), 
-                 max(full_SALVE$bamsort, na.rm = TRUE))
-
-ggplot(full_SALVE, aes(x = total_lessLTR, y = bamsort)) + 
-  geom_point() + 
-  theme_minimal() +
-  coord_fixed(ratio = 1) + 
-  scale_x_continuous(limits = c(0, max_value)) + 
-  scale_y_continuous(limits = c(0, max_value)) +
-  labs(title= "D13 SALVE vs bamsort no filters")
-
-```
-
-Unfiltered SALVE
-SALVE_full is now prefiltered for raw barcodes with UMI > 100; use SALVE_raw for unfiltered list
-```{r}
-input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/bamsort/extracted"
-SALVE_full <- read_salve_data(samples$samples, input.dir, filtered = FALSE)
-
-SALVE_D13_full_df <- SALVE_full %>%
-  filter(sample == "D13") %>%
-  select(-sample)
-
-
-GEX_bamsort_clean_in <- GEX_bamsort_clean %>%
-  filter(cellID %in% raw_cellIDs$D13)
-
-full_SALVE <- full_join(GEX_bamsort_clean_in, SALVE_brp_full, by = join_by(cellID)) %>%
-  mutate(bamsort = log1p(UMI)) %>%
-  select(-UMI)
-full_SALVE[is.na(full_SALVE)] <- 0
-
-max_value <- max(max(full_SALVE$total_lessLTR, na.rm = TRUE), 
-                 max(full_SALVE$bamsort, na.rm = TRUE))
-
-ggplot(full_SALVE, aes(x = total_lessLTR, y = bamsort)) + 
-  geom_point() + 
-  theme_minimal() +
-  coord_fixed(ratio = 1) + 
-  scale_x_continuous(limits = c(0, max_value)) + 
-  scale_y_continuous(limits = c(0, max_value)) +
-  labs(title= "D13 SALVE no filters vs bamsort no filter")
-
-
-both <- sum(full_SALVE$total_lessLTR !=0 & full_SALVE$bamsort !=0)
-onlySALVE <- sum(full_SALVE$total_lessLTR !=0 & full_SALVE$bamsort ==0)
-onlybamsort <- sum(full_SALVE$total_lessLTR ==0 & full_SALVE$bamsort !=0)
-
-whoareyou <- full_SALVE %>%
-  filter(!(total_lessLTR !=0 & bamsort !=0)) %>%
-  filter(!(total_lessLTR !=0 & bamsort ==0)) %>%
-  filter(!(total_lessLTR ==0 & bamsort !=0))
-
-cat(
-  "total_lessLTR:\n# cells in SALVE and bamsort: \t\t",
-  both,
-  "\n# cells in SALVE unfiltered only: \t",
-  onlySALVE,
-  "\n# cells in bamsort unfiltered only: \t",
-  onlybamsort
-)
-
-cat(
-    "Correlation between bamsort and SALVE:",
-    round(cor(full_SALVE$bamsort, full_SALVE$total_lessLTR, method="pearson"), 3))
-
-nozeros <- full_SALVE %>%
-  filter(!(total_lessLTR == 0 | bamsort == 0))
-
-cat(
-    "Correlation between bamsort and SALVE (read and UMI filter):",
-    round(cor(nozeros$bamsort, nozeros$total_lessLTR, method="pearson"), 3))
-```
-
-### joint with mkcounts (skip)
-```{r}
-full_SALVE <- full_join(GEX_mkcounts, SALVE_D13_full_df, by = join_by(cellID)) #updated for new SALVE data format
-full_SALVE[is.na(full_SALVE)] <- 0
-
-max_value <- max(max(full_SALVE$total_lessLTR, na.rm = TRUE), 
-                 max(full_SALVE$mac239, na.rm = TRUE))
-
-ggplot(full_SALVE, aes(x = total_lessLTR, y = mac239)) + 
-  geom_point() + 
-  theme_minimal() +
-  coord_fixed(ratio = 1) + 
-  scale_x_continuous(limits = c(0, max_value)) + 
-  scale_y_continuous(limits = c(0, max_value)) +
-  labs(title= "D13 SALVE no filters vs mkcounts")
-
-
-both <- sum(full_SALVE$total !=0 & full_SALVE$mac239 !=0)
-onlySALVE <- sum(full_SALVE$total !=0 & full_SALVE$mac239 ==0)
-onlymkcounts <- sum(full_SALVE$total ==0 & full_SALVE$mac239 !=0)
-
-whoareyou <- full_SALVE %>%
-  filter(!(total_lessLTR !=0 & bamsort !=0)) %>%
-  filter(!(total_lessLTR !=0 & bamsort ==0)) %>%
-  filter(!(total_lessLTR ==0 & bamsort !=0))
-
-cat(
-  "total:\n# cells in SALVE and bamsort: \t\t",
-  both,
-  "\n# cells in SALVE unfiltered only: \t",
-  onlySALVE,
-  "\n# cells in mkcounts only: \t\t",
-  onlymkcounts
-)
-
-
-cat(
-    "Correlation between mkcounts and SALVE:",
-    round(cor(full_SALVE$mac239, full_SALVE$total_lessLTR, method="pearson"), 3))
-
-nozeros <- full_SALVE %>%
-  filter(!(total_lessLTR == 0 | mac239 == 0))
-
-cat(
-    "Correlation between bamsort and SALVE (read and UMI filter):",
-    round(cor(nozeros$mac239, nozeros$total_lessLTR, method="pearson"), 3))
-```
-
-
-### Correlation analysis (not updated below here)
-Will do it custom for now and update correlation plot function later
-```{r}
-cat(
-  "Correlation between 10X mac239 and SALVE total_lessLTR:\n",
-    "  Pearson: ", round(cor(Pacute_paint_umap$mac239, Pacute_paint_umap$total_lessLTR, method="pearson"), 3),
-    "\n  Spearman: ", round(cor(Pacute_paint_umap$mac239, Pacute_paint_umap$total_lessLTR, method="spearman"), 3),
-    
-    "\n\nCorrelation between 10X mac239 and SALVE absolute:\n",
-    "  Pearson: ", round(cor(Pacute_paint_umap$mac239, Pacute_paint_umap$absolute, method="pearson"), 3),
-    "\n  Spearman: ", round(cor(Pacute_paint_umap$mac239, Pacute_paint_umap$absolute, method="spearman"), 3)
-)
-
-# plotting
-plot <- ggplot(data = Pacute_paint_umap, aes(x = total_lessLTR, y = mac239)) +
-      geom_point() +
-      labs(
-        x = "SALVE total counts: D1 + tat + nef (filter > 2)",
-        y = "SingleCell mac239 counts",
-        title = "Pacute joint: total count") +
-      theme_minimal() + 
-    coord_fixed(ratio = 1)
-plot <- ggplot(data = Pacute_paint_umap, aes(x = absolute, y = mac239)) +
-      geom_point() +
-      labs(
-        x = "SALVE absolute (5' LTR) counts (filter > 0)",
-        y = "SingleCell mac239 counts",
-        title = "Pacute joint: absolute count") +
-      theme_minimal() +
-    coord_fixed(ratio = 1)
-plot + theme(aspect.ratio = 1)
-```
-
-
-## Subset analysis
-
-### Making Mmul10 clusters dataframe (skip)
-```{r}
-output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/Seurat/Mmul_10/"
-Pacute <- SeuratPipeline("/projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/counts/Mmul_10/Mmul_10_P_acute_GEX/outs/filtered_feature_bc_matrix/", "Pacute", output.dir, plots = TRUE)
-
-output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/counts/Mmul_10/"
-SingleCell_Pacute <- targetExpressionDF(Pacute, "CD4")
-SingleCell_Pacute_clusters <- SingleCell_Pacute %>% select(-CD4)
-write.csv(SingleCell_Pacute_clusters, paste0(output.dir, "Pacute_Mmul10_clusters.csv"))
-```
-
-### Loading
-Combining the coordinates and clusters from SingleCell aligned to Mmul_10 with the mac239 expression from SingleCell aligned to Mmul_10_mac239
-```{r}
-SingleCell_Pacute_clusters <- read.csv("/projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/counts/Mmul_10/Pacute_Mmul10_clusters.csv", row.names = "X")
-SingleCell_Pacute_mac239 <- read.csv("/projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/counts/Mmul_10_mac239/Pacute_Mmulmac_mac239.csv", row.names = "X")
-Pacute_SALVE <- read.csv("/projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/bamsort/Pacute_SALVE_filtered.csv", row.names = "X")
-
-SingleCell_Pacute_mac239 <- SingleCell_Pacute_mac239 %>% select(cellID, mac239)
-SingleCell_Pacute <- left_join(SingleCell_Pacute_clusters, SingleCell_Pacute_mac239, by = "cellID")
-
-Pacute_paint_umap = left_join(SingleCell_Pacute, Pacute_SALVE, by = "cellID")
-Pacute_paint_umap[is.na(Pacute_paint_umap)] <- 0
-```
-
-
-```{r plotting}
-# Function to create Seurat-style DimPlot
-plot_clusters <- function(data, 
-                         label_clusters = TRUE,
-                         pt_size = 0.5,
-                         label_size = 4) {
-  
-  # Convert the cluster column to a factor
-  data$cluster <- as.factor(data$cluster)
-  
-  n_clusters <- length(unique(data$cluster))
-  cluster_colors <- scales::hue_pal()(n_clusters)
-  
-  p1 <- ggplot(data, aes(x = UMAP1, y = UMAP2, color = cluster)) +
-    geom_point(size = pt_size) +
-    scale_color_manual(values = cluster_colors) +
-    theme_bw() +
-    theme(
-      panel.grid = element_blank(),
-      axis.title = element_text(size = 12),
-      legend.title = element_blank(),
-      panel.border = element_rect(colour = "black", fill = NA)
-    )
-  
-  if (label_clusters) {
-    cluster_centers <- data %>%
-      group_by(cluster) %>%
-      summarise(
-        UMAP1 = median(UMAP1),
-        UMAP2 = median(UMAP2)
-      )
-    
-    p1 <- p1 + geom_text(data = cluster_centers,
-                         aes(label = cluster),
-                         size = label_size,
-                         color = "black")
-  }
-  
-  return(p1)
-}
-
-# Function to create Seurat-style FeaturePlot
-plot_gene_expression <- function(data,
-                               countcolumn,
-                               pt_size = 0.5,
-                               min_cutoff = NA,
-                               max_cutoff = NA) {
-  
-  plot_data <- data
-  if (!is.na(min_cutoff)) {
-    plot_data[[countcolumn]][plot_data[[countcolumn]] < min_cutoff] <- min_cutoff
-  }
-  if (!is.na(max_cutoff)) {
-    plot_data[[countcolumn]][plot_data[[countcolumn]] > max_cutoff] <- max_cutoff
-  }
-  
-  p2 <- ggplot(plot_data, aes(x = UMAP1, y = UMAP2)) +
-    geom_point(data = subset(plot_data, plot_data[[countcolumn]] <= 0),
-               color = "gray93",
-               size = pt_size) +
-    geom_point(data = subset(plot_data, plot_data[[countcolumn]] > 0),
-               aes_string(color = countcolumn),  # Use aes_string instead
-               size = pt_size) +
-    scale_color_gradient(low = "gray93", high = "darkblue",
-                        name = "Expression") +
-    theme_bw() +
-    theme(
-      panel.grid = element_blank(),
-      axis.title = element_text(size = 12),
-      panel.border = element_rect(colour = "black", fill = NA)
-    )
-  
-  return(p2)
-}
-
-cluster_plot <- plot_clusters(Pacute_paint_umap)
-xprn_plot_SALVE <- plot_gene_expression(Pacute_paint_umap, "total_lessLTR")
-xprn_plot_SingleCell <- plot_gene_expression(Pacute_paint_umap, "mac239")
-intersect_umap <- Pacute_paint_umap %>%
-  mutate(total_lessLTR = ifelse(mac239 == 0, 0, total_lessLTR))
-xprn_plot_intersect <- plot_gene_expression(intersect_umap, "total_lessLTR") #SALVE xprn in cells that are 10X+
-
-output_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS013/joint/subset/"
-ggsave(cluster_plot, file = paste0(output_dir, "Pacute_umap_cluster.svg"))
-ggsave(xprn_plot_SALVE, file = paste0(output_dir, "Pacute_umap_SALVE.svg"))
-ggsave(xprn_plot_SingleCell, file = paste0(output_dir, "Pacute_umap_SingleCell.svg"))
-ggsave(xprn_plot_intersect, file = paste0(output_dir, "Pacute_umap_intersect.svg"))
-
-cat("SingleCell vRNA+: ", sum(invitro_paint_umap$log2SingleCell != 0, na.rm = TRUE),
-    "\nSALVE vRNA+: ", sum(invitro_paint_umap$Count != 0, na.rm = TRUE),
-    "\nCells in common: ", sum(intersect_umap$Count != 0, na.rm = TRUE))
-
-write.csv(invitro_paint_umap, paste0(output_dir, "invitro_paint_umap.csv"))
-
-
-```
-
-Quick correlation plot:
-```{r correlation plotting}
-innerjoin <- inner_join(SingleCell_Pacute_mac239, Pacute_SALVE, by = "cellID")
-Pacute_innerjoin <- left_join(SingleCell_Pacute_clusters, innerjoin, by = "cellID")
-Pacute_innerjoin[is.na(Pacute_innerjoin)] <- 0
-
-cat("Correlation of invitro between 10X and SALVE (total_lessLTR):", cor(Pacute_innerjoin$mac239, Pacute_innerjoin$total_lessLTR))
-corrplot <- ggplot(data = Pacute_innerjoin, aes(x=total_lessLTR, y=mac239)) +
-  geom_point() + 
-  xlim(0,10) + 
-  ylim(0,10) +
-  theme_minimal() + 
-  theme(aspect.ratio = 1) + 
-  labs(title = "inner_join correlation")
-corrplot
-output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS013/joint/subset/"
-ggsave(corrplot, file = paste0(output.dir, "innerjoin_correlationplot.svg"))
-```
-
-### DEG analysis (break point)
-
-```{r}
-#D13
-D13_Seurat <- SeuratPipeline("/projects/b1042/GoyalLab/egrody/extractedData/EGS004/singleCell/counts/Mmul_10/cellranger_count_D13/outs/filtered_feature_bc_matrix/", "D13", plots = FALSE)
-
-D13 <- joint_data[["D13"]]
-list_of_cells <- D13 %>% filter(SALVE != 0) #for SALVE
-list_of_cells <- D13 %>% filter(GEX != 0) #for 10X
-list_of_cells <- list_of_cells$cellID
-
-
-results <- analyze_cell_subset(D13_Seurat, list_of_cells)
-```
-
-### Saving results
-```{r}
-output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS013/joint/subset/singleCell/"
-save_subset_analysis(results, output_dir = output.dir)
-plot_subset_analysis(Pacute, results, list_of_cells, output_dir = paste0(output.dir, "plots/"))
-```
-
-### Interpreting results
-```{r}
-# Create filtered results list
-filteredDEG <- lapply(results$cluster_specific, function(df) {
-  if (!is.null(df) && nrow(df) > 0) {
-    # Filter for significant adjusted p-value and log2FC threshold
-    df[df$p_val_adj < 0.05 & abs(df$avg_log2FC) > 0.5, ]
+  if (min_dist <= 3) {
+    return(as.character(closest_site))
+  } else if (min_dist <= 12) {
+    return("mnc")
   } else {
-    NULL
+    return("nc")
   }
-})
-
-# Remove any empty results
-filteredDEG <- filteredDEG[sapply(filteredDEG, function(x) !is.null(x) && nrow(x) > 0)]
-
-# Print summary of how many genes passed filters in each cluster
-for (cluster in names(filteredDEG)) {
-  cat(sprintf("Cluster %s: %d genes\n", cluster, nrow(filteredDEG[[cluster]])))
 }
 
-# Saving
-wb <- createWorkbook()
-# Add each cluster's results as a separate worksheet
-for (cluster_name in names(filteredDEG)) {
-    de_results <- filteredDEG[[cluster_name]]
-    if (!is.null(de_results) && nrow(de_results) > 0) {
-        # Add cluster results as a worksheet
-        addWorksheet(wb, cluster_name)
-        # Add data with gene names as a column
-        de_results$gene <- rownames(de_results)
-        writeData(wb, cluster_name, de_results)
-    }
-}
-
-# Save the workbook
-saveWorkbook(wb, paste0(output.dir, "cluster_specific_DE_filtered.xlsx"), overwrite = TRUE)
-
-
-
-filteredConserv <- results$conserved_markers %>%
-    filter(p_val_adj < 0.05 & abs(avg_log2FC) > 0.5)
-
-# Print summary of how many genes passed filters in each cluster
-cat(sprintf("Conserved markers: %d genes\n", nrow(filteredConserv)))
-
-# For each gene in conserved_markers, let's check which clusters show it as significant
-check_gene_presence <- function(gene, cluster_results, p_val_thresh = 0.05, log2fc_thresh = 0.5) {
-  # Initialize list to store results
-  presence <- list()
-  
-  # Check each cluster
-  for(cluster in names(cluster_results)) {
-    de_results <- cluster_results[[cluster]]
-    if(!is.null(de_results) && gene %in% rownames(de_results)) {
-      # Get gene stats for this cluster
-      gene_stats <- de_results[gene,]
-      # Check if it meets significance criteria
-      if(gene_stats$p_val_adj < p_val_thresh && abs(gene_stats$avg_log2FC) > log2fc_thresh) {
-        presence[[cluster]] <- c(
-          p_val_adj = gene_stats$p_val_adj,
-          avg_log2FC = gene_stats$avg_log2FC
-        )
-      }
-    }
+for (sample in samples) {
+  dataset <- data.frame()
+  for (target in targets) {
+    file_name <- paste0(input.dir, sample, "_", target, "_splicesites.csv")
+    file <- read.csv(file_name)
+    dataset <- rbind(dataset, file)
   }
+  dataset <- dataset %>%
+    rowwise() %>%
+    mutate(
+      DonorSite = classify_site(Donor, donors$Donor, donors$DonorSite),
+      AcceptorSite = classify_site(Acceptor, acceptors$Acceptor, acceptors$AcceptorSite)) %>%
+    ungroup() %>% 
+    select(-CIGAR, -Read.sequence, -Sequence.after.the.N, -Before_N_M_coords, -After_N_M_coords) %>% 
+    distinct(CB, DonorSite, AcceptorSite, UB, .keep_all = TRUE)
+  topsplicers <- dataset %>% count(CB) %>% rename(events = n) %>% arrange(desc(events))
+  test <- dataset %>%
+    filter(DonorSite == "nc" | AcceptorSite == "nc") %>%
+    count(CB) %>% rename(nc = n)
+  topsplicers <- left_join(topsplicers, test, by = "CB") %>%
+    replace(is.na(.), 0) %>%
+    mutate(sample = sample)
   
-  # Return number of clusters and which clusters
-  return(list(
-    n_clusters = length(presence),
-    clusters = names(presence),
-    details = presence
-  ))
+  comparison <- rbind(comparison, topsplicers)
+  
+  ggplot(topsplicers, aes(x = log1p(events), y = log1p(nc))) +
+    geom_point(size = 2) +
+    theme_minimal() +
+    theme(legend.position = "none") +
+    labs(title = paste0(sample, " Splicing Events"), 
+         x = "Splicing events (log)", y = "Non-canonical splicing events (log)") + 
+    xlim(0,6)
+  
+  #test <- topsplicers %>% filter(events == nc) %>% arrange(desc(events))
 }
 
-# First get cluster counts for each gene
-cluster_counts <- lapply(rownames(filteredConserv), function(gene) {
-  result <- check_gene_presence(gene, results$cluster_specific)
-  data.frame(
-    gene = gene,
-    num_clusters = result$n_clusters,
-    clusters = paste(result$clusters, collapse=",")
-  )
-}) %>% bind_rows()
 
-# Add cluster information to filtered results
-filteredConserv <- filteredConserv %>%
-  mutate(gene = rownames(.)) %>%
-  left_join(cluster_counts, by = "gene") %>%
-  arrange(desc(num_clusters), desc(abs(avg_log2FC)))
+```
 
-# Save to Excel
-wb <- createWorkbook()
-addWorksheet(wb, "filtered_conserved")
-writeData(wb, "filtered_conserved", filteredConserv)
-saveWorkbook(wb, paste0(output.dir, "conserved_markers_filtered.xlsx"), overwrite = TRUE)
+Searching for defective proviruses
+```{r}
+input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/bamsort/splice/defective/"
+samples <- c("D13", "Invitro", "D195")
+targets <- c("D1_nef", "LTR_tat")
+salve.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/bamsort/reads/v5/minimum/"
+
+acceptors <- data.frame(
+  Acceptor = c(4658, 5141, 5746, 5818, 5959, 8249),
+  AcceptorSite = c("A1", "A2", "A3", "A4", "A5", "A7")
+)
+donors <- data.frame(
+  Donor = c(431, 4730, 5217, 6043),
+  DonorSite = c("D1", "D2", "D3", "D4")
+)
+
+classify_site <- function(value, reference_values, reference_sites) {
+  distances <- abs(value - reference_values)
+  min_dist <- min(distances)
+  closest_site <- reference_sites[which.min(distances)]
+  
+  if (min_dist <= 3) {
+    return(as.character(closest_site))
+  } else if (min_dist <= 12) {
+    return("mnc")
+  } else {
+    return("nc")
+  }
+}
+
+for (sample in samples) {
+  SALVE_data <- read.csv(paste0(salve.dir, sample, "_SALVE_filtered.csv"))
+  dataset <- data.frame()
+  for (target in targets) {
+    file_name <- paste0(input.dir, sample, "_", target, "_splicesites.csv")
+    file <- read.csv(file_name)
+    dataset <- rbind(dataset, file)
+  }
+  dataset <- dataset %>%
+    select(CB, Donor, Acceptor) %>%
+    rowwise() %>%
+    mutate(
+      DonorSite = classify_site(Donor, donors$Donor, donors$DonorSite),
+      AcceptorSite = classify_site(Acceptor, acceptors$Acceptor, acceptors$AcceptorSite)) %>%
+    ungroup() %>% 
+    filter(DonorSite == "nc" | AcceptorSite == "nc") %>%
+    group_by(CB, Donor, Acceptor, DonorSite, AcceptorSite) %>%
+    mutate(count = n()) %>%
+    ungroup() %>%
+    distinct(CB, Donor, Acceptor, DonorSite, AcceptorSite, .keep_all = TRUE) %>%
+    filter(CB %in% SALVE_data$cellID)
+  
+  write.csv(dataset, paste0(input.dir, sample, "_noncanonical_either.csv"))
+  dataset <- dataset %>%
+    filter(DonorSite == "nc" & AcceptorSite == "nc")
+  write.csv(dataset, paste0(input.dir, sample, "_noncanonical_both.csv"))
+
+}
 ```
 
 
@@ -1910,7 +913,7 @@ model_results <- fit_models(results, target_coverage = 100, coverage_column = "p
 model_results <- fit_models(results, target_coverage = 120)
 ```
 
-### SALVE Summary: mac239 vs Mmul_10
+### bamsort split: mac239 vs Mmul_10 reads
 ```{r loading}
 input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/bamsort/split/"
 reads_summary <- read.csv("/projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/bamsort/split/all_samples_summary.txt", header = TRUE)
@@ -1923,3 +926,588 @@ rownames(df_transposed) <- c("Inside_Rows", "Inside_Total_Reads", "Outside_Rows"
 df_transposed <- rbind(df_transposed, Inside_Fraction = round(df_transposed["Inside_Total_Reads",] / df_transposed["Outside_Total_Reads",], 2), Avg_Inside_Reads = round(df_transposed["Inside_Total_Reads",] / df_transposed["Inside_Rows",], 2))
 
 ```
+
+# Joint Dataset
+
+## Joining
+Loading both datasets and making left_join dataframe
+```{r}
+samples <- c(
+  "D13",
+  "D195",
+  "D83",
+  "GART",
+  "Invitro",
+  "LART",
+  "Lacute",
+  "PART",
+  "Uninfected"
+)
+
+
+SALVE.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/bamsort/reads/v5/minimum/"
+GEX.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/singleCell/bamsort/reads/newcoords/minimum/"
+
+joint_data <- list()
+
+for (i in 1:length(samples)) {
+  sample_name <- samples[i]
+  
+  # Read all data files
+  salve_file <- paste0(SALVE.dir, sample_name, "_SALVE_filtered.csv")
+  gex_file <- paste0(GEX.dir, sample_name, "_GEX_filtered.csv")
+  umap_file <- paste0("/projects/b1042/GoyalLab/egrody/extractedData/EGS014/singleCell/Seurat/UMAPcoords/", 
+                      sample_name, "UMAP_coords.csv")
+  
+  salve_data <- if(file.exists(salve_file)) read.csv(salve_file) else NULL
+  gex_data <- if(file.exists(gex_file)) read.csv(gex_file) else NULL
+  umap_data <- if(file.exists(umap_file)) read.csv(umap_file, row.names = "X") else NULL
+  
+  # Skip if no data at all
+  if (is.null(umap_data)) {
+    cat("Skipping", sample_name, ": no GEX data\n")
+    next
+  }
+  
+  # Get cellIDs from GEX
+  all_cells <- as.character(umap_data$cellID)
+  all_cells <- unique(all_cells)
+  
+  # Skip if no valid cells
+  if (length(all_cells) == 0) {
+    cat("Skipping", sample_name, ": no valid cell IDs in UMAP data\n")
+    next
+  }
+  
+  # Create base dataframe
+  result <- data.frame(cellID = all_cells)
+  
+  # Add UMAP data
+  if (!is.null(umap_data)) {
+    umap_processed <- umap_data %>%
+      select(-V2, -sample)
+    result <- left_join(result, umap_processed, by = "cellID")
+  }
+  
+  # Add GEX data
+  if (!is.null(gex_data)) {
+    gex_processed <- gex_data %>%
+      mutate(GEX = log1p(rowSums(across(c(US, spliced, any))))) %>%
+      mutate(cellID = as.character(cellID)) %>%
+      select(cellID, GEX)
+    result <- left_join(result, gex_processed, by = "cellID")
+  } else {
+    result$GEX <- 0
+  }
+  
+  # Add SALVE data
+  if (!is.null(salve_data)) {
+    salve_processed <- salve_data %>%
+      #group_by(cellID) %>%
+      rename(SALVE = total) %>%
+      mutate(spliced = rowSums(across(c(spliced, S, SS, MS)))) %>%
+      mutate(across(c(SALVE, US, spliced), log1p)) %>%
+      mutate(cellID = as.character(cellID)) %>%
+      select(cellID, SALVE, US, spliced)
+    result <- left_join(result, salve_processed, by = "cellID")
+  } else {
+    result$SALVE <- 0
+  }
+  
+  # Replace NAs with 0
+  result[is.na(result)] <- 0
+  
+  # Skipping CD4 filtering
+  # CD8/CD4 double positive already removed
+  
+  joint_data[[sample_name]] <- result
+  cat("Processed", sample_name, "\n")
+}
+```
+
+To get metrics for the left_join dataframes:
+```{r}
+#output_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/joint/"
+#dir.create(output_dir, showWarnings = FALSE, recursive = TRUE)
+
+cat("\nSample\tTotal_cells\tboth\t10X_only\tSALVE_only\n")
+
+# Process each dataset in the joint_data list
+for (sample_name in names(joint_data)) {
+  # Get the current dataframe
+  current_df <- joint_data[[sample_name]] #%>%
+    #mutate(SALVE = (D1_US + D1_S + tat_S + tat_US + nef )) %>%
+    #mutate(GEX = (LTR_D1  + D1_A1  + A1_D4 + D4_A7 + A7_LTR))
+  
+  # Create the subsets based on mac239 and total columns
+  both <- current_df %>% filter(GEX != 0 & SALVE != 0)
+  onlySingleCell <- current_df %>% 
+    filter(GEX != 0) %>%
+    filter(!(cellID %in% both$cellID))
+  onlySALVE <- current_df %>% 
+    filter(SALVE != 0) %>%
+    filter(!(cellID %in% both$cellID))
+
+  
+  # Print data row for each sample
+  cat(sample_name, "\t", 
+      nrow(current_df), "\t", 
+      nrow(both), "\t", 
+      nrow(onlySingleCell), "\t", 
+      nrow(onlySALVE), "\n")
+  
+  # Save CSVs
+  #write.csv(both, paste0(output_dir, "left_", sample_name, "_both.csv"), row.names = FALSE)
+  #write.csv(onlySingleCell, paste0(output_dir, "left_", sample_name, "_onlySingleCell.csv"), row.names = FALSE)
+  #write.csv(onlySALVE, paste0(output_dir, "left_", sample_name, "_onlySALVE.csv"), row.names = FALSE)
+  #write.csv(current_df, paste0(output_dir, "left_", sample_name, "_all.csv"), row.names = FALSE)
+}
+
+```
+
+Plotting
+```{r}
+output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS013/joint/"
+plotUMAP(Pacute_paint_umap, mac239, "Pacute: mac239", output.dir, "Pacute_umap_singleCell.svg")
+plotUMAP(Pacute_paint_umap, total_lessLTR, "Pacute: SALVE (total_lessLTR)", output.dir, "Pacute_umap_SALVE.svg")
+
+plotUMAP(Pacute_paint_umap, mac239, "Pacute: mac239", output.dir, "Pacute_umap_singleCell.svg", color_max = max(Pacute_paint_umap$total_lessLTR))
+plotUMAP(Pacute_paint_umap, total_lessLTR, "Pacute: SALVE (total_lessLTR)", output.dir, "Pacute_umap_SALVE_totallessLTR.svg")
+plotUMAP(Pacute_paint_umap, tat_S, "Pacute: SALVE (tat S)", output.dir, "Pacute_umap_SALVE_tatS.svg")
+plotUMAP(Pacute_paint_umap, tat_US, "Pacute: SALVE (tat US)", output.dir, "Pacute_umap_SALVE_tatUS.svg")
+plotUMAP(Pacute_paint_umap, D1_S, "Pacute: SALVE (D1 S)", output.dir, "Pacute_umap_SALVE_D1S.svg")
+plotUMAP(Pacute_paint_umap, D1_US, "Pacute: SALVE (D1 US)", output.dir, "Pacute_umap_SALVE_D1US.svg")
+plotUMAP(Pacute_paint_umap, absolute, "Pacute: SALVE (absolute)", output.dir, "Pacute_umap_SALVE_absolute.svg")
+
+cat(
+  "Number of US (unspliced) cells: \t",
+  sum(Pacute_paint_umap$D1_US > 0),
+  "\nNumber of S (spliced) cells: \t\t",
+  sum(Pacute_paint_umap$D1_S > 0 | Pacute_paint_umap$tat_S > 0),
+  "\nNumber of cells with both: \t\t",
+  sum(Pacute_paint_umap$D1_US > 0 & (Pacute_paint_umap$D1_S > 0 | Pacute_paint_umap$tat_S > 0))
+)
+```
+
+## Joint Metrics
+### Counts histograms
+What is the distribution of counts for SALVE?
+```{r}
+SALVE_data <- SALVE_data %>%
+  #mutate(log1pSALVE = log1p(total_lessLTR)) %>%
+  filter(!(sample == "Pacute"))
+#max_value <- max(SALVE_data$log1pSALVE, na.rm = TRUE) 
+max_value <- max(150) #for counts expression, update the indicated fields
+output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/histograms/"
+
+library(patchwork)
+plot_list <- list()
+
+for (i in 1:nrow(samples)) {
+  if (samples$samples[i] != "Pacute") {
+    sample_name <- samples$samples[i]
+    expression <- SALVE_data %>%
+      filter(sample == sample_name)
+    p <- ggplot(expression, aes(x=total_lessLTR)) + #update
+      geom_histogram(binwidth=1) + 
+      theme_minimal() +
+      scale_x_continuous(limits = c(0, max_value)) + 
+      labs(title = paste0(sample_name, " SALVE counts"),
+           x = "total_lessLTR") #update
+    plot_list[[i]] <- p
+    #print(p)
+    #output_file <- file.path(output.dir, paste0(sample_name, "_log_expression.svg")) #update
+    #ggsave(filename = output_file, plot = p, device = "svg", width = 8, height = 6)
+  }
+}
+
+plot_list <- plot_list[!sapply(plot_list, is.null)]
+
+if (length(plot_list) <= 9) {
+  # If 9 or fewer plots, create a clean 3x3 grid
+  combined_plot <- (plot_list[[1]] | plot_list[[2]] | plot_list[[3]]) /
+                   (plot_list[[4]] | plot_list[[5]] | plot_list[[6]]) /
+                   (plot_list[[7]] | plot_list[[8]] | plot_list[[9]])
+  
+  # Handle cases with fewer than 9 plots
+  combined_plot <- wrap_plots(plot_list, ncol = 3)
+  
+  # Add a shared title if desired
+  combined_plot <- combined_plot + 
+    plot_annotation(title = "SALVE Expression Across Samples",
+                   theme = theme(plot.title = element_text(hjust = 0.5, size = 16)))
+  
+  # Print the combined plot
+  print(combined_plot)
+}
+```
+
+For absolute:
+```{r}
+SALVE_data <- SALVE_data %>%
+  mutate(log1pSALVE = log1p(total_lessLTR))
+max_value <- max(SALVE_data$log1pSALVE, na.rm = TRUE) 
+#max_value <- max(SALVE_data$total_lessLTR, na.rm = TRUE) #for counts expression, update the indicated fields
+output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/histograms/"
+
+for (i in 1:nrow(samples)) {
+  sample_name <- samples$samples[i]
+  expression <- SALVE_data %>%
+    filter(sample == sample_name)
+  p <- ggplot(expression, aes(x=log1pSALVE)) + #update
+    geom_histogram() + 
+    theme_minimal() +
+    scale_x_continuous(limits = c(0, max_value)) + 
+    labs(title = paste0(sample_name, " SALVE expression"),
+         x = "log1p(total_lessLTR)") #update
+  print(p)
+  output_file <- file.path(output.dir, paste0(sample_name, "_log_absolute.svg")) #update
+  #ggsave(filename = output_file, plot = p, device = "svg", width = 8, height = 6)
+}
+```
+
+### Barcode rank plot (skip)
+```{r}
+for (i in 1:nrow(samples)) {
+  sample_name <- samples$samples[i]
+  cat("\nProcessing barcodeRankPlot for sample:", sample_name, "\n")
+  
+  # Filter SALVE_data to get only rows for the current sample
+  sample_data <- SALVE_data %>% 
+    filter(sample == sample_name)
+  
+  # Skip if no data for this sample
+  if (nrow(sample_data) == 0) {
+    cat("No data found for sample", sample_name, "in SALVE_data. Skipping.\n")
+    next
+  }
+  
+  # Construct the path to the raw data folder
+  rawDataFolder <- paste0(samples$folders[i], "Mmul_10_mac239_", samples$datasets[i], "/outs/raw_feature_bc_matrix/")
+  
+  # Check if the raw data folder exists
+  if (!dir.exists(rawDataFolder)) {
+    cat("Raw data folder not found:", rawDataFolder, "\nSkipping.\n")
+    next
+  }
+  
+  # Set output directory and filename
+  output_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/joint/"
+  saveas <- paste0("barcodeRankPlot_", sample_name, ".svg")
+  
+  # Make sure output directory exists
+  if (!dir.exists(output_dir)) {
+    dir.create(output_dir, recursive = TRUE)
+    cat("Created output directory:", output_dir, "\n")
+  }
+  
+  # Run the barcodeRankPlot function with the sample-specific data
+  tryCatch({
+    barcodeRankPlot(
+      rawDataFolder = rawDataFolder,
+      jointFullJoin = sample_data,
+      plotTitle = paste0("Barcode Rank Plot: ", sample_name),
+      output_dir = output_dir,
+      saveas = saveas
+    )
+    
+    cat("Successfully generated plot for", sample_name, "\n")
+  }, error = function(e) {
+    cat("Error generating barcodeRankPlot for", sample_name, ":", conditionMessage(e), "\n")
+  })
+}
+```
+
+
+### Correlation analysis (not updated)
+Will do it custom for now and update correlation plot function later
+```{r}
+cat(
+  "Correlation between 10X mac239 and SALVE total_lessLTR:\n",
+    "  Pearson: ", round(cor(Pacute_paint_umap$mac239, Pacute_paint_umap$total_lessLTR, method="pearson"), 3),
+    "\n  Spearman: ", round(cor(Pacute_paint_umap$mac239, Pacute_paint_umap$total_lessLTR, method="spearman"), 3),
+    
+    "\n\nCorrelation between 10X mac239 and SALVE absolute:\n",
+    "  Pearson: ", round(cor(Pacute_paint_umap$mac239, Pacute_paint_umap$absolute, method="pearson"), 3),
+    "\n  Spearman: ", round(cor(Pacute_paint_umap$mac239, Pacute_paint_umap$absolute, method="spearman"), 3)
+)
+
+# plotting
+plot <- ggplot(data = Pacute_paint_umap, aes(x = total_lessLTR, y = mac239)) +
+      geom_point() +
+      labs(
+        x = "SALVE total counts: D1 + tat + nef (filter > 2)",
+        y = "SingleCell mac239 counts",
+        title = "Pacute joint: total count") +
+      theme_minimal() + 
+    coord_fixed(ratio = 1)
+plot <- ggplot(data = Pacute_paint_umap, aes(x = absolute, y = mac239)) +
+      geom_point() +
+      labs(
+        x = "SALVE absolute (5' LTR) counts (filter > 0)",
+        y = "SingleCell mac239 counts",
+        title = "Pacute joint: absolute count") +
+      theme_minimal() +
+    coord_fixed(ratio = 1)
+plot + theme(aspect.ratio = 1)
+```
+
+
+## Subset analysis (not updated)
+
+### Loading
+
+```{r}
+SingleCell_Pacute_clusters <- read.csv("/projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/counts/Mmul_10/Pacute_Mmul10_clusters.csv", row.names = "X")
+SingleCell_Pacute_mac239 <- read.csv("/projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/counts/Mmul_10_mac239/Pacute_Mmulmac_mac239.csv", row.names = "X")
+Pacute_SALVE <- read.csv("/projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/bamsort/Pacute_SALVE_filtered.csv", row.names = "X")
+
+SingleCell_Pacute_mac239 <- SingleCell_Pacute_mac239 %>% select(cellID, mac239)
+SingleCell_Pacute <- left_join(SingleCell_Pacute_clusters, SingleCell_Pacute_mac239, by = "cellID")
+
+Pacute_paint_umap = left_join(SingleCell_Pacute, Pacute_SALVE, by = "cellID")
+Pacute_paint_umap[is.na(Pacute_paint_umap)] <- 0
+```
+
+
+```{r plotting}
+# Function to create Seurat-style DimPlot
+plot_clusters <- function(data, 
+                         label_clusters = TRUE,
+                         pt_size = 0.5,
+                         label_size = 4) {
+  
+  # Convert the cluster column to a factor
+  data$cluster <- as.factor(data$cluster)
+  
+  n_clusters <- length(unique(data$cluster))
+  cluster_colors <- scales::hue_pal()(n_clusters)
+  
+  p1 <- ggplot(data, aes(x = UMAP1, y = UMAP2, color = cluster)) +
+    geom_point(size = pt_size) +
+    scale_color_manual(values = cluster_colors) +
+    theme_bw() +
+    theme(
+      panel.grid = element_blank(),
+      axis.title = element_text(size = 12),
+      legend.title = element_blank(),
+      panel.border = element_rect(colour = "black", fill = NA)
+    )
+  
+  if (label_clusters) {
+    cluster_centers <- data %>%
+      group_by(cluster) %>%
+      summarise(
+        UMAP1 = median(UMAP1),
+        UMAP2 = median(UMAP2)
+      )
+    
+    p1 <- p1 + geom_text(data = cluster_centers,
+                         aes(label = cluster),
+                         size = label_size,
+                         color = "black")
+  }
+  
+  return(p1)
+}
+
+# Function to create Seurat-style FeaturePlot
+plot_gene_expression <- function(data,
+                               countcolumn,
+                               pt_size = 0.5,
+                               min_cutoff = NA,
+                               max_cutoff = NA) {
+  
+  plot_data <- data
+  if (!is.na(min_cutoff)) {
+    plot_data[[countcolumn]][plot_data[[countcolumn]] < min_cutoff] <- min_cutoff
+  }
+  if (!is.na(max_cutoff)) {
+    plot_data[[countcolumn]][plot_data[[countcolumn]] > max_cutoff] <- max_cutoff
+  }
+  
+  p2 <- ggplot(plot_data, aes(x = UMAP1, y = UMAP2)) +
+    geom_point(data = subset(plot_data, plot_data[[countcolumn]] <= 0),
+               color = "gray93",
+               size = pt_size) +
+    geom_point(data = subset(plot_data, plot_data[[countcolumn]] > 0),
+               aes_string(color = countcolumn),  # Use aes_string instead
+               size = pt_size) +
+    scale_color_gradient(low = "gray93", high = "darkblue",
+                        name = "Expression") +
+    theme_bw() +
+    theme(
+      panel.grid = element_blank(),
+      axis.title = element_text(size = 12),
+      panel.border = element_rect(colour = "black", fill = NA)
+    )
+  
+  return(p2)
+}
+
+cluster_plot <- plot_clusters(Pacute_paint_umap)
+xprn_plot_SALVE <- plot_gene_expression(Pacute_paint_umap, "total_lessLTR")
+xprn_plot_SingleCell <- plot_gene_expression(Pacute_paint_umap, "mac239")
+intersect_umap <- Pacute_paint_umap %>%
+  mutate(total_lessLTR = ifelse(mac239 == 0, 0, total_lessLTR))
+xprn_plot_intersect <- plot_gene_expression(intersect_umap, "total_lessLTR") #SALVE xprn in cells that are 10X+
+
+output_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS013/joint/subset/"
+ggsave(cluster_plot, file = paste0(output_dir, "Pacute_umap_cluster.svg"))
+ggsave(xprn_plot_SALVE, file = paste0(output_dir, "Pacute_umap_SALVE.svg"))
+ggsave(xprn_plot_SingleCell, file = paste0(output_dir, "Pacute_umap_SingleCell.svg"))
+ggsave(xprn_plot_intersect, file = paste0(output_dir, "Pacute_umap_intersect.svg"))
+
+cat("SingleCell vRNA+: ", sum(invitro_paint_umap$log2SingleCell != 0, na.rm = TRUE),
+    "\nSALVE vRNA+: ", sum(invitro_paint_umap$Count != 0, na.rm = TRUE),
+    "\nCells in common: ", sum(intersect_umap$Count != 0, na.rm = TRUE))
+
+write.csv(invitro_paint_umap, paste0(output_dir, "invitro_paint_umap.csv"))
+
+
+```
+
+Quick correlation plot:
+```{r correlation plotting}
+innerjoin <- inner_join(SingleCell_Pacute_mac239, Pacute_SALVE, by = "cellID")
+Pacute_innerjoin <- left_join(SingleCell_Pacute_clusters, innerjoin, by = "cellID")
+Pacute_innerjoin[is.na(Pacute_innerjoin)] <- 0
+
+cat("Correlation of invitro between 10X and SALVE (total_lessLTR):", cor(Pacute_innerjoin$mac239, Pacute_innerjoin$total_lessLTR))
+corrplot <- ggplot(data = Pacute_innerjoin, aes(x=total_lessLTR, y=mac239)) +
+  geom_point() + 
+  xlim(0,10) + 
+  ylim(0,10) +
+  theme_minimal() + 
+  theme(aspect.ratio = 1) + 
+  labs(title = "inner_join correlation")
+corrplot
+output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS013/joint/subset/"
+ggsave(corrplot, file = paste0(output.dir, "innerjoin_correlationplot.svg"))
+```
+
+### DEG analysis
+
+```{r}
+#D13
+D13_Seurat <- SeuratPipeline("/projects/b1042/GoyalLab/egrody/extractedData/EGS004/singleCell/counts/Mmul_10/cellranger_count_D13/outs/filtered_feature_bc_matrix/", "D13", plots = FALSE)
+
+D13 <- joint_data[["D13"]]
+list_of_cells <- D13 %>% filter(SALVE != 0) #for SALVE
+list_of_cells <- D13 %>% filter(GEX != 0) #for 10X
+list_of_cells <- list_of_cells$cellID
+
+
+results <- analyze_cell_subset(D13_Seurat, list_of_cells)
+```
+
+### Saving results
+```{r}
+output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS013/joint/subset/singleCell/"
+save_subset_analysis(results, output_dir = output.dir)
+plot_subset_analysis(Pacute, results, list_of_cells, output_dir = paste0(output.dir, "plots/"))
+```
+
+### Interpreting results
+```{r}
+# Create filtered results list
+filteredDEG <- lapply(results$cluster_specific, function(df) {
+  if (!is.null(df) && nrow(df) > 0) {
+    # Filter for significant adjusted p-value and log2FC threshold
+    df[df$p_val_adj < 0.05 & abs(df$avg_log2FC) > 0.5, ]
+  } else {
+    NULL
+  }
+})
+
+# Remove any empty results
+filteredDEG <- filteredDEG[sapply(filteredDEG, function(x) !is.null(x) && nrow(x) > 0)]
+
+# Print summary of how many genes passed filters in each cluster
+for (cluster in names(filteredDEG)) {
+  cat(sprintf("Cluster %s: %d genes\n", cluster, nrow(filteredDEG[[cluster]])))
+}
+
+# Saving
+wb <- createWorkbook()
+# Add each cluster's results as a separate worksheet
+for (cluster_name in names(filteredDEG)) {
+    de_results <- filteredDEG[[cluster_name]]
+    if (!is.null(de_results) && nrow(de_results) > 0) {
+        # Add cluster results as a worksheet
+        addWorksheet(wb, cluster_name)
+        # Add data with gene names as a column
+        de_results$gene <- rownames(de_results)
+        writeData(wb, cluster_name, de_results)
+    }
+}
+
+# Save the workbook
+saveWorkbook(wb, paste0(output.dir, "cluster_specific_DE_filtered.xlsx"), overwrite = TRUE)
+
+
+
+filteredConserv <- results$conserved_markers %>%
+    filter(p_val_adj < 0.05 & abs(avg_log2FC) > 0.5)
+
+# Print summary of how many genes passed filters in each cluster
+cat(sprintf("Conserved markers: %d genes\n", nrow(filteredConserv)))
+
+# For each gene in conserved_markers, let's check which clusters show it as significant
+check_gene_presence <- function(gene, cluster_results, p_val_thresh = 0.05, log2fc_thresh = 0.5) {
+  # Initialize list to store results
+  presence <- list()
+  
+  # Check each cluster
+  for(cluster in names(cluster_results)) {
+    de_results <- cluster_results[[cluster]]
+    if(!is.null(de_results) && gene %in% rownames(de_results)) {
+      # Get gene stats for this cluster
+      gene_stats <- de_results[gene,]
+      # Check if it meets significance criteria
+      if(gene_stats$p_val_adj < p_val_thresh && abs(gene_stats$avg_log2FC) > log2fc_thresh) {
+        presence[[cluster]] <- c(
+          p_val_adj = gene_stats$p_val_adj,
+          avg_log2FC = gene_stats$avg_log2FC
+        )
+      }
+    }
+  }
+  
+  # Return number of clusters and which clusters
+  return(list(
+    n_clusters = length(presence),
+    clusters = names(presence),
+    details = presence
+  ))
+}
+
+# First get cluster counts for each gene
+cluster_counts <- lapply(rownames(filteredConserv), function(gene) {
+  result <- check_gene_presence(gene, results$cluster_specific)
+  data.frame(
+    gene = gene,
+    num_clusters = result$n_clusters,
+    clusters = paste(result$clusters, collapse=",")
+  )
+}) %>% bind_rows()
+
+# Add cluster information to filtered results
+filteredConserv <- filteredConserv %>%
+  mutate(gene = rownames(.)) %>%
+  left_join(cluster_counts, by = "gene") %>%
+  arrange(desc(num_clusters), desc(abs(avg_log2FC)))
+
+# Save to Excel
+wb <- createWorkbook()
+addWorksheet(wb, "filtered_conserved")
+writeData(wb, "filtered_conserved", filteredConserv)
+saveWorkbook(wb, paste0(output.dir, "conserved_markers_filtered.xlsx"), overwrite = TRUE)
+```
+
+
+
+
+
+
+

@@ -20,7 +20,8 @@ packages <- c(
   "parallel",
   "doParallel",
   "foreach",
-  "tidyr"
+  "tidyr",
+  "ggrepel"
 )
 
 
