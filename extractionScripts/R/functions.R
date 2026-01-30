@@ -1,59 +1,7 @@
 # functions.R
 
 # Loading and Processing
-## SALVE: detect if a file is valid v4 BAM
-is_v4bamsort <- function(filename) {
-  
-  # Split the filename into parts
-  target_part <- strsplit(filename, "_bamsort_alignment_")[[1]][1]
-  
-  # Get the part after "_bamsort_alignment_"
-  alignment_part <- NA
-  if (length(strsplit(filename, "_bamsort_alignment_")[[1]]) > 1) {
-    alignment_part <- strsplit(filename, "_bamsort_alignment_")[[1]][2]
-    alignment_part <- sub("\\.csv$", "", alignment_part)
-  }
-  
-  # Categorize based on different parts of the filename
-  is_d1 <- grepl("D1", target_part)
-  is_tat <- grepl("tat", target_part)
-  is_nef_target <- grepl("nef", target_part)
-  is_nef_alignment <- !is.na(alignment_part) && grepl("nef", alignment_part)
-  is_ltr_target <- grepl("LTR", target_part)
-  is_ltr_alignment <- !is.na(alignment_part) && grepl("LTR", alignment_part)
-  
-  return(is_d1 || is_tat || is_nef_target || is_nef_alignment || is_ltr_target || is_ltr_alignment)
-}
 ## SALVE and GEX: extract category from filename
-extract_categoryv5 <- function(filename) {
-  # Split the filename into parts
-  target_part <- basename(filename)
-  target_part <- strsplit(target_part, "_bamsort_alignment_")[[1]][1]
-  alignment_part <- strsplit(filename, "_bamsort_alignment_")[[1]][2]
-  alignment_part <- sub("\\.csv$", "", alignment_part)
-  
-  # SALVE categories: special cases
-  if (grepl("KLRB1$", alignment_part)) return("KLRB1")
-
-  target <- strsplit(target_part, "_")[[1]][2]
-  # if (!is.na(target) && target == "D1") {
-  #   if (alignment_part == "D1_A1") return()
-  # }
-  if (!is.na(target) && target == "SSenv") {
-    if (alignment_part == "D4_A7") return("SS")
-  }
-  
-  # Categorize rest, including GEX
-  if (alignment_part == "LTR_D1") return("any")
-  if (alignment_part == "D1_A1") return("US")
-  if (alignment_part == "A1_D4") return("spliced")
-  if (alignment_part == "D4_A7") return("spliced")
-  if (alignment_part == "A7_LTR") return("any")
-  
-  # Default case
-  #cat("  Failed to categorize. Assigning as: NA\n")
-  return(NA)
-}
 extract_categoryv6 <- function(filename) {
   # Split the filename into parts
   target_part <- basename(filename)
@@ -62,13 +10,15 @@ extract_categoryv6 <- function(filename) {
   alignment_part <- sub("\\.csv$", "", alignment_part)
   
   targets <- strsplit(target_part, "_")[[1]]
+  targets <- targets[-1]
+  targets <- targets[!targets %in% c("PL", "CI")]
   if (all(is.na(targets))) {
     return(NA)
   }
   
   # universal truths
   if (grepl("KLRB1$", alignment_part)) return("KLRB1")
-  if (targets == "pol") return("US")
+  if (length(targets) == 1 & "pol" %in% targets) return("US")
   if (grepl("LTR_D1$", alignment_part)) return("any-D1")
   if (grepl("D1_A1$", alignment_part)) return("US")
   
@@ -84,6 +34,7 @@ extract_categoryv6 <- function(filename) {
   }
   if (alignment_part == "A7_LTR") {
     if ("D1" %in% targets) return("SS-MS7")
+    if ("SSenv" %in% targets) return("US-SS")
     if ("tat" %in% targets | "D4" %in% targets) return("MS")
     else return("any-A7")
   }
@@ -92,127 +43,68 @@ extract_categoryv6 <- function(filename) {
   cat("  Failed to categorize. Assigning as: NA\n")
   return(NA)
 }
-## SALVE and GEX: resolve UMI mapping to multiple genes/regions
-resolve_multimapv5 <- function(df) {
-  df <- as.data.frame(df, stringsAsFactors = FALSE)
-  
-  valid_pairs <- list(
-    c("spliced", "US"),  # Keep US
-    c("spliced", "any"), # Keep any
-    c("US", "any")       # Keep any
-  )
-  
-  # Create a composite key
-  df$key <- paste(df$cellID, df$UMI, sep = "_")
-  
-  # Identify multi-category keys
-  key_counts <- table(df$key)
-  multi_keys <- names(key_counts[key_counts > 1])
-  
-  # Statistics counters
-  total_multimapped <- length(multi_keys)
-  resolved_count <- 0
-  tossed_count <- 0
-  tossed_more_than_2_count <- 0
-  consolidated_same_category <- 0  # Initialize this variable
-  
-  # Split into single and multi entries
-  singles <- df[!df$key %in% multi_keys, ]
-  multis <- df[df$key %in% multi_keys, ]
-  
-  # Initialize result as empty data frame with correct structure
-  result <- data.frame(
-    cellID = character(0),
-    UMI = character(0),
-    category = character(0),
-    read_count = numeric(0),
-    stringsAsFactors = FALSE
-  )
-  
-  # Add singles to result
-  if (nrow(singles) > 0) {
-    singles_clean <- data.frame(
-      cellID = as.character(singles$cellID),
-      UMI = as.character(singles$UMI),
-      category = as.character(singles$category),
-      read_count = as.numeric(singles$read_count),
-      stringsAsFactors = FALSE
-    )
-    result <- rbind(result, singles_clean)
+## SALVE: spliced reads join 
+## Load correction CSV and apply category overrides
+apply_umi_corrections <- function(umi_read_counts, correction_file, target_category = "MS") {
+  # Check if correction file exists
+  if (!file.exists(correction_file)) {
+    cat("No correction file found at:", correction_file, "\n")
+    return(umi_read_counts)
   }
   
-  # Process each unique key in multis
-  if (nrow(multis) > 0) {
-    unique_keys <- unique(multis$key)
+  allowed_categories <- c("SS-MS4", "SS-MS7", "any-A7", "any-D4")
+  # Load correction data
+  corrections <- read.csv(correction_file)
+  
+  # Validate required columns
+  required_cols <- c("CB", "UB")
+  if (!all(required_cols %in% colnames(corrections))) {
+    cat("Warning: Correction file missing required columns (CB, UB)\n")
+    return(umi_read_counts)
+  }
+  
+  # Create composite key for matching
+  corrections$key <- paste(corrections$CB, corrections$UB, sep = "_")
+  umi_read_counts$key <- paste(umi_read_counts$cellID, umi_read_counts$UMI, sep = "_")
+  
+  in_correction_file <- umi_read_counts$key %in% corrections$key
+  
+  # Find matches with allowed categories
+  to_correct <- in_correction_file & 
+    umi_read_counts$category %in% allowed_categories
+  to_toss <- in_correction_file & 
+    !umi_read_counts$category %in% allowed_categories
+  
+  n_corrected <- sum(to_correct)
+  n_tossed <- sum(to_toss)
+  
+  
+  if (n_corrected > 0) {
+    # Store original categories for reporting
+    original_categories <- umi_read_counts$category[to_correct]
     
-    for (k in unique_keys) {
-      # Get all rows for this key
-      rows <- multis[multis$key == k, ]
-      categories <- unique(rows$category)
-      
-      # Process based on number of categories
-      if (length(categories) == 1) {
-        # For keys with 1 category but multiple rows, consolidate by summing read_counts
-        total_reads <- sum(as.numeric(rows$read_count))
-        keep_row <- data.frame(
-          cellID = as.character(rows$cellID[1]),
-          UMI = as.character(rows$UMI[1]),
-          category = as.character(rows$category[1]),
-          read_count = total_reads,
-          stringsAsFactors = FALSE
-        )
-        result <- rbind(result, keep_row)
-        consolidated_same_category <- consolidated_same_category + 1
-      } else if (length(categories) == 2) {
-        # Check against valid pairs
-        valid_match <- FALSE
-        for (pair in valid_pairs) {
-          if (all(sort(categories) == sort(pair))) {
-            # Valid pair, keep the second category
-            keep_cat <- pair[2]
-            keep_rows <- rows[rows$category == keep_cat, ]
-            keep_row <- data.frame(
-              cellID = as.character(keep_rows$cellID[1]),
-              UMI = as.character(keep_rows$UMI[1]),
-              category = as.character(keep_cat),
-              read_count = sum(as.numeric(rows$read_count)),
-              stringsAsFactors = FALSE
-            )
-            result <- rbind(result, keep_row)
-            resolved_count <- resolved_count + 1
-            valid_match <- TRUE
-            break
-          }
-        }
-        
-        # If no valid match found, count as tossed
-        if (!valid_match) {
-          tossed_count <- tossed_count + 1
-        }
-      } else if (length(categories) > 2) {
-        # Toss UMIs with more than 2 categories
-        tossed_more_than_2_count <- tossed_more_than_2_count + 1
-      }
-    }
+    cat("Corrected to", target_category, n_corrected, "UMI from:", 
+        paste(unique(original_categories), collapse = ", "), "\n")
+  } else {
+    cat("No matching UMIs found in correction file\n")
   }
   
-  # Print statistics
-  cat("Total multi-mapped UMIs:", total_multimapped, "\n")
-  cat("UMIs successfully resolved:", resolved_count, 
-      sprintf("(%.1f%%)", ifelse(total_multimapped > 0, resolved_count/total_multimapped*100, 0)), "\n")
-  cat("UMIs tossed (no valid pair):", tossed_count, 
-      sprintf("(%.1f%%)", ifelse(total_multimapped > 0, tossed_count/total_multimapped*100, 0)), "\n")
-  cat("UMIs tossed (>2 categories):", tossed_more_than_2_count, 
-      sprintf("(%.1f%%)", ifelse(total_multimapped > 0, tossed_more_than_2_count/total_multimapped*100, 0)), "\n")
-  cat("Total UMIs tossed:", tossed_count + tossed_more_than_2_count, 
-      sprintf("(%.1f%%)", ifelse(total_multimapped > 0, 
-                                 (tossed_count + tossed_more_than_2_count)/total_multimapped*100, 0)), "\n")
+  if (n_tossed > 0) {
+    tossed_categories <- umi_read_counts$category[to_toss]
+    cat("Tossed", n_tossed, "UMIs with non-allowed categories:", 
+        paste(unique(tossed_categories), collapse = ", "), "\n")
+  }
   
-  # Clean up row names
-  rownames(result) <- NULL
+  # Apply correction
+  umi_read_counts$category[to_correct] <- target_category
+  umi_read_counts <- umi_read_counts[!to_toss, ]
   
-  return(result)
+  # Remove temporary key column
+  umi_read_counts$key <- NULL
+  
+  return(umi_read_counts)
 }
+## SALVE and GEX: resolve UMI mapping to multiple genes/regions
 resolve_multimapv6 <- function(df) {
   df <- as.data.frame(df, stringsAsFactors = FALSE)
   
@@ -345,7 +237,12 @@ resolve_multimapv6 <- function(df) {
   return(result)
 }
 ## SALVE and GEX: read and process BAM
-process_bamsortv5 <- function(samples_list, input.dir, output.dir, raw_cellIDs) {
+process_bamsortv6 <- function(samples_list, input.dir, output.dir, raw_cellIDs, 
+                              correction_dir = NULL) {
+  #
+  # optional to read in paste0(sample, "_D1_splicesites_filtered.csv")
+  # which is output from bamsort_splice_sites to update MS
+  #
   if (class(samples_list) != "character") {
     stop("samples_list input must be a list of sample names")
   }
@@ -356,7 +253,7 @@ process_bamsortv5 <- function(samples_list, input.dir, output.dir, raw_cellIDs) 
   for (sample in samples_list) {
     cat("\nProcessing sample:", sample, "\n")
     
-    # Get all files for current sample. Allows multiple input dirs
+    # Get all files for current sample
     sample_files <- unlist(lapply(input.dir, function(dir) {
       list.files(dir, 
                  pattern = paste0(".*", sample, ".*_bamsort_alignment_.*\\.csv$"),
@@ -367,208 +264,7 @@ process_bamsortv5 <- function(samples_list, input.dir, output.dir, raw_cellIDs) 
       cat("No files found for sample:", sample, "\n")
       next
     }
-    # Extract categories for each file
-    categories <- sapply(sample_files, extract_categoryv5)
-    sample_files <- sample_files[!is.na(categories)]
     
-    # Create a data frame to store the combined results
-    all_data <- data.frame()
-    filenames <- basename(sample_files)
-    
-    # Process each relevant file
-    for (j in seq_along(sample_files)) {
-      extracted_data <- NULL  # Initialize as NULL for each file
-      
-      tryCatch({
-        # Read the CSV file, expecting standard column names
-        file_data <- fread(sample_files[j], data.table = FALSE)
-        
-        # Check if file has content
-        if(nrow(file_data) == 0) {
-          cat("Warning: File is empty:", filenames[j], "\n")
-          next
-        }
-        
-        # Simplify column mapping - expect standard column names
-        required_cols <- c("cellID", "UMI", "count")
-        
-        # Check if all required columns exist
-        missing_cols <- setdiff(required_cols, colnames(file_data))
-        
-        if (length(missing_cols) > 0) {
-          cat("Warning: Missing required columns:", paste(missing_cols, collapse=", "), "\n")
-          cat("Available columns:", paste(colnames(file_data), collapse=", "), "\n")
-          next
-        }
-        
-        # Extract data with the required columns and add category
-        extracted_data <- file_data %>%
-          select(cellID, UMI, count) %>%
-          rename(read = count) %>%  # Rename count to read for consistency with later code
-          mutate(category = categories[j])
-        
-      }, error = function(e) {
-        cat("Error reading file:", filenames[j], "\nLikely bad data file\n")
-        cat("Error message:", conditionMessage(e), "\n")
-      })
-      
-      # Add to the combined data frame only if we have data
-      if (!is.null(extracted_data) && nrow(extracted_data) > 0) {
-        all_data <- rbind(all_data, extracted_data)
-      }
-    }
-    
-    # If we have data, process it
-    if (nrow(all_data) > 0) {
-      # Remove any rows with NA values and unique
-      all_data <- all_data %>% 
-        filter(!is.na(cellID) & !is.na(UMI) & !is.na(read)) %>%
-        unique()
-      
-      # Count reads per UMI
-      tryCatch({
-        umi_read_counts <- all_data %>%
-          group_by(cellID, UMI, category) %>%
-          summarize(
-            read_count = sum(as.numeric(read)),  # Sum the count values
-            .groups = 'drop'
-          )
-        
-        cat("Gathered read counts for", nrow(umi_read_counts), "UMIs from", 
-            n_distinct(umi_read_counts$cellID), "cells\n")
-        
-        
-        # Create a wide format with UMI counts per category
-        umi_by_category <- umi_read_counts %>%
-          group_by(cellID, category) %>%
-          summarize(
-            category_UMIs = n_distinct(UMI),
-            category_reads = sum(read_count),
-            .groups = 'drop'
-          )
-        
-        # Use pivot_wider to create a wide format
-        umi_by_category_wide <- tidyr::pivot_wider(
-          umi_by_category,
-          id_cols = cellID,
-          names_from = category,
-          names_sep = "_",
-          values_from = c(category_UMIs, category_reads),
-          values_fill = 0)
-        
-        
-        # Apply raw_cellIDs filtering
-        if (sample %in% names(raw_cellIDs) && !is.null(raw_cellIDs[[sample]])) {
-          valid_cells <- raw_cellIDs[[sample]]
-          cat("Keeping only cells in", 
-              length(valid_cells), "valid cells from 10X data\n")
-          
-          # Filter the UMI-level data
-          valid_umi_read_counts <- umi_read_counts %>%
-            filter(cellID %in% valid_cells)
-          
-          
-          # Multimap resolution
-          if (!is.null(names(valid_umi_read_counts$category))) {
-            category_values <- as.character(valid_umi_read_counts$category)
-            category_values <- gsub('^"(.*)"$', '\\1', category_values)
-            valid_umi_read_counts$category <- category_values
-          } else {
-            valid_umi_read_counts$category <- gsub('^"(.*)"$', '\\1', as.character(valid_umi_read_counts$category))
-          }
-          
-          filtered_umi_read_counts <- resolve_multimapv5(valid_umi_read_counts)
-          
-          # Convert all columns to basic types to avoid list columns
-          filtered_umi_read_counts <- data.frame(
-            cellID = as.character(filtered_umi_read_counts$cellID),
-            UMI = as.character(filtered_umi_read_counts$UMI),
-            category = as.character(filtered_umi_read_counts$category),
-            read_count = as.numeric(filtered_umi_read_counts$read_count),
-            stringsAsFactors = FALSE
-          )
-          
-          cat("After filtering: kept", nrow(filtered_umi_read_counts), "UMIs from", 
-              n_distinct(filtered_umi_read_counts$cellID), "valid cells\n")
-        } else {
-          cat("Warning: No 10X data found for sample", sample, "- using unfiltered cell list\n")
-          filtered_umi_read_counts <- umi_read_counts
-          #filtered_final_data <- final_data
-        }
-        
-        # Convert all_data to basic types as well
-        all_data_clean <- data.frame(
-          cellID = as.character(all_data$cellID),
-          UMI = as.character(all_data$UMI),
-          read = as.numeric(all_data$read),
-          category = as.character(all_data$category),
-          stringsAsFactors = FALSE
-        )
-        
-        umi_read_counts_clean <- data.frame(
-          cellID = as.character(umi_read_counts$cellID),
-          UMI = as.character(umi_read_counts$UMI),
-          category = as.character(umi_read_counts$category),
-          read_count = as.numeric(umi_read_counts$read_count),
-          stringsAsFactors = FALSE
-        )
-        
-        # Save the detailed UMI-level data (both filtered and unfiltered)
-        umi_level_file <- file.path(output.dir, paste0(sample, "_UMI_read_counts_raw.csv"))
-        write.csv(umi_read_counts_clean, file = umi_level_file, row.names = FALSE)
-        
-        filtered_umi_level_file <- file.path(output.dir, paste0(sample, "_UMI_read_counts_full.csv"))
-        write.csv(filtered_umi_read_counts, file = filtered_umi_level_file, row.names = FALSE)
-        
-        cat("Successfully processed\n")
-        rm(umi_by_category, umi_by_category_wide, umi_read_counts)
-      }, error = function(e) {
-        cat("Error processing data for sample", sample, ":", conditionMessage(e), "\n")
-        
-        # Try to save the raw data at least - convert to basic types first
-        tryCatch({
-          all_data_clean <- data.frame(
-            cellID = as.character(all_data$cellID),
-            UMI = as.character(all_data$UMI),
-            read = as.numeric(all_data$read),
-            category = as.character(all_data$category),
-            stringsAsFactors = FALSE
-          )
-          
-          raw_file <- file.path(output.dir, paste0(sample, "_raw_data.csv"))
-          write.csv(all_data_clean, file = raw_file, row.names = FALSE)
-          cat("Saved raw data to:", raw_file, "\n")
-        }, error = function(e2) {
-          cat("Could not save raw data:", conditionMessage(e2), "\n")
-        })
-      })
-    } else {
-      cat("No data extracted for sample:", sample, "\n")
-    }
-  }
-}
-process_bamsortv6 <- function(samples_list, input.dir, output.dir, raw_cellIDs) {
-  if (class(samples_list) != "character") {
-    stop("samples_list input must be a list of sample names")
-  }
-  if (!dir.exists(output.dir)) {
-    dir.create(output.dir, recursive = TRUE)
-  }
-  
-  for (sample in samples_list) {
-    cat("\nProcessing sample:", sample, "\n")
-    
-    # Get all files for current sample. Allows multiple input dirs
-    sample_files <- unlist(lapply(input.dir, function(dir) {
-      list.files(dir, 
-                 pattern = paste0(".*", sample, ".*_bamsort_alignment_.*\\.csv$"),
-                 full.names = TRUE)
-    }))
-    
-    if (length(sample_files) == 0) {
-      cat("No files found for sample:", sample, "\n")
-      next
-    }
     # Extract categories for each file
     categories <- sapply(sample_files, extract_categoryv6)
     sample_files <- sample_files[!is.na(categories)]
@@ -579,22 +275,17 @@ process_bamsortv6 <- function(samples_list, input.dir, output.dir, raw_cellIDs) 
     
     # Process each relevant file
     for (j in seq_along(sample_files)) {
-      extracted_data <- NULL  # Initialize as NULL for each file
+      extracted_data <- NULL
       
       tryCatch({
-        # Read the CSV file, expecting standard column names
         file_data <- fread(sample_files[j], data.table = FALSE)
         
-        # Check if file has content
         if(nrow(file_data) == 0) {
           cat("Warning: File is empty:", filenames[j], "\n")
           next
         }
         
-        # Simplify column mapping - expect standard column names
         required_cols <- c("cellID", "UMI", "count")
-        
-        # Check if all required columns exist
         missing_cols <- setdiff(required_cols, colnames(file_data))
         
         if (length(missing_cols) > 0) {
@@ -603,10 +294,9 @@ process_bamsortv6 <- function(samples_list, input.dir, output.dir, raw_cellIDs) 
           next
         }
         
-        # Extract data with the required columns and add category
         extracted_data <- file_data %>%
           select(cellID, UMI, count) %>%
-          rename(read = count) %>%  # Rename count to read for consistency with later code
+          rename(read = count) %>%
           mutate(category = categories[j])
         
       }, error = function(e) {
@@ -614,7 +304,6 @@ process_bamsortv6 <- function(samples_list, input.dir, output.dir, raw_cellIDs) 
         cat("Error message:", conditionMessage(e), "\n")
       })
       
-      # Add to the combined data frame only if we have data
       if (!is.null(extracted_data) && nrow(extracted_data) > 0) {
         all_data <- rbind(all_data, extracted_data)
       }
@@ -622,23 +311,20 @@ process_bamsortv6 <- function(samples_list, input.dir, output.dir, raw_cellIDs) 
     
     # If we have data, process it
     if (nrow(all_data) > 0) {
-      # Remove any rows with NA values and unique
       all_data <- all_data %>% 
         filter(!is.na(cellID) & !is.na(UMI) & !is.na(read)) %>%
         unique()
       
-      # Count reads per UMI
       tryCatch({
         umi_read_counts <- all_data %>%
           group_by(cellID, UMI, category) %>%
           summarize(
-            read_count = sum(as.numeric(read)),  # Sum the count values
+            read_count = sum(as.numeric(read)),
             .groups = 'drop'
           )
         
         cat("Gathered read counts for", nrow(umi_read_counts), "UMIs from", 
             n_distinct(umi_read_counts$cellID), "cells\n")
-        
         
         # Create a wide format with UMI counts per category
         umi_by_category <- umi_read_counts %>%
@@ -649,7 +335,6 @@ process_bamsortv6 <- function(samples_list, input.dir, output.dir, raw_cellIDs) 
             .groups = 'drop'
           )
         
-        # Use pivot_wider to create a wide format
         umi_by_category_wide <- tidyr::pivot_wider(
           umi_by_category,
           id_cols = cellID,
@@ -658,19 +343,16 @@ process_bamsortv6 <- function(samples_list, input.dir, output.dir, raw_cellIDs) 
           values_from = c(category_UMIs, category_reads),
           values_fill = 0)
         
-        
         # Apply raw_cellIDs filtering
         if (sample %in% names(raw_cellIDs) && !is.null(raw_cellIDs[[sample]])) {
           valid_cells <- raw_cellIDs[[sample]]
           cat("Keeping only cells in", 
               length(valid_cells), "valid cells from 10X data\n")
           
-          # Filter the UMI-level data
           valid_umi_read_counts <- umi_read_counts %>%
             filter(cellID %in% valid_cells)
           
-          
-          # Multimap resolution
+          # Clean category values
           if (!is.null(names(valid_umi_read_counts$category))) {
             category_values <- as.character(valid_umi_read_counts$category)
             category_values <- gsub('^"(.*)"$', '\\1', category_values)
@@ -679,9 +361,20 @@ process_bamsortv6 <- function(samples_list, input.dir, output.dir, raw_cellIDs) 
             valid_umi_read_counts$category <- gsub('^"(.*)"$', '\\1', as.character(valid_umi_read_counts$category))
           }
           
+          # Look for splice correction file
+          if (!is.null(correction_dir)) {
+            correction_file <- file.path(correction_dir, paste0(sample, "_D1_splicesites_filtered.csv"))
+            valid_umi_read_counts <- apply_umi_corrections(
+              valid_umi_read_counts, 
+              correction_file, 
+              target_category = "MS"
+            )
+          }
+          
+          # Multimap resolution (with corrected categories)
           filtered_umi_read_counts <- resolve_multimapv6(valid_umi_read_counts)
           
-          # Convert all columns to basic types to avoid list columns
+          # Convert to basic types
           filtered_umi_read_counts <- data.frame(
             cellID = as.character(filtered_umi_read_counts$cellID),
             UMI = as.character(filtered_umi_read_counts$UMI),
@@ -689,19 +382,20 @@ process_bamsortv6 <- function(samples_list, input.dir, output.dir, raw_cellIDs) 
             read_count = as.numeric(filtered_umi_read_counts$read_count),
             stringsAsFactors = FALSE
           )
+          
           # Consolidate any categories
           filtered_umi_read_counts <- filtered_umi_read_counts %>%
-            mutate(category = if_else(grepl("^any", category), "any", category))
+            mutate(category = if_else(grepl("^any", category), "any", category)) %>%
+            mutate(category = if_else(grepl("^SS-MS", category), "SS-MS", category))
           
           cat("After filtering: kept", nrow(filtered_umi_read_counts), "UMIs from", 
               n_distinct(filtered_umi_read_counts$cellID), "valid cells\n")
         } else {
           cat("Warning: No 10X data found for sample", sample, "- using unfiltered cell list\n")
           filtered_umi_read_counts <- umi_read_counts
-          #filtered_final_data <- final_data
         }
         
-        # Convert all_data to basic types as well
+        # Convert to basic types
         all_data_clean <- data.frame(
           cellID = as.character(all_data$cellID),
           UMI = as.character(all_data$UMI),
@@ -718,7 +412,7 @@ process_bamsortv6 <- function(samples_list, input.dir, output.dir, raw_cellIDs) 
           stringsAsFactors = FALSE
         )
         
-        # Save the detailed UMI-level data (both filtered and unfiltered)
+        # Save outputs
         umi_level_file <- file.path(output.dir, paste0(sample, "_UMI_read_counts_raw.csv"))
         write.csv(umi_read_counts_clean, file = umi_level_file, row.names = FALSE)
         
@@ -730,7 +424,6 @@ process_bamsortv6 <- function(samples_list, input.dir, output.dir, raw_cellIDs) 
       }, error = function(e) {
         cat("Error processing data for sample", sample, ":", conditionMessage(e), "\n")
         
-        # Try to save the raw data at least - convert to basic types first
         tryCatch({
           all_data_clean <- data.frame(
             cellID = as.character(all_data$cellID),
@@ -753,113 +446,9 @@ process_bamsortv6 <- function(samples_list, input.dir, output.dir, raw_cellIDs) 
   }
 }
 ## SALVE and GEX: filtering data for minimums
-set_minimums <- function(mode, umi_file, min_reads = 1, min_region_count = 1, 
-                         min_umi = 1, min_cells = 0, min_reads_cell = 1) {
-  
-  # Define categories based on mode
-  categories <- switch(mode,
-                       "SALVE" = c("US", "spliced", "S", "SS", "MS", "any"),
-                       "GEX" = c("US", "spliced", "any"),
-                       "KLRB1" = c("KLRB1"),
-                       stop("Invalid mode. Must be 'SALVE', 'GEX', or 'KLRB1'")
-  )
-  
-  # Helper function to return empty result
-  return_empty <- function(message = "", umi_entries = 0) {
-    if (nzchar(message)) cat(message, "\n")
-    empty_data <- data.frame(cellID = character(0), stringsAsFactors = FALSE)
-    empty_data[categories] <- lapply(categories, function(x) numeric(0))
-    empty_data$total <- numeric(0)
-    cat("Converted", umi_entries, "UMI entries to 0 cells\n")
-    return(empty_data)
-  }
-  
-  # Read and validate data
-  umi_data <- read.csv(umi_file, stringsAsFactors = FALSE)
-  if (nrow(umi_data) == 0) {
-    return(return_empty("No UMI data found in file"))
-  }
-  
-  original_entries <- nrow(umi_data)
-  
-  # Apply read count filter and check for empty result
-  if (min_reads > 0) {
-    umi_data <- umi_data[umi_data$read_count >= min_reads, ]
-    if (nrow(umi_data) == 0) {
-      return(return_empty("All UMI data filtered out by min_reads threshold", original_entries))
-    }
-  }
-  
-  # Calculate cell-level metrics using dplyr for efficiency
-  cell_stats <- umi_data %>%
-    group_by(cellID) %>%
-    summarize(
-      total_reads = sum(read_count, na.rm = TRUE),
-      .groups = 'drop'
-    )
-  
-  # Apply reads per cell filter early
-  if (min_reads_cell > 0) {
-    valid_cells <- cell_stats$cellID[cell_stats$total_reads >= min_reads_cell]
-    umi_data <- umi_data[umi_data$cellID %in% valid_cells, ]
-    if (nrow(umi_data) == 0) {
-      return(return_empty("All cells filtered out by min_reads_cell threshold", original_entries))
-    }
-  }
-  
-  # Create UMI count matrix more efficiently
-  umi_counts <- umi_data %>%
-    count(cellID, category, name = "umi_count") %>%
-    pivot_wider(names_from = category, values_from = umi_count, values_fill = 0)
-  
-  # Initialize result with all categories (including missing ones as 0)
-  result <- umi_counts %>%
-    select(cellID, any_of(categories)) %>%
-    mutate(across(-cellID, ~replace_na(.x, 0)))
-  
-  # Add missing categories as zero columns
-  missing_cats <- setdiff(categories, colnames(result))
-  if (length(missing_cats) > 0) {
-    result[missing_cats] <- 0
-  }
-  
-  # Reorder columns to match expected order
-  result <- result[c("cellID", categories)]
-  
-  # Apply minimum cells per region filter
-  if (min_cells > 0) {
-    for (cat in categories) {
-      if (sum(result[[cat]] > 0) < min_cells) {
-        result[[cat]] <- 0
-      }
-    }
-  }
-  
-  # Calculate metrics for filtering
-  result <- result %>%
-    mutate(
-      region_count = rowSums(across(all_of(categories), ~ .x > 0)),
-      total = rowSums(across(all_of(categories)))
-    )
-  
-  # Apply filters
-  result <- result %>%
-    filter(
-      region_count >= min_region_count,
-      total >= min_umi
-    ) %>%
-    select(-region_count)  # Remove helper column
-  
-  # Check for empty result
-  if (nrow(result) == 0) {
-    return(return_empty("All cells filtered out by region_count or UMI thresholds", original_entries))
-  }
-  
-  cat("Converted", original_entries, "UMI entries to", nrow(result), "cells\n")
-  return(result)
-}
 set_minimumsv6 <- function(mode, umi_file, min_reads = 1, min_region_count = 1, 
-                         min_umi = 1, min_cells = 0, min_reads_cell = 1) {
+                           min_umi = 1, min_cells = 0, min_reads_cell = 1,
+                           save_valid_umi = TRUE, valid_umi_output_file = NULL) {
   
   # Define categories based on mode
   categories <- switch(mode,
@@ -960,78 +549,45 @@ set_minimumsv6 <- function(mode, umi_file, min_reads = 1, min_region_count = 1,
     return(return_empty("All cells filtered out by region_count or UMI thresholds", original_entries))
   }
   
+  # Save valid cellID-UMI pairs if requested
+  if (save_valid_umi && !is.null(valid_umi_output_file) && nrow(result) > 0) {
+    # Extract valid cellIDs after all filtering
+    valid_cellIDs <- result$cellID
+    
+    # Filter original UMI data to keep only valid cell-UMI combinations
+    valid_umi_data <- umi_data %>%
+      filter(cellID %in% valid_cellIDs) %>%
+      select(cellID, UMI)
+    
+    # Write to CSV without row names for cleaner output
+    write.csv(valid_umi_data, file = valid_umi_output_file, row.names = FALSE)
+    cat("Saved", nrow(valid_umi_data), "valid cellID-UMI pairs\n")
+  }
+  
   cat("Converted", original_entries, "UMI entries to", nrow(result), "cells\n")
   return(result)
 }
 ## SALVE and GEX: filter multiple samples
-process_all_set_minimums <- function(mode, sample_list, input_dir, output_dir, min_reads = 1, 
-                                     min_region_count = 1, min_umi = 1, min_cells = 0, min_reads_cell = 1) {
+process_all_set_minimumsv6 <- function(mode, sample_list, input_dir, save_output = TRUE, 
+                                       output_dir = "/projects/b1042/GoyalLab/egrody/extractedData/",
+                                       min_reads = 1, min_region_count = 1, min_umi = 1, 
+                                       min_cells = 0, min_reads_cell = 1,
+                                       save_valid_umi = TRUE, valid_umi_dir = NULL,
+                                       aggregate_valid_umi = TRUE) {
   
   # Create output directory if needed
-  dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
+  if (save_output == TRUE) {
+    dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
+  }
   
-  # Write filters to file
-  filters_file <- file.path(output_dir, "filters.txt")
-  filter_params <- c(
-    paste("min_reads =", min_reads),
-    paste("min_region_count =", min_region_count),
-    paste("min_umi =", min_umi),
-    paste("min_cells =", min_cells),
-    paste("min_reads_cell =", min_reads_cell),
-    paste("mode =", mode),
-    paste("processed_date =", Sys.Date())
-  )
-  writeLines(filter_params, filters_file)
-  
-  # Define output suffix based on mode
-  suffix <- paste0("_", mode, "_filtered.csv")
-  
-  # Process samples with better error handling
-  results <- sapply(sample_list, function(sample) {
-    cat("\nProcessing sample:", sample, "\n")
-    
-    input_file <- file.path(input_dir, paste0(sample, "_UMI_read_counts_full.csv"))
-    output_file <- file.path(output_dir, paste0(sample, suffix))
-    
-    # Check if input exists
-    if (!file.exists(input_file)) {
-      warning("Input file not found: ", input_file)
-      return("failed")
+  # Create separate directory for valid UMI files if needed
+  # Use the provided output_dir as the base for valid_umi_dir
+  if (save_valid_umi == TRUE) {
+    if (is.null(valid_umi_dir)) {
+      valid_umi_dir <- file.path(output_dir, "valid_UMI")
     }
-    
-    # Process with error handling
-    tryCatch({
-      result <- set_minimums(
-        mode = mode, 
-        umi_file = input_file, 
-        min_reads = min_reads, 
-        min_region_count = min_region_count, 
-        min_umi = min_umi, 
-        min_cells = min_cells,
-        min_reads_cell = min_reads_cell
-      )
-      
-      write.csv(result, file = output_file, row.names = FALSE)
-      return("success")
-      
-    }, error = function(e) {
-      cat("Error processing sample", sample, ":", conditionMessage(e), "\n")
-      return("failed")
-    })
-  }, USE.NAMES = FALSE)
-  
-  # Summary
-  successful <- sum(results == "success")
-  failed <- sum(results == "failed")
-  cat("\nProcessing complete! Successful:", successful, "Failed:", failed, "\n")
-  
-  return(invisible(list(successful = successful, failed = failed)))
-}
-process_all_set_minimumsv6 <- function(mode, sample_list, input_dir, output_dir, min_reads = 1, 
-                                     min_region_count = 1, min_umi = 1, min_cells = 0, min_reads_cell = 1) {
-  
-  # Create output directory if needed
-  dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
+    dir.create(valid_umi_dir, recursive = TRUE, showWarnings = FALSE)
+  }
   
   # Write filters to file
   filters_file <- file.path(output_dir, "filters.txt")
@@ -1048,6 +604,10 @@ process_all_set_minimumsv6 <- function(mode, sample_list, input_dir, output_dir,
   
   # Define output suffix based on mode
   suffix <- paste0("_", mode, "_filtered.csv")
+  umi_suffix <- paste0("_", mode, "_valid_cellID_UMI.csv")
+  
+  # Initialize list to collect valid UMI data if aggregating
+  all_valid_umi <- if (aggregate_valid_umi && save_valid_umi) list() else NULL
   
   # Process samples with better error handling
   results <- sapply(sample_list, function(sample) {
@@ -1055,6 +615,13 @@ process_all_set_minimumsv6 <- function(mode, sample_list, input_dir, output_dir,
     
     input_file <- file.path(input_dir, paste0(sample, "_UMI_read_counts_full.csv"))
     output_file <- file.path(output_dir, paste0(sample, suffix))
+    
+    # Construct valid UMI output filename with sample name and mode included
+    valid_umi_file <- if (save_valid_umi) {
+      file.path(valid_umi_dir, paste0(sample, umi_suffix))
+    } else {
+      NULL
+    }
     
     # Check if input exists
     if (!file.exists(input_file)) {
@@ -1071,10 +638,23 @@ process_all_set_minimumsv6 <- function(mode, sample_list, input_dir, output_dir,
         min_region_count = min_region_count, 
         min_umi = min_umi, 
         min_cells = min_cells,
-        min_reads_cell = min_reads_cell
+        min_reads_cell = min_reads_cell,
+        save_valid_umi = save_valid_umi,
+        valid_umi_output_file = valid_umi_file
       )
       
-      write.csv(result, file = output_file, row.names = FALSE)
+      # Save filtered cell counts
+      if (save_output == TRUE) {
+        write.csv(result, file = output_file, row.names = FALSE)
+      }
+      
+      # Collect valid UMI data for aggregation
+      if (aggregate_valid_umi && save_valid_umi && file.exists(valid_umi_file)) {
+        sample_umi_data <- read.csv(valid_umi_file, stringsAsFactors = FALSE)
+        sample_umi_data$sample <- sample
+        all_valid_umi[[sample]] <<- sample_umi_data
+      }
+      
       return("success")
       
     }, error = function(e) {
@@ -1083,14 +663,32 @@ process_all_set_minimumsv6 <- function(mode, sample_list, input_dir, output_dir,
     })
   }, USE.NAMES = FALSE)
   
+  # Write aggregated valid UMI file if requested
+  if (aggregate_valid_umi && save_valid_umi && length(all_valid_umi) > 0) {
+    aggregated_file <- file.path(output_dir, paste0("all_samples_", mode, "_valid_cellID_UMI.csv"))
+    aggregated_data <- do.call(rbind, all_valid_umi)
+    
+    # Reorder columns: sample, cellID, UMI
+    aggregated_data <- aggregated_data[, c("sample", "cellID", "UMI")]
+    
+    write.csv(aggregated_data, file = aggregated_file, row.names = FALSE)
+    cat("\nSaved aggregated valid UMI data with", nrow(aggregated_data), 
+        "entries across", length(all_valid_umi), "samples\n")
+  }
+  
   # Summary
   successful <- sum(results == "success")
   failed <- sum(results == "failed")
   cat("\nProcessing complete! Successful:", successful, "Failed:", failed, "\n")
   
-  return(invisible(list(successful = successful, failed = failed)))
+  if (save_output == TRUE) {
+    return(invisible(list(successful = successful, failed = failed)))
+  }
+  else {
+    return(result)
+  }
 }
-### Splicing
+## Splicing
 classify_site <- function(value, reference_values, reference_sites) {
   if (is.na(value)) {
     return("nc")
@@ -1115,11 +713,135 @@ classify_site <- function(value, reference_values, reference_sites) {
   }
 }
 
+## Combined GEX and SALVE
+resolve_multimap_gs <- function(df) {
+  # Priority categories that override others
+  priority_cats <- c("US", "SS", "MS")
+  
+  # Initialize counters
+  stats <- list(
+    total = 0,
+    resolved_same = 0,
+    resolved_priority = 0,
+    resolved_to_any = 0,
+    no_conflict = 0
+  )
+  
+  # Process each row
+  result <- vector("list", nrow(df))
+  
+  for (i in seq_len(nrow(df))) {
+    cat_x <- df$category.x[i]
+    cat_y <- df$category.y[i]
+    # read_x <- ifelse(is.na(df$read_count.x[i]), 0, df$read_count.x[i])
+    # read_y <- ifelse(is.na(df$read_count.y[i]), 0, df$read_count.y[i])
+    
+    # Case 1: Both categories are NA - skip this row
+    if (is.na(cat_x) && is.na(cat_y)) {
+      result[[i]] <- NULL
+      next
+    }
+    
+    # Case 2: One category is NA - use the non-NA category
+    if (is.na(cat_x) && !is.na(cat_y)) {
+      result[[i]] <- data.frame(
+        cellID = df$cellID[i],
+        UMI = df$UMI[i],
+        category = cat_y,
+        #read_count = read_x + read_y,
+        stringsAsFactors = FALSE
+      )
+      stats$no_conflict <- stats$no_conflict + 1
+      next
+    }
+    
+    if (!is.na(cat_x) && is.na(cat_y)) {
+      result[[i]] <- data.frame(
+        cellID = df$cellID[i],
+        UMI = df$UMI[i],
+        category = cat_x,
+        #read_count = read_x + read_y,
+        stringsAsFactors = FALSE
+      )
+      stats$no_conflict <- stats$no_conflict + 1
+      next
+    }
+    
+    # Case 3: Both categories present - apply resolution rules
+    stats$total <- stats$total + 1
+    
+    # Rule 0: If both categories are identical, keep that category
+    if (cat_x == cat_y) {
+      result[[i]] <- data.frame(
+        cellID = df$cellID[i],
+        UMI = df$UMI[i],
+        category = cat_x,
+        #read_count = read_x + read_y,
+        stringsAsFactors = FALSE
+      )
+      stats$resolved_same <- stats$resolved_same + 1
+      next
+    }
+    
+    # Rule 1: If one is a priority category (US, SS, MS), keep that one
+    if (cat_x %in% priority_cats && !(cat_y %in% priority_cats)) {
+      result[[i]] <- data.frame(
+        cellID = df$cellID[i],
+        UMI = df$UMI[i],
+        category = cat_x,
+        #read_count = read_x + read_y,
+        stringsAsFactors = FALSE
+      )
+      stats$resolved_priority <- stats$resolved_priority + 1
+      next
+    }
+    
+    if (cat_y %in% priority_cats && !(cat_x %in% priority_cats)) {
+      result[[i]] <- data.frame(
+        cellID = df$cellID[i],
+        UMI = df$UMI[i],
+        category = cat_y,
+        #read_count = read_x + read_y,
+        stringsAsFactors = FALSE
+      )
+      stats$resolved_priority <- stats$resolved_priority + 1
+      next
+    }
+    
+    # Rule 2: Otherwise (both are priority categories or neither are), resolve to "any"
+    result[[i]] <- data.frame(
+      cellID = df$cellID[i],
+      UMI = df$UMI[i],
+      category = "any",
+      #read_count = read_x + read_y,
+      stringsAsFactors = FALSE
+    )
+    stats$resolved_to_any <- stats$resolved_to_any + 1
+  }
+  
+  # Combine results, excluding NULLs
+  result <- do.call(rbind, result[!sapply(result, is.null)])
+  rownames(result) <- NULL
+  
+  # Print statistics
+  cat("Multi-mapped UMIs (both categories present):", stats$total, "\n")
+  cat("UMIs with identical categories:", stats$resolved_same, 
+      sprintf("(%.1f%%)", ifelse(stats$total > 0, stats$resolved_same/stats$total*100, 0)), "\n")
+  cat("UMIs resolved by priority category (US/SS/MS):", stats$resolved_priority, 
+      sprintf("(%.1f%%)", ifelse(stats$total > 0, stats$resolved_priority/stats$total*100, 0)), "\n")
+  cat("UMIs resolved to 'any':", stats$resolved_to_any, 
+      sprintf("(%.1f%%)", ifelse(stats$total > 0, stats$resolved_to_any/stats$total*100, 0)), "\n")
+  cat("UMIs with no conflict (one or both categories NA):", stats$no_conflict, "\n")
+  
+  
+  return(result)
+}
+
 
 # Loading
 ## standard processing of counts matrices with Seurat
 SeuratPipeline <- function(file_location, sample_name, output_dir = "/projects/b1042/GoyalLab/egrody/", 
-                           plots = FALSE, rds = FALSE, remove_mac = TRUE) {
+                           plots = FALSE, rds = FALSE, species = "macaque", remove_mac = TRUE) {
   #if you would like to output plots from this pipeline, pass entries for the plots and output_dir variables
   
   if (!dir.exists(output_dir)) {
@@ -1130,7 +852,7 @@ SeuratPipeline <- function(file_location, sample_name, output_dir = "/projects/b
   # Initialize the Seurat object with the raw (non-normalized data)
   sample <- CreateSeuratObject(counts = data, project = sample_name, min.cells = 3, min.features = 200)
   # QC
-  sample <- Add_Mito_Ribo(sample, species = "macaque")
+  sample <- Add_Mito_Ribo(sample, species = species)
   if (plots) {
     vplot <- VlnPlot(sample, features = c("nFeature_RNA", "nCount_RNA", "percent_mito"), ncol = 3)
     ggsave(vplot, file = paste0(output_dir, sample_name, "_preQC_violinplot.svg"))
@@ -1142,9 +864,9 @@ SeuratPipeline <- function(file_location, sample_name, output_dir = "/projects/b
   }
   # Remove CD4/CD8 doublets
   if ("CD4" %in% rownames(sample) && ("CD8A" %in% rownames(sample) || "CD8B" %in% rownames(sample))) {
-    cd4_expr <- GetAssayData(sample, slot = "counts")["CD4", ]
-    cd8a_expr <- if ("CD8A" %in% rownames(sample)) GetAssayData(sample, slot = "counts")["CD8A", ] else rep(0, ncol(sample))
-    cd8b_expr <- if ("CD8B" %in% rownames(sample)) GetAssayData(sample, slot = "counts")["CD8B", ] else rep(0, ncol(sample))
+    cd4_expr <- GetAssayData(sample, layer = "counts")["CD4", ]
+    cd8a_expr <- if ("CD8A" %in% rownames(sample)) GetAssayData(sample, layer = "counts")["CD8A", ] else rep(0, ncol(sample))
+    cd8b_expr <- if ("CD8B" %in% rownames(sample)) GetAssayData(sample, layer = "counts")["CD8B", ] else rep(0, ncol(sample))
     
     cd4_pos <- cd4_expr > 0
     cd8_pos <- (cd8a_expr > 0) | (cd8b_expr > 0)
@@ -1173,7 +895,7 @@ SeuratPipeline <- function(file_location, sample_name, output_dir = "/projects/b
   }
   # Clustering
   sample <- FindNeighbors(sample, dims = 1:30, verbose = FALSE)
-  sample <- FindClusters(sample, resolution = 0.5, verbose = FALSE)
+  sample <- FindClusters(sample, resolution = 0.3, verbose = FALSE)
   # Dimension reduction
   sample <- RunUMAP(sample, dims = 1:30, verbose = FALSE)#, umap.method = "umap-learn", metric = "correlation")
   if (plots) {
@@ -1187,6 +909,7 @@ SeuratPipeline <- function(file_location, sample_name, output_dir = "/projects/b
   # Return the variable
   return(sample)
 }
+
 
 # Output Dataframes
 ## isolate specific gene(s) expression from a Seurat object
@@ -1699,470 +1422,619 @@ barcodeRankPlot <- function(rawDataFolder, jointFullJoin, plotTitle = "Barcode R
 
 # DEG Analysis
 ## perform comprehensive subset analysis
-analyze_cell_subset <- function(seurat_obj, subset_cells, min_pct = 0.1) {
-  require(Seurat)
-  require(dplyr)
+analyze_cell_subset <- function(seurat_obj, 
+                                subset_cells_1, 
+                                subset_cells_2 = NULL, 
+                                min_pct = 0.1,
+                                group_names = c("group1", "group2")) {
   
   # Input validation
   if (!is(seurat_obj, "Seurat")) {
     stop("First argument must be a Seurat object")
   }
   
-  if (!is.vector(subset_cells)) {
-    stop("subset_cells must be a vector of cell IDs")
+  if (!is.vector(subset_cells_1)) {
+    stop("subset_cells_1 must be a vector of cell IDs")
   }
   
-  # Convert cell names to character vector if they aren't already
-  subset_cells <- as.character(subset_cells)
+  # Determine comparison mode
+  two_group_mode <- !is.null(subset_cells_2)
   
-  # Check if the subset cells exist in the Seurat object
-  valid_cells <- subset_cells %in% colnames(seurat_obj)
-  if (!any(valid_cells)) {
-    stop("None of the provided cell IDs were found in the Seurat object")
-  }
-  
-  if (!all(valid_cells)) {
-    warning(sprintf("%d cells from the subset were not found in the Seurat object",
-                    sum(!valid_cells)))
-    subset_cells <- subset_cells[valid_cells]
-  }
-  
-  # Print diagnostic information
-  cat(sprintf("Found %d cells in the subset\n", length(subset_cells)))
-  
-  # Add metadata column for subset membership
-  seurat_obj$in_subset <- colnames(seurat_obj) %in% subset_cells
-  
-  # Get unique clusters containing subset cells
-  if (!"seurat_clusters" %in% colnames(seurat_obj@meta.data)) {
-    stop("No 'seurat_clusters' column found in metadata. Please run FindClusters() first")
-  }
-  
-  subset_clusters <- unique(seurat_obj$seurat_clusters[colnames(seurat_obj) %in% subset_cells])
-  
-  # Print cluster information
-  cat(sprintf("Subset cells are found in %d clusters: %s\n",
-              length(subset_clusters),
-              paste(subset_clusters, collapse = ", ")))
-  
-  # Initialize results list
-  results <- list()
-  
-  # 1. Cluster-specific analysis
-  cluster_results <- list()
-  for(cluster in subset_clusters) {
-    # Create logical vectors for the comparison
-    cluster_cells <- seurat_obj$seurat_clusters == cluster
-    subset_in_cluster <- colnames(seurat_obj)[cluster_cells] %in% subset_cells
-    
-    # Check if we have enough cells in both groups for comparison
-    n_subset <- sum(subset_in_cluster)
-    n_other <- sum(cluster_cells) - n_subset
-    
-    if (n_subset < 3 || n_other < 3) {
-      warning(sprintf("Skipping cluster %s: insufficient cells (subset: %d, other: %d)\n",
-                      cluster, n_subset, n_other))
-      next
+  if (two_group_mode) {
+    if (!is.vector(subset_cells_2)) {
+      stop("subset_cells_2 must be a vector of cell IDs")
     }
-    
-    # Create a temporary Seurat object for this cluster
-    cluster_obj <- subset(seurat_obj, cells = colnames(seurat_obj)[cluster_cells])
-    Idents(cluster_obj) <- factor(cluster_obj$in_subset)
-    
-    # Perform DE analysis within this cluster
-    tryCatch({
-      de_results <- FindMarkers(cluster_obj,
-                                ident.1 = TRUE,
-                                ident.2 = FALSE,
-                                min.pct = min_pct,
-                                test.use = "wilcox")
-      
-      cluster_results[[paste0("cluster_", cluster)]] <- de_results
-      
-      cat(sprintf("Successfully analyzed cluster %s (subset: %d, other: %d)\n",
-                  cluster, n_subset, n_other))
-      
-    }, error = function(e) {
-      warning(sprintf("Error in DE analysis for cluster %s: %s", cluster, e$message))
-    })
-  }
-  results$cluster_specific <- cluster_results
-  
-  # 2. Calculate pseudo-bulk expression profiles using AggregateExpression
-  results$pseudobulk_expression <- tryCatch({
-    AggregateExpression(seurat_obj,
-                        group.by = "in_subset",
-                        assays = "RNA",
-                        return.seurat = FALSE)$RNA
-  }, error = function(e) {
-    warning("Error calculating pseudo-bulk expression: ", e$message)
-    return(NULL)
-  })
-  
-  # 3. Modified conserved markers analysis
-  if (length(cluster_results) >= 2) {  # Only try if we have at least 2 clusters
-    # Set identities for conserved marker analysis
-    Idents(seurat_obj) <- factor(seurat_obj$in_subset)
-    
-    results$conserved_markers <- tryCatch({
-      FindMarkers(seurat_obj,
-                  ident.1 = TRUE,
-                  ident.2 = FALSE,
-                  min.pct = min_pct,
-                  test.use = "wilcox",
-                  subset.ident = subset_clusters)
-    }, error = function(e) {
-      warning("Error finding conserved markers: ", e$message)
-      return(NULL)
-    })
+    cat("Running two-group comparison mode\n")
   } else {
-    warning("Not enough clusters with sufficient cells for conserved marker analysis\n")
-    results$conserved_markers <- NULL
+    cat("Running single-group comparison mode (subset vs rest)\n")
   }
   
-  # 4. Get top genes from differential expression results
-  get_top_genes <- function(de_results, n = 40) {
-    if (is.null(de_results) || nrow(de_results) == 0) return(character(0))
-    top_genes <- rownames(de_results[de_results$p_val_adj < 0.05 & abs(de_results$avg_log2FC) > 0.5, ])
-    return(head(top_genes, n))
+  # Convert cell names to character vectors
+  subset_cells_1 <- as.character(subset_cells_1)
+  if (two_group_mode) {
+    subset_cells_2 <- as.character(subset_cells_2)
+    
+    # Check for overlap between groups
+    overlap <- intersect(subset_cells_1, subset_cells_2)
+    if (length(overlap) > 0) {
+      stop(sprintf("Found %d cells present in both subset_cells_1 and subset_cells_2. Groups must be mutually exclusive.",
+                   length(overlap)))
+    }
   }
   
-  top_genes_by_cluster <- lapply(cluster_results, get_top_genes)
-  results$top_genes <- top_genes_by_cluster
-  
-  # Summary of analysis
-  cat("\nAnalysis Summary:\n")
-  cat(sprintf("- Analyzed %d clusters\n", length(cluster_results)))
-  cat(sprintf("- Found pseudo-bulk expression profiles: %s\n", !is.null(results$pseudobulk_expression)))
-  cat(sprintf("- Found conserved markers: %s\n", !is.null(results$conserved_markers)))
-  
-  return(results)
-}
-## new analyze_cell_subset function with pseudobulking
-analyze_cell_subset_pseudo <- function(seurat_obj, subset_cells, min_pct = 0.1) {
-  require(Seurat)
-  require(dplyr)
-  
-  # Input validation
-  if (!is(seurat_obj, "Seurat")) {
-    stop("First argument must be a Seurat object")
+  # Validate subset_cells_1
+  valid_cells_1 <- subset_cells_1 %in% colnames(seurat_obj)
+  if (!any(valid_cells_1)) {
+    stop("None of the provided cell IDs in subset_cells_1 were found in the Seurat object")
   }
   
-  if (!is.vector(subset_cells)) {
-    stop("subset_cells must be a vector of cell IDs")
+  if (!all(valid_cells_1)) {
+    warning(sprintf("%d cells from subset_cells_1 were not found in the Seurat object",
+                    sum(!valid_cells_1)))
+    subset_cells_1 <- subset_cells_1[valid_cells_1]
   }
   
-  # Convert cell names to character vector if they aren't already
-  subset_cells <- as.character(subset_cells)
-  
-  # Check if the subset cells exist in the Seurat object
-  valid_cells <- subset_cells %in% colnames(seurat_obj)
-  if (!any(valid_cells)) {
-    stop("None of the provided cell IDs were found in the Seurat object")
-  }
-  
-  if (!all(valid_cells)) {
-    warning(sprintf("%d cells from the subset were not found in the Seurat object",
-                    sum(!valid_cells)))
-    subset_cells <- subset_cells[valid_cells]
+  # Validate subset_cells_2 if provided
+  if (two_group_mode) {
+    valid_cells_2 <- subset_cells_2 %in% colnames(seurat_obj)
+    if (!any(valid_cells_2)) {
+      stop("None of the provided cell IDs in subset_cells_2 were found in the Seurat object")
+    }
+    
+    if (!all(valid_cells_2)) {
+      warning(sprintf("%d cells from subset_cells_2 were not found in the Seurat object",
+                      sum(!valid_cells_2)))
+      subset_cells_2 <- subset_cells_2[valid_cells_2]
+    }
   }
   
   # Print diagnostic information
-  cat(sprintf("Found %d cells in the subset\n", length(subset_cells)))
+  cat(sprintf("Found %d cells in %s\n", length(subset_cells_1), group_names[1]))
+  if (two_group_mode) {
+    cat(sprintf("Found %d cells in %s\n", length(subset_cells_2), group_names[2]))
+  } else {
+    n_rest <- ncol(seurat_obj) - length(subset_cells_1)
+    cat(sprintf("Comparing against %d cells in rest of dataset\n", n_rest))
+  }
   
-  # Add metadata column for subset membership
-  seurat_obj$in_subset <- colnames(seurat_obj) %in% subset_cells
+  # Add metadata column for group membership
+  if (two_group_mode) {
+    seurat_obj$comparison_group <- ifelse(
+      colnames(seurat_obj) %in% subset_cells_1, group_names[1],
+      ifelse(colnames(seurat_obj) %in% subset_cells_2, group_names[2], "excluded")
+    )
+    # Subset to only include cells in one of the two groups
+    seurat_obj <- subset(seurat_obj, cells = c(subset_cells_1, subset_cells_2))
+    cat(sprintf("Analysis will include %d total cells\n", ncol(seurat_obj)))
+  } else {
+    seurat_obj$comparison_group <- ifelse(
+      colnames(seurat_obj) %in% subset_cells_1, group_names[1], group_names[2]
+    )
+  }
   
-  # Get unique clusters containing subset cells
+  # Check for cluster information
   if (!"seurat_clusters" %in% colnames(seurat_obj@meta.data)) {
     stop("No 'seurat_clusters' column found in metadata. Please run FindClusters() first")
   }
   
-  subset_clusters <- unique(seurat_obj$seurat_clusters[colnames(seurat_obj) %in% subset_cells])
+  # Get unique clusters for each group
+  clusters_group1 <- unique(seurat_obj$seurat_clusters[seurat_obj$comparison_group == group_names[1]])
+  clusters_group2 <- unique(seurat_obj$seurat_clusters[seurat_obj$comparison_group == group_names[2]])
   
-  # Print cluster information
-  cat(sprintf("Subset cells are found in %d clusters: %s\n",
-              length(subset_clusters),
-              paste(subset_clusters, collapse = ", ")))
+  cat(sprintf("%s cells are found in %d clusters: %s\n",
+              group_names[1], length(clusters_group1),
+              paste(sort(clusters_group1), collapse = ", ")))
+  cat(sprintf("%s cells are found in %d clusters: %s\n",
+              group_names[2], length(clusters_group2),
+              paste(sort(clusters_group2), collapse = ", ")))
+  
+  # Get overlapping clusters
+  overlap_clusters <- intersect(clusters_group1, clusters_group2)
+  cat(sprintf("Overlapping clusters: %d (%s)\n",
+              length(overlap_clusters),
+              ifelse(length(overlap_clusters) > 0, 
+                     paste(sort(overlap_clusters), collapse = ", "),
+                     "none")))
   
   # Initialize results list
   results <- list()
+  results$metadata <- list(
+    mode = ifelse(two_group_mode, "two_group", "single_group"),
+    comparison_summary = sprintf("Comparing %s (n=%d) vs %s (n=%d)", 
+                                 group_names[1], length(subset_cells_1),
+                                 group_names[2], 
+                                 ifelse(two_group_mode, length(subset_cells_2), 
+                                        ncol(seurat_obj) - length(subset_cells_1))),
+    group1_name = group_names[1],
+    group2_name = group_names[2],
+    n_cells_group1 = length(subset_cells_1),
+    n_cells_group2 = ifelse(two_group_mode, length(subset_cells_2), 
+                            ncol(seurat_obj) - length(subset_cells_1)),
+    group_names = group_names,
+    overlap_clusters = overlap_clusters
+  )
   
-  # 1. Cluster-specific analysis using AggregateExpression + FindMarkers
-  # First, create multiple pseudobulk replicates by sampling cells
-  cluster_results <- list()
-  n_replicates <- 5  # Number of pseudobulk replicates to create
+  # 1. Overall differential expression (across all clusters)
+  cat("\n=== Overall Differential Expression Analysis ===\n")
+  Idents(seurat_obj) <- factor(seurat_obj$comparison_group, levels = group_names)
   
-  for(cluster in subset_clusters) {
-    # Create logical vectors for the comparison
-    cluster_cells <- seurat_obj$seurat_clusters == cluster
-    subset_in_cluster <- colnames(seurat_obj)[cluster_cells] %in% subset_cells
-    
-    # Check if we have enough cells in both groups for comparison
-    n_subset <- sum(subset_in_cluster)
-    n_other <- sum(cluster_cells) - n_subset
-    
-    if (n_subset < 3 || n_other < 3) {
-      warning(sprintf("Skipping cluster %s: insufficient cells (subset: %d, other: %d)\n",
-                      cluster, n_subset, n_other))
-      next
-    }
-    
-    # Create a temporary Seurat object for this cluster
-    cluster_obj <- subset(seurat_obj, cells = colnames(seurat_obj)[cluster_cells])
-    
-    # Create pseudobulk replicates by randomly sampling cells
-    tryCatch({
-      cat(sprintf("Creating pseudobulk replicates for cluster %s...\n", cluster))
-      
-      # Get cell names for each group
-      subset_cells_in_cluster <- colnames(cluster_obj)[cluster_obj$in_subset]
-      other_cells_in_cluster <- colnames(cluster_obj)[!cluster_obj$in_subset]
-      
-      # Calculate cells per replicate (use smaller group to determine size)
-      min_group_size <- min(length(subset_cells_in_cluster), length(other_cells_in_cluster))
-      cells_per_replicate <- max(3, floor(min_group_size / n_replicates))
-      
-      cat(sprintf("  Cluster %s: subset cells = %d, other cells = %d, cells per replicate = %d\n",
-                  cluster, length(subset_cells_in_cluster), length(other_cells_in_cluster), cells_per_replicate))
-      
-      # Create replicate assignments
-      replicate_assignments <- c()
-      cell_names <- c()
-      
-      for(rep in 1:n_replicates) {
-        # Sample from subset cells
-        if(length(subset_cells_in_cluster) >= cells_per_replicate) {
-          sampled_subset <- sample(subset_cells_in_cluster, cells_per_replicate, replace = FALSE)
-          replicate_assignments <- c(replicate_assignments, rep(paste0("subset_rep", rep), length(sampled_subset)))
-          cell_names <- c(cell_names, sampled_subset)
-          # Remove sampled cells to avoid replacement
-          subset_cells_in_cluster <- setdiff(subset_cells_in_cluster, sampled_subset)
-        }
-        
-        # Sample from other cells
-        if(length(other_cells_in_cluster) >= cells_per_replicate) {
-          sampled_other <- sample(other_cells_in_cluster, cells_per_replicate, replace = FALSE)
-          replicate_assignments <- c(replicate_assignments, rep(paste0("other_rep", rep), length(sampled_other)))
-          cell_names <- c(cell_names, sampled_other)
-          # Remove sampled cells to avoid replacement
-          other_cells_in_cluster <- setdiff(other_cells_in_cluster, sampled_other)
-        }
-      }
-      
-      cat(sprintf("  Created %d total samples for aggregation\n", length(cell_names)))
-      
-      # Create temporary metadata for aggregation
-      temp_meta <- data.frame(
-        cell_id = cell_names,
-        replicate_group = replicate_assignments,
-        stringsAsFactors = FALSE
-      )
-      
-      # Subset cluster object to only sampled cells
-      sampled_cluster_obj <- subset(cluster_obj, cells = cell_names)
-      
-      # Add replicate grouping to metadata
-      sampled_cluster_obj$replicate_group <- temp_meta$replicate_group[match(colnames(sampled_cluster_obj), temp_meta$cell_id)]
-      
-      # Aggregate expression by replicate groups
-      agg_expr <- AggregateExpression(sampled_cluster_obj,
-                                      group.by = "replicate_group",
-                                      assays = "RNA",
-                                      return.seurat = TRUE,
-                                      verbose = FALSE)
-      
-      # Check which groups actually exist (NOTE: AggregateExpression converts _ to -)
-      replicate_ids <- colnames(agg_expr)
-      subset_reps <- replicate_ids[grepl("^subset-", replicate_ids)]
-      other_reps <- replicate_ids[grepl("^other-", replicate_ids)]
-      
-      # Only proceed if we have replicates from both groups
-      if (length(subset_reps) == 0 || length(other_reps) == 0) {
-        warning(sprintf("Cluster %s: Missing replicates (subset: %d, other: %d)", 
-                        cluster, length(subset_reps), length(other_reps)))
-        next
-      }
-      
-      group_ids <- ifelse(grepl("^subset-", replicate_ids), "subset", "other")
-      names(group_ids) <- replicate_ids
-      
-      Idents(agg_expr) <- factor(group_ids)
-      
-      # Verify the identities were set correctly
-      actual_idents <- levels(Idents(agg_expr))
-      if (!all(c("subset", "other") %in% actual_idents)) {
-        warning(sprintf("Cluster %s: Could not create proper group identities. Found: %s", 
-                        cluster, paste(actual_idents, collapse = ", ")))
-        next
-      }
-      
-      # Perform differential expression analysis
-      de_results <- FindMarkers(agg_expr,
-                                ident.1 = "subset",
-                                ident.2 = "other",
-                                min.pct = min_pct,
-                                test.use = "wilcox",
-                                verbose = FALSE)
-      
-      cluster_results[[paste0("cluster_", cluster)]] <- de_results
-      
-      cat(sprintf("Successfully analyzed cluster %s (subset: %d, other: %d, replicates: %d each)\n",
-                  cluster, n_subset, n_other, n_replicates))
-      
-    }, error = function(e) {
-      warning(sprintf("Error in pseudobulk analysis for cluster %s: %s", cluster, e$message))
-    })
-  }
-  results$cluster_specific <- cluster_results
-  
-  # 2. Overall pseudobulk analysis with multiple replicates
-  cat("Performing overall pseudobulk analysis with replicates...\n")
-  results$overall_pseudobulk <- tryCatch({
-    # Get all subset and non-subset cells
-    all_subset_cells <- colnames(seurat_obj)[seurat_obj$in_subset]
-    all_other_cells <- colnames(seurat_obj)[!seurat_obj$in_subset]
-    
-    # Create pseudobulk replicates
-    min_group_size <- min(length(all_subset_cells), length(all_other_cells))
-    cells_per_replicate <- max(50, floor(min_group_size / n_replicates))  # Use more cells for overall analysis
-    
-    # Create replicate assignments
-    replicate_assignments <- c()
-    cell_names <- c()
-    
-    for(rep in 1:n_replicates) {
-      # Sample from subset cells
-      if(length(all_subset_cells) >= cells_per_replicate) {
-        sampled_subset <- sample(all_subset_cells, cells_per_replicate, replace = FALSE)
-        replicate_assignments <- c(replicate_assignments, rep(paste0("subset_rep", rep), length(sampled_subset)))
-        cell_names <- c(cell_names, sampled_subset)
-        all_subset_cells <- setdiff(all_subset_cells, sampled_subset)
-      }
-      
-      # Sample from other cells
-      if(length(all_other_cells) >= cells_per_replicate) {
-        sampled_other <- sample(all_other_cells, cells_per_replicate, replace = FALSE)
-        replicate_assignments <- c(replicate_assignments, rep(paste0("other_rep", rep), length(sampled_other)))
-        cell_names <- c(cell_names, sampled_other)
-        all_other_cells <- setdiff(all_other_cells, sampled_other)
-      }
-    }
-    
-    # Subset Seurat object to sampled cells
-    sampled_obj <- subset(seurat_obj, cells = cell_names)
-    sampled_obj$replicate_group <- replicate_assignments[match(colnames(sampled_obj), cell_names)]
-    
-    # Aggregate expression by replicate groups
-    agg_overall <- AggregateExpression(sampled_obj,
-                                       group.by = "replicate_group",
-                                       assays = "RNA",
-                                       return.seurat = TRUE,
-                                       verbose = FALSE)
-    
-    # Check which groups actually exist (NOTE: AggregateExpression converts _ to -)
-    replicate_ids <- colnames(agg_overall)
-    subset_reps <- replicate_ids[grepl("^subset-", replicate_ids)]
-    other_reps <- replicate_ids[grepl("^other-", replicate_ids)]
-    
-    # Only proceed if we have replicates from both groups
-    if (length(subset_reps) == 0 || length(other_reps) == 0) {
-      stop(sprintf("Missing replicates in overall analysis (subset: %d, other: %d)", 
-                   length(subset_reps), length(other_reps)))
-    }
-    
-    group_ids <- ifelse(grepl("^subset-", replicate_ids), "subset", "other")
-    names(group_ids) <- replicate_ids
-    
-    Idents(agg_overall) <- factor(group_ids)
-    
-    # Verify the identities were set correctly
-    actual_idents <- levels(Idents(agg_overall))
-    if (!all(c("subset", "other") %in% actual_idents)) {
-      stop(sprintf("Could not create proper group identities. Found: %s", 
-                   paste(actual_idents, collapse = ", ")))
-    }
-    
-    # Perform DE analysis
-    de_overall <- FindMarkers(agg_overall,
-                              ident.1 = "subset",
-                              ident.2 = "other",
+  results$overall_de <- tryCatch({
+    de_results <- FindMarkers(seurat_obj,
+                              ident.1 = group_names[1],
+                              ident.2 = group_names[2],
                               min.pct = min_pct,
                               test.use = "wilcox",
                               verbose = FALSE)
     
-    cat("Overall pseudobulk analysis completed successfully\n")
-    de_overall  # Return the results, don't use return()
-    
+    cat(sprintf("Found %d differentially expressed genes (all p-values)\n", nrow(de_results)))
+    de_results
   }, error = function(e) {
-    warning("Error in overall pseudobulk analysis: ", e$message)
-    return(NULL)
+    warning(sprintf("Error in overall DE analysis: %s", e$message))
+    NULL
   })
   
-  # 3. Calculate raw pseudobulk expression profiles for reference
-  results$pseudobulk_expression <- tryCatch({
-    AggregateExpression(seurat_obj,
-                        group.by = "in_subset",
-                        assays = "RNA",
-                        return.seurat = FALSE,
-                        verbose = FALSE)$RNA
+  # Filter for significant overall markers
+  results$overall_de_significant <- tryCatch({
+    if (!is.null(results$overall_de) && nrow(results$overall_de) > 0) {
+      sig_results <- results$overall_de[
+        abs(results$overall_de$avg_log2FC) > 0.5 & 
+          results$overall_de$p_val_adj < 0.01,
+      ]
+      
+      if (nrow(sig_results) > 0) {
+        n_up <- sum(sig_results$avg_log2FC > 0)
+        n_down <- nrow(sig_results) - n_up
+        cat(sprintf("Significant markers: %d total (%d up in %s, %d down)\n",
+                    nrow(sig_results), n_up, group_names[1], n_down))
+        sig_results$gene <- rownames(sig_results)
+        sig_results
+      } else {
+        cat("No markers passed significance thresholds\n")
+        NULL
+      }
+    } else {
+      NULL
+    }
   }, error = function(e) {
-    warning("Error calculating raw pseudo-bulk expression: ", e$message)
-    return(NULL)
+    warning("Error filtering overall markers: ", e$message)
+    NULL
   })
   
-  # 4. Get top genes from differential expression results
-  get_top_genes <- function(de_results, n = 40) {
-    if (is.null(de_results) || nrow(de_results) == 0) return(character(0))
+  # 2. Cluster-specific analysis (only for overlapping clusters)
+  if (length(overlap_clusters) > 0) {
+    cat("\n=== Cluster-Specific Differential Expression Analysis ===\n")
+    cluster_results <- list()
     
-    # Filter for significant genes with meaningful effect size
-    sig_genes <- de_results[de_results$p_val_adj < 0.05 & abs(de_results$avg_log2FC) > 0.5, ]
+    for(cluster in overlap_clusters) {
+      # Get cells from this cluster for each group
+      cluster_cells <- seurat_obj$seurat_clusters == cluster
+      group1_in_cluster <- sum(seurat_obj$comparison_group[cluster_cells] == group_names[1])
+      group2_in_cluster <- sum(seurat_obj$comparison_group[cluster_cells] == group_names[2])
+      
+      # Require at least 3 cells per group for statistical power
+      if (group1_in_cluster < 3 || group2_in_cluster < 3) {
+        warning(sprintf("Skipping cluster %s: insufficient cells (%s: %d, %s: %d)\n",
+                        cluster, group_names[1], group1_in_cluster, 
+                        group_names[2], group2_in_cluster))
+        next
+      }
+      
+      # Create a temporary Seurat object for this cluster
+      cluster_obj <- subset(seurat_obj, seurat_clusters == cluster)
+      Idents(cluster_obj) <- factor(cluster_obj$comparison_group, levels = group_names)
+      
+      # Perform DE analysis within this cluster
+      tryCatch({
+        de_results <- FindMarkers(cluster_obj,
+                                  ident.1 = group_names[1],
+                                  ident.2 = group_names[2],
+                                  min.pct = min_pct,
+                                  test.use = "wilcox",
+                                  verbose = FALSE)
+        
+        cluster_results[[paste0("cluster_", cluster)]] <- de_results
+        
+        cat(sprintf("Cluster %s: %d DEGs (%s: %d cells, %s: %d cells)\n",
+                    cluster, nrow(de_results), 
+                    group_names[1], group1_in_cluster,
+                    group_names[2], group2_in_cluster))
+        
+      }, error = function(e) {
+        warning(sprintf("Error in DE analysis for cluster %s: %s", cluster, e$message))
+      })
+    }
     
-    if (nrow(sig_genes) == 0) return(character(0))
+    results$cluster_specific <- cluster_results
     
-    # Order by significance and effect size
-    sig_genes <- sig_genes[order(sig_genes$p_val_adj, -abs(sig_genes$avg_log2FC)), ]
-    
-    return(head(rownames(sig_genes), n))
-  }
-  
-  # Extract top genes from all analyses
-  results$top_genes <- list()
-  
-  # Handle cluster-specific results
-  if (length(cluster_results) > 0) {
-    top_genes_by_cluster <- lapply(cluster_results, get_top_genes)
-    results$top_genes$cluster_specific <- top_genes_by_cluster
+    # Filter cluster-specific results for significance
+    results$cluster_specific_significant <- tryCatch({
+      if (length(cluster_results) > 0) {
+        significant_by_cluster <- lapply(names(cluster_results), function(cluster_name) {
+          de_results <- cluster_results[[cluster_name]]
+          
+          if (!is.null(de_results) && nrow(de_results) > 0) {
+            sig_results <- de_results[
+              abs(de_results$avg_log2FC) > 0.5 & 
+                de_results$p_val_adj < 0.01,
+            ]
+            
+            if (nrow(sig_results) > 0) {
+              sig_results$gene <- rownames(sig_results)
+              sig_results
+            } else {
+              NULL
+            }
+          } else {
+            NULL
+          }
+        })
+        
+        names(significant_by_cluster) <- names(cluster_results)
+        significant_by_cluster <- significant_by_cluster[!sapply(significant_by_cluster, is.null)]
+        
+        if (length(significant_by_cluster) > 0) {
+          total_sig <- sum(sapply(significant_by_cluster, nrow))
+          cat(sprintf("\nCluster-specific significant markers: %d genes across %d clusters\n",
+                      total_sig, length(significant_by_cluster)))
+          
+          for (cluster_name in names(significant_by_cluster)) {
+            n_markers <- nrow(significant_by_cluster[[cluster_name]])
+            n_up <- sum(significant_by_cluster[[cluster_name]]$avg_log2FC > 0)
+            n_down <- n_markers - n_up
+            cat(sprintf("  %s: %d markers (%d up in %s, %d down)\n", 
+                        cluster_name, n_markers, group_names[1], n_up, n_down))
+          }
+          
+          significant_by_cluster
+        } else {
+          cat("\nNo significant cluster-specific markers found\n")
+          NULL
+        }
+      } else {
+        NULL
+      }
+    }, error = function(e) {
+      warning("Error filtering cluster-specific markers: ", e$message)
+      NULL
+    })
   } else {
-    results$top_genes$cluster_specific <- list()
+    cat("\n=== Cluster-Specific Analysis Skipped ===\n")
+    cat("No overlapping clusters between groups\n")
+    results$cluster_specific <- NULL
+    results$cluster_specific_significant <- NULL
   }
   
-  # Handle other analyses
-  results$top_genes$overall_pseudobulk <- get_top_genes(results$overall_pseudobulk)
+  # 3. Pseudo-bulk expression profiles
+  cat("\n=== Pseudo-bulk Expression ===\n")
+  results$pseudobulk_expression <- tryCatch({
+    pb_expr <- AggregateExpression(seurat_obj,
+                                   group.by = "comparison_group",
+                                   assays = "RNA",
+                                   return.seurat = FALSE)$RNA
+    cat(sprintf("Calculated pseudo-bulk expression for %d genes\n", nrow(pb_expr)))
+    pb_expr
+  }, error = function(e) {
+    warning("Error calculating pseudo-bulk expression: ", e$message)
+    NULL
+  })
+  
+  # Print final summary
+  cat("\n=== Analysis Summary ===\n")
+  cat(sprintf("Comparison: %s\n", results$metadata$comparison_summary))
+  cat(sprintf("Mode: %s\n", results$metadata$mode))
+  
+  return(results)
+}
+## analyze_cell_subset, without using clusters
+analyze_cell_subset_unclustered <- function(seurat_obj, 
+                                            subset_cells_1, 
+                                            subset_cells_2 = NULL,
+                                            min_pct = 0.1,
+                                            group_names = c("group1", "group2")) {
+  # Check package dependencies
+  rlang::check_installed("Seurat", reason = "to perform single-cell analysis")
+  rlang::check_installed("dplyr", reason = "for data manipulation")
+  
+  require(Seurat)
+  require(dplyr)
+  
+  # Input validation
+  if (!is(seurat_obj, "Seurat")) {
+    stop("First argument must be a Seurat object")
+  }
+  
+  if (!is.vector(subset_cells_1)) {
+    stop("subset_cells_1 must be a vector of cell IDs")
+  }
+  
+  # Determine comparison mode
+  two_group_mode <- !is.null(subset_cells_2)
+  
+  if (two_group_mode) {
+    if (!is.vector(subset_cells_2)) {
+      stop("subset_cells_2 must be a vector of cell IDs")
+    }
+    cat("Running two-group comparison mode (unclustered)\n")
+  } else {
+    cat("Running single-group comparison mode (subset vs rest, unclustered)\n")
+  }
+  
+  # Convert cell names to character vectors
+  subset_cells_1 <- as.character(subset_cells_1)
+  if (two_group_mode) {
+    subset_cells_2 <- as.character(subset_cells_2)
+    
+    # Check for overlap between groups
+    overlap <- intersect(subset_cells_1, subset_cells_2)
+    if (length(overlap) > 0) {
+      stop(sprintf("Found %d cells present in both subset_cells_1 and subset_cells_2. Groups must be mutually exclusive.",
+                   length(overlap)))
+    }
+  }
+  
+  # Validate subset_cells_1
+  valid_cells_1 <- subset_cells_1 %in% colnames(seurat_obj)
+  if (!any(valid_cells_1)) {
+    stop("None of the provided cell IDs in subset_cells_1 were found in the Seurat object")
+  }
+  
+  if (!all(valid_cells_1)) {
+    n_invalid <- sum(!valid_cells_1)
+    n_valid <- sum(valid_cells_1)
+    warning(sprintf("%d cells from subset_cells_1 were not found in the Seurat object. %d valid cells remain.",
+                    n_invalid, n_valid))
+    
+    # Show some examples of invalid cells for debugging
+    if (n_invalid <= 5) {
+      cat(sprintf("Invalid cell IDs: %s\n", paste(subset_cells_1[!valid_cells_1], collapse = ", ")))
+    }
+    
+    subset_cells_1 <- subset_cells_1[valid_cells_1]
+  }
+  
+  # Early check for insufficient cells
+  if (length(subset_cells_1) < 3) {
+    stop(sprintf("Insufficient valid cells in subset_cells_1: found %d, need at least 3 for statistical analysis.\nConsider checking your cell ID format or filtering criteria.",
+                 length(subset_cells_1)))
+  }
+  
+  # Validate subset_cells_2 if provided
+  if (two_group_mode) {
+    valid_cells_2 <- subset_cells_2 %in% colnames(seurat_obj)
+    if (!any(valid_cells_2)) {
+      stop("None of the provided cell IDs in subset_cells_2 were found in the Seurat object")
+    }
+    
+    if (!all(valid_cells_2)) {
+      n_invalid <- sum(!valid_cells_2)
+      n_valid <- sum(valid_cells_2)
+      warning(sprintf("%d cells from subset_cells_2 were not found in the Seurat object. %d valid cells remain.",
+                      n_invalid, n_valid))
+      
+      # Show some examples of invalid cells for debugging
+      if (n_invalid <= 5) {
+        cat(sprintf("Invalid cell IDs: %s\n", paste(subset_cells_2[!valid_cells_2], collapse = ", ")))
+      }
+      
+      subset_cells_2 <- subset_cells_2[valid_cells_2]
+    }
+    
+    # Early check for insufficient cells
+    if (length(subset_cells_2) < 3) {
+      stop(sprintf("Insufficient valid cells in subset_cells_2: found %d, need at least 3 for statistical analysis.\nConsider checking your cell ID format or filtering criteria.",
+                   length(subset_cells_2)))
+    }
+  }
+  
+  # Print diagnostic information
+  cat(sprintf("\nDataset information:\n"))
+  cat(sprintf("  - Total cells in dataset: %d\n", ncol(seurat_obj)))
+  cat(sprintf("  - %s: %d cells (%.1f%% of total)\n", 
+              group_names[1], 
+              length(subset_cells_1),
+              100 * length(subset_cells_1) / ncol(seurat_obj)))
+  
+  if (two_group_mode) {
+    cat(sprintf("  - %s: %d cells (%.1f%% of total)\n",
+                group_names[2],
+                length(subset_cells_2),
+                100 * length(subset_cells_2) / ncol(seurat_obj)))
+  } else {
+    n_rest <- ncol(seurat_obj) - length(subset_cells_1)
+    cat(sprintf("  - %s: %d cells (%.1f%% of total)\n",
+                group_names[2],
+                n_rest,
+                100 * n_rest / ncol(seurat_obj)))
+  }
+  
+  # Add metadata column for group membership
+  if (two_group_mode) {
+    seurat_obj$comparison_group <- ifelse(
+      colnames(seurat_obj) %in% subset_cells_1, group_names[1],
+      ifelse(colnames(seurat_obj) %in% subset_cells_2, group_names[2], "excluded")
+    )
+    # Subset to only include cells in one of the two groups
+    seurat_obj <- subset(seurat_obj, cells = c(subset_cells_1, subset_cells_2))
+    cat(sprintf("  - Analysis will include %d total cells\n", ncol(seurat_obj)))
+  } else {
+    seurat_obj$comparison_group <- ifelse(
+      colnames(seurat_obj) %in% subset_cells_1, group_names[1], group_names[2]
+    )
+  }
+  
+  # Count cells in each group
+  n_group1 <- sum(seurat_obj$comparison_group == group_names[1])
+  n_group2 <- sum(seurat_obj$comparison_group == group_names[2])
+  
+  cat(sprintf("\nComparing:\n"))
+  cat(sprintf("  - %s: %d cells\n", group_names[1], n_group1))
+  cat(sprintf("  - %s: %d cells\n", group_names[2], n_group2))
+  
+  # Initialize results list
+  results <- list()
+  results$metadata <- list(
+    mode = ifelse(two_group_mode, "two_group", "single_group"),
+    n_cells_group1 = n_group1,
+    n_cells_group2 = n_group2,
+    group_names = group_names,
+    analysis_type = "unclustered"
+  )
+  
+  # Check if we have enough cells for comparison
+  if (n_group1 < 3 || n_group2 < 3) {
+    stop(sprintf("Insufficient cells for comparison (%s: %d, %s: %d). Need at least 3 in each group.",
+                 group_names[1], n_group1, group_names[2], n_group2))
+  }
+  
+  # 1. Perform unclustered differential expression analysis
+  cat("\n=== Differential Expression Analysis ===\n")
+  
+  # Set identities for comparison
+  Idents(seurat_obj) <- factor(seurat_obj$comparison_group, levels = group_names)
+  
+  # Perform differential expression
+  results$de_markers <- tryCatch({
+    de_results <- FindMarkers(seurat_obj,
+                              ident.1 = group_names[1],
+                              ident.2 = group_names[2],
+                              min.pct = min_pct,
+                              test.use = "wilcox",
+                              verbose = FALSE)
+    
+    # Add gene column
+    de_results$gene <- rownames(de_results)
+    
+    cat(sprintf("Successfully tested %d genes\n", nrow(de_results)))
+    cat(sprintf("  - Significant at p_val_adj < 0.05: %d genes\n", 
+                sum(de_results$p_val_adj < 0.05)))
+    cat(sprintf("  - Significant at p_val_adj < 0.01: %d genes\n",
+                sum(de_results$p_val_adj < 0.01)))
+    
+    de_results
+    
+  }, error = function(e) {
+    stop(sprintf("Error in differential expression analysis: %s", e$message))
+  })
+  
+  # 2. Filter for significant markers
+  cat("\nFiltering for significant markers (|avg_log2FC| > 0.5, p_val_adj < 0.01)...\n")
+  
+  results$de_markers_significant <- tryCatch({
+    if (!is.null(results$de_markers) && nrow(results$de_markers) > 0) {
+      sig_markers <- results$de_markers[
+        abs(results$de_markers$avg_log2FC) > 0.5 & 
+          results$de_markers$p_val_adj < 0.01,
+      ]
+      
+      if (nrow(sig_markers) > 0) {
+        # Count up and down
+        n_up <- sum(sig_markers$avg_log2FC > 0)
+        n_down <- sum(sig_markers$avg_log2FC < 0)
+        
+        cat(sprintf("Found %d significant markers\n", nrow(sig_markers)))
+        cat(sprintf("  - Upregulated in %s: %d genes\n", group_names[1], n_up))
+        cat(sprintf("  - Downregulated in %s: %d genes\n", group_names[1], n_down))
+        
+        sig_markers
+      } else {
+        cat("No markers passed significance thresholds\n")
+        NULL
+      }
+    } else {
+      cat("No differential expression results to filter\n")
+      NULL
+    }
+  }, error = function(e) {
+    warning("Error filtering significant markers: ", e$message)
+    NULL
+  })
+  
+  # 3. Additional filtering: moderate fold change threshold
+  results$de_markers_moderate <- tryCatch({
+    if (!is.null(results$de_markers) && nrow(results$de_markers) > 0) {
+      moderate_markers <- results$de_markers[
+        abs(results$de_markers$avg_log2FC) > 0.25 & 
+          results$de_markers$p_val_adj < 0.05,
+      ]
+      
+      if (nrow(moderate_markers) > 0) {
+        cat(sprintf("\nAlternative threshold (|avg_log2FC| > 0.25, p_val_adj < 0.05):\n"))
+        cat(sprintf("  - Found %d markers\n", nrow(moderate_markers)))
+        moderate_markers
+      } else {
+        NULL
+      }
+    } else {
+      NULL
+    }
+  }, error = function(e) {
+    warning("Error applying moderate thresholds: ", e$message)
+    NULL
+  })
+  
+  # 4. Calculate pseudo-bulk expression profiles
+  cat("\n=== Pseudo-bulk Expression ===\n")
+  results$pseudobulk_expression <- tryCatch({
+    pb_expr <- AggregateExpression(seurat_obj,
+                                   group.by = "comparison_group",
+                                   assays = "RNA",
+                                   return.seurat = FALSE)$RNA
+    cat(sprintf("Calculated pseudo-bulk expression for %d genes\n", nrow(pb_expr)))
+    pb_expr
+  }, error = function(e) {
+    warning("Error calculating pseudo-bulk expression: ", e$message)
+    NULL
+  })
   
   # Summary of analysis
   cat("\n=== Analysis Summary ===\n")
-  cat(sprintf("- Analyzed %d clusters with sufficient cells\n", length(cluster_results)))
-  cat(sprintf("- Overall pseudobulk analysis: %s\n", 
-              ifelse(!is.null(results$overall_pseudobulk), "SUCCESS", "FAILED")))
-  cat(sprintf("- Raw pseudobulk expression profiles: %s\n", 
-              ifelse(!is.null(results$pseudobulk_expression), "SUCCESS", "FAILED")))
+  cat(sprintf("Mode: %s\n", results$metadata$mode))
+  cat(sprintf("Analysis type: %s\n", results$metadata$analysis_type))
+  cat(sprintf("Groups: %s (%d cells) vs %s (%d cells)\n",
+              group_names[1], n_group1,
+              group_names[2], n_group2))
+  cat(sprintf("Total genes tested: %d\n", 
+              ifelse(!is.null(results$de_markers), 
+                     nrow(results$de_markers), 0)))
+  cat(sprintf("Significant markers (strict): %s\n",
+              ifelse(!is.null(results$de_markers_significant),
+                     sprintf("%d genes", nrow(results$de_markers_significant)),
+                     "None")))
+  cat(sprintf("Significant markers (moderate): %s\n",
+              ifelse(!is.null(results$de_markers_moderate),
+                     sprintf("%d genes", nrow(results$de_markers_moderate)),
+                     "None")))
   
-  # Print summary of significant genes found
-  for (analysis_type in names(results$top_genes)) {
-    if (analysis_type == "cluster_specific") {
-      if (length(results$top_genes[[analysis_type]]) > 0) {
-        total_genes <- sum(sapply(results$top_genes[[analysis_type]], length))
-        cat(sprintf("- Top genes from cluster-specific analysis: %d total across %d clusters\n", 
-                    total_genes, length(results$top_genes[[analysis_type]])))
-      } else {
-        cat("- Top genes from cluster-specific analysis: 0 (no clusters analyzed)\n")
+  if (!is.null(results$de_markers_significant) && 
+      nrow(results$de_markers_significant) > 0) {
+    sig_markers <- results$de_markers_significant
+    n_up <- sum(sig_markers$avg_log2FC > 0)
+    n_down <- sum(sig_markers$avg_log2FC < 0)
+    
+    cat(sprintf("  - Upregulated in %s: %d\n", group_names[1], n_up))
+    cat(sprintf("  - Downregulated in %s: %d\n", group_names[1], n_down))
+    
+    # Report top markers only if they exist
+    if (n_up > 0) {
+      top_up <- head(sig_markers[order(-sig_markers$avg_log2FC), ], 5)
+      cat(sprintf("\nTop markers upregulated in %s:\n", group_names[1]))
+      for (i in 1:nrow(top_up)) {
+        cat(sprintf("  %d. %s (log2FC = %.2f, p_adj = %.2e)\n",
+                    i, top_up$gene[i], top_up$avg_log2FC[i], top_up$p_val_adj[i]))
       }
-    } else {
-      n_genes <- length(results$top_genes[[analysis_type]])
-      cat(sprintf("- Top genes from %s: %d\n", gsub("_", " ", analysis_type), n_genes))
+    }
+    
+    if (n_down > 0) {
+      top_down <- head(sig_markers[order(sig_markers$avg_log2FC), ], 5)
+      cat(sprintf("\nTop markers downregulated in %s:\n", group_names[1]))
+      for (i in 1:nrow(top_down)) {
+        cat(sprintf("  %d. %s (log2FC = %.2f, p_adj = %.2e)\n",
+                    i, top_down$gene[i], top_down$avg_log2FC[i], top_down$p_val_adj[i]))
+      }
     }
   }
+  
+  cat("\n")
   
   return(results)
 }
@@ -2274,6 +2146,61 @@ save_subset_analysis <- function(analysis_results, output_dir) {
   # Create output directory if it doesn't exist
   dir.create(output_dir, showWarnings = FALSE, recursive = TRUE)
   
+  # 0. Save overall differential expression results
+  if (!is.null(analysis_results$overall_de) && nrow(analysis_results$overall_de) > 0) {
+    wb <- createWorkbook()
+    
+    # All results
+    de_results <- analysis_results$overall_de
+    de_results$gene <- rownames(de_results)
+    addWorksheet(wb, "all_genes")
+    writeData(wb, "all_genes", de_results)
+    
+    # Save workbook
+    saveWorkbook(wb, file.path(output_dir, "overall_DE.xlsx"), overwrite = TRUE)
+  }
+  
+  # 0b. Save overall SIGNIFICANT markers
+  if (!is.null(analysis_results$overall_de_significant) && 
+      nrow(analysis_results$overall_de_significant) > 0) {
+    
+    sig_results <- analysis_results$overall_de_significant
+    
+    # Split into upregulated and downregulated
+    upregulated <- sig_results[sig_results$avg_log2FC > 0, ]
+    downregulated <- sig_results[sig_results$avg_log2FC < 0, ]
+    
+    # Sort by fold change
+    if (nrow(upregulated) > 0) {
+      upregulated <- upregulated[order(-upregulated$avg_log2FC), ]
+    }
+    if (nrow(downregulated) > 0) {
+      downregulated <- downregulated[order(downregulated$avg_log2FC), ]
+    }
+    
+    wb <- createWorkbook()
+    
+    # Add upregulated genes tab
+    if (nrow(upregulated) > 0) {
+      addWorksheet(wb, "upregulated")
+      writeData(wb, "upregulated", upregulated)
+    }
+    
+    # Add downregulated genes tab
+    if (nrow(downregulated) > 0) {
+      addWorksheet(wb, "downregulated")
+      writeData(wb, "downregulated", downregulated)
+    }
+    
+    # Save workbook
+    saveWorkbook(wb, file.path(output_dir, "overall_significant.xlsx"), overwrite = TRUE)
+    
+    # Print summary
+    cat(sprintf("\nOverall significant markers saved:\n"))
+    cat(sprintf("  - Upregulated genes: %d\n", nrow(upregulated)))
+    cat(sprintf("  - Downregulated genes: %d\n", nrow(downregulated)))
+  }
+  
   # 1. Save cluster-specific differential expression results
   if (length(analysis_results$cluster_specific) > 0) {
     # Create a workbook for cluster-specific results
@@ -2294,6 +2221,56 @@ save_subset_analysis <- function(analysis_results, output_dir) {
     saveWorkbook(wb, file.path(output_dir, "cluster_specific_DE.xlsx"), overwrite = TRUE)
   }
   
+  # 1b. Save cluster-specific SIGNIFICANT markers
+  if (!is.null(analysis_results$cluster_specific_significant) &&
+      length(analysis_results$cluster_specific_significant) > 0) {
+    
+    wb <- createWorkbook()
+    
+    for (cluster_name in names(analysis_results$cluster_specific_significant)) {
+      sig_results <- analysis_results$cluster_specific_significant[[cluster_name]]
+      
+      if (!is.null(sig_results) && nrow(sig_results) > 0) {
+        # Split into upregulated and downregulated
+        upregulated <- sig_results[sig_results$avg_log2FC > 0, ]
+        downregulated <- sig_results[sig_results$avg_log2FC < 0, ]
+        
+        # Sort by fold change
+        if (nrow(upregulated) > 0) {
+          upregulated <- upregulated[order(-upregulated$avg_log2FC), ]
+        }
+        if (nrow(downregulated) > 0) {
+          downregulated <- downregulated[order(downregulated$avg_log2FC), ]
+        }
+        
+        # Add worksheet for upregulated genes
+        if (nrow(upregulated) > 0) {
+          sheet_name_up <- paste0(cluster_name, "_up")
+          # Truncate sheet name if too long (Excel limit is 31 characters)
+          if (nchar(sheet_name_up) > 31) {
+            sheet_name_up <- substr(sheet_name_up, 1, 31)
+          }
+          addWorksheet(wb, sheet_name_up)
+          writeData(wb, sheet_name_up, upregulated)
+        }
+        
+        # Add worksheet for downregulated genes
+        if (nrow(downregulated) > 0) {
+          sheet_name_down <- paste0(cluster_name, "_down")
+          # Truncate sheet name if too long
+          if (nchar(sheet_name_down) > 31) {
+            sheet_name_down <- substr(sheet_name_down, 1, 31)
+          }
+          addWorksheet(wb, sheet_name_down)
+          writeData(wb, sheet_name_down, downregulated)
+        }
+      }
+    }
+    
+    # Save workbook
+    saveWorkbook(wb, file.path(output_dir, "cluster_specific_significant.xlsx"), overwrite = TRUE)
+  }
+  
   # 2. Save conserved markers
   if (!is.null(analysis_results$conserved_markers) && 
       nrow(analysis_results$conserved_markers) > 0) {
@@ -2308,6 +2285,58 @@ save_subset_analysis <- function(analysis_results, output_dir) {
     saveWorkbook(wb, file.path(output_dir, "conserved_markers.xlsx"), overwrite = TRUE)
   }
   
+  # 2b. Save significant conserved markers
+  if (!is.null(analysis_results$conserved_markers_significant) && 
+      nrow(analysis_results$conserved_markers_significant) > 0) {
+    # Add gene names as a column
+    conserved_markers_sig <- analysis_results$conserved_markers_significant
+    conserved_markers_sig$gene <- rownames(conserved_markers_sig)
+    
+    # Determine which fold change column to use for sorting
+    fc_column <- if ("mean_log2FC" %in% colnames(conserved_markers_sig)) {
+      "mean_log2FC"
+    } else if ("avg_log2FC" %in% colnames(conserved_markers_sig)) {
+      "avg_log2FC"
+    } else {
+      stop("No log2FC column found in conserved_markers_significant")
+    }
+    
+    # Split into upregulated and downregulated
+    upregulated <- conserved_markers_sig[conserved_markers_sig[[fc_column]] > 0, ]
+    downregulated <- conserved_markers_sig[conserved_markers_sig[[fc_column]] < 0, ]
+    
+    # Sort by fold change (descending for up, ascending for down)
+    if (nrow(upregulated) > 0) {
+      upregulated <- upregulated[order(-upregulated[[fc_column]]), ]
+    }
+    if (nrow(downregulated) > 0) {
+      downregulated <- downregulated[order(downregulated[[fc_column]]), ]
+    }
+    
+    # Create a new workbook for significant conserved markers
+    wb <- createWorkbook()
+    
+    # Add upregulated genes tab
+    if (nrow(upregulated) > 0) {
+      addWorksheet(wb, "upregulated")
+      writeData(wb, "upregulated", upregulated)
+    }
+    
+    # Add downregulated genes tab
+    if (nrow(downregulated) > 0) {
+      addWorksheet(wb, "downregulated")
+      writeData(wb, "downregulated", downregulated)
+    }
+    
+    # Save workbook
+    saveWorkbook(wb, file.path(output_dir, "conserved_markers_significant.xlsx"), overwrite = TRUE)
+    
+    # Print summary
+    cat(sprintf("\nSignificant conserved markers saved:\n"))
+    cat(sprintf("  - Upregulated genes: %d\n", nrow(upregulated)))
+    cat(sprintf("  - Downregulated genes: %d\n", nrow(downregulated)))
+  }
+  
   # 3. Save average expression profiles
   if (!is.null(analysis_results$avg_expression)) {
     avg_exp <- analysis_results$avg_expression
@@ -2320,7 +2349,19 @@ save_subset_analysis <- function(analysis_results, output_dir) {
     saveWorkbook(wb, file.path(output_dir, "average_expression.xlsx"), overwrite = TRUE)
   }
   
-  # 4. Save top genes list
+  # 4. Save pseudobulk expression profiles if present
+  if (!is.null(analysis_results$pseudobulk_expression)) {
+    pseudobulk_exp <- analysis_results$pseudobulk_expression
+    pseudobulk_exp_df <- as.data.frame(pseudobulk_exp)
+    pseudobulk_exp_df$gene <- rownames(pseudobulk_exp_df)
+    
+    wb <- createWorkbook()
+    addWorksheet(wb, "pseudobulk_expression")
+    writeData(wb, "pseudobulk_expression", pseudobulk_exp_df)
+    saveWorkbook(wb, file.path(output_dir, "pseudobulk_expression.xlsx"), overwrite = TRUE)
+  }
+  
+  # 5. Save top genes list
   if (length(analysis_results$top_genes) > 0) {
     # Convert list to data frame
     max_genes <- max(sapply(analysis_results$top_genes, length))
@@ -2343,14 +2384,48 @@ save_subset_analysis <- function(analysis_results, output_dir) {
   summary_text <- c(
     "Subset Analysis Results Summary",
     "============================",
-    paste("Number of clusters analyzed:", length(analysis_results$cluster_specific)),
-    paste("Number of conserved markers:", 
+    "",
+    "Comparison Details:",
+    paste("  Group 1:", analysis_results$metadata$group1_name, 
+          sprintf("(n=%d cells)", analysis_results$metadata$n_cells_group1)),
+    paste("  Group 2:", analysis_results$metadata$group2_name,
+          sprintf("(n=%d cells)", analysis_results$metadata$n_cells_group2)),
+    paste("  Mode:", analysis_results$metadata$mode),
+    "",
+    "Results:",
+    paste("  Overall DE genes:", 
+          ifelse(!is.null(analysis_results$overall_de), 
+                 nrow(analysis_results$overall_de), 0)),
+    paste("  Significant overall markers:", 
+          ifelse(!is.null(analysis_results$overall_de_significant), 
+                 nrow(analysis_results$overall_de_significant), 0)),
+    paste("  Clusters analyzed:", length(analysis_results$cluster_specific)),
+    paste("  Clusters with significant markers:",
+          ifelse(!is.null(analysis_results$cluster_specific_significant),
+                 length(analysis_results$cluster_specific_significant), 0)),
+    paste("  Conserved markers:", 
           ifelse(!is.null(analysis_results$conserved_markers), 
                  nrow(analysis_results$conserved_markers), 0)),
-    "\nFiles generated:",
-    "- cluster_specific_DE.xlsx: Differential expression results for each cluster",
+    paste("  Significant conserved markers:", 
+          ifelse(!is.null(analysis_results$conserved_markers_significant), 
+                 nrow(analysis_results$conserved_markers_significant), 0)),
+    "",
+    "Files generated:",
+    "- overall_DE.xlsx: Overall differential expression results (all genes)",
+    paste0("    * Positive log2FC = higher in ", analysis_results$metadata$group1_name),
+    paste0("    * Negative log2FC = higher in ", analysis_results$metadata$group2_name),
+    "- overall_significant.xlsx: Significant overall markers (|avg_log2FC| > 0.5, p_val_adj < 0.01)",
+    paste0("    * upregulated tab: Genes higher in ", analysis_results$metadata$group1_name),
+    paste0("    * downregulated tab: Genes higher in ", analysis_results$metadata$group2_name),
+    "- cluster_specific_DE.xlsx: Differential expression results for each cluster (all genes)",
+    "- cluster_specific_significant.xlsx: Significant markers per cluster (|avg_log2FC| > 0.5, p_val_adj < 0.01)",
+    "    * One tab per cluster and direction (e.g., cluster_0_up, cluster_0_down)",
+    "    * Each tab sorted by fold change magnitude",
     "- conserved_markers.xlsx: Markers conserved across clusters",
-    "- average_expression.xlsx: Average expression profiles",
+    "- conserved_markers_significant.xlsx: Significant conserved markers (|avg_log2FC| > 0.5, p_val_adj < 0.01)",
+    "    * upregulated tab: Genes with positive fold change (sorted high to low)",
+    "    * downregulated tab: Genes with negative fold change (sorted low to high)",
+    "- pseudobulk_expression.xlsx: Pseudobulk expression profiles",
     "- top_genes.xlsx: Top differential genes by cluster"
   )
   

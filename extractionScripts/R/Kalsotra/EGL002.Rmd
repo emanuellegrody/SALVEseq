@@ -1,0 +1,601 @@
+---
+title: "EGL002"
+author: "Emanuelle Grody"
+date: "2025-12-14"
+output: html_document
+---
+
+```{r, message=FALSE, warning=FALSE}
+source("~/SALVEseq/packages.R")
+source("~/SALVEseq/functions.R")
+```
+
+# Individual Datasets
+## GEX
+
+### UMAP coords and cell size
+
+```{r}
+samples <- data.frame(
+  datasets = c(
+    "Esrp2KO_sham24_R1",
+    "Normal_SHAM24_R2"
+  ),
+  samples = c(
+    "Esrp2KO",
+    "Normal"
+  )
+)
+
+output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGL002/singleCell/Seurat/UMAPcoords/"
+if (!dir.exists(output.dir)) {
+  dir.create(output.dir, recursive = TRUE)
+}
+
+for (i in 1:nrow(samples)) {
+  sample_name <- samples$samples[i]
+  dataset <- samples$datasets[i]
+  folder <- "/projects/b1042/GoyalLab/egrody/extractedData/EGL002/singleCell/counts/"
+  input.dir <- paste0(folder, "GRCm39_", dataset, "/outs/filtered_feature_bc_matrix/")
+  
+  tryCatch({
+    seurat_obj <- SeuratPipeline(input.dir, sample_name, 
+                         output_dir = "/projects/b1042/GoyalLab/egrody/extractedData/EGL002/singleCell/Seurat/plots/", 
+                         plots = TRUE, rds = TRUE,
+                         species = "mouse", remove_mac = FALSE)
+    
+    # Generate expression data frame without gene expression
+    sample_df <- targetExpressionDF(seurat_obj, genes = "")
+
+    # Add sample and target columns to the dataframe
+    sample_df$size <- colSums(GetAssayData(seurat_obj, assay = "RNA", slot = "counts"))
+    sample_df$sample <- sample_name
+
+    write.csv(sample_df, paste0(output.dir, sample_name, "UMAP_coords.csv"))
+    
+    cat("Processed sample:", sample_name, "\n")
+  }, error = function(e) {
+    cat("Error processing sample", sample_name, ":", conditionMessage(e), "\n\n")
+  })
+}
+```
+
+
+
+## SALVE
+
+### First look
+From the bamsort, what are the reads and frequencies? Are the targets above background? Is there any evidence for index hopping in the pooled samples?
+```{r}
+bamsort_stats <- read.csv("/projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/bamsort/all_samples_alignment_summary.txt")
+stats <- bamsort_stats %>%
+  select(Sample, Target, Rows, Total_Reads) %>%
+  rename(Name = Sample, Region = Target, UMI = Rows, Reads = Total_Reads) %>% 
+  mutate(Sample = ifelse(grepl("WT", Name), "WT", "KO"), Target = sapply(strsplit(Name, "_"), tail, 1)) %>%
+  #mutate(Target = ifelse(grepl("Slk", Target), "Slk", Target)) %>%
+  select(-Name) %>% relocate(Target)
+
+df <- stats %>%
+  mutate(is_match = case_when(
+    Target == Region ~ TRUE,
+    str_detect(Target, fixed(Region)) ~ TRUE,
+    TRUE ~ FALSE
+  ))
+
+# Plot
+ggplot(df, aes(x = Target, y = UMI, fill = is_match)) +
+  geom_col() +
+  facet_grid(Sample ~ Region) +
+  scale_fill_manual(
+    values = c("TRUE" = "#E41A1C", "FALSE" = "#377EB8"),
+    labels = c("TRUE" = "Matching", "FALSE" = "Non-matching"),
+    name = "Target-Region Match"
+  ) +
+  theme_bw() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    strip.background = element_rect(fill = "grey90"),
+    panel.spacing = unit(0.5, "lines")
+  ) +
+  labs(
+    x = "Target",
+    y = "UMI Count",
+    title = "UMI Counts by Target and Region",
+    subtitle = "Samples shown separately"
+  )
+```
+
+Index hopping
+```{r}
+# Define combinations to test
+test_combinations <- tribble(
+  ~Sample, ~Region, ~Target,
+  "WT", "Kras", "Slkv3",
+  "WT", "Kras", "Lsm14b",
+  "WT", "Dgkd", "Slkv4",
+  "WT", "Dgkd", "Nf2",
+  "KO", "Kras", "Slkv3",
+  "KO", "Kras", "Lsm14b",
+  "KO", "Kras", "Dgkd",
+  "KO", "Slkv4", "Nf2"
+)
+
+# Calculate background (non-matching) statistics for each Sample-Region combination
+background_stats <- df %>%
+  filter(!is_match) %>%
+  group_by(Sample, Region) %>%
+  summarise(
+    bg_mean = mean(UMI, na.rm = TRUE),
+    bg_sd = sd(UMI, na.rm = TRUE),
+    bg_median = median(UMI, na.rm = TRUE),
+    n_bg = n(),
+    .groups = "drop"
+  )
+
+# Get the specific off-target values to test
+test_values <- df %>%
+  inner_join(test_combinations, by = c("Sample", "Region", "Target")) %>%
+  select(Sample, Region, Target, UMI)
+
+# Combine with background statistics
+comparison <- test_values %>%
+  left_join(background_stats, by = c("Sample", "Region")) %>%
+  mutate(
+    fold_over_mean = UMI / bg_mean,
+    z_score = (UMI - bg_mean) / bg_sd,
+    diff_from_mean = UMI - bg_mean,
+    percent_of_mean = (UMI / bg_mean) * 100,
+    is_elevated = UMI > (bg_mean + 2 * bg_sd)  # More than 2 SD above mean
+  ) %>%
+  arrange(Sample, Region, Target)
+
+# Display results
+print(comparison)
+
+# Summary visualization
+ggplot(comparison, aes(x = paste(Sample, Region, sep = "\n"), 
+                       y = fold_over_mean, 
+                       fill = Target)) +
+  geom_col(position = "dodge") +
+  geom_hline(yintercept = 1, linetype = "dashed", color = "red", linewidth = 1) +
+  geom_hline(yintercept = 2, linetype = "dotted", color = "darkred") +
+  scale_fill_brewer(palette = "Set2") +
+  theme_bw() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    legend.position = "right"
+  ) +
+  labs(
+    x = "Sample / Region",
+    y = "Fold Change over Background Mean",
+    title = "Off-Target Expression Relative to Background",
+    subtitle = "Dashed line = background mean (1x), Dotted line = 2x background"
+  )
+
+
+
+
+
+# Statistical significance check with error handling
+significance_tests <- test_combinations %>%
+  rowwise() %>%
+  mutate(
+    # Get background values
+    bg_values = list(df %>%
+      filter(Sample == .env$Sample, 
+             Region == .env$Region, 
+             !is_match) %>%
+      pull(UMI)),
+    
+    # Get test value - handle missing data
+    test_value_vec = list(df %>%
+      filter(Sample == .env$Sample,
+             Region == .env$Region,
+             Target == .env$Target) %>%
+      pull(UMI)),
+    
+    # Extract single value or NA if missing
+    test_value = ifelse(length(unlist(test_value_vec)) > 0, 
+                        unlist(test_value_vec)[1], 
+                        NA_real_),
+    
+    n_bg = length(unlist(bg_values)),
+    
+    # Perform test only if data exists
+    p_value = if(!is.na(test_value) && n_bg > 0) {
+      wilcox.test(unlist(bg_values), mu = test_value, 
+                  alternative = "less")$p.value
+    } else {
+      NA_real_
+    },
+    
+    significant = !is.na(p_value) && p_value < 0.05,
+    
+    # Flag missing data
+    data_available = !is.na(test_value)
+  ) %>%
+  ungroup() %>%
+  select(Sample, Region, Target, test_value, n_bg, p_value, significant, data_available) %>%
+  arrange(p_value)
+
+print(significance_tests)
+
+# Show which combination is missing
+cat("\nMissing data combinations:\n")
+significance_tests %>%
+  filter(!data_available) %>%
+  print()
+```
+
+
+### bamsort (UPDATE ME)
+Run this once first to get raw cellIDs:
+```{r raw_cellIDs}
+# Load and save raw cell IDs from 10X data
+raw_cellIDs <- list()
+output_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGL002/singleCell/raw_cellIDs" 
+
+# Create output directory if it doesn't exist
+if (!dir.exists(output_dir)) {
+  dir.create(output_dir, recursive = TRUE)
+}
+
+samples <- data.frame(
+  datasets = c(
+    "Esrp2KO_sham24_R1",
+    "Normal_SHAM24_R2"
+  ),
+  samples = c(
+    "Esrp2KO",
+    "Normal"
+  )
+)
+
+all_cellIDs <- data.frame(cellID = character(), sample = character(), stringsAsFactors = FALSE)
+
+for (i in 1:nrow(samples)) {
+  dataset_name <- samples$datasets[i]
+  sample_name <- samples$samples[i]
+  folder <- "/projects/b1042/GoyalLab/egrody/extractedData/EGL002/singleCell/counts/"
+  rawDataFolder <- paste0(folder, "GRCm39_", dataset_name, "/outs/raw_feature_bc_matrix/")
+  
+  tryCatch({
+    rawdata <- Read10X(rawDataFolder)
+    umi_counts <- colSums(rawdata)
+    cell_ids <- names(umi_counts[umi_counts > 100]) # keep only cells with transcriptomes
+    raw_cellIDs[[sample_name]] <- cell_ids
+    cat("Loaded", length(cell_ids), "raw cellIDs for sample", sample_name, "\n")
+    
+    # Add to the combined dataframe
+    sample_df <- data.frame(
+      cellID = cell_ids,
+      sample = rep(sample_name, length(cell_ids)),
+      stringsAsFactors = FALSE
+    )
+    all_cellIDs <- rbind(all_cellIDs, sample_df)
+    
+    # Save individual sample's cell IDs to CSV
+    sample_file <- file.path(output_dir, paste0(sample_name, "_raw_cellIDs.csv"))
+    write.csv(data.frame(cellID = cell_ids), sample_file, row.names = FALSE)
+    cat("Saved", length(cell_ids), "cell IDs to", sample_file, "\n")
+    
+  }, error = function(e) {
+    cat("Error processing", dataset_name, ":", conditionMessage(e), "\n")
+  })
+  
+  if (exists("rawdata")) {
+    rm(rawdata)
+    gc()
+  }
+}
+
+# Save the combined cell IDs to a single CSV
+combined_file <- file.path(output_dir, "all_raw_cellIDs.csv")
+write.csv(all_cellIDs, combined_file, row.names = FALSE)
+cat("Saved combined cell IDs to", combined_file, "\n")
+
+# To easily load this data in the future:
+# raw_cellIDs_df <- read.csv("path/to/output/directory/all_raw_cellIDs.csv")
+# raw_cellIDs <- split(raw_cellIDs_df$cellID, raw_cellIDs_df$sample)
+```
+
+Run bamsort_combined (alignment_reads and splice) first.
+Making full and minimum filtered lists:
+```{r}
+process_bamsortv6 <- function(samples_list, input.dir, output.dir, raw_cellIDs, 
+                              correction_dir = NULL) {
+  #
+  # optional to read in paste0(sample, "_D1_splicesites_filtered.csv")
+  # which is output from bamsort_splice_sites to update MS
+  #
+  if (class(samples_list) != "character") {
+    stop("samples_list input must be a list of sample names")
+  }
+  if (!dir.exists(output.dir)) {
+    dir.create(output.dir, recursive = TRUE)
+  }
+  
+  for (sample in samples_list) {
+    cat("\nProcessing sample:", sample, "\n")
+    
+    # Get all files for current sample
+    sample_files <- unlist(lapply(input.dir, function(dir) {
+      list.files(dir, 
+                 pattern = paste0(".*", sample, ".*_bamsort_alignment_.*\\.csv$"),
+                 full.names = TRUE)
+    }))
+    
+    if (length(sample_files) == 0) {
+      cat("No files found for sample:", sample, "\n")
+      next
+    }
+    
+    # Extract categories for each file
+    categories <- sapply(sample_files, extract_categoryv6)
+    sample_files <- sample_files[!is.na(categories)]
+    
+    # Create a data frame to store the combined results
+    all_data <- data.frame()
+    filenames <- basename(sample_files)
+    
+    # Process each relevant file
+    for (j in seq_along(sample_files)) {
+      extracted_data <- NULL
+      
+      tryCatch({
+        file_data <- fread(sample_files[j], data.table = FALSE)
+        
+        if(nrow(file_data) == 0) {
+          cat("Warning: File is empty:", filenames[j], "\n")
+          next
+        }
+        
+        required_cols <- c("cellID", "UMI", "count")
+        missing_cols <- setdiff(required_cols, colnames(file_data))
+        
+        if (length(missing_cols) > 0) {
+          cat("Warning: Missing required columns:", paste(missing_cols, collapse=", "), "\n")
+          cat("Available columns:", paste(colnames(file_data), collapse=", "), "\n")
+          next
+        }
+        
+        extracted_data <- file_data %>%
+          select(cellID, UMI, count) %>%
+          rename(read = count) %>%
+          mutate(category = categories[j])
+        
+      }, error = function(e) {
+        cat("Error reading file:", filenames[j], "\nLikely bad data file\n")
+        cat("Error message:", conditionMessage(e), "\n")
+      })
+      
+      if (!is.null(extracted_data) && nrow(extracted_data) > 0) {
+        all_data <- rbind(all_data, extracted_data)
+      }
+    }
+    
+    # If we have data, process it
+    if (nrow(all_data) > 0) {
+      all_data <- all_data %>% 
+        filter(!is.na(cellID) & !is.na(UMI) & !is.na(read)) %>%
+        unique()
+      
+      tryCatch({
+        umi_read_counts <- all_data %>%
+          group_by(cellID, UMI, category) %>%
+          summarize(
+            read_count = sum(as.numeric(read)),
+            .groups = 'drop'
+          )
+        
+        cat("Gathered read counts for", nrow(umi_read_counts), "UMIs from", 
+            n_distinct(umi_read_counts$cellID), "cells\n")
+        
+        # Create a wide format with UMI counts per category
+        umi_by_category <- umi_read_counts %>%
+          group_by(cellID, category) %>%
+          summarize(
+            category_UMIs = n_distinct(UMI),
+            category_reads = sum(read_count),
+            .groups = 'drop'
+          )
+        
+        umi_by_category_wide <- tidyr::pivot_wider(
+          umi_by_category,
+          id_cols = cellID,
+          names_from = category,
+          names_sep = "_",
+          values_from = c(category_UMIs, category_reads),
+          values_fill = 0)
+        
+        # Apply raw_cellIDs filtering
+        if (sample %in% names(raw_cellIDs) && !is.null(raw_cellIDs[[sample]])) {
+          valid_cells <- raw_cellIDs[[sample]]
+          cat("Keeping only cells in", 
+              length(valid_cells), "valid cells from 10X data\n")
+          
+          valid_umi_read_counts <- umi_read_counts %>%
+            filter(cellID %in% valid_cells)
+          
+          # Clean category values
+          if (!is.null(names(valid_umi_read_counts$category))) {
+            category_values <- as.character(valid_umi_read_counts$category)
+            category_values <- gsub('^"(.*)"$', '\\1', category_values)
+            valid_umi_read_counts$category <- category_values
+          } else {
+            valid_umi_read_counts$category <- gsub('^"(.*)"$', '\\1', as.character(valid_umi_read_counts$category))
+          }
+          
+          # Look for splice correction file
+          if (!is.null(correction_dir)) {
+            correction_file <- file.path(correction_dir, paste0(sample, "_D1_splicesites_filtered.csv"))
+            valid_umi_read_counts <- apply_umi_corrections(
+              valid_umi_read_counts, 
+              correction_file, 
+              target_category = "MS"
+            )
+          }
+          
+          # Multimap resolution (with corrected categories)
+          filtered_umi_read_counts <- resolve_multimapv6(valid_umi_read_counts)
+          
+          # Convert to basic types
+          filtered_umi_read_counts <- data.frame(
+            cellID = as.character(filtered_umi_read_counts$cellID),
+            UMI = as.character(filtered_umi_read_counts$UMI),
+            category = as.character(filtered_umi_read_counts$category),
+            read_count = as.numeric(filtered_umi_read_counts$read_count),
+            stringsAsFactors = FALSE
+          )
+          
+          # Consolidate any categories
+          filtered_umi_read_counts <- filtered_umi_read_counts %>%
+            mutate(category = if_else(grepl("^any", category), "any", category)) %>%
+            mutate(category = if_else(grepl("^SS-MS", category), "SS-MS", category))
+          
+          cat("After filtering: kept", nrow(filtered_umi_read_counts), "UMIs from", 
+              n_distinct(filtered_umi_read_counts$cellID), "valid cells\n")
+        } else {
+          cat("Warning: No 10X data found for sample", sample, "- using unfiltered cell list\n")
+          filtered_umi_read_counts <- umi_read_counts
+        }
+        
+        # Convert to basic types
+        all_data_clean <- data.frame(
+          cellID = as.character(all_data$cellID),
+          UMI = as.character(all_data$UMI),
+          read = as.numeric(all_data$read),
+          category = as.character(all_data$category),
+          stringsAsFactors = FALSE
+        )
+        
+        umi_read_counts_clean <- data.frame(
+          cellID = as.character(umi_read_counts$cellID),
+          UMI = as.character(umi_read_counts$UMI),
+          category = as.character(umi_read_counts$category),
+          read_count = as.numeric(umi_read_counts$read_count),
+          stringsAsFactors = FALSE
+        )
+        
+        # Save outputs
+        umi_level_file <- file.path(output.dir, paste0(sample, "_UMI_read_counts_raw.csv"))
+        write.csv(umi_read_counts_clean, file = umi_level_file, row.names = FALSE)
+        
+        filtered_umi_level_file <- file.path(output.dir, paste0(sample, "_UMI_read_counts_full.csv"))
+        write.csv(filtered_umi_read_counts, file = filtered_umi_level_file, row.names = FALSE)
+        
+        cat("Successfully processed\n")
+        rm(umi_by_category, umi_by_category_wide, umi_read_counts)
+      }, error = function(e) {
+        cat("Error processing data for sample", sample, ":", conditionMessage(e), "\n")
+        
+        tryCatch({
+          all_data_clean <- data.frame(
+            cellID = as.character(all_data$cellID),
+            UMI = as.character(all_data$UMI),
+            read = as.numeric(all_data$read),
+            category = as.character(all_data$category),
+            stringsAsFactors = FALSE
+          )
+          
+          raw_file <- file.path(output.dir, paste0(sample, "_raw_data.csv"))
+          write.csv(all_data_clean, file = raw_file, row.names = FALSE)
+          cat("Saved raw data to:", raw_file, "\n")
+        }, error = function(e2) {
+          cat("Could not save raw data:", conditionMessage(e2), "\n")
+        })
+      })
+    } else {
+      cat("No data extracted for sample:", sample, "\n")
+    }
+  }
+}
+```
+
+
+```{r}
+samples <- c(
+    "Esrp2KO",
+    "Normal"
+)
+
+input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/bamsort/"
+output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/bamsort/reads/"
+
+raw_cellIDs_df <- read.csv("/projects/b1042/GoyalLab/egrody/extractedData/EGL002/singleCell/raw_cellIDs/all_raw_cellIDs.csv")
+raw_cellIDs <- split(raw_cellIDs_df$cellID, raw_cellIDs_df$sample)
+
+process_bamsortv6(samples, input.dir, output.dir, raw_cellIDs,
+                  correction_dir = "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/SALVE/bamsort/splice/combined/")
+
+# minimums
+input_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/SALVE/bamsort/reads/v6/"
+output_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/SALVE/bamsort/reads/v6/minimum/" 
+
+viremia <- c(
+    "Invitro",
+    "Pacute",
+    "W2"
+  )
+ART <- c(
+    "D0",
+    "D195",
+    "W0"
+  )
+process_all_set_minimumsv6("SALVE", viremia, input_dir, TRUE, output_dir, min_reads = 5, min_umi = 2,
+                           aggregate_valid_umi = FALSE)
+process_all_set_minimumsv6("SALVE", ART, input_dir, TRUE, output_dir, min_reads = 2, min_umi = 2,
+                           aggregate_valid_umi = FALSE)
+
+```
+
+# Joint Dataset
+## Joint
+
+Stupidity check: are there cellIDs in common?
+```{r}
+# GEX
+output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGL002/singleCell/Seurat/UMAPcoords/"
+samples <- c(
+  "Esrp2KO",
+  "Normal"
+)
+
+GEX_cellids <- list()
+for (i in samples) {
+  test <- read.csv(paste0(output.dir, i, "UMAP_coords.csv"), row.names = "X")
+  GEX_cellids[i] <- test
+}
+
+input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/bamsort/"
+all_files <- list.files(path = input.dir, 
+                        pattern = "^EGL002_(KO|WT)_.*_bamsort_alignment_.*\\.csv$",
+                        full.names = TRUE)
+Esrp2KO.S <- c()
+Normal.S <- c()
+
+for (file in all_files) {
+  filename <- basename(file)
+  df <- read.csv(file, stringsAsFactors = FALSE)
+  if (grepl("^EGL002_KO", filename)) {
+    Esrp2KO.S <- c(Esrp2KO.S, df$cellID)
+  } else if (grepl("^EGL002_WT", filename)) {
+    Normal.S <- c(Normal.S, df$cellID)
+  }
+}
+
+SALVE_cellids <- list("Esrp2KO" = unique(Esrp2KO.S),
+                      "Normal" = unique(Normal.S))
+
+test <- sum(SALVE_cellids$Normal %in% GEX_cellids$Normal) #none :(
+
+output_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGL002/singleCell/raw_cellIDs/"
+GEX_cellids_raw <- list()
+for (i in samples) {
+  temp <- read.csv(paste0(output_dir, i, "_raw_cellIDs.csv"))
+  GEX_cellids_raw[i] <- temp
+}
+
+test <- sum(SALVE_cellids$Esrp2KO %in% GEX_cellids_raw$Esrp2KO)
+```
+

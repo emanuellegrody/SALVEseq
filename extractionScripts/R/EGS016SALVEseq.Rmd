@@ -5,59 +5,13 @@ date: "2025-07-21"
 output: html_document
 ---
 
-```{r, echo = FALSE}
+```{r, message=FALSE, warning=FALSE}
 source("~/SALVEseq/packages.R")
 source("~/SALVEseq/functions.R")
 ```
 
 # Individual Datasets
 ## KLRB1
-
-GEX: making expressionDF
-```{r GEX expressionDF}
-# making expressionDF
-samples <- data.frame(
-  samples = c(
-    "W2",
-    "W0"
-  ),
-  folders = c(
-    "/projects/b1042/GoyalLab/egrody/extractedData/EGS002/singleCell/counts/Mmul_10_only/",
-    "/projects/b1042/GoyalLab/egrody/extractedData/EGS002/singleCell/counts/Mmul_10_only/"
-  )
-)
-
-# Process each sample
-for (i in 1:nrow(samples)) {
-  sample_name <- samples$samples[i]
-  folder_path <- samples$folders[i]
-  
-  input.dir <- paste0(folder_path, "run_count_", sample_name, "/outs/filtered_feature_bc_matrix/")
-  
-  cat("Reading from:", input.dir, "\n")
-  
-  tryCatch({
-    # Process the current sample
-    seurat_obj <- SeuratPipeline(input.dir, sample_name, plots = FALSE)
-    
-    # Generate the target expression data frame
-    singlecell_df <- targetExpressionDF(seurat_obj, "KLRB1", count_type = "raw")
-    
-    # Create expressionDF directory if it doesn't exist
-    output_dir <- paste0(folder_path, "expressionDF/")
-    dir.create(output_dir, showWarnings = FALSE, recursive = TRUE)
-    
-    # Write the CSV
-    output_filename <- paste0(output_dir, sample_name, "_KLRB1_raw.csv")
-    write.csv(singlecell_df, output_filename)
-    
-    cat("Processed sample:", sample_name, "\n")
-    cat("Saved to:", output_filename, "\n\n")
-  }, error = function(e) {
-    cat("Error processing sample", sample_name, ":", conditionMessage(e), "\n\n")
-  })
-}
-```
 
 GEX: bamsort
 ```{r GEX bamsort}
@@ -197,39 +151,6 @@ GEX_KLRB1_W0 <- left_join(GEX_KLRB1_W0_expressionDF, GEX_KLRB1_W0, by = "cellID"
 GEX_KLRB1_W0[is.na(GEX_KLRB1_W0)] <- 0
 
 max(GEX_KLRB1_W0$KLRB1)
-```
-
-SALVE: expressionDF (skip)
-```{r}
-SALVE_list <- list()
-for (sample_name in c("W0", "W2")) {
-  folder_path <- paste0("/projects/b1042/GoyalLab/egrody/extractedData/EGS016/SALVE/counts/Mmul_10_mac239v4_", 
-                          sample_name, "_KLRB1_PL/outs/filtered_feature_bc_matrix/")
-    
-  # Process the current sample
-  data <- Read10X(data.dir = folder_path)
-  seurat_obj <- CreateSeuratObject(counts = data, project = sample_name, min.cells = 3)
-  #seurat_obj <- NormalizeData(seurat_obj, verbose = FALSE) #for raw, comment this out
-  # Extract viral genes
-  sample_df <- targetExpressionDF(seurat_obj, "KLRB1", count_type = "raw") #
-  
-  # Add sample and target columns to the dataframe
-  sample_df$sample <- sample_name
-  sample_df$target <- "KLRB1"
-  
-  # Add to list
-  SALVE_list[[length(SALVE_list) + 1]] <- sample_df
-}
-
-SALVE_KLRB1 <- data.frame()
-SALVE_KLRB1 <- bind_rows(SALVE_list)
-SALVE_KLRB1 <- SALVE_KLRB1 %>%
-  filter(!(`KLRB1` == 0))
-rm(SALVE_list)
-
-output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/SALVE/counts/expressionDF/"
-write.csv(SALVE_KLRB1, paste0(output.dir, "SALVE_KLRB1_filtercounts.csv"))
-
 ```
 
 SALVE: bamsort
@@ -850,7 +771,7 @@ cat("Saved combined cell IDs to", combined_file, "\n")
 # raw_cellIDs <- split(raw_cellIDs_df$cellID, raw_cellIDs_df$sample)
 ```
 
-
+Run bamsort_combined (alignment_reads and splice) first.
 Making full and minimum filtered lists:
 ```{r}
 samples <- c(
@@ -871,7 +792,8 @@ output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/SALVE/bamsor
 raw_cellIDs_df <- read.csv("/projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/raw_cellIDs/all_raw_cellIDs.csv")
 raw_cellIDs <- split(raw_cellIDs_df$cellID, raw_cellIDs_df$sample)
 
-process_bamsortv6(samples, input.dirs, output.dir, raw_cellIDs)
+process_bamsortv6(samples, input.dirs, output.dir, raw_cellIDs,
+                  correction_dir = "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/SALVE/bamsort/splice/combined/")
 
 # minimums
 input_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/SALVE/bamsort/reads/v6/"
@@ -887,175 +809,14 @@ ART <- c(
     "D195",
     "W0"
   )
-process_all_set_minimumsv6("SALVE", viremia, input_dir, output_dir, min_reads = 5, min_umi = 2)
-process_all_set_minimumsv6("SALVE", ART, input_dir, output_dir, min_reads = 2, min_umi = 2)
+process_all_set_minimumsv6("SALVE", viremia, input_dir, TRUE, output_dir, min_reads = 5, min_umi = 2,
+                           aggregate_valid_umi = FALSE)
+process_all_set_minimumsv6("SALVE", ART, input_dir, TRUE, output_dir, min_reads = 2, min_umi = 2,
+                           aggregate_valid_umi = FALSE)
 
 ```
 
-### Direct splicing
-Quantifying splicing from actual reads instead of inference
-```{r}
-# SALVE
-samples <- c(
-    "D0",
-    "D195",
-    "Invitro",
-    "Pacute",
-    "W0",
-    "W2"
-)
-targets <- c(
-  "D1_PL",
-  "pol_PL",
-  "SSenv_PL",
-  "env_PL",
-  "tat"
-)
-input_dir <- c("/projects/b1042/GoyalLab/egrody/extractedData/EGS016/SALVE/bamsort/splice/",
-               "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/SALVE/bamsort/splice/")
 
-raw_cellIDs_df <- read.csv("/projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/raw_cellIDs/all_raw_cellIDs.csv")
-raw_cellIDs <- split(raw_cellIDs_df$cellID, raw_cellIDs_df$sample)
-
-acceptors <- data.frame(
-  Acceptor = c(4658, 5141, 5746, 5818, 5959, 8249),
-  AcceptorSite = c("A1", "A2", "A3", "A4", "A5", "A7")
-)
-donors <- data.frame(
-  Donor = c(431, 4730, 5217, 6043),
-  DonorSite = c("D1", "D2", "D3", "D4")
-)
-
-output_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/SALVE/bamsort/splice/combined/"
-
-# GEX
-# samples <- list(Invitro = c("invitro"))
-# input_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS002/singleCell/bamsort/splice/"
-# samples <- list(D13= c("JK85_D13"))
-# input_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS004/singleCell/bamsort/splice/"
-# 
-# samples <- list(InvitrocDNA= c("cDNA"))
-# input_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS007/longRead/bamsort/splice/"
-
-
-for (sample_name in samples) {
-  cat("\nProcessing sample:", sample_name)
-  
-  # Step 1: Combine data from all files in this sample
-  combined_data <- data.frame()
-  
-  for (target_name in targets) {
-    filename <- paste0(sample_name, "_", target_name, "_splicesites.csv")
-    data <- NULL
-    for (dir in input_dir) {
-      filepath <- file.path(dir, filename)
-      if (file.exists(filepath)) {
-        data <- read.csv(filepath)
-        break
-      }
-    }
-    
-    if (is.null(data)) {
-      cat("  WARNING: File not found:", filename, "\n")
-      next
-    }
-    
-    file_data <- data %>%
-      filter(CB %in% raw_cellIDs[[sample_name]])
-    if (nrow(file_data) == 0) {
-      next
-    }
-        
-    file_data <- file_data %>%
-      rowwise() %>%
-      mutate(
-        DonorSite = classify_site(Donor, donors$Donor, donors$DonorSite),
-        AcceptorSite = classify_site(Acceptor, acceptors$Acceptor, acceptors$AcceptorSite)) %>%
-      ungroup() %>% 
-      select(CB, UB, DonorSite, AcceptorSite) %>% 
-      distinct(CB, DonorSite, AcceptorSite, UB, .keep_all = TRUE) %>%
-      mutate(Target = strsplit(target_name, "_")[[1]][1]) %>%
-      mutate(Target = if_else(Target == "tat", "D4", Target)) %>%
-      filter(Target != DonorSite)
-    
-    combined_data <- rbind(combined_data, file_data)
-  }
-  write.csv(combined_data, paste0(output_dir, sample_name, "_splicesites_filtered.csv"))
-  
-}
-
-
-```
-
-Single cell splicing
-```{r}
-input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/bamsort/splice/mac239/"
-samples <- c("D13", "Invitro")
-targets <- c("D1_nef", "LTR_tat")
-
-acceptors <- data.frame(
-  Acceptor = c(4658, 5141, 5746, 5818, 5959, 8249),
-  AcceptorSite = c("A1", "A2", "A3", "A4", "A5", "A7")
-)
-donors <- data.frame(
-  Donor = c(431, 4730, 5217, 6043),
-  DonorSite = c("D1", "D2", "D3", "D4")
-)
-
-comparison <- data.frame()
-
-classify_site <- function(value, reference_values, reference_sites) {
-  distances <- abs(value - reference_values)
-  min_dist <- min(distances)
-  closest_site <- reference_sites[which.min(distances)]
-  
-  if (min_dist <= 3) {
-    return(as.character(closest_site))
-  } else if (min_dist <= 12) {
-    return("mnc")
-  } else {
-    return("nc")
-  }
-}
-
-for (sample in samples) {
-  dataset <- data.frame()
-  for (target in targets) {
-    file_name <- paste0(input.dir, sample, "_", target, "_splicesites.csv")
-    file <- read.csv(file_name)
-    dataset <- rbind(dataset, file)
-  }
-  dataset <- dataset %>%
-    rowwise() %>%
-    mutate(
-      DonorSite = classify_site(Donor, donors$Donor, donors$DonorSite),
-      AcceptorSite = classify_site(Acceptor, acceptors$Acceptor, acceptors$AcceptorSite)) %>%
-    ungroup() %>% 
-    select(-CIGAR, -Read.sequence, -Sequence.after.the.N, -Before_N_M_coords, -After_N_M_coords) %>% 
-    distinct(CB, DonorSite, AcceptorSite, UB, .keep_all = TRUE)
-  topsplicers <- dataset %>% count(CB) %>% rename(events = n) %>% arrange(desc(events))
-  test <- dataset %>%
-    filter(DonorSite == "nc" | AcceptorSite == "nc") %>%
-    count(CB) %>% rename(nc = n)
-  topsplicers <- left_join(topsplicers, test, by = "CB") %>%
-    replace(is.na(.), 0) %>%
-    mutate(sample = sample)
-  
-  comparison <- rbind(comparison, topsplicers)
-  
-  ggplot(topsplicers, aes(x = log1p(events), y = log1p(nc))) +
-    geom_point(size = 2) +
-    theme_minimal() +
-    theme(legend.position = "none") +
-    labs(title = paste0(sample, " Splicing Events"), 
-         x = "Splicing events (log)", y = "Non-canonical splicing events (log)") + 
-    xlim(0,6)
-  
-  #test <- topsplicers %>% filter(events == nc) %>% arrange(desc(events))
-}
-
-
-```
 
 ## GEX
 ### bamsort
@@ -1094,7 +855,7 @@ process_bamsortv6(samples$samples, input.dir, output.dir, raw_cellIDs)
 input_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/bamsort/reads/v6/"
 output_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/bamsort/reads/v6/minimum/"
 
-process_all_set_minimumsv6("GEX", samples$samples, input_dir, output_dir, min_reads_cell = 2)
+process_all_set_minimumsv6("GEX", samples$samples, input_dir, TRUE, output_dir, min_reads_cell = 2)
 
 ```
 
@@ -1104,6 +865,7 @@ process_all_set_minimumsv6("GEX", samples$samples, input_dir, output_dir, min_re
 samples <- data.frame(
   datasets = c(
     "LP29_D0",
+    #"JK85_D13",
     "LP29_D195",
     "LP29_D83",
     "invitro",
@@ -1113,6 +875,7 @@ samples <- data.frame(
   ),
   samples = c(
     "D0",
+    #"D13",
     "D195",
     "D83",
     "Invitro",
@@ -1122,6 +885,7 @@ samples <- data.frame(
   ),
   folders = c(
     "/projects/b1042/GoyalLab/egrody/extractedData/EGS004/singleCell/counts/Mmul_10_mac239/",
+    #"/projects/b1042/GoyalLab/egrody/extractedData/EGS004/singleCell/counts/Mmul_10_mac239/",
     "/projects/b1042/GoyalLab/egrody/extractedData/EGS004/singleCell/counts/Mmul_10_mac239/",
     "/projects/b1042/GoyalLab/egrody/extractedData/EGS004/singleCell/counts/Mmul_10_mac239/",
     "/projects/b1042/GoyalLab/egrody/extractedData/EGS002/singleCell/counts/Mmul_10_mac239/",
@@ -1163,104 +927,6 @@ for (i in 1:nrow(samples)) {
 }
 ```
 
-### expressionDF (skip)
-```{r expressionDF}
-# making expressionDF
-samples <- data.frame(
-  datasets = c(
-    # "LP29_D0",
-    # "LP29_D195",
-    # "LP29_D83",
-    "Invitro_CD4",
-    # "P_acute_GEX",
-    "HD88_W0",
-    "A8R095_W2"
-  ),
-  samples = c(
-    # "D0",
-    # "D195",
-    # "D83",
-    "Invitro",
-    # "Pacute",
-    "W0",
-    "W2"
-  ),
-  folders = c(
-    # "/projects/b1042/GoyalLab/egrody/extractedData/EGS004/singleCell/counts/Mmul_10/",
-    # "/projects/b1042/GoyalLab/egrody/extractedData/EGS004/singleCell/counts/Mmul_10/",
-    # "/projects/b1042/GoyalLab/egrody/extractedData/EGS004/singleCell/counts/Mmul_10/",
-    "/projects/b1042/GoyalLab/egrody/extractedData/EGS002/singleCell/counts/Mmul_10_mac239v4/",
-    # "/projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/counts/Mmul_10/",
-    "/projects/b1042/GoyalLab/egrody/extractedData/EGS002/singleCell/counts/Mmul_10_mac239v4/",
-    "/projects/b1042/GoyalLab/egrody/extractedData/EGS002/singleCell/counts/Mmul_10_mac239v4/"
-  )
-)
-
-v4genes <- c(
-  "D1-US",
-  "D1-S",
-  "tat-US",
-  "tat-S",
-  "LTR-3",
-  "LTR-5",
-  "nef-3",
-  "nef-5"
-)
-v5genes <- c(
-  "LTR-D1",
-  "D1-A4",
-  "A4-D7",
-  "D7-LTR"
-)
-
-GEX_list <- list()
-# Process each sample
-for (i in 1:nrow(samples)) {
-  sample_name <- samples$samples[i]
-  dataset_name <- samples$datasets[i]
-  folder_path <- samples$folders[i]
-  
-  input.dir <- paste0(folder_path, "Mmul_10_mac239v4_", dataset_name, "/outs/filtered_feature_bc_matrix/")
-  
-  #cat("Reading from:", input.dir, "\n")
-  
-  tryCatch({
-    # Process the current sample
-    seurat_obj <- SeuratPipeline(input.dir, sample_name, plots = FALSE)
-    
-    # Generate the target expression data frame
-    singlecell_df <- targetExpressionDF(seurat_obj, v4genes, count_type = "raw")
-    
-    # Create expressionDF directory if it doesn't exist
-    output_dir <- paste0(folder_path, "expressionDF/")
-    dir.create(output_dir, showWarnings = FALSE, recursive = TRUE)
-    
-    # Write the CSV
-    output_filename <- paste0(output_dir, sample_name, "_v4_raw.csv")
-    write.csv(singlecell_df, output_filename)
-    
-    # For isoforms
-    singlecell_df$sample <- sample_name
-    GEX_list[[length(GEX_list) + 1]] <- singlecell_df
-    
-    cat("Processed sample:", sample_name, "\n")
-    #cat("Saved to:", output_filename, "\n\n")
-  }, error = function(e) {
-    cat("Error processing sample", sample_name, ":", conditionMessage(e), "\n\n")
-  })
-}
-
-GEX_combined <- data.frame()
-GEX_combined <- bind_rows(GEX_list)
-rm(GEX_list)
-
-output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS002/singleCell/counts/Mmul_10_mac239v4/expressionDF/"
-write.csv(GEX_combined, paste0(output.dir, "GEX_combined.csv"))
-
-GEX_isoforms <- isoforms_deconvolve(GEX_combined, "GEX")
-write.csv(GEX_isoforms, paste0(output.dir, "GEX_isoforms.csv"))
-
-```
 
 ### Seurat deep dive
 
@@ -1503,70 +1169,227 @@ print(nrow(cd4.8))
 
 ```
 
+
+### Supervised clustering
+```{r}
+# Loading Seurat object
+samples <- data.frame(
+  datasets = c(
+    "invitro"
+  ),
+  samples = c(
+    "Invitro"
+  ),
+  folders = c(
+    "/projects/b1042/GoyalLab/egrody/extractedData/EGS002/singleCell/counts/Mmul_10_mac239/"
+  )
+)
+
+sample_name <- samples$samples
+dataset <- samples$datasets
+folder <- samples$folders
+input.dir <- paste0(folder, "Mmul_10_mac239_", dataset, "/outs/filtered_feature_bc_matrix/")
+
+# Run everything from SeuratPipeline until clustering
+data <- Read10X(data.dir = input.dir)
+sample <- CreateSeuratObject(counts = data, project = sample_name, min.cells = 3, min.features = 200)
+sample <- Add_Mito_Ribo(sample, species = "macaque")
+sample <- subset(sample, subset = nFeature_RNA > 200 & nFeature_RNA < 3500 & nCount_RNA < 20000 & percent_mito < 5)
+if ("CD4" %in% rownames(sample) && ("CD8A" %in% rownames(sample) || "CD8B" %in% rownames(sample))) {
+  cd4_expr <- GetAssayData(sample, layer = "counts")["CD4", ]
+  cd8a_expr <- if ("CD8A" %in% rownames(sample)) GetAssayData(sample, layer = "counts")["CD8A", ] else rep(0, ncol(sample))
+  cd8b_expr <- if ("CD8B" %in% rownames(sample)) GetAssayData(sample, layer = "counts")["CD8B", ] else rep(0, ncol(sample))
+  
+  cd4_pos <- cd4_expr > 0
+  cd8_pos <- (cd8a_expr > 0) | (cd8b_expr > 0)
+  doublets <- cd4_pos & cd8_pos
+  
+  sample <- subset(sample, cells = colnames(sample)[!doublets])
+}
+if ("mac239" %in% rownames(sample)) {
+  sample <- sample[!rownames(sample) %in% "mac239", ]
+}
+sample <- NormalizeData(sample, verbose = FALSE)
+sample <- FindVariableFeatures(sample, selection.method = "vst", nfeatures = 2000, verbose = FALSE)
+genes <- rownames(sample)
+sample <- ScaleData(sample, features = genes, verbose = FALSE)
+sample <- RunPCA(sample, features = VariableFeatures(object = sample), verbose = FALSE)
+sample <- FindNeighbors(sample, dims = 1:30, verbose = FALSE)
+sample <- FindClusters(sample, resolution = 0.3, verbose = FALSE)
+sample <- RunUMAP(sample, dims = 1:30, verbose = FALSE)
+DimPlot(sample, label = TRUE, pt.size = 0.5) +
+  ggtitle("Unsupervised Classification")
+
+
+# Define marker gene sets for each T cell subset
+effector_markers <- c("GZMA", "GZMB", "GZMK", "PRF1", "NKG7", "IFNG", "TNF", "CCL3", "CCL4")
+memory_markers <- c("IL7R", "CCR7", "SELL", "TCF7", "LEF1", "CD27", "CD28")
+treg_markers <- c("FOXP3", "IL2RA", "CTLA4", "IKZF2", "TIGIT", "TNFRSF18", "TNFRSF4")
+
+# Add module scores to your Seurat object
+seurat_obj <- AddModuleScore(
+  object = sample,
+  features = list(effector_markers),
+  name = "Effector_Score"
+)
+
+seurat_obj <- AddModuleScore(
+  object = seurat_obj,
+  features = list(memory_markers),
+  name = "Memory_Score"
+)
+
+seurat_obj <- AddModuleScore(
+  object = seurat_obj,
+  features = list(treg_markers),
+  name = "Treg_Score"
+)
+
+# Classify cells with hierarchical priority: CD8 > Treg > Effector > Memory > Other
+seurat_obj$supervised_cluster <- "Other"
+
+# First identify CD8+ T cells (highest priority - distinct lineage)
+# Use normalized expression data
+cd8_expression <- GetAssayData(seurat_obj, slot = "data")["CD8A", ]
+cd8_threshold <- quantile(cd8_expression[cd8_expression > 0], 0.3, na.rm = TRUE)
+
+# If CD8A is detected (non-zero), use expression threshold
+# Otherwise, all cells are considered CD8-negative
+if(sum(cd8_expression > 0) > 0) {
+  seurat_obj$supervised_cluster[cd8_expression > cd8_threshold] <- "CD8"
+}
+
+# Then identify Tregs from CD8-negative cells
+non_cd8 <- seurat_obj$supervised_cluster != "CD8"
+treg_threshold <- quantile(seurat_obj$Treg_Score1[non_cd8], 0.75)
+seurat_obj$supervised_cluster[non_cd8 & 
+                               seurat_obj$Treg_Score1 > treg_threshold] <- "Treg"
+
+# Then identify effector cells from remaining CD8-negative, non-Treg cells
+non_treg_non_cd8 <- seurat_obj$supervised_cluster %in% c("Other")
+effector_threshold <- quantile(seurat_obj$Effector_Score1[non_treg_non_cd8], 0.7)
+seurat_obj$supervised_cluster[non_treg_non_cd8 & 
+                               seurat_obj$Effector_Score1 > effector_threshold] <- "Effector"
+
+# Then identify memory cells from remaining cells
+remaining <- seurat_obj$supervised_cluster == "Other"
+memory_threshold <- quantile(seurat_obj$Memory_Score1[remaining], 0.7)
+seurat_obj$supervised_cluster[remaining & 
+                              seurat_obj$Memory_Score1 > memory_threshold] <- "Memory"
+
+# Convert to factor with desired order
+seurat_obj$supervised_cluster <- factor(seurat_obj$supervised_cluster,
+                                        levels = c("CD8", "Treg", "Effector", "Memory", "Other"))
+
+# Visualize results
+FeaturePlot(seurat_obj, features = c("CD8A", "Effector_Score1", "Memory_Score1", "Treg_Score1"))
+
+
+
+
+# Get CD8A expression from normalized data
+cd8a_expression <- GetAssayData(seurat_obj, slot = "data")["CD8A", ]
+
+# Initialize classification
+seurat_obj$supervised_cluster <- "Other"
+
+# 1. Identify CD8+ T cells (use stricter threshold given clear separation)
+# Only cells with CD8A > 2 appear to be true CD8+ cells based on your plot
+cd8_threshold <- 2.0
+seurat_obj$supervised_cluster[cd8a_expression > cd8_threshold] <- "CD8"
+
+# 2. Identify Tregs from CD8-negative cells
+# Use a more stringent threshold since Treg_Score1 is relatively low overall
+non_cd8 <- seurat_obj$supervised_cluster != "CD8"
+treg_threshold <- quantile(seurat_obj$Treg_Score1[non_cd8], 0.80)  # Top 20%
+seurat_obj$supervised_cluster[non_cd8 & 
+                               seurat_obj$Treg_Score1 > treg_threshold] <- "Treg"
+
+# 3. Identify effector cells from remaining cells
+# Effector score shows clearer signal
+remaining <- seurat_obj$supervised_cluster == "Other"
+effector_threshold <- quantile(seurat_obj$Effector_Score1[remaining], 0.65)  # Top 35%
+seurat_obj$supervised_cluster[remaining & 
+                               seurat_obj$Effector_Score1 > effector_threshold] <- "Effector"
+
+# 4. Identify memory cells from remaining cells
+remaining <- seurat_obj$supervised_cluster == "Other"
+memory_threshold <- quantile(seurat_obj$Memory_Score1[remaining], 0.65)  # Top 35%
+seurat_obj$supervised_cluster[remaining & 
+                              seurat_obj$Memory_Score1 > memory_threshold] <- "Memory"
+
+# Convert to factor
+seurat_obj$supervised_cluster <- factor(seurat_obj$supervised_cluster,
+                                        levels = c("CD8", "Treg", "Effector", "Memory", "Other"))
+
+# Visualize the classification
+DimPlot(seurat_obj, group.by = "supervised_cluster", label = TRUE, pt.size = 0.5) +
+  ggtitle("Supervised T Cell Classification")
+
+# Check cluster sizes
+table(seurat_obj$supervised_cluster)
+
+```
+
+
 # Joint Dataset
 ## Joint
 
 ### KLRB1
 ```{r}
-# LOADING
+# Loading
 input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/SALVE/bamsort/reads/KLRB1/minimum/"
 W0_min <- read.csv(paste0(input.dir, "SALVE_KLRB1_W0_SALVE_minreads5.csv"), row.names = "X")
 SALVE_KLRB1_W0 <- W0_min %>%
   select(-total) %>%
   mutate(KLRB1 = log1p(KLRB1))
 
-input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/bamsort/reads/KLRB1/minimum/" 
+input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS002/singleCell/bamsort/reads/KLRB1/minimum/" 
 GEX_KLRB1_W0 <- read.csv(paste0(input.dir, "W0_minread1_minumi1.csv"), row.names = "X")
 GEX_KLRB1_W0 <- GEX_KLRB1_W0 %>%
   select(-total) %>%
   mutate(KLRB1 = log1p(KLRB1))
-GEX_KLRB1_W0_UMAP <- read.csv("/projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/Seurat/UMAPcoords/W0UMAP_coords.csv", row.names = "X")
-GEX_KLRB1_W0_UMAP <- GEX_KLRB1_W0_UMAP %>% select(-sample, -V2)
-GEX_KLRB1_W0 <- left_join(GEX_KLRB1_W0_UMAP, GEX_KLRB1_W0, by = "cellID")
+GEX_KLRB1_W0_expressionDF <- read.csv("/projects/b1042/GoyalLab/egrody/extractedData/EGS002/singleCell/counts/Mmul_10_only/expressionDF/W0_CD4T.csv", row.names = "X")
+GEX_KLRB1_W0_expressionDF <- GEX_KLRB1_W0_expressionDF %>% select(cellID, UMAP1, UMAP2, cluster)
+GEX_KLRB1_W0 <- left_join(GEX_KLRB1_W0_expressionDF, GEX_KLRB1_W0, by = "cellID")
 
-# JOINING
-# W2_joint <- left_join(GEX_KLRB1_W2, SALVE_KLRB1_W2, by = "cellID") %>%
-#   select(-sample, -target) %>%
-#   rename(GEX = KLRB1.x, SALVE = KLRB1.y)
-# W2_joint[is.na(W2_joint)] <- 0
+
+# Joining
 W0_joint <- left_join(GEX_KLRB1_W0, SALVE_KLRB1_W0, by = "cellID") %>%
-  #select(-sample, -target) %>%
   rename(GEX = KLRB1.x, SALVE = KLRB1.y)
 W0_joint[is.na(W0_joint)] <- 0
 
-# comparison
-cat("\nSample\tTotal_cells\tboth\t10X_only\tSALVE_only\n")
-#for (name in c("W2_joint", "W0_joint")) {
-  name <- "W0_joint" #comment out for loop
-  current_df <- get(name)
-  both <- current_df %>% filter(GEX != 0 & SALVE != 0)
-  onlySingleCell <- current_df %>% 
-    filter(GEX != 0) %>%
-    filter(!(cellID %in% both$cellID))
-  onlySALVE <- current_df %>% 
-    filter(SALVE != 0) %>%
-    filter(!(cellID %in% both$cellID))
-  
-  cat(name, "\t",
-      nrow(current_df), "\t",
-      nrow(both), "\t",
-      nrow(onlySingleCell), "\t",
-      nrow(onlySALVE), "\n")
-#}
 
+# Numbers
+name <- "W0_joint"
+current_df <- get(name)
+both <- current_df %>% filter(GEX != 0 & SALVE != 0)
+onlySingleCell <- current_df %>% 
+  filter(GEX != 0) %>%
+  filter(!(cellID %in% both$cellID))
+onlySALVE <- current_df %>% 
+  filter(SALVE != 0) %>%
+  filter(!(cellID %in% both$cellID))
+
+cat("\nSample\tTotal_cells\tboth\t10X_only\tSALVE_only\n",
+    name, "\t",
+    nrow(current_df), "\t",
+    nrow(both), "\t",
+    nrow(onlySingleCell), "\t",
+    nrow(onlySALVE), "\n")
+
+  
+# for in-text comparison of # UMI and # cells between methods
+# run the following on non-log1p transformed KLRB1 values
+cat("\n# UMI in GEX total:\t", sum(current_df$GEX),
+    "\n# UMI in GEX only:\t", sum(onlySingleCell$GEX),
+    "\n% UMI in GEX only:\t", round(sum(onlySingleCell$GEX) / sum(current_df$GEX) * 100, 2), "%",
+    "\n# Cells in GEX total:\t", sum(current_df$GEX > 0),
+    "\n# Cells in GEX only:\t", sum(onlySingleCell$GEX > 0),
+    "\n% Cells in GEX only:\t", round(sum(onlySingleCell$GEX > 0) / sum(current_df$GEX > 0) * 100, 2), "%")
 
 # plotting
 output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/joint/plots/KLRB1/"
-# plotUMAP(W2_joint, colorby = GEX, 
-#          "W2 joint KLRB1: GEX", 
-#          output.dir, 
-#          "KLRB1_W2_GEX.pdf", 
-#          comparison = FALSE, color = "gray25")
-# plotUMAP(W2_joint, colorby = SALVE, 
-#          "W2 joint KLRB1: SALVE (raw)", 
-#          output.dir, 
-#          "KLRB1_W2_SALVE_raw.pdf", 
-#          comparison = FALSE, color = "gray25")
 
 plotUMAP(W0_joint, colorby = GEX,
          "W0 joint KLRB1: GEX (bamsort)",
@@ -1626,9 +1449,18 @@ ggsave("/projects/b1042/GoyalLab/egrody/extractedData/EGS016/joint/plots/KLRB1/K
 
 max(W0_joint$SALVE)
 
-cor(W0_joint$SALVE, W0_joint$GEX)
-cor(either$SALVE, either$GEX)
-cor(both$SALVE, both$GEX)
+cat("Pearson\t\tSpearman\t\tJaccard\n",
+    cor(W0_joint$SALVE, W0_joint$GEX, method = "pearson"), "\t",
+    cor(W0_joint$SALVE, W0_joint$GEX, method = "spearman"), "\t",
+    sum((W0_joint$SALVE > 0) & (W0_joint$GEX > 0)) / sum((W0_joint$SALVE > 0) | (W0_joint$GEX > 0)), "\n",
+    cor(either$SALVE, either$GEX, method = "pearson"), "\t",
+    cor(either$SALVE, either$GEX, method = "spearman"), "\t",
+    sum((either$SALVE > 0) & (either$GEX > 0)) / sum((either$SALVE > 0) | (either$GEX > 0)), "\n",
+    cor(both$SALVE, both$GEX, method = "pearson"), "\t",
+    cor(both$SALVE, both$GEX, method = "spearman"), "\t",
+    sum((both$SALVE > 0) & (both$GEX > 0)) / sum((both$SALVE > 0) | (both$GEX > 0))
+)
+
 ```
 
 
@@ -1733,7 +1565,7 @@ for (i in 1:length(samples)) {
     mutate(across(any_of(c("SALVE", "US", "MS", "SS")), 
               ~ ifelse(CD4 > 0 & CD3 > 0, .x, 0))) %>%
     filter(CD4 == 0 | CD8 == 0) %>% # exclude cells CD4+ and CD8+
-    select(-size, -CD8, -CD3, -CD4)
+    select(-CD8, -CD3, -CD4)
   
   joint_data[[sample_name]] <- result
   cat("Processed", sample_name, "\n")
@@ -1741,15 +1573,14 @@ for (i in 1:length(samples)) {
 
 ```
 
+Saving
 ```{r}
 output_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/joint/dataframes/"
 #cat("\nSample\tTotal_cells\tboth\t10X_only\tSALVE_only\n")
 
 # Process each dataset in the joint_data list
 for (sample_name in names(joint_data)) {
-  # Get the current dataframe
   current_df <- joint_data[[sample_name]]
-  #   mutate(all_spliced = spliced.y + S + SS + MS)
   
   both <- current_df %>% filter(GEX != 0 & SALVE != 0)
   either <- current_df %>% filter(GEX != 0 | SALVE != 0)
@@ -1760,11 +1591,11 @@ for (sample_name in names(joint_data)) {
     filter(SALVE != 0) %>%
     filter(!(cellID %in% both$cellID))
 
-  # cat(sample_name, "\t",
-  #     nrow(current_df), "\t",
-  #     nrow(both), "\t",
-  #     nrow(onlySingleCell), "\t",
-  #     nrow(onlySALVE), "\n")
+  cat(sample_name, "\t",
+      nrow(current_df), "\t",
+      nrow(both), "\t",
+      nrow(onlySingleCell), "\t",
+      nrow(onlySALVE), "\n")
 
   # cat(sample_name, "\tCorrelation:", cor(current_df$GEX, current_df$SALVE), "\n",
   #     "\tMax SALVE:", max(current_df$SALVE), "\n",
@@ -1803,8 +1634,8 @@ for (sample_name in names(joint_data)) {
   #        plot = p)
   # ggsave(paste0(output.dir, sample_name, "_CD4_correlation_2Dbinning.svg"),
   #        plot = p_exclude_zero)
-
-  
+  # 
+  # 
   # output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/joint/plots/"
   # plotUMAP(current_df, colorby = GEX,
   #        paste0(sample_name, " joint SIV total: GEX (bamsort)"),
@@ -1842,10 +1673,10 @@ for (sample_name in names(joint_data)) {
 
   
   #Save CSVs
-  write.csv(both, paste0(output_dir, sample_name, "_both.csv"), row.names = FALSE)
-  write.csv(onlySingleCell, paste0(output_dir, sample_name, "_onlySingleCell.csv"), row.names = FALSE)
-  write.csv(onlySALVE, paste0(output_dir, sample_name, "_onlySALVE.csv"), row.names = FALSE)
-  write.csv(current_df, paste0(output_dir, sample_name, "_all.csv"), row.names = FALSE)
+  # write.csv(both, paste0(output_dir, sample_name, "_both.csv"), row.names = FALSE)
+  # write.csv(onlySingleCell, paste0(output_dir, sample_name, "_onlySingleCell.csv"), row.names = FALSE)
+  # write.csv(onlySALVE, paste0(output_dir, sample_name, "_onlySALVE.csv"), row.names = FALSE)
+  # write.csv(current_df, paste0(output_dir, sample_name, "_all.csv"), row.names = FALSE)
 }
 
 ```
@@ -1920,6 +1751,144 @@ Splicing UMAPS (not updated)
          output.dir,
          paste0(sample_name, "_umap_GEX.svg"),
          comparison = FALSE, color = "purple4")
+```
+
+### combined counts
+```{r}
+# Loading
+samples <-  c(
+    "D0",
+    "D195",
+    "Invitro",
+    "Pacute",
+    "W0",
+    "W2"
+)
+
+SALVE.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/SALVE/bamsort/reads/v6/"
+GEX.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/bamsort/reads/v6/"
+
+combined_data <- list()
+
+for (i in 1:length(samples)) {
+  sample_name <- samples[i]
+  cat("Processing", sample_name, "\n")
+  
+  # Read all data files
+  salve_file <- paste0(SALVE.dir, sample_name, "_UMI_read_counts_full.csv")
+  gex_file <- paste0(GEX.dir, sample_name, "_UMI_read_counts_full.csv")
+  umap_file <- paste0("/projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/Seurat/UMAPcoords/", 
+                      sample_name, "UMAP_coords.csv")
+  cd4_file <- paste0("/projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/Seurat/expressionDF/", 
+                     sample_name, "_CD4T.csv")
+  salve_umi_file <- paste0(SALVE.dir, "minimum/valid_UMI/", sample_name, "_SALVE_valid_cellID_UMI.csv")
+  gex_umi_file <- paste0(GEX.dir, "minimum/valid_UMI/", sample_name, "_GEX_valid_cellID_UMI.csv")
+  
+  salve_data <- if(file.exists(salve_file)) read.csv(salve_file) else NULL
+  gex_data <- if(file.exists(gex_file)) read.csv(gex_file) else NULL
+  salve_umi <- if(file.exists(salve_umi_file)) read.csv(salve_umi_file) else NULL
+  gex_umi <- if(file.exists(gex_umi_file)) read.csv(gex_umi_file) else NULL
+  umap_data <- if(file.exists(umap_file)) read.csv(umap_file, row.names = "X") else NULL
+  cd4_data <- if(file.exists(cd4_file)) read.csv(cd4_file, row.names = "X") else NULL
+  
+  # Skip if no data
+  if (is.null(salve_data) | is.null(gex_data) | is.null(umap_data)) {
+    cat("Skipping", sample_name, ": no data\n")
+    next
+  }
+  
+  full_preprocess <- NULL
+  
+  # Join GEX and SALVE and filter by minimums-applied UMI
+  if (!is.null(gex_data) && !is.null(gex_umi)) {
+    full_preprocess <- gex_data %>%
+      mutate(cellID = as.character(cellID)) %>%
+      semi_join(gex_umi, by = c("cellID", "UMI"))
+  }
+  if (!is.null(salve_data) && !is.null(salve_umi)) {
+    salve_processed <- salve_data %>%
+      mutate(cellID = as.character(cellID)) %>%
+      semi_join(salve_umi, by = c("cellID", "UMI"))
+    full_preprocess <- full_join(full_preprocess, salve_processed, by = c("cellID", "UMI"))
+  }
+  
+  if (is.null(full_preprocess)) {
+    cat("Skipping", sample_name, ": no GEX or SALVE data\n")
+    next
+  }
+
+  full_processed <- resolve_multimap_gs(full_preprocess)
+  full_processed <- full_processed %>%
+    count(cellID, category) %>%
+    pivot_wider(names_from = category, values_from = n, values_fill = 0) %>%
+    mutate(total = log1p(rowSums(select(., -cellID), na.rm = TRUE)))
+  
+  
+  # Get cellIDs from Mmul_10 only df
+  all_cells <- as.character(umap_data$cellID)
+  all_cells <- unique(all_cells)
+  
+  # Create base dataframe
+  result <- data.frame(cellID = all_cells)
+  
+  # Add UMAP data
+  if (!is.null(umap_data)) {
+    umap_processed <- umap_data %>%
+      select(-V2, -sample)
+    result <- left_join(result, umap_processed, by = "cellID")
+  }
+  
+  result <- left_join(result, full_processed, by = "cellID")
+  result[is.na(result)] <- 0
+  
+  # Cell type filtering
+  cd4_data <- cd4_data %>%
+    mutate(CD3 = ifelse(CD3D > 0 | CD3E > 0 | CD3G > 0, 1, 0)) %>%
+    mutate(CD4 = ifelse(CD4 > 0 , 1, 0)) %>%
+    mutate(CD8 = ifelse(CD8A > 0 , 1, 0)) %>%
+    select(cellID, CD4, CD3, CD8)
+  result <- left_join(result, cd4_data, by = "cellID")
+  result <- result %>%
+    mutate(across(any_of(c("total", "US", "MS", "SS", "any")), 
+              ~ ifelse(CD4 > 0 & CD3 > 0, .x, 0))) %>%
+    filter(CD4 == 0 | CD8 == 0) %>% # exclude cells CD4+ and CD8+
+    select(-size, -CD8, -CD3, -CD4)
+  
+  combined_data[[sample_name]] <- result
+  cat("Processed", sample_name, "\n")
+}
+```
+
+```{r}
+output_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/combined/dataframes/"
+cat("\nSample\tTotal_cells\tcombined\n")
+
+# Process each dataset in the joint_data list
+for (sample_name in names(combined_data)) {
+  current_df <- combined_data[[sample_name]]
+  
+  both <- current_df %>% filter(total != 0)
+
+  cat(sample_name, "\t",
+      nrow(current_df), "\t",
+      nrow(both), "\n")
+
+  # cat(sample_name, "\tCorrelation:", cor(current_df$GEX, current_df$SALVE), "\n",
+  #     "\tMax SALVE:", max(current_df$SALVE), "\n",
+  #     "\tMax GEX:", max(current_df$GEX), "\n\n")
+  
+  output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/combined/plots/"
+  plotUMAP(current_df, colorby = total,
+         paste0(sample_name, " joint SIV total: combined"),
+         output.dir,
+         paste0(sample_name, "_CD4_combined_bamsort.pdf"),
+         comparison = FALSE, color = "red")
+
+  
+  #Save CSVs
+  write.csv(both, paste0(output_dir, sample_name, "_both.csv"), row.names = FALSE)
+  write.csv(current_df, paste0(output_dir, sample_name, "_all.csv"), row.names = FALSE)
+}
 ```
 
 
@@ -2375,6 +2344,217 @@ for (sample in samples) {
 }
 ```
 
+### Direct splicing
+Quantifying splicing from actual reads instead of inference
+```{r}
+# Define sample names and files
+sample_configs <- list(
+  list(
+    name = "Invitro_SALVE",
+    files = c("Invitro_D1_PL", "Invitro_env_PL", "Invitro_pol_PL", "Invitro_SSenv_PL", "Invitro_tat"),
+    input_dir = "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/SALVE/bamsort/splice/",
+    umi_type = "SALVE",
+    umi_sample_name = "Invitro"
+  ),
+  list(
+    name = "Pacute_SALVE",
+    files = c("Pacute_D1_PL", "Pacute_env_PL", "Pacute_pol_PL", "Pacute_SSenv_PL", "Pacute_tat"),
+    input_dir = "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/SALVE/bamsort/splice/",
+    umi_type = "SALVE",
+    umi_sample_name = "Pacute"
+  ),
+  list(
+    name = "W2_SALVE",
+    files = c("W2_D1_PL", "W2_env_PL", "W2_pol_PL", "W2_SSenv_PL", "W2_tat"),
+    input_dir = "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/SALVE/bamsort/splice/",
+    umi_type = "SALVE",
+    umi_sample_name = "W2"
+  ),
+  list(
+    name = "Invitro_GEX",
+    files = c("invitro"),
+    input_dir = "/projects/b1042/GoyalLab/egrody/extractedData/EGS002/singleCell/bamsort/splice/",
+    umi_type = "GEX",
+    umi_sample_name = "Invitro"
+  ),
+  list(
+    name = "Pacute_GEX",
+    files = c("P_acute_combined"),
+    input_dir = "/projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/bamsort/splice/",
+    umi_type = "GEX",
+    umi_sample_name = "Pacute"
+  ),
+  list(
+    name = "W2_GEX",
+    files = c("W2"),
+    input_dir = "/projects/b1042/GoyalLab/egrody/extractedData/EGS002/singleCell/bamsort/splice/",
+    umi_type = "GEX",
+    umi_sample_name = "W2"
+  )#,
+  # list(
+  #   name = "InvitrocDNA",
+  #   files = c("cDNA"),
+  #   input_dir = "/projects/b1042/GoyalLab/egrody/extractedData/EGS007/longRead/bamsort/splice/",
+  #   umi_type = "GEX",
+  #   umi_sample_name = "cDNA"
+  # )
+)
+
+# UMI directories
+SALVE.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/SALVE/bamsort/reads/v6/"
+GEX.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/bamsort/reads/v6/"
+
+# Main processing loop
+for (config in sample_configs) {
+  sample_name <- config$name
+  input_dir <- config$input_dir
+  
+  cat("\nProcessing sample:", sample_name, "\n")
+  
+  # Step 1: Combine data from all files in this sample
+  combined_data <- data.frame()
+  
+  for (file in config$files) {
+    cat("  Reading:", file, "\n")
+    data <- read.csv(paste0(input_dir, file, "_splicesites.csv"))
+    cat("    Raw rows in CSV:", nrow(data), "\n")
+    
+    # Load appropriate UMI file based on type
+    if (config$umi_type == "SALVE") {
+      umi_file <- paste0(SALVE.dir, "minimum/valid_UMI/", config$umi_sample_name, "_SALVE_valid_cellID_UMI.csv")
+      umi_data <- if(file.exists(umi_file)) read.csv(umi_file) else NULL
+      cat("    SALVE UMI file:", basename(umi_file), "\n")
+    } else if (config$umi_type == "GEX") {
+      umi_file <- paste0(GEX.dir, "minimum/valid_UMI/", config$umi_sample_name, "_GEX_valid_cellID_UMI.csv")
+      umi_data <- if(file.exists(umi_file)) read.csv(umi_file) else NULL
+      cat("    GEX UMI file:", basename(umi_file), "\n")
+    } else {
+      stop("Invalid umi_type: must be 'SALVE' or 'GEX'")
+    }
+    
+    if (is.null(umi_data)) {
+      cat("    WARNING: UMI file not found, skipping filtering\n")
+      file_data <- data %>%
+        count(Donor, Acceptor) %>%
+        mutate(file = file)
+    } else {
+      cat("    UMI rows loaded:", nrow(umi_data), "\n")
+      
+      # Diagnostic information
+      cat("    Unique CBs in data:", length(unique(data$CB)), "\n")
+      cat("    Unique UBs in data:", length(unique(data$UB)), "\n")
+      cat("    CB matches:", sum(data$CB %in% umi_data$cellID), "of", nrow(data), "\n")
+      cat("    UB matches:", sum(data$UB %in% umi_data$UMI), "of", nrow(data), "\n")
+      cat("    Both CB AND UB match:", sum(data$CB %in% umi_data$cellID & data$UB %in% umi_data$UMI), "\n")
+      
+      file_data <- data %>%
+        filter(CB %in% umi_data$cellID & UB %in% umi_data$UMI) %>%
+        count(Donor, Acceptor) %>%
+        mutate(file = file)
+      
+      cat("    Rows after filtering:", nrow(file_data), "\n")
+      cat("    Reads after filtering:", sum(file_data$n), "\n")
+    }
+    
+    combined_data <- rbind(combined_data, file_data)
+  }
+  
+  # Step 2: Sum counts across files for same donor-acceptor pairs
+  plotdata <- combined_data %>%
+    group_by(Donor, Acceptor) %>%
+    summarise(
+      raw_count = sum(n),
+      files = paste(unique(file), collapse = ", "),
+      .groups = 'drop'
+    ) %>%
+    arrange(Donor) %>%
+    mutate(
+      y_position = row_number(),
+      log_count = log1p(raw_count)
+    )
+  
+  cat("  Combined junctions:", nrow(plotdata), "\n")
+  cat("  Total reads:", sum(plotdata$raw_count), "\n")
+  
+  # Step 3: Create log-normalized plot
+  MAX_LOG <- 5.5
+  p_log <- ggplot(plotdata) +
+    geom_segment(aes(x = Donor, xend = Acceptor, 
+                     y = y_position, yend = y_position,
+                     color = log_count, size = log_count), 
+                 alpha = 0.7) +
+    scale_color_viridis_c(name = "log(Count+1)",
+                          trans = "identity",
+                          limits = c(0, MAX_LOG)) +
+    scale_size_continuous(name = "log(Count+1)", 
+                         range = c(0.5, 3),
+                         limits = c(0, MAX_LOG)) +
+    xlim(0, 10279) +
+    labs(title = paste0("Splice Junctions: ", sample_name, " (Log Scale)"),
+         subtitle = paste0("Combined from: ", paste(config$files, collapse = ", "), 
+                          " | UMI: ", config$umi_type),
+         x = "Genomic Position", 
+         y = "Splice Junction") +
+    theme_minimal() +
+    theme(axis.text.y = element_blank(),
+          axis.ticks.y = element_blank(),
+          legend.position = "right")
+  
+  print(p_log)
+  
+  # Create output directory if it doesn't exist
+  output_dir <- paste0(input_dir, "plots/")
+  if (!dir.exists(output_dir)) {
+    dir.create(output_dir, recursive = TRUE)
+  }
+  
+  ggsave(paste0(output_dir, sample_name, "_combined_log.pdf"), 
+         plot = p_log, width = 15, height = 8)
+  
+  # Step 4: Create linear (raw count) plot
+  p_linear <- ggplot(plotdata) +
+    geom_segment(aes(x = Donor, xend = Acceptor, 
+                     y = y_position, yend = y_position,
+                     color = raw_count, size = raw_count), 
+                 alpha = 0.7) +
+    scale_color_viridis_c(name = "Count",
+                          trans = "identity") +
+    scale_size_continuous(name = "Count", 
+                         range = c(0.5, 3)) +
+    xlim(0, 10279) +
+    labs(title = paste0("Splice Junctions: ", sample_name, " (Linear Scale)"),
+         subtitle = paste0("Combined from: ", paste(config$files, collapse = ", "),
+                          " | UMI: ", config$umi_type),
+         x = "Genomic Position", 
+         y = "Splice Junction") +
+    theme_minimal() +
+    theme(axis.text.y = element_blank(),
+          axis.ticks.y = element_blank(),
+          legend.position = "right")
+  
+  ggsave(paste0(output_dir, sample_name, "_combined_linear.pdf"), 
+         plot = p_linear, width = 15, height = 8)
+  
+  # Step 5: Create summary table for this sample
+  if (nrow(plotdata) > 0) {
+    summary_table <- plotdata %>%
+      slice_max(raw_count, n = 10) %>%
+      select(Donor, Acceptor, raw_count, log_count, files) %>%
+      mutate(junction = paste0(Donor, "-", Acceptor))
+    
+    cat("  Top 10 junctions:\n")
+    print(summary_table)
+    
+    # Save summary table
+    write.csv(summary_table, 
+              paste0(output_dir, sample_name, "_top_junctions.csv"),
+              row.names = FALSE)
+  } else {
+    cat("  No junctions found for this sample\n")
+  }
+}
+
+```
 
 ### Host factors
 
@@ -2396,8 +2576,21 @@ for (sample_name in names(joint_data)) {
 }
 
 
+
+# Run the enhanced sparse analysis
+results_sparse <- host_virus_correlation_sparse(
+    joint_salve_data = joint_data,
+    joint_rds = objects,
+    genes_list = factors_restrict,
+    viral_col = "SALVE",
+    min_coexpress = 10,
+    n_permutations = 1000,
+    output.dir = "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/joint/hostVirus/new_restrictionFactors/",
+    outputs = TRUE
+)
+
 host_virus_correlation(joint_data, objects, factors_restrict, viral_col = "SALVE", 
-            output.dir = "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/joint/hostVirus/restrictionFactors/")
+            output.dir = "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/joint/hostVirus/new_restrictionFactors/")
 host_virus_correlation(joint_data, objects, factors_restrict, viral_col = "USprop", 
             output.dir = "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/joint/hostVirus/restrictionFactors/")
 host_virus_correlation(joint_data, objects, factors_restrict, viral_col = "SSprop", 
@@ -2687,7 +2880,7 @@ metabolic_results %>%
 ```
 
 
-### Correlation analysis (not updated below here)
+### Correlation analysis (not updated)
 Will do it custom for now and update correlation plot function later
 ```{r}
 cat(
@@ -2721,268 +2914,1132 @@ plot + theme(aspect.ratio = 1)
 ```
 
 
+### Subsample reads
+```{r Pacute}
+subsets <- c("P_acute_150M", "P_acute_200M", "P_acute_300M", "P_acute_400M")
+
+# Process
+input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/bamsort/alignment/subsample/"
+output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/bamsort/reads/subsample/"
+
+raw_cellIDs_df <- read.csv("/projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/raw_cellIDs/all_raw_cellIDs.csv")
+raw_cellIDs <- split(raw_cellIDs_df$cellID, raw_cellIDs_df$sample)
+raw_cellID <- list(P_acute_150M = raw_cellIDs$Pacute,
+                P_acute_200M = raw_cellIDs$Pacute,
+                P_acute_300M = raw_cellIDs$Pacute,
+                P_acute_400M = raw_cellIDs$Pacute)
+
+process_bamsortv6(subsets, input.dir, output.dir, raw_cellID)
+
+# Minimums
+input_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/bamsort/reads/subsample/"
+output_dir <- paste0(input_dir, "minimum/")
+
+process_all_set_minimumsv6("GEX", subsets, input_dir, TRUE, output_dir, min_reads_cell = 2)
+```
+
+```{r joint}
+subsets <- c("P_acute_150M", "P_acute_200M", "P_acute_300M", "P_acute_400M")
+
+# Input directories
+salve_input_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/SALVE/bamsort/reads/v6/minimum/"
+gex_input_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/bamsort/reads/subsample/minimum/"
+umap_file <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/Seurat/UMAPcoords/PacuteUMAP_coords.csv"
+cd4_file <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/Seurat/expressionDF/Pacute_CD4T.csv"
+
+# Output directories
+output_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS009/joint/dataframes/"
+plot_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS009/joint/plots/"
+
+# Create output directories if they don't exist
+dir.create(output_dir, showWarnings = FALSE, recursive = TRUE)
+dir.create(plot_dir, showWarnings = FALSE, recursive = TRUE)
+
+# Loading
+salve <- read.csv(paste0(salve_input_dir, "Pacute_SALVE_filtered.csv"))
+SALVE <- salve %>%
+  rename(SALVE = total) %>%
+  mutate(SALVE = log1p(SALVE))
+cd4_data <- read.csv(cd4_file, row.names = "X")
+cd4_data <- cd4_data %>%
+    mutate(CD3 = ifelse(CD3D > 0 | CD3E > 0 | CD3G > 0, 1, 0)) %>%
+    mutate(CD4 = ifelse(CD4 > 0 , 1, 0)) %>%
+    mutate(CD8 = ifelse(CD8A > 0 , 1, 0)) %>%
+    select(cellID, CD4, CD3, CD8)
+GEX_UMAP <- read.csv(umap_file, row.names = "X")
+GEX_UMAP <- GEX_UMAP %>% select(-sample, -V2)
+
+# Print header for comparison table
+cat("\n===========================================\n")
+cat("COMPARISON STATISTICS\n")
+cat("===========================================\n")
+cat("Sample\tTotal_cells\tboth\t10X_only\tSALVE_only\tJaccard\tPearson_r\tSpearman_rho\n")
+
+# Loop through each GEX subsample
+for (sample in subsets) {
+  
+  # Load GEX data for this subsample
+  gex_file <- paste0(gex_input_dir, sample, "_GEX_filtered.csv")
+  
+  if (!file.exists(gex_file)) {
+    cat("WARNING: File not found:", gex_file, "\n")
+    cat("Skipping sample", sample, "\n")
+    next
+  }
+  
+  GEX <- read.csv(gex_file, check.names = FALSE)
+  if (colnames(GEX)[1] %in% c("X", "", "Unnamed: 0")) {
+    rownames(GEX) <- GEX[,1]
+    GEX <- GEX[,-1]
+  }
+
+  # Process GEX data
+  gex_processed <- GEX %>%
+     #mutate(cellID = as.character(cellID)) %>%
+    rename(GEX = total) %>% 
+    mutate(GEX = log1p(GEX)) %>%
+      select(cellID, GEX)
+      
+  # Merge with UMAP coordinates
+  GEX <- left_join(GEX_UMAP, gex_processed, by = "cellID")
+  
+  # Join GEX and SALVE data
+  Pacute_joint <- left_join(GEX, SALVE, by = "cellID")
+  
+  # Replace NA with 0 (cells not detected in one method)
+  Pacute_joint[is.na(Pacute_joint)] <- 0
+  
+  
+  Pacute_joint <- left_join(Pacute_joint, cd4_data, by = "cellID")
+  Pacute_joint <- Pacute_joint %>%
+    mutate(across(any_of(c("GEX", "GEX.US")), 
+              ~ ifelse(CD4 > 0 & CD3 > 0, .x, 0))) %>% 
+    mutate(across(any_of(c("SALVE", "US", "MS", "SS")), 
+              ~ ifelse(CD4 > 0 & CD3 > 0, .x, 0))) %>%
+    filter(CD4 == 0 | CD8 == 0) %>% # exclude cells CD4+ and CD8+
+    select(-CD8, -CD3, -CD4)
+  
+  # Calculate comparison statistics
+  both <- Pacute_joint %>% filter(GEX != 0 & SALVE != 0)
+  onlySingleCell <- Pacute_joint %>% 
+    filter(GEX != 0) %>%
+    filter(!(cellID %in% both$cellID))
+  onlySALVE <- Pacute_joint %>% 
+    filter(SALVE != 0) %>%
+    filter(!(cellID %in% both$cellID))
+  
+  # Calculate Jaccard index: |intersection| / |union|
+  gex_detected <- nrow(both) + nrow(onlySingleCell)
+  salve_detected <- nrow(both) + nrow(onlySALVE)
+  intersection <- nrow(both)
+  union <- gex_detected + salve_detected - intersection  # A + B - (A ∩ B)
+  
+  if (union > 0) {
+    jaccard_index <- intersection / union
+  } else {
+    jaccard_index <- NA
+  }
+  
+  # Calculate correlations for cells detected in both methods
+  if (nrow(both) > 2) {
+    pearson_r <- cor(Pacute_joint$GEX, Pacute_joint$SALVE, method = "pearson")
+    spearman_rho <- cor(Pacute_joint$GEX, Pacute_joint$SALVE, method = "spearman")
+  } else {
+    pearson_r <- NA
+    spearman_rho <- NA
+  }
+  
+  # Print statistics
+    cat(sprintf("%s\t%d\t%d\t%d\t%d\t%.3f\t%.3f\t%.3f\n",
+              sample,
+              nrow(Pacute_joint),
+              nrow(both),
+              nrow(onlySingleCell),
+              nrow(onlySALVE),
+              jaccard_index,
+              pearson_r,
+              spearman_rho))
+  
+  # Generate plots
+  plotUMAP(Pacute_joint, colorby = GEX,
+           paste0("Pacute joint SIV: GEX (", sample, ")"),
+           plot_dir,
+           paste0("Pacute_subsample_GEX_", sample, ".pdf"),
+           comparison = FALSE, color = "gray25")
+  
+  # Save dataframes for this subsample
+  write.csv(both, paste0(output_dir, "Pacute_both_", sample, ".csv"), row.names = FALSE)
+  write.csv(onlySingleCell, paste0(output_dir, "Pacute_onlySingleCell_", sample, ".csv"), row.names = FALSE)
+  write.csv(onlySALVE, paste0(output_dir, "Pacute_onlySALVE_", sample, ".csv"), row.names = FALSE)
+  write.csv(Pacute_joint, paste0(output_dir, "Pacute_all_", sample, ".csv"), row.names = FALSE)
+}
+plotUMAP(Pacute_joint, colorby = SALVE,
+           paste0("Pacute joint SIV: SALVE (", sample, ")"),
+           plot_dir,
+           paste0("Pacute_subsample_SALVE.pdf"),
+           comparison = FALSE, color = "gray25")
+```
+
 ## Subset analysis
 
-### Making Mmul10 clusters dataframe (skip)
-```{r}
-output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/Seurat/Mmul_10/"
-Pacute <- SeuratPipeline("/projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/counts/Mmul_10/Mmul_10_P_acute_GEX/outs/filtered_feature_bc_matrix/", "Pacute", output.dir, plots = TRUE)
+To load data, run first chunk of Joint bamsort (SALVE vs GEX) or Joint combined
 
-output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/counts/Mmul_10/"
-SingleCell_Pacute <- targetExpressionDF(Pacute, "CD4")
-SingleCell_Pacute_clusters <- SingleCell_Pacute %>% select(-CD4)
-write.csv(SingleCell_Pacute_clusters, paste0(output.dir, "Pacute_Mmul10_clusters.csv"))
-```
+### DEG analysis
 
-### Loading
-Combining the coordinates and clusters from SingleCell aligned to Mmul_10 with the mac239 expression from SingleCell aligned to Mmul_10_mac239
-```{r}
-SingleCell_Pacute_clusters <- read.csv("/projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/counts/Mmul_10/Pacute_Mmul10_clusters.csv", row.names = "X")
-SingleCell_Pacute_mac239 <- read.csv("/projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/counts/Mmul_10_mac239/Pacute_Mmulmac_mac239.csv", row.names = "X")
-Pacute_SALVE <- read.csv("/projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/bamsort/Pacute_SALVE_filtered.csv", row.names = "X")
+```{r, warning=FALSE}
+input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/Seurat/RDS/"
+output.base <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/joint/subset/SALVE_new/"
 
-SingleCell_Pacute_mac239 <- SingleCell_Pacute_mac239 %>% select(cellID, mac239)
-SingleCell_Pacute <- left_join(SingleCell_Pacute_clusters, SingleCell_Pacute_mac239, by = "cellID")
-
-Pacute_paint_umap = left_join(SingleCell_Pacute, Pacute_SALVE, by = "cellID")
-Pacute_paint_umap[is.na(Pacute_paint_umap)] <- 0
-```
-
-
-```{r plotting}
-# Function to create Seurat-style DimPlot
-plot_clusters <- function(data, 
-                         label_clusters = TRUE,
-                         pt_size = 0.5,
-                         label_size = 4) {
+samples <- c("Invitro",
+             "D195",
+             "Pacute",
+             "W2")
+for (i in 1:length(samples)) {
+  sample_name <- samples[i]
+  input_file <- paste0(input.dir, sample_name, ".rds")
   
-  # Convert the cluster column to a factor
-  data$cluster <- as.factor(data$cluster)
-  
-  n_clusters <- length(unique(data$cluster))
-  cluster_colors <- scales::hue_pal()(n_clusters)
-  
-  p1 <- ggplot(data, aes(x = UMAP1, y = UMAP2, color = cluster)) +
-    geom_point(size = pt_size) +
-    scale_color_manual(values = cluster_colors) +
-    theme_bw() +
-    theme(
-      panel.grid = element_blank(),
-      axis.title = element_text(size = 12),
-      legend.title = element_blank(),
-      panel.border = element_rect(colour = "black", fill = NA)
-    )
-  
-  if (label_clusters) {
-    cluster_centers <- data %>%
-      group_by(cluster) %>%
-      summarise(
-        UMAP1 = median(UMAP1),
-        UMAP2 = median(UMAP2)
-      )
+  tryCatch({
+    seurat_obj <- readRDS(input_file)
+    genes_to_exclude <- c("CD4", "CD8A", "CD8B")  # remove from DEG analysis
+    genes_to_keep <- rownames(seurat_obj)[!rownames(seurat_obj) %in% genes_to_exclude]
+    seurat_obj <- subset(seurat_obj, features = genes_to_keep)
+
     
-    p1 <- p1 + geom_text(data = cluster_centers,
-                         aes(label = cluster),
-                         size = label_size,
-                         color = "black")
-  }
-  
-  return(p1)
-}
-
-# Function to create Seurat-style FeaturePlot
-plot_gene_expression <- function(data,
-                               countcolumn,
-                               pt_size = 0.5,
-                               min_cutoff = NA,
-                               max_cutoff = NA) {
-  
-  plot_data <- data
-  if (!is.na(min_cutoff)) {
-    plot_data[[countcolumn]][plot_data[[countcolumn]] < min_cutoff] <- min_cutoff
-  }
-  if (!is.na(max_cutoff)) {
-    plot_data[[countcolumn]][plot_data[[countcolumn]] > max_cutoff] <- max_cutoff
-  }
-  
-  p2 <- ggplot(plot_data, aes(x = UMAP1, y = UMAP2)) +
-    geom_point(data = subset(plot_data, plot_data[[countcolumn]] <= 0),
-               color = "gray93",
-               size = pt_size) +
-    geom_point(data = subset(plot_data, plot_data[[countcolumn]] > 0),
-               aes_string(color = countcolumn),  # Use aes_string instead
-               size = pt_size) +
-    scale_color_gradient(low = "gray93", high = "darkblue",
-                        name = "Expression") +
-    theme_bw() +
-    theme(
-      panel.grid = element_blank(),
-      axis.title = element_text(size = 12),
-      panel.border = element_rect(colour = "black", fill = NA)
-    )
-  
-  return(p2)
-}
-
-cluster_plot <- plot_clusters(Pacute_paint_umap)
-xprn_plot_SALVE <- plot_gene_expression(Pacute_paint_umap, "total_lessLTR")
-xprn_plot_SingleCell <- plot_gene_expression(Pacute_paint_umap, "mac239")
-intersect_umap <- Pacute_paint_umap %>%
-  mutate(total_lessLTR = ifelse(mac239 == 0, 0, total_lessLTR))
-xprn_plot_intersect <- plot_gene_expression(intersect_umap, "total_lessLTR") #SALVE xprn in cells that are 10X+
-
-output_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS013/joint/subset/"
-ggsave(cluster_plot, file = paste0(output_dir, "Pacute_umap_cluster.svg"))
-ggsave(xprn_plot_SALVE, file = paste0(output_dir, "Pacute_umap_SALVE.svg"))
-ggsave(xprn_plot_SingleCell, file = paste0(output_dir, "Pacute_umap_SingleCell.svg"))
-ggsave(xprn_plot_intersect, file = paste0(output_dir, "Pacute_umap_intersect.svg"))
-
-cat("SingleCell vRNA+: ", sum(invitro_paint_umap$log2SingleCell != 0, na.rm = TRUE),
-    "\nSALVE vRNA+: ", sum(invitro_paint_umap$Count != 0, na.rm = TRUE),
-    "\nCells in common: ", sum(intersect_umap$Count != 0, na.rm = TRUE))
-
-write.csv(invitro_paint_umap, paste0(output_dir, "invitro_paint_umap.csv"))
-
-
-```
-
-Quick correlation plot:
-```{r correlation plotting}
-innerjoin <- inner_join(SingleCell_Pacute_mac239, Pacute_SALVE, by = "cellID")
-Pacute_innerjoin <- left_join(SingleCell_Pacute_clusters, innerjoin, by = "cellID")
-Pacute_innerjoin[is.na(Pacute_innerjoin)] <- 0
-
-cat("Correlation of invitro between 10X and SALVE (total_lessLTR):", cor(Pacute_innerjoin$mac239, Pacute_innerjoin$total_lessLTR))
-corrplot <- ggplot(data = Pacute_innerjoin, aes(x=total_lessLTR, y=mac239)) +
-  geom_point() + 
-  xlim(0,10) + 
-  ylim(0,10) +
-  theme_minimal() + 
-  theme(aspect.ratio = 1) + 
-  labs(title = "inner_join correlation")
-corrplot
-output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS013/joint/subset/"
-ggsave(corrplot, file = paste0(output.dir, "innerjoin_correlationplot.svg"))
-```
-
-### DEG analysis (break point)
-
-```{r}
-#D13
-D13_Seurat <- SeuratPipeline("/projects/b1042/GoyalLab/egrody/extractedData/EGS004/singleCell/counts/Mmul_10/cellranger_count_D13/outs/filtered_feature_bc_matrix/", "D13", plots = FALSE)
-
-D13 <- joint_data[["D13"]]
-list_of_cells <- D13 %>% filter(SALVE != 0) #for SALVE
-list_of_cells <- D13 %>% filter(GEX != 0) #for 10X
-list_of_cells <- list_of_cells$cellID
-
-
-results <- analyze_cell_subset(D13_Seurat, list_of_cells)
-```
-
-### Saving results
-```{r}
-output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS013/joint/subset/singleCell/"
-save_subset_analysis(results, output_dir = output.dir)
-plot_subset_analysis(Pacute, results, list_of_cells, output_dir = paste0(output.dir, "plots/"))
-```
-
-### Interpreting results
-```{r}
-# Create filtered results list
-filteredDEG <- lapply(results$cluster_specific, function(df) {
-  if (!is.null(df) && nrow(df) > 0) {
-    # Filter for significant adjusted p-value and log2FC threshold
-    df[df$p_val_adj < 0.05 & abs(df$avg_log2FC) > 0.5, ]
-  } else {
-    NULL
-  }
-})
-
-# Remove any empty results
-filteredDEG <- filteredDEG[sapply(filteredDEG, function(x) !is.null(x) && nrow(x) > 0)]
-
-# Print summary of how many genes passed filters in each cluster
-for (cluster in names(filteredDEG)) {
-  cat(sprintf("Cluster %s: %d genes\n", cluster, nrow(filteredDEG[[cluster]])))
-}
-
-# Saving
-wb <- createWorkbook()
-# Add each cluster's results as a separate worksheet
-for (cluster_name in names(filteredDEG)) {
-    de_results <- filteredDEG[[cluster_name]]
-    if (!is.null(de_results) && nrow(de_results) > 0) {
-        # Add cluster results as a worksheet
-        addWorksheet(wb, cluster_name)
-        # Add data with gene names as a column
-        de_results$gene <- rownames(de_results)
-        writeData(wb, cluster_name, de_results)
+    salve <- joint_data[[sample_name]]
+    list_of_cells1 <- salve %>% filter(SALVE != 0) %>% #update as desired
+      select(cellID) %>% unlist()
+    # list_of_cells2 <- salve %>% filter(total != 0) %>%
+    #   select(cellID) %>% filter(!(cellID %in% list_of_cells1)) %>% unlist()
+    results <- analyze_cell_subset(seurat_obj, list_of_cells1#, 
+                                   #list_of_cells2, group_names = c("MS", "noMS")
+                                   )
+    
+    output.dir <- paste0(output.base, sample_name, "/")
+    if (!dir.exists(output.dir)) {
+      dir.create(output.dir, recursive = TRUE)
     }
+    #save_subset_analysis(results, output_dir = output.dir)
+    plot_subset_analysis(seurat_obj, results, list_of_cells1, output_dir = paste0(output.dir, "plots/"))
+    
+    # results_uc <- analyze_cell_subset_unclustered(seurat_obj, list_of_cells1#, 
+    #                                               #list_of_cells2, group_names = c("MS", "noMS")
+    #                                               )
+    # save_subset_analysis(results_uc, output_dir = output.dir)
+    
+    cat("Processed sample:", sample_name, "\n")
+  }, error = function(e) {
+    cat("Error processing sample", sample_name, ":", conditionMessage(e), "\n\n")
+  })
 }
 
-# Save the workbook
-saveWorkbook(wb, paste0(output.dir, "cluster_specific_DE_filtered.xlsx"), overwrite = TRUE)
+```
 
+Rewrote some functions
+```{r}
+library(gprofiler2)
 
-
-filteredConserv <- results$conserved_markers %>%
-    filter(p_val_adj < 0.05 & abs(avg_log2FC) > 0.5)
-
-# Print summary of how many genes passed filters in each cluster
-cat(sprintf("Conserved markers: %d genes\n", nrow(filteredConserv)))
-
-# For each gene in conserved_markers, let's check which clusters show it as significant
-check_gene_presence <- function(gene, cluster_results, p_val_thresh = 0.05, log2fc_thresh = 0.5) {
-  # Initialize list to store results
-  presence <- list()
+#' Perform DEG analysis between two cell populations
+#'
+#' @param seurat_obj Seurat object containing single-cell data
+#' @param cells_group1 Character vector of cell IDs for group 1 (numerator)
+#' @param cells_group2 Character vector of cell IDs for group 2 (denominator)
+#' @param assay Character, assay to use (default: "RNA")
+#' @param test_use Character, statistical test method (default: "wilcox")
+#' @param fc_threshold Numeric, log2FC threshold for filtering (default: 0.5)
+#' @param pval_threshold Numeric, adjusted p-value threshold (default: 0.01)
+#' @param output_prefix Character, prefix for output files (default: "DEG_analysis")
+#' 
+#' @return List containing DEG results, filtered DEGs, pathway results, and plot
+#' 
+#' @details
+#' Statistical Test: Wilcoxon rank-sum test is recommended for single-cell data
+#' due to its non-parametric nature and robustness to the zero-inflated, 
+#' non-normal distributions typical of scRNA-seq data. Alternative tests include
+#' "bimod" (likelihood-ratio test), "t" (Student's t-test), or "MAST" 
+#' (Model-based Analysis of Single-cell Transcriptomics).
+#' 
+#' Multiple Testing Correction: Bonferroni correction is applied by default in
+#' Seurat's FindMarkers function to control family-wise error rate.
+#' 
+#' Pathway Analysis: g:Profiler uses a hypergeometric test with g:SCS multiple
+#' testing correction to identify significantly enriched pathways from GO, KEGG,
+#' Reactome, and other databases.
+perform_deg_pathway_analysis <- function(seurat_obj,
+                                          cells_group1,
+                                          cells_group2,
+                                          assay = "RNA",
+                                          test_use = "wilcox",
+                                          fc_threshold = 0.5,
+                                          pval_threshold = 0.01,
+                                          output_prefix = "DEG_analysis") {
   
-  # Check each cluster
-  for(cluster in names(cluster_results)) {
-    de_results <- cluster_results[[cluster]]
-    if(!is.null(de_results) && gene %in% rownames(de_results)) {
-      # Get gene stats for this cluster
-      gene_stats <- de_results[gene,]
-      # Check if it meets significance criteria
-      if(gene_stats$p_val_adj < p_val_thresh && abs(gene_stats$avg_log2FC) > log2fc_thresh) {
-        presence[[cluster]] <- c(
-          p_val_adj = gene_stats$p_val_adj,
-          avg_log2FC = gene_stats$avg_log2FC
-        )
+  # Validate inputs
+  if (!inherits(seurat_obj, "Seurat")) {
+    stop("seurat_obj must be a Seurat object")
+  }
+  
+  all_cells <- colnames(seurat_obj)
+  missing_cells1 <- setdiff(cells_group1, all_cells)
+  missing_cells2 <- setdiff(cells_group2, all_cells)
+  
+  if (length(missing_cells1) > 0) {
+    warning(paste(length(missing_cells1), "cells from group1 not found in Seurat object"))
+    cells_group1 <- intersect(cells_group1, all_cells)
+  }
+  
+  if (length(missing_cells2) > 0) {
+    warning(paste(length(missing_cells2), "cells from group2 not found in Seurat object"))
+    cells_group2 <- intersect(cells_group2, all_cells)
+  }
+  
+  if (length(cells_group1) == 0 || length(cells_group2) == 0) {
+    stop("One or both groups have no valid cells after filtering")
+  }
+  
+  cat(sprintf("Group 1: %d cells\n", length(cells_group1)))
+  cat(sprintf("Group 2: %d cells\n", length(cells_group2)))
+  
+  # Create temporary identity for DEG analysis
+  seurat_obj$temp_ident <- "other"
+  seurat_obj$temp_ident[colnames(seurat_obj) %in% cells_group1] <- "group1"
+  seurat_obj$temp_ident[colnames(seurat_obj) %in% cells_group2] <- "group2"
+  
+  # Subset Seurat object to only include cells from both groups
+  seurat_subset <- subset(seurat_obj, cells = c(cells_group1, cells_group2))
+  Idents(seurat_subset) <- "temp_ident"
+  
+  cat("Performing differential expression analysis...\n")
+  
+  # Perform DEG analysis
+  # group1 vs group2: positive log2FC means higher in group1
+  deg_results <- FindMarkers(
+    object = seurat_subset,
+    ident.1 = "group1",
+    ident.2 = "group2",
+    assay = assay,
+    test.use = test_use,
+    logfc.threshold = 0,  # Get all genes, filter later
+    min.pct = 0.1,  # Gene must be expressed in at least 10% of cells in one group
+    verbose = TRUE
+  )
+  
+  # Add gene names as column
+  deg_results$gene <- rownames(deg_results)
+  
+  # Reorder columns
+  deg_results <- deg_results[, c("gene", "avg_log2FC", "pct.1", "pct.2", 
+                                  "p_val", "p_val_adj")]
+  
+  # Sort by adjusted p-value
+  deg_results <- deg_results[order(deg_results$p_val_adj), ]
+  
+  # Save full results
+  write.csv(deg_results, 
+            file = paste0(output_prefix, "_all_genes.csv"),
+            row.names = FALSE)
+  cat(sprintf("Saved full results: %s_all_genes.csv\n", output_prefix))
+  
+  # Filter for significant DEGs
+  deg_filtered <- deg_results %>%
+    filter(abs(avg_log2FC) > fc_threshold & p_val_adj < pval_threshold)
+  
+  cat(sprintf("Significant DEGs: %d (|log2FC| > %.2f, adj p-val < %.2f)\n", 
+              nrow(deg_filtered), fc_threshold, pval_threshold))
+  cat(sprintf("  Upregulated in group1: %d\n", sum(deg_filtered$avg_log2FC > 0)))
+  cat(sprintf("  Upregulated in group2: %d\n", sum(deg_filtered$avg_log2FC < 0)))
+  
+  # Save filtered results
+  write.csv(deg_filtered,
+            file = paste0(output_prefix, "_significant_genes.csv"),
+            row.names = FALSE)
+  cat(sprintf("Saved significant DEGs: %s_significant_genes.csv\n", output_prefix))
+  
+  # Pathway enrichment analysis using g:Profiler
+  pathway_results <- NULL
+  if (nrow(deg_filtered) > 0) {
+    cat("\nPerforming pathway enrichment analysis with g:Profiler...\n")
+    
+    # Split into upregulated and downregulated genes
+    up_genes <- deg_filtered %>% filter(avg_log2FC > 0) %>% pull(gene)
+    down_genes <- deg_filtered %>% filter(avg_log2FC < 0) %>% pull(gene)
+    
+    pathway_results <- list()
+    
+    # Enrichment for upregulated genes (group1)
+    if (length(up_genes) > 0) {
+      cat(sprintf("  Analyzing %d upregulated genes (group1)...\n", length(up_genes)))
+      gost_up <- gost(
+        query = up_genes,
+        organism = "mmulatta",  # Change to "mmusculus" for mouse
+        significant = TRUE,
+        correction_method = "g_SCS",  # g:Profiler's custom method
+        sources = c("GO:BP", "GO:MF", "GO:CC", "KEGG", "REAC", "WP")
+      )
+      
+      if (!is.null(gost_up$result)) {
+        # Select available columns
+        base_cols <- c("term_id", "term_name", "source", "p_value", "term_size", 
+                       "query_size", "intersection_size")
+        optional_cols <- c("intersection")
+        available_cols <- base_cols[base_cols %in% colnames(gost_up$result)]
+        optional_available <- optional_cols[optional_cols %in% colnames(gost_up$result)]
+        
+        pathway_results$upregulated <- gost_up$result %>%
+          select(all_of(c(available_cols, optional_available))) %>%
+          arrange(p_value)
+        
+        write.csv(pathway_results$upregulated,
+                  file = paste0(output_prefix, "_pathways_group1_up.csv"),
+                  row.names = FALSE)
+        cat(sprintf("  Found %d enriched pathways for group1\n", 
+                    nrow(pathway_results$upregulated)))
+      } else {
+        cat("  No significant pathways found for upregulated genes\n")
       }
     }
+    
+    # Enrichment for downregulated genes (group2)
+    if (length(down_genes) > 0) {
+      cat(sprintf("  Analyzing %d downregulated genes (group2)...\n", length(down_genes)))
+      gost_down <- gost(
+        query = down_genes,
+        organism = "hsapiens",
+        significant = TRUE,
+        correction_method = "g_SCS",
+        sources = c("GO:BP", "GO:MF", "GO:CC", "KEGG", "REAC", "WP")
+      )
+      
+      if (!is.null(gost_down$result)) {
+        # Select available columns
+        base_cols <- c("term_id", "term_name", "source", "p_value", "term_size",
+                       "query_size", "intersection_size")
+        optional_cols <- c("intersection")
+        available_cols <- base_cols[base_cols %in% colnames(gost_down$result)]
+        optional_available <- optional_cols[optional_cols %in% colnames(gost_down$result)]
+        
+        pathway_results$downregulated <- gost_down$result %>%
+          select(all_of(c(available_cols, optional_available))) %>%
+          arrange(p_value)
+        
+        write.csv(pathway_results$downregulated,
+                  file = paste0(output_prefix, "_pathways_group2_up.csv"),
+                  row.names = FALSE)
+        cat(sprintf("  Found %d enriched pathways for group2\n",
+                    nrow(pathway_results$downregulated)))
+      } else {
+        cat("  No significant pathways found for downregulated genes\n")
+      }
+    }
+  } else {
+    cat("No significant DEGs found - skipping pathway analysis\n")
   }
   
-  # Return number of clusters and which clusters
+  # Create volcano plot
+  cat("\nGenerating volcano plot...\n")
+  
+  # Add significance category
+  deg_results$significance <- "Not significant"
+  deg_results$significance[deg_results$avg_log2FC > fc_threshold & 
+                            deg_results$p_val_adj < pval_threshold] <- "Group1 enriched"
+  deg_results$significance[deg_results$avg_log2FC < -fc_threshold & 
+                            deg_results$p_val_adj < pval_threshold] <- "Group2 enriched"
+  
+  # Label top genes
+  all_genes <- deg_results %>%
+    filter(significance != "Not significant") %>%
+    arrange(p_val_adj)
+  
+  volcano_plot <- ggplot(deg_results, aes(x = avg_log2FC, y = -log10(p_val_adj))) +
+    geom_point(aes(color = significance), alpha = 0.6, size = 1.5) +
+    scale_color_manual(
+      values = c("Group1 enriched" = "#E64B35", 
+                 "Not significant" = "grey70",
+                 "Group2 enriched" = "#4DBBD5")
+    ) +
+    geom_vline(xintercept = c(-fc_threshold, fc_threshold), 
+               linetype = "dashed", color = "grey30", linewidth = 0.5) +
+    geom_hline(yintercept = -log10(pval_threshold), 
+               linetype = "dashed", color = "grey30", linewidth = 0.5) +
+    geom_text_repel(
+      data = all_genes,
+      aes(label = gene),
+      size = 3,
+      max.overlaps = 20,
+      box.padding = 0.5,
+      segment.size = 0.2
+    ) +
+    labs(
+      title = "Differential Gene Expression: Group1 vs Group2",
+      x = "log2 Fold Change",
+      y = "-log10(Adjusted P-value)",
+      color = "Significance"
+    ) +
+    theme_classic(base_size = 12) +
+    theme(
+      legend.position = "right",
+      plot.title = element_text(hjust = 0.5, face = "bold"),
+      axis.text = element_text(color = "black"),
+      axis.title = element_text(face = "bold")
+    )
+  
+  # Save plot
+  ggsave(
+    filename = paste0(output_prefix, "_volcano_plot.pdf"),
+    plot = volcano_plot,
+    width = 10,
+    height = 8,
+    units = "in"
+  )
+  
+  ggsave(
+    filename = paste0(output_prefix, "_volcano_plot.png"),
+    plot = volcano_plot,
+    width = 10,
+    height = 8,
+    units = "in",
+    dpi = 300
+  )
+  
+  cat(sprintf("Saved volcano plots: %s_volcano_plot.pdf/png\n", output_prefix))
+  
+  # Return results
   return(list(
-    n_clusters = length(presence),
-    clusters = names(presence),
-    details = presence
+    all_results = deg_results,
+    significant_degs = deg_filtered,
+    pathway_results = pathway_results,
+    volcano_plot = volcano_plot,
+    n_group1 = length(cells_group1),
+    n_group2 = length(cells_group2),
+    parameters = list(
+      fc_threshold = fc_threshold,
+      pval_threshold = pval_threshold,
+      test_method = test_use
+    )
   ))
 }
 
-# First get cluster counts for each gene
-cluster_counts <- lapply(rownames(filteredConserv), function(gene) {
-  result <- check_gene_presence(gene, results$cluster_specific)
-  data.frame(
-    gene = gene,
-    num_clusters = result$n_clusters,
-    clusters = paste(result$clusters, collapse=",")
-  )
-}) %>% bind_rows()
-
-# Add cluster information to filtered results
-filteredConserv <- filteredConserv %>%
-  mutate(gene = rownames(.)) %>%
-  left_join(cluster_counts, by = "gene") %>%
-  arrange(desc(num_clusters), desc(abs(avg_log2FC)))
-
-# Save to Excel
-wb <- createWorkbook()
-addWorksheet(wb, "filtered_conserved")
-writeData(wb, "filtered_conserved", filteredConserv)
-saveWorkbook(wb, paste0(output.dir, "conserved_markers_filtered.xlsx"), overwrite = TRUE)
 ```
+
+```{r}
+input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/Seurat/RDS/"
+output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/joint/subset/new/"
+
+samples <- c("Invitro",
+             "D195",
+             "Pacute",
+             "W2")
+for (i in 1:length(samples)) {
+  sample_name <- samples[i]
+  input_file <- paste0(input.dir, sample_name, ".rds")
+  
+  tryCatch({
+    seurat_obj <- readRDS(input_file)
+    genes_to_exclude <- c("CD4", "CD8A", "CD8B")  # remove from DEG analysis
+    genes_to_keep <- rownames(seurat_obj)[!rownames(seurat_obj) %in% genes_to_exclude]
+    seurat_obj <- subset(seurat_obj, features = genes_to_keep)
+
+    if (!dir.exists(output.dir)) {
+      dir.create(output.dir, recursive = TRUE)
+    }
+    
+    salve <- combined_data[[sample_name]]
+    available_cols <- intersect(c("MS", "SS-MS", "SS"), colnames(salve))
+    list_of_cells1 <- salve %>%
+      filter(if_any(all_of(available_cols), ~ . != 0)) %>%
+      select(cellID) %>%
+      unlist()
+    list_of_cells2 <- salve %>% filter(total != 0) %>%
+      select(cellID) %>% filter(!(cellID %in% list_of_cells1)) %>% unlist()
+
+    result <- analyze_cell_subset(
+      seurat_obj,
+      list_of_cells1,
+      list_of_cells2,
+      group_names = c("SIV_spliced", "SIV_other")
+    )
+    save_subset_analysis(result, paste0(output.dir, "combined_splicedvnot/", sample_name, "/"))
+    
+    
+    cat("Processed sample:", sample_name, "\n")
+  }, error = function(e) {
+    cat("Error processing sample", sample_name, ":", conditionMessage(e), "\n\n")
+  })
+}
+```
+
+
+
+### CoGAPS
+With all genes, takes 6hrs to run
+I determined that 3 is not enough clusters
+```{r all genes}
+invitro <- readRDS("/projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/Seurat/RDS/Invitro.rds")
+
+counts_matrix <- as.matrix(GetAssayData(invitro, assay = "RNA", layer = "counts"))
+norm_counts_matrix <- log1p(counts_matrix)
+invitro_params <- CogapsParams(nIterations=10000,
+  seed=42,
+  nPatterns=3,
+  sparseOptimization=TRUE,
+  distributed="genome-wide")
+invitro_params <- setDistributedParams(invitro_params, nSets=5)
+startTime <- Sys.time()
+invitro_nmf_result <- CoGAPS(norm_counts_matrix, invitro_params)
+endTime <- Sys.time()
+output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/joint/subset/CoGAPS/"
+saveRDS(invitro_nmf_result, paste0(output.dir, "invitro_cogaps_result.rds"))
+
+```
+
+With highly variable genes, takes 4hrs to run
+```{r hvg only}
+invitro <- readRDS("/projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/Seurat/RDS/Invitro.rds")
+invitro_var <- FindVariableFeatures(invitro, selection.method = "mvp", nfeatures = 3000) #mvp robust to sparse data
+hvgs <- VariableFeatures(invitro_var)
+counts_matrix <- as.matrix(GetAssayData(invitro_var, assay = "RNA", layer = "counts"))
+counts_hvg <- counts_matrix[hvgs, ]
+colnames(counts_hvg) <- colnames(invitro_var)
+norm_counts_hvg <- log1p(counts_hvg)
+invitro_params <- CogapsParams(
+    nIterations = 15000,
+    seed = 42,
+    nPatterns = 8,
+    sparseOptimization = TRUE,
+    distributed = "genome-wide"
+)
+invitro_params <- setDistributedParams(invitro_params, nSets = 5)
+startTime <- Sys.time()
+cogapsresult_hvg <- CoGAPS(norm_counts_hvg, invitro_params)
+endTime <- Sys.time()
+output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/joint/subset/CoGAPS/"
+saveRDS(cogapsresult_hvg, paste0(output.dir, "invitro_cogaps_result_hvg.rds"))
+```
+
+
+Looking at results
+```{r for Yuval}
+# for Yuval
+sample_factors <- getSampleFactors(cogapsresult)
+
+# Compute the sum of pattern weights for each cell
+pattern_weight_sums <- rowSums(sample_factors)
+
+# Plot the distribution
+ggplot(data.frame(weight_sum = pattern_weight_sums), aes(x = weight_sum)) +
+  geom_histogram(bins = 50, fill = "steelblue", color = "black") +
+  labs(
+    x = "Sum of Pattern Weights",
+    y = "Number of Cells",
+    title = "Distribution of Total Pattern Weights per Cell"
+  ) +
+  theme_minimal()
+```
+
+
+```{r NMF loading}
+invitro <- readRDS("/projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/Seurat/RDS/Invitro.rds")
+output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/joint/subset/CoGAPS/"
+#cogapsresult <- readRDS(paste0(output.dir, "invitro_cogaps_result.rds"))
+cogapsresult <- readRDS(paste0(output.dir, "invitro_cogaps_result_hvg.rds"))
+patterns_in_order <-t(cogapsresult@sampleFactors[colnames(invitro),])
+invitro[["CoGAPS"]] <- CreateAssayObject(counts = patterns_in_order) 
+DefaultAssay(invitro) <- "CoGAPS" 
+pattern_names = rownames(invitro@assays$CoGAPS)
+
+pm = patternMarkers(cogapsresult)
+
+# plotting FeaturePlots
+library(viridis)
+color_palette <- viridis(n=10) 
+plots <- FeaturePlot(
+  invitro,
+  features = pattern_names,
+  cols = color_palette,
+  reduction = "umap",
+  combine = FALSE 
+)
+plots <- lapply(plots, function(p) {
+  p + 
+    coord_fixed(ratio = 1) +
+    theme(
+      aspect.ratio = 1,
+      legend.position = "none"
+    )
+})
+legend_plot <- FeaturePlot(
+  invitro,
+  features = pattern_names[1],
+  cols = color_palette,
+  reduction = "umap"
+) +
+  coord_fixed(ratio = 1) +
+  theme(
+    legend.position = "right",
+    legend.title = element_text(size = 10),
+    legend.text = element_text(size = 8)
+  ) +
+  labs(color = "Weight")
+library(cowplot)
+shared_legend <- get_legend(legend_plot)
+combined_plots <- wrap_plots(plots, ncol = 4) 
+final_plot <- plot_grid(
+  combined_plots,
+  shared_legend,
+  ncol = 2,
+  rel_widths = c(1, 0.08)
+)
+print(final_plot)
+save_plot(
+  paste0(output.dir, "invitro_patterns_featureplot.pdf"),
+  final_plot,
+  base_width = 12,
+  base_height = 10
+)
+
+```
+
+```{r NMF QC}
+# Check if patterns have meaningful variance or are dominated by a few cells
+library(reshape2)
+
+pattern_weights <- as.data.frame(t(patterns_in_order))
+pattern_weights$cell <- rownames(pattern_weights)
+weights_long <- melt(pattern_weights, id.vars = "cell", variable.name = "Pattern", value.name = "Weight")
+
+ggplot(weights_long, aes(x = Weight)) +
+    geom_histogram(bins = 50) +
+    facet_wrap(~Pattern, scales = "free_y") +
+    theme_minimal() +
+    ggtitle("Distribution of pattern weights across cells")
+
+# High correlation between patterns suggests redundancy (too many patterns)
+# or that patterns aren't capturing distinct signals (too few iterations or patterns)
+pattern_cor <- cor(t(patterns_in_order))
+print(round(pattern_cor, 3))
+
+# Examine what genes define each pattern
+markers = patternMarkers(cogapsresult, threshold = "cut")
+for (i in 1:ncol(cogapsresult@featureLoadings)) {
+  pattern_name <- colnames(cogapsresult@featureLoadings)[i]
+  cat("\nPattern", i, "markers:\n")
+  
+  # patternMarkers returns a list with PatternMarkers element
+  pattern_markers <- markers$PatternMarkers[[pattern_name]]
+  
+  cat("Number of markers:", length(pattern_markers), "\n")
+  cat("Genes:", paste(pattern_markers, collapse = ", "), "\n")
+}
+
+library(fgsea)
+library(msigdbr)
+
+#' Perform hallmark pathway enrichment for CoGAPS patterns
+#' 
+#' @param cogaps_result CoGAPS result object
+#' @param threshold Threshold for patternMarkers ("cut" or "all")
+#' @param species Species for msigdbr ("Homo sapiens" or "Mus musculus")
+#' @param min_size Minimum gene set size for fgsea
+#' @param max_size Maximum gene set size for fgsea
+#' @return List containing enrichment results per pattern and combined data frame
+pattern_hallmark_enrichment <- function(
+    cogaps_result,
+    threshold = "all",
+    species = "Homo sapiens",
+    min_size = 15,
+    max_size = 500
+) {
+  # Get pattern markers
+  markers <- patternMarkers(cogaps_result, threshold = threshold)
+  # Get feature loadings for ranking (used as statistic for fgsea)
+  feature_loadings <- cogaps_result@featureLoadings
+  # Retrieve MSigDB hallmark gene sets
+  hallmark_sets <- msigdbr(species = species, category = "H") %>%
+    split(x = .$gene_symbol, f = .$gs_name)
+  cat("Retrieved", length(hallmark_sets), "hallmark gene sets\n")
+  cat("Total genes in CoGAPS result:", nrow(feature_loadings), "\n")
+  # Run enrichment for each pattern
+  pattern_names <- colnames(feature_loadings)
+  results_list <- list()
+  for (i in seq_along(pattern_names)) {
+    pattern <- pattern_names[i]
+    cat("\nProcessing", pattern, "...\n")
+    # Create ranked gene list from feature loadings
+    # fgsea uses the ranking to compute enrichment
+    gene_ranks <- feature_loadings[, i]
+    names(gene_ranks) <- rownames(feature_loadings)
+    gene_ranks <- sort(gene_ranks, decreasing = TRUE)
+    # Remove NA or zero variance
+    gene_ranks <- gene_ranks[!is.na(gene_ranks)]
+    # Run fgsea
+    fgsea_res <- fgsea(
+      pathways = hallmark_sets,
+      stats = gene_ranks,
+      minSize = min_size,
+      maxSize = max_size
+    )
+    # Add pattern identifier and sort by adjusted p-value
+    fgsea_res$pattern <- pattern
+    fgsea_res <- fgsea_res[order(fgsea_res$padj), ]
+    # Report significant results
+    sig_pathways <- sum(fgsea_res$padj < 0.05, na.rm = TRUE)
+    cat("  Significant pathways (padj < 0.05):", sig_pathways, "\n")
+    
+    results_list[[pattern]] <- fgsea_res
+  }
+  # Combine into single data frame
+  combined_df <- do.call(rbind, results_list)
+  rownames(combined_df) <- NULL
+  
+  # Create summary of top pathway per pattern
+  top_per_pattern <- combined_df %>%
+    group_by(pattern) %>%
+    slice_min(padj, n = 5, with_ties = FALSE) %>%
+    select(pattern, pathway, NES, padj, size) %>%
+    as.data.frame()
+  
+  return(list(
+    by_pattern = results_list,
+    combined = combined_df,
+    top_summary = top_per_pattern
+  ))
+}
+
+# Run the analysis
+hallmark_results <- pattern_hallmark_enrichment(
+  cogaps_result = cogapsresult,
+  #threshold = "cut",
+  species = "Macaca mulatta"
+)
+
+# View top pathways per pattern
+print(hallmark_results$top_summary)
+
+# Export full results
+# write.csv(
+#   hallmark_results$combined,
+#   "cogaps_hallmark_enrichment.csv",
+#   row.names = FALSE
+# )
+
+
+
+
+#' Plot hallmark enrichment as horizontal bar chart
+#' 
+#' @param hallmark_results Output from pattern_hallmark_enrichment()
+#' @param pattern_name Which pattern to plot (e.g., "Pattern_1")
+#' @param top_n Maximum number of pathways to display
+plot_hallmark_bars <- function(
+    hallmark_results,
+    pattern_name,
+    top_n = 20
+) {
+  
+  # Extract results for specified pattern - no filtering by significance
+  plot_data <- hallmark_results$by_pattern[[pattern_name]] %>%
+    arrange(padj) %>%
+    head(top_n) %>%
+    mutate(
+      pathway = gsub("HALLMARK_", "", pathway),
+      neg_log10_padj = -10 * log10(padj),
+      pathway = factor(pathway, levels = rev(pathway))
+    )
+  
+  if (nrow(plot_data) == 0) {
+    cat("No pathways found for", pattern_name, "\n")
+    return(NULL)
+  }
+  
+  # Significance threshold line: -10 * log10(0.05) = 13.01
+  sig_line <- -10 * log10(0.05)
+  
+  # Create plot
+  p <- ggplot(plot_data, aes(x = pathway, y = neg_log10_padj)) +
+    geom_col(fill = "gray50") +
+    geom_hline(yintercept = sig_line, linetype = "dashed", color = "red") +
+    geom_text(
+      aes(label = sprintf("%.3e", padj)),
+      hjust = -0.1,
+      size = 3
+    ) +
+    coord_flip(clip = "off") +
+    theme_minimal() +
+    theme(
+      axis.text.y = element_text(size = 9),
+      plot.title = element_text(hjust = 0.5, face = "bold"),
+      plot.margin = margin(5, 50, 5, 5)
+    ) +
+    labs(
+      x = "MsigDB Hallmark",
+      y = expression("-10" %*% "log10(FDR q-value)"),
+      title = paste("Overrepresented msigDB hallmarks in", pattern_name)
+    ) +
+    scale_y_continuous(expand = expansion(mult = c(0, 0.15)))
+  
+  return(p)
+}
+
+# Plot for a specific pattern
+p <- plot_hallmark_bars(
+  hallmark_results,
+  pattern_name = "Pattern_7",
+  top_n = 20
+)
+print(p)
+
+# Generate plots for all patterns
+pattern_names <- names(hallmark_results$by_pattern)
+
+pdf(paste0(output.dir, "invitro_hallmarks.pdf"), width = 10, height = 8)
+for (pat in pattern_names) {
+  p <- plot_hallmark_bars(
+    hallmark_results,
+    pattern_name = pat,
+    top_n = 20
+  )
+  if (!is.null(p)) print(p)
+}
+dev.off()
+```
+
+Subsetting for infected vs uninfected
+```{r NMF SIV+ v SIV-}
+joint_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/joint/dataframes/"
+invitro_both <- read.csv(paste0(joint_dir, "Invitro_both.csv"))
+invitro_GEXonly <- read.csv(paste0(joint_dir, "Invitro_onlySingleCell.csv"))
+invitro_SALVEonly <- read.csv(paste0(joint_dir, "Invitro_onlySALVE.csv"))
+invitro_all <- read.csv(paste0(joint_dir, "Invitro_all.csv"))
+
+# first by SALVE
+infected <- rbind(invitro_SALVEonly, invitro_both)
+pattern_matrix <- getSampleFactors(cogapsresult)
+infected_cellids <- infected$cellID
+all_cellids <- rownames(pattern_matrix)
+uninfected_cellids <- setdiff(all_cellids, infected_cellids)
+infected_patterns <- pattern_matrix[rownames(pattern_matrix) %in% infected_cellids, ]
+uninfected_patterns <- pattern_matrix[rownames(pattern_matrix) %in% uninfected_cellids, ]
+
+# Compare pattern usage between subsets
+infected_means <- colMeans(infected_patterns)
+uninfected_means <- colMeans(uninfected_patterns)
+
+comparison_df <- data.frame(
+  pattern = colnames(pattern_matrix),
+  infected_mean = infected_means,
+  uninfected_mean = uninfected_means,
+  log2_fold_change = log2(infected_means / uninfected_means)
+)
+print(comparison_df)
+
+stat_results <- lapply(colnames(pattern_matrix), function(pat) {
+  test <- wilcox.test(
+    infected_patterns[, pat],
+    uninfected_patterns[, pat]
+  )
+  data.frame(
+    pattern = pat,
+    p_value = test$p.value,
+    infected_median = median(infected_patterns[, pat]),
+    uninfected_median = median(uninfected_patterns[, pat])
+  )
+})
+stat_df <- do.call(rbind, stat_results)
+stat_df$p_adj <- p.adjust(stat_df$p_value, method = "BH")
+print(stat_df)
+
+
+
+# plot pattern weight
+plot_data <- rbind(
+  data.frame(
+    cellID = rownames(infected_patterns),
+    group = "infected",
+    as.data.frame(infected_patterns)
+  ),
+  data.frame(
+    cellID = rownames(uninfected_patterns),
+    group = "uninfected",
+    as.data.frame(uninfected_patterns)
+  )
+)
+plot_long <- pivot_longer(
+  plot_data,
+  cols = -c(cellID, group),
+  names_to = "pattern",
+  values_to = "weight"
+)
+max_weights <- plot_long %>%
+  group_by(pattern) %>%
+  summarise(ymax = max(weight), .groups = "drop")
+sig_data <- merge(stat_df, max_weights, by = "pattern")
+sig_data$y_pos <- sig_data$ymax * 1.05
+sig_data$label <- case_when(
+  sig_data$p_adj < 0.001 ~ "***",
+  sig_data$p_adj < 0.01 ~ "**",
+  sig_data$p_adj < 0.05 ~ "*",
+  TRUE ~ "ns"
+)
+ggplot(plot_long, aes(x = pattern, y = weight, fill = group)) +
+  geom_boxplot(outlier.size = 0.5) +
+  geom_text(
+    data = sig_data,
+    aes(x = pattern, y = y_pos, label = label),
+    inherit.aes = FALSE,
+    size = 4
+  ) +
+  scale_fill_manual(values = c("infected" = "red", "uninfected" = "gray")) +
+  theme_minimal() +
+  labs(y = "Pattern Weight", x = "Pattern") +
+  theme(legend.position = "right")
+ggsave(paste0(output.dir, "invitro_SIVposneg_patternweight.pdf"))
+
+
+# plot log2FC
+ggplot(comparison_df, aes(x = pattern, y = log2_fold_change, fill = log2_fold_change > 0)) +
+  geom_col() +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  scale_fill_manual(
+    values = c("TRUE" = "red", "FALSE" = "gray"),
+    labels = c("TRUE" = "Higher in infected", "FALSE" = "Higher in uninfected"),
+    name = "Direction"
+  ) +
+  theme_minimal() +
+  labs(y = "Log2 Fold Change (infected/uninfected)", x = "Pattern") +
+  # Add significance markers
+  geom_text(
+    data = merge(comparison_df, stat_df[, c("pattern", "p_adj")], by = "pattern"),
+    aes(label = case_when(
+      p_adj < 0.001 ~ "***",
+      p_adj < 0.01 ~ "**",
+      p_adj < 0.05 ~ "*",
+      TRUE ~ ""
+    )),
+    vjust = ifelse(comparison_df$log2_fold_change > 0, -0.5, 1.5),
+    size = 4
+  )
+ggsave(paste0(output.dir, "invitro_SIVposneg_log2fc.pdf"))
+```
+
+Subsetting for splice+SIV+ vs splice-SIV+
+```{r NMF splice+ v splice-}
+joint_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/joint/dataframes/"
+invitro_both <- read.csv(paste0(joint_dir, "Invitro_both.csv"))
+invitro_GEXonly <- read.csv(paste0(joint_dir, "Invitro_onlySingleCell.csv"))
+invitro_SALVEonly <- read.csv(paste0(joint_dir, "Invitro_onlySALVE.csv"))
+invitro_all <- read.csv(paste0(joint_dir, "Invitro_all.csv"))
+
+# first by SALVE
+infected <- rbind(invitro_SALVEonly, invitro_both)
+splicers <- infected %>%
+  filter(SS > 0 | MS > 0)
+nonsplicers <- anti_join(infected, splicers, by = "cellID") #setdiff also works
+pattern_matrix <- getSampleFactors(cogapsresult)
+splicers_cellids <- splicers$cellID
+nonsplicers_cellids <- nonsplicers$cellID
+splicers_patterns <- pattern_matrix[rownames(pattern_matrix) %in% splicers_cellids, ]
+nonsplicers_patterns <- pattern_matrix[rownames(pattern_matrix) %in% nonsplicers_cellids, ]
+
+# Compare pattern usage between subsets
+splicers_means <- colMeans(splicers_patterns)
+nonsplicers_means <- colMeans(nonsplicers_patterns)
+
+comparison_df <- data.frame(
+  pattern = colnames(pattern_matrix),
+  splicers_mean = splicers_means,
+  nonsplicers_mean = nonsplicers_means,
+  log2_fold_change = log2(splicers_means / nonsplicers_means)
+)
+#print(comparison_df)
+
+stat_results <- lapply(colnames(pattern_matrix), function(pat) {
+  test <- wilcox.test(
+    splicers_patterns[, pat],
+    nonsplicers_patterns[, pat]
+  )
+  data.frame(
+    pattern = pat,
+    p_value = test$p.value,
+    splicers_median = median(splicers_patterns[, pat]),
+    nonsplicers_median = median(nonsplicers_patterns[, pat])
+  )
+})
+stat_df <- do.call(rbind, stat_results)
+stat_df$p_adj <- p.adjust(stat_df$p_value, method = "BH")
+#print(stat_df)
+
+
+
+# plot pattern weight
+plot_data <- rbind(
+  data.frame(
+    cellID = rownames(splicers_patterns),
+    group = "splicers",
+    as.data.frame(splicers_patterns)
+  ),
+  data.frame(
+    cellID = rownames(nonsplicers_patterns),
+    group = "nonsplicers",
+    as.data.frame(nonsplicers_patterns)
+  )
+)
+plot_long <- pivot_longer(
+  plot_data,
+  cols = -c(cellID, group),
+  names_to = "pattern",
+  values_to = "weight"
+)
+max_weights <- plot_long %>%
+  group_by(pattern) %>%
+  summarise(ymax = max(weight), .groups = "drop")
+sig_data <- merge(stat_df, max_weights, by = "pattern")
+sig_data$y_pos <- sig_data$ymax * 1.05
+sig_data$label <- case_when(
+  sig_data$p_adj < 0.001 ~ "***",
+  sig_data$p_adj < 0.01 ~ "**",
+  sig_data$p_adj < 0.05 ~ "*",
+  TRUE ~ "ns"
+)
+ggplot(plot_long, aes(x = pattern, y = weight, fill = group)) +
+  geom_boxplot(outlier.size = 0.5) +
+  geom_text(
+    data = sig_data,
+    aes(x = pattern, y = y_pos, label = label),
+    inherit.aes = FALSE,
+    size = 4
+  ) +
+  scale_fill_manual(values = c("splicers" = "orange", "nonsplicers" = "purple")) +
+  theme_minimal() +
+  labs(y = "Pattern Weight", x = "Pattern") +
+  theme(legend.position = "right")
+ggsave(paste0(output.dir, "invitro_spliceNonsplice_patternweight.pdf"))
+
+
+# plot log2FC
+ggplot(comparison_df, aes(x = pattern, y = log2_fold_change, fill = log2_fold_change > 0)) +
+  geom_col() +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  scale_fill_manual(
+    values = c("TRUE" = "orange", "FALSE" = "purple"),
+    labels = c("TRUE" = "Higher in splicers", "FALSE" = "Higher in nonsplicers"),
+    name = "Direction"
+  ) +
+  theme_minimal() +
+  labs(y = "Log2 Fold Change (splicers/nonsplicers)", x = "Pattern") +
+  # Add significance markers
+  geom_text(
+    data = merge(comparison_df, stat_df[, c("pattern", "p_adj")], by = "pattern"),
+    aes(label = case_when(
+      p_adj < 0.001 ~ "***",
+      p_adj < 0.01 ~ "**",
+      p_adj < 0.05 ~ "*",
+      TRUE ~ ""
+    )),
+    vjust = ifelse(comparison_df$log2_fold_change > 0, -0.5, 1.5),
+    size = 4
+  )
+ggsave(paste0(output.dir, "invitro_spliceNonsplice_log2fc.pdf"))
+```
+
 
 
 ## Saturation analysis
@@ -3194,3 +4251,1038 @@ rownames(df_transposed) <- c("Inside_Rows", "Inside_Total_Reads", "Outside_Rows"
 df_transposed <- rbind(df_transposed, Inside_Fraction = round(df_transposed["Inside_Total_Reads",] / df_transposed["Outside_Total_Reads",], 2), Avg_Inside_Reads = round(df_transposed["Inside_Total_Reads",] / df_transposed["Inside_Rows",], 2))
 
 ```
+
+
+# HCR
+Comparing EGS016 sequencing to EGS023 FISH
+```{r}
+# Loading
+samples <-  c(
+    "Invitro"
+)
+
+SALVE.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/SALVE/bamsort/reads/v6/minimum/"
+GEX.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/bamsort/reads/v6/minimum/"
+
+joint_data <- list()
+
+for (i in 1:length(samples)) {
+  sample_name <- samples[i]
+  
+  # Read all data files
+  salve_file <- paste0(SALVE.dir, sample_name, "_SALVE_filtered.csv")
+  gex_file <- paste0(GEX.dir, sample_name, "_GEX_filtered.csv")
+  umap_file <- paste0("/projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/Seurat/UMAPcoords/", 
+                      sample_name, "UMAP_coords.csv")
+  cd4_file <- paste0("/projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/Seurat/expressionDF/", 
+                     sample_name, "_CD4T.csv")
+  
+  salve_data <- if(file.exists(salve_file)) read.csv(salve_file) else NULL
+  gex_data <- if(file.exists(gex_file)) read.csv(gex_file) else NULL
+  umap_data <- if(file.exists(umap_file)) read.csv(umap_file, row.names = "X") else NULL
+  cd4_data <- if(file.exists(cd4_file)) read.csv(cd4_file, row.names = "X") else NULL
+  
+  # Skip if no data at all
+  if (is.null(salve_data) && is.null(gex_data) && is.null(umap_data)) {
+    cat("Skipping", sample_name, ": no data\n")
+    next
+  }
+  
+  # Get cellIDs from Mmul_10 only df
+  all_cells <- as.character(umap_data$cellID)
+  all_cells <- unique(all_cells)
+  
+  # Create base dataframe
+  result <- data.frame(cellID = all_cells)
+  
+  # Add UMAP data
+  if (!is.null(umap_data)) {
+    umap_processed <- umap_data %>%
+      select(-V2, -sample)
+    result <- left_join(result, umap_processed, by = "cellID")
+  }
+  
+  # Add GEX data
+  if (!is.null(gex_data)) {
+    gex_processed <- gex_data %>%
+      mutate(cellID = as.character(cellID)) %>%
+      select(cellID, total, US)
+    result <- left_join(result, gex_processed, by = "cellID") %>%
+      mutate(GEX = log1p(total)) %>%
+      mutate(GEX.US = US) %>%
+      select(-total, -US)
+  } else {
+    result$GEX <- 0
+  }
+  
+  # Add SALVE data
+  if (!is.null(salve_data)) {
+    salve_processed <- salve_data %>%
+      #group_by(cellID) %>%
+      rename(SALVE = total) %>%
+      mutate(cellID = as.character(cellID)) %>%
+      select(cellID, SALVE, US, SS, MS, SS.MS)
+    result <- left_join(result, salve_processed, by = "cellID") %>%
+      mutate(SALVE = log1p(SALVE)) %>%
+      mutate(spliced = SS + MS + SS.MS)
+  } else {
+    result$SALVE <- 0
+  }
+  
+  # Replace NAs with 0
+  result[is.na(result)] <- 0
+  
+  # Cell type filtering
+  cd4_data <- cd4_data %>%
+    mutate(CD3 = ifelse(CD3D > 0 | CD3E > 0 | CD3G > 0, 1, 0)) %>%
+    mutate(CD4 = ifelse(CD4 > 0 , 1, 0)) %>%
+    mutate(CD8 = ifelse(CD8A > 0 , 1, 0)) %>%
+    select(cellID, CD4, CD3, CD8)
+  result <- left_join(result, cd4_data, by = "cellID")
+  result <- result %>%
+    mutate(across(any_of(c("GEX", "GEX.US")), 
+              ~ ifelse(CD4 > 0 & CD3 > 0, .x, 0))) %>% 
+    mutate(across(any_of(c("SALVE", "US", "MS", "SS")), 
+              ~ ifelse(CD4 > 0 & CD3 > 0, .x, 0))) %>%
+    filter(CD4 == 0 | CD8 == 0) %>% # exclude cells CD4+ and CD8+
+    select(-CD8, -CD3, -CD4)
+  
+  joint_data[[sample_name]] <- result
+  cat("Processed", sample_name, "\n")
+}
+
+df <- joint_data[["Invitro"]]
+
+exp1 <- df %>%
+  filter(SALVE > 0) %>%
+  select(US, SS, MS, spliced, SALVE) %>%
+  rename(total = SALVE)
+exp2 <- df %>%
+  filter(GEX > 0) %>%
+  select(GEX.US, GEX) %>%
+  mutate(SS = 0, MS = 0, spliced = 0) %>%
+  rename(US = GEX.US, total = GEX)
+
+HCR.data <- read.csv("/projects/b1042/GoyalLab/egrody/extractedData/EGS023/big-FISH/manual/all_cells_stats.csv")
+fish <- HCR.data %>%
+  filter(n_total_spots > 1) %>%
+  select(n_US, n_SS, n_MS, n_total_spots) %>%
+  rename(US = n_US, SS = n_SS, MS = n_MS, total = n_total_spots) %>%
+  mutate(spliced = SS + MS) 
+
+input_dir="/projects/b1042/GoyalLab/egrody/extractedData/EGS007/longRead/bamsort/isoform/"
+longread <- read.csv(paste0(input_dir, "cDNA_isoforms.csv"))
+longread <- longread %>%
+  count(cellID, isoform) %>%
+  pivot_wider(names_from = isoform, values_from = n, values_fill = 0) %>%
+  mutate(spliced = MS + SS, total = US + MS + SS + any) %>%
+  select(-cellID, -any)
+
+#run combined section under Joint to get the combined_data df
+# combined <- combined_data[["Invitro"]]
+# combined <- combined %>%
+#   mutate(spliced = SS + MS + SS-MS) %>%
+#   select(US, SS, MS, spliced, total) %>%
+#   filter(total > 0)
+
+```
+
+ECDF
+```{r ECDF}
+#for plotting
+fishlog <- fish %>%
+  mutate(across(everything(), log1p))
+exp1log <- exp1 %>%
+  mutate(across(everything(), log1p))
+exp2log <- exp2 %>%
+  mutate(across(everything(), log1p))
+longreadlog <- longread %>%
+  mutate(across(everything(), log1p))
+
+
+variables <- c("US", "SS", "MS", "spliced", "total")
+
+compute_wasserstein_with_context <- function(exp_vec, ref_vec, n_boot = 1000, seed = 123) {
+  set.seed(seed)
+  
+  # Observed Wasserstein
+  w_obs <- wasserstein1d(exp_vec, ref_vec)
+  
+  # Reference distribution statistics for normalization
+  ref_sd <- sd(ref_vec)
+  ref_iqr <- IQR(ref_vec)
+  ref_mean <- mean(ref_vec)
+  
+  # Normalized Wasserstein (in units of reference SD)
+  w_normalized <- w_obs / ref_sd
+  
+  # Bootstrap CI for Wasserstein
+  n_exp <- length(exp_vec)
+  n_ref <- length(ref_vec)
+  boot_w <- numeric(n_boot)
+  
+  for (i in seq_len(n_boot)) {
+    boot_exp <- sample(exp_vec, n_exp, replace = TRUE)
+    boot_ref <- sample(ref_vec, n_ref, replace = TRUE)
+    boot_w[i] <- wasserstein1d(boot_exp, boot_ref)
+  }
+  
+  boot_ci <- quantile(boot_w, probs = c(0.025, 0.975))
+  boot_se <- sd(boot_w)
+  
+  # Permutation test: H0 = distributions are identical
+  pooled <- c(exp_vec, ref_vec)
+  n_perm <- 1000
+  perm_w <- numeric(n_perm)
+  
+  for (i in seq_len(n_perm)) {
+    perm_idx <- sample(length(pooled))
+    perm_exp <- pooled[perm_idx[1:n_exp]]
+    perm_ref <- pooled[perm_idx[(n_exp + 1):length(pooled)]]
+    perm_w[i] <- wasserstein1d(perm_exp, perm_ref)
+  }
+  
+  # One-sided p-value: P(W_perm >= W_obs)
+  p_value <- mean(perm_w >= w_obs)
+  
+  list(
+    wasserstein = w_obs,
+    wasserstein_normalized = w_normalized,
+    ci_lower = boot_ci[1],
+    ci_upper = boot_ci[2],
+    boot_se = boot_se,
+    p_value = p_value,
+    ref_sd = ref_sd,
+    ref_mean = ref_mean
+  )
+}
+
+# --- Compute full statistics ---
+compute_comparison_stats <- function(exp_raw, exp_log, ref_raw, ref_log, variables,
+                                      n_boot = 1000, seed = 123) {
+  
+  results <- lapply(variables, function(var) {
+    # KS test on log scale
+    ks_test <- suppressWarnings(ks.test(exp_log[[var]], ref_log[[var]]))
+    
+    # Wasserstein with context on raw scale
+    w_context <- compute_wasserstein_with_context(
+      exp_raw[[var]], ref_raw[[var]], n_boot = n_boot, seed = seed
+    )
+    
+    data.frame(
+      variable = var,
+      ks_d = ks_test$statistic,
+      ks_p = ks_test$p.value,
+      wasserstein = w_context$wasserstein,
+      w_normalized = w_context$wasserstein_normalized,
+      w_ci_lower = w_context$ci_lower,
+      w_ci_upper = w_context$ci_upper,
+      w_se = w_context$boot_se,
+      w_pvalue = w_context$p_value,
+      ref_sd = w_context$ref_sd,
+      ref_mean = w_context$ref_mean
+    )
+  })
+  
+  bind_rows(results)
+}
+
+results_salve <- compute_comparison_stats(exp1, exp1log, fish, fishlog, variables)
+results_gex <- compute_comparison_stats(exp2, exp2log, fish, fishlog, variables)
+results_longread <- compute_comparison_stats(longread, longreadlog, fish, fishlog, variables)
+
+print(results_salve)
+print(results_gex)
+print(results_longread)
+
+# --- Plotting function ---
+plot_ecdf_comparison <- function(exp_raw, exp_log, ref_raw, ref_log,
+                                  variables = c("US", "SS", "MS", "spliced", "total"),
+                                  exp_name = "SALVE", ref_name = "HCR",
+                                  n_boot = 1000, seed = 123) {
+  
+  plot_list <- lapply(variables, function(var) {
+    
+    # KS test
+    ks_test <- suppressWarnings(ks.test(exp_log[[var]], ref_log[[var]]))
+    
+    # Wasserstein with context
+    w_ctx <- compute_wasserstein_with_context(
+      exp_raw[[var]], ref_raw[[var]], n_boot = n_boot, seed = seed
+    )
+    
+    # Data for plotting
+    plot_df <- data.frame(
+      value = c(exp_log[[var]], ref_log[[var]]),
+      method = factor(
+        rep(c(exp_name, ref_name), times = c(nrow(exp_log), nrow(ref_log))),
+        levels = c(exp_name, ref_name)
+      )
+    )
+    
+    # Format annotation with context
+    # Show normalized W (in SDs) and significance
+    sig_symbol <- ifelse(w_ctx$p_value < 0.001, "***",
+                  ifelse(w_ctx$p_value < 0.01, "**",
+                  ifelse(w_ctx$p_value < 0.05, "*", "ns")))
+    
+    annotation <- sprintf(
+      "D = %.2f\nW = %.1f (%.1f SD)%s",
+      ks_test$statistic,
+      w_ctx$wasserstein,
+      w_ctx$wasserstein_normalized,
+      sig_symbol
+    )
+    
+    ggplot(plot_df, aes(x = value, color = method)) +
+      stat_ecdf(linewidth = 0.8) +
+      scale_color_manual(values = c("blue", "red")) +
+      annotate("text", x = -Inf, y = Inf, label = annotation,
+               hjust = -0.1, vjust = 1.3, size = 2.8) +
+      theme_bw() +
+      theme(
+        aspect.ratio = 1,
+        legend.position = "bottom",
+        legend.title = element_blank(),
+        plot.title = element_text(hjust = 0.5, face = "bold", size = 10)
+      ) +
+      labs(
+        title = var,
+        x = "Counts (log1p)",
+        y = "Cumulative Probability"
+      )
+  })
+  
+  wrap_plots(plot_list, nrow = 1) +
+    plot_layout(guides = "collect") &
+    theme(legend.position = "bottom")
+}
+
+p_salve <- plot_ecdf_comparison(exp1, exp1log, fish, fishlog,
+                                 exp_name = "SALVE", ref_name = "HCR")
+p_gex <- plot_ecdf_comparison(exp2, exp2log, fish, fishlog,
+                               exp_name = "GEX", ref_name = "HCR")
+p_long <- plot_ecdf_comparison(longread, longreadlog, fish, fishlog,
+                               exp_name = "longread", ref_name = "HCR")
+
+output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS023/plots/"
+ggsave(paste0(output.dir, "ecdf_SALVE.pdf"), p_salve, width = 15, height = 4)
+ggsave(paste0(output.dir, "ecdf_GEX.pdf"), p_gex, width = 15, height = 4)
+ggsave(paste0(output.dir, "ecdf_longread.pdf"), p_long, width = 15, height = 4)
+
+
+p_salve
+p_gex
+p_long
+```
+
+New three tests for all three methods vs HCR
+```{r}
+compare_methods_to_reference <- function(
+    method_list,
+    ref_vec,
+    var_name = "Variable",
+    n_boot = 2000,
+    n_perm = 2000,
+    seed = 123
+) {
+  set.seed(seed)
+  
+  method_names <- names(method_list)
+  n_methods <- length(method_list)
+  
+  for (nm in method_names) {
+    stopifnot(all(method_list[[nm]] >= 0))
+  }
+  stopifnot(all(ref_vec >= 0))
+  
+  # Normalize to probability distribution with Laplace smoothing
+  normalize <- function(x, max_val) {
+    tab <- table(factor(x, levels = 0:max_val))
+    (as.numeric(tab) + 1e-10) / (sum(tab) + 1e-10 * (max_val + 1))
+  }
+  
+  # Compute distance metrics between two vectors
+  compute_distances <- function(vec1, vec2) {
+    max_val <- max(c(vec1, vec2))
+    p1 <- normalize(vec1, max_val)
+    p2 <- normalize(vec2, max_val)
+    
+    ks_stat <- suppressWarnings(ks.test(vec1, vec2)$statistic)
+    js_val <- sqrt(philentropy::JSD(rbind(p1, p2), unit = "log2", est.prob = NULL))
+    
+    result <- c(as.numeric(ks_stat), as.numeric(js_val), transport::wasserstein1d(vec1, vec2))
+    names(result) <- c("ks", "js", "wasserstein")
+    result
+  }
+  
+  # Permutation test for two-sample comparison
+  # Tests H0: two samples come from same distribution
+  perm_test_distribution <- function(vec1, vec2, obs_dist, n_perm) {
+    pooled <- c(vec1, vec2)
+    n1 <- length(vec1)
+    n2 <- length(vec2)
+    
+    perm_stats <- matrix(NA, nrow = n_perm, ncol = 3)
+    
+    for (i in seq_len(n_perm)) {
+      perm_idx <- sample(length(pooled))
+      perm1 <- pooled[perm_idx[1:n1]]
+      perm2 <- pooled[perm_idx[(n1 + 1):(n1 + n2)]]
+      perm_stats[i, ] <- compute_distances(perm1, perm2)
+    }
+    
+    # One-sided p-value: proportion >= observed (Phipson & Smyth 2010)
+    sapply(seq_len(3), function(j) {
+      (sum(perm_stats[, j] >= obs_dist[j]) + 1) / (n_perm + 1)
+    })
+  }
+  
+  # Permutation test for difference in distances to reference
+  # Tests H0: method1 and method2 are equally distant from reference
+  # Returns: p-value and direction (which method is closer)
+  perm_test_distance_difference <- function(vec1, vec2, ref_vec, n_perm) {
+    n1 <- length(vec1)
+    n2 <- length(vec2)
+    
+    # Observed distances to reference
+    obs_d1 <- compute_distances(vec1, ref_vec)
+    obs_d2 <- compute_distances(vec2, ref_vec)
+    obs_diff <- obs_d1 - obs_d2  # Negative = vec1 closer to ref
+    
+    # Pool the two method vectors and permute labels
+    pooled <- c(vec1, vec2)
+    perm_diffs <- matrix(NA, nrow = n_perm, ncol = 3)
+    
+    for (i in seq_len(n_perm)) {
+      perm_idx <- sample(length(pooled))
+      perm1 <- pooled[perm_idx[1:n1]]
+      perm2 <- pooled[perm_idx[(n1 + 1):(n1 + n2)]]
+      
+      d1 <- compute_distances(perm1, ref_vec)
+      d2 <- compute_distances(perm2, ref_vec)
+      perm_diffs[i, ] <- d1 - d2
+    }
+    
+    # Two-sided p-value
+    pvals <- sapply(seq_len(3), function(j) {
+      (sum(abs(perm_diffs[, j]) >= abs(obs_diff[j])) + 1) / (n_perm + 1)
+    })
+    names(pvals) <- c("ks", "js", "wasserstein")
+    
+    list(
+      obs_diff = obs_diff,
+      pval = pvals,
+      perm_diffs = perm_diffs
+    )
+  }
+  
+  # Bootstrap CI for distance estimate
+  boot_ci <- function(vec1, vec2, n_boot) {
+    n1 <- length(vec1)
+    n2 <- length(vec2)
+    
+    boot_stats <- matrix(NA, nrow = n_boot, ncol = 3)
+    
+    for (i in seq_len(n_boot)) {
+      b1 <- sample(vec1, n1, replace = TRUE)
+      b2 <- sample(vec2, n2, replace = TRUE)
+      boot_stats[i, ] <- compute_distances(b1, b2)
+    }
+    
+    list(
+      ci_lower = apply(boot_stats, 2, quantile, probs = 0.025),
+      ci_upper = apply(boot_stats, 2, quantile, probs = 0.975),
+      se = apply(boot_stats, 2, sd)
+    )
+  }
+  
+  # Compute distances from each method to reference
+  dist_to_ref <- list()
+  ci_to_ref <- list()
+  pval_to_ref <- list()
+  
+  for (nm in method_names) {
+    dist_to_ref[[nm]] <- compute_distances(method_list[[nm]], ref_vec)
+    ci_to_ref[[nm]] <- boot_ci(method_list[[nm]], ref_vec, n_boot)
+    pval_to_ref[[nm]] <- perm_test_distribution(method_list[[nm]], ref_vec, dist_to_ref[[nm]], n_perm)
+    names(pval_to_ref[[nm]]) <- c("ks", "js", "wasserstein")
+  }
+  
+  # Compute paired-distance tests: is method A closer to ref than method B?
+  paired_distance_tests <- list()
+  
+  for (i in seq_len(n_methods - 1)) {
+    for (j in (i + 1):n_methods) {
+      nm1 <- method_names[i]
+      nm2 <- method_names[j]
+      pair_key <- paste0(nm1, "_vs_", nm2)
+      
+      test_result <- perm_test_distance_difference(
+        method_list[[nm1]], 
+        method_list[[nm2]], 
+        ref_vec, 
+        n_perm
+      )
+      
+      # Determine which method is closer for each metric
+      closer <- ifelse(test_result$obs_diff < 0, nm1, nm2)
+      names(closer) <- c("ks", "js", "wasserstein")
+      
+      paired_distance_tests[[pair_key]] <- list(
+        obs_diff = test_result$obs_diff,
+        pval = test_result$pval,
+        closer = closer
+      )
+    }
+  }
+  
+  # Compile results into data frame format
+  metrics <- c("KS", "JS", "Wasserstein")
+  
+  distance_df <- data.frame(
+    variable = var_name,
+    metric = rep(metrics, each = n_methods + 1),
+    method = rep(c(method_names, "HCR"), 3),
+    distance = NA_real_,
+    ci_lower = NA_real_,
+    ci_upper = NA_real_,
+    pval_vs_ref = NA_real_
+  )
+  
+  for (m in seq_along(metrics)) {
+    metric_key <- c("ks", "js", "wasserstein")[m]
+    for (i in seq_along(method_names)) {
+      nm <- method_names[i]
+      row_idx <- (m - 1) * (n_methods + 1) + i
+      distance_df$distance[row_idx] <- dist_to_ref[[nm]][metric_key]
+      distance_df$ci_lower[row_idx] <- ci_to_ref[[nm]]$ci_lower[metric_key]
+      distance_df$ci_upper[row_idx] <- ci_to_ref[[nm]]$ci_upper[metric_key]
+      distance_df$pval_vs_ref[row_idx] <- pval_to_ref[[nm]][metric_key]
+    }
+    ref_row_idx <- (m - 1) * (n_methods + 1) + n_methods + 1
+    distance_df$distance[ref_row_idx] <- 0
+    distance_df$ci_lower[ref_row_idx] <- 0
+    distance_df$ci_upper[ref_row_idx] <- 0
+    distance_df$pval_vs_ref[ref_row_idx] <- NA
+  }
+  
+  list(
+    variable = var_name,
+    method_names = method_names,
+    distance_df = distance_df,
+    dist_to_ref = dist_to_ref,
+    pval_to_ref = pval_to_ref,
+    paired_distance_tests = paired_distance_tests
+  )
+}
+
+plot_barplot_comparison <- function(
+    results_list,
+    var_names = c("US", "spliced", "SS", "MS", "total"),
+    method_names = c("SALVE", "GEX", "longread"),
+    ref_name = "HCR",
+    output_file = NULL,
+    width = 16,
+    height = 14
+) {
+  
+  format_sig <- function(p) {
+    if (is.na(p)) return("")
+    if (p < 0.001) return("***")
+    if (p < 0.01) return("**")
+    if (p < 0.05) return("*")
+    return("n.s.")
+  }
+  
+  format_pval <- function(p) {
+    if (is.na(p)) return("")
+    if (p < 0.0001) return("p<1e-4")
+    if (p < 0.001) return(sprintf("p=%.0e", p))
+    return(sprintf("p=%.3f", p))
+  }
+  
+  all_dist <- do.call(rbind, lapply(results_list, function(r) r$distance_df))
+  
+  all_methods <- c(method_names, ref_name)
+  all_dist$method <- factor(all_dist$method, levels = all_methods)
+  all_dist$variable <- factor(all_dist$variable, levels = var_names)
+  
+  method_colors <- c("#E41A1C", "#377EB8", "#984EA3", "#4DAF4A")
+  names(method_colors) <- all_methods
+  
+  # Extract paired-distance p-values (tests if one method is closer to ref than another)
+  get_paired_distance_pval <- function(result, metric_key, m1, m2) {
+    pair_key <- paste0(m1, "_vs_", m2)
+    alt_key <- paste0(m2, "_vs_", m1)
+    
+    if (pair_key %in% names(result$paired_distance_tests)) {
+      return(result$paired_distance_tests[[pair_key]]$pval[metric_key])
+    } else if (alt_key %in% names(result$paired_distance_tests)) {
+      return(result$paired_distance_tests[[alt_key]]$pval[metric_key])
+    }
+    return(NA)
+  }
+  
+  create_metric_plot <- function(metric_name, metric_label) {
+    
+    df <- all_dist[all_dist$metric == metric_name, ]
+    metric_key <- tolower(metric_name)
+    
+    y_max_per_var <- tapply(df$ci_upper, df$variable, max, na.rm = TRUE)
+    dist_max <- tapply(df$distance, df$variable, max, na.rm = TRUE)
+    y_max_per_var[is.na(y_max_per_var) | y_max_per_var == 0] <- dist_max[is.na(y_max_per_var) | y_max_per_var == 0]
+    
+    p <- ggplot(df, aes(x = variable, y = distance, fill = method)) +
+      geom_bar(stat = "identity", position = position_dodge(width = 0.85), width = 0.75) +
+      geom_errorbar(
+        aes(ymin = ci_lower, ymax = ci_upper),
+        position = position_dodge(width = 0.85),
+        width = 0.2,
+        linewidth = 0.4
+      ) +
+      scale_fill_manual(values = method_colors) +
+      labs(
+        title = metric_label,
+        x = NULL,
+        y = "Distance to HCR Reference",
+        fill = "Method"
+      ) +
+      theme_bw() +
+      theme(
+        plot.title = element_text(hjust = 0.5, face = "bold", size = 14),
+        legend.position = "bottom",
+        panel.grid.minor = element_blank(),
+        panel.grid.major.x = element_blank(),
+        axis.text.x = element_text(size = 11, face = "bold")
+      )
+    
+    n_methods_total <- length(all_methods)
+    dodge_width <- 0.85
+    bar_positions <- seq(-1.5, 1.5, length.out = n_methods_total) * (dodge_width / n_methods_total)
+    
+    for (i in seq_along(var_names)) {
+      var <- var_names[i]
+      result <- results_list[[i]]
+      
+      y_base <- y_max_per_var[var] * 1.08
+      y_step <- y_max_per_var[var] * 0.10
+      
+      bracket_count <- 0
+      
+      # Comparisons to reference (methods vs HCR): tests if distributions differ
+      for (m_idx in seq_along(method_names)) {
+        m <- method_names[m_idx]
+        pval <- result$pval_to_ref[[m]][metric_key]
+        
+        x_method <- i + bar_positions[m_idx]
+        x_ref <- i + bar_positions[n_methods_total]
+        y_bracket <- y_base + bracket_count * y_step
+        
+        sig <- format_sig(pval)
+        label <- paste0(format_pval(pval), " ", sig)
+        
+        p <- p +
+          annotate("segment", x = x_method, xend = x_method, 
+                   y = y_bracket, yend = y_bracket + y_step * 0.25, linewidth = 0.3) +
+          annotate("segment", x = x_method, xend = x_ref, 
+                   y = y_bracket + y_step * 0.25, yend = y_bracket + y_step * 0.25, linewidth = 0.3) +
+          annotate("segment", x = x_ref, xend = x_ref, 
+                   y = y_bracket, yend = y_bracket + y_step * 0.25, linewidth = 0.3) +
+          annotate("text", x = (x_method + x_ref) / 2, y = y_bracket + y_step * 0.45, 
+                   label = label, size = 2.0)
+        
+        bracket_count <- bracket_count + 1
+      }
+      
+      # Paired-distance comparisons: tests if one method is closer to ref than another
+      for (m1_idx in seq_len(length(method_names) - 1)) {
+        for (m2_idx in (m1_idx + 1):length(method_names)) {
+          m1 <- method_names[m1_idx]
+          m2 <- method_names[m2_idx]
+          
+          pval <- get_paired_distance_pval(result, metric_key, m1, m2)
+          
+          x1 <- i + bar_positions[m1_idx]
+          x2 <- i + bar_positions[m2_idx]
+          y_bracket <- y_base + bracket_count * y_step
+          
+          sig <- format_sig(pval)
+          label <- paste0(format_pval(pval), " ", sig)
+          
+          p <- p +
+            annotate("segment", x = x1, xend = x1, 
+                     y = y_bracket, yend = y_bracket + y_step * 0.25, linewidth = 0.3) +
+            annotate("segment", x = x1, xend = x2, 
+                     y = y_bracket + y_step * 0.25, yend = y_bracket + y_step * 0.25, linewidth = 0.3) +
+            annotate("segment", x = x2, xend = x2, 
+                     y = y_bracket, yend = y_bracket + y_step * 0.25, linewidth = 0.3) +
+            annotate("text", x = (x1 + x2) / 2, y = y_bracket + y_step * 0.45, 
+                     label = label, size = 3.0)
+          
+          bracket_count <- bracket_count + 1
+        }
+      }
+    }
+    
+    max_y <- max(y_max_per_var, na.rm = TRUE) * 2.0
+    p <- p + coord_cartesian(ylim = c(0, max_y))
+    
+    p
+  }
+  
+  p_ks <- create_metric_plot("KS", "Kolmogorov-Smirnov Distance")
+  p_js <- create_metric_plot("JS", "Jensen-Shannon Divergence")
+  p_w <- create_metric_plot("Wasserstein", "Wasserstein Distance")
+  
+  combined <- gridExtra::arrangeGrob(p_ks, p_js, p_w, nrow = 3)
+  
+  if (!is.null(output_file)) {
+    ggplot2::ggsave(output_file, combined, width = width, height = height)
+    message("Saved: ", output_file)
+  }
+  
+  grid::grid.draw(combined)
+  invisible(list(plot = combined, ks = p_ks, js = p_js, wasserstein = p_w))
+}
+
+
+
+# Run comparison for each variable:
+results_US <- compare_methods_to_reference(
+  method_list = list(
+    SALVE = exp1$US,
+    GEX = exp2$US,
+    longread = longread$US
+  ),
+  ref_vec = fish$US,
+  var_name = "US"
+)
+
+results_SS <- compare_methods_to_reference(
+  method_list = list(
+    SALVE = exp1$SS,
+    GEX = exp2$SS,
+    longread = longread$SS
+  ),
+  ref_vec = fish$SS,
+  var_name = "SS"
+)
+
+results_MS <- compare_methods_to_reference(
+  method_list = list(
+    SALVE = exp1$MS,
+    GEX = exp2$MS,
+    longread = longread$MS
+  ),
+  ref_vec = fish$MS,
+  var_name = "MS"
+)
+
+results_spliced <- compare_methods_to_reference(
+  method_list = list(
+    SALVE = exp1$spliced,
+    GEX = exp2$spliced,
+    longread = longread$spliced
+  ),
+  ref_vec = fish$spliced,
+  var_name = "spliced"
+)
+
+
+# Compile and plot
+results_list <- list(results_US, results_spliced, results_SS, results_MS)
+output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS023/plots/"
+
+plot_barplot_comparison(
+  results_list = results_list,
+  var_names = c("US", "spliced", "SS", "MS"),
+  method_names = c("SALVE", "GEX", "longread"),
+  ref_name = "HCR",
+  output_file = paste0(output.dir, "four_method_comparison.pdf"),
+  width = 16,
+  height = 14
+)
+```
+
+```{r}
+results_US <- compare_methods_to_reference(
+  method_list = list(
+    SALVE = exp1$US,
+    GEX = exp2$US,
+    combined = combined$US
+  ),
+  ref_vec = fish$US,
+  var_name = "US"
+)
+
+results_SS <- compare_methods_to_reference(
+  method_list = list(
+    SALVE = exp1$SS,
+    GEX = exp2$SS,
+    combined = combined$SS
+  ),
+  ref_vec = fish$SS,
+  var_name = "SS"
+)
+
+results_MS <- compare_methods_to_reference(
+  method_list = list(
+    SALVE = exp1$MS,
+    GEX = exp2$MS,
+    combined = combined$MS
+  ),
+  ref_vec = fish$MS,
+  var_name = "MS"
+)
+
+results_spliced <- compare_methods_to_reference(
+  method_list = list(
+    SALVE = exp1$spliced,
+    GEX = exp2$spliced,
+    combined = combined$spliced
+  ),
+  ref_vec = fish$spliced,
+  var_name = "spliced"
+)
+
+results_US$distance_df
+results_SS$distance_df
+results_MS$distance_df
+results_spliced$distance_df
+
+results_list <- list(results_US, results_spliced, results_SS, results_MS)
+output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS023/plots/"
+
+plot_barplot_comparison(
+  results_list = results_list,
+  var_names = c("US", "spliced", "SS", "MS"),
+  method_names = c("SALVE", "GEX", "combined"),
+  ref_name = "HCR",
+  output_file = paste0(output.dir, "four_method_comparison_wcombined.pdf"),
+  width = 16,
+  height = 14
+)
+```
+
+
+
+QQ plot
+```{r QQ plot}
+plot_qq_comparison <- function(
+    method_list,
+    ref_vec,
+    var_name = "Variable",
+    n_boot = 1000,
+    seed = 123
+) {
+  set.seed(seed)
+  
+  method_names <- names(method_list)
+  n_methods <- length(method_list)
+  
+  probs <- seq(0.01, 0.99, by = 0.01)
+  q_ref <- quantile(ref_vec, probs)
+  
+  # Compute quantiles for each method
+  q_methods <- lapply(method_list, function(vec) quantile(vec, probs))
+  
+  # Bootstrap CI for reference (null expectation)
+  n_boot_size <- max(sapply(method_list, length))
+  boot_q <- matrix(NA, nrow = n_boot, ncol = length(probs))
+  
+  for (i in seq_len(n_boot)) {
+    boot_samp <- sample(ref_vec, n_boot_size, replace = TRUE)
+    boot_q[i, ] <- quantile(boot_samp, probs)
+  }
+  
+  ci_lower <- apply(boot_q, 2, quantile, probs = 0.025)
+  ci_upper <- apply(boot_q, 2, quantile, probs = 0.975)
+  
+  # Compute deviation statistics for each method
+  dev_stats <- lapply(method_names, function(nm) {
+    dev <- q_methods[[nm]] - q_ref
+    c(mad = mean(abs(dev)), max_dev = max(abs(dev)))
+  })
+  names(dev_stats) <- method_names
+  
+  # Build subtitle with deviation stats
+  subtitle_parts <- sapply(method_names, function(nm) {
+    sprintf("%s: MAD=%.1f, Max=%.1f", nm, dev_stats[[nm]]["mad"], dev_stats[[nm]]["max_dev"])
+  })
+  subtitle_text <- paste(subtitle_parts, collapse = " | ")
+  
+  # Combine into long-format data frame
+  df_list <- lapply(method_names, function(nm) {
+    data.frame(
+      ref = q_ref,
+      exp = q_methods[[nm]],
+      method = nm
+    )
+  })
+  df <- do.call(rbind, df_list)
+  df$method <- factor(df$method, levels = method_names)
+  
+  ci_df <- data.frame(ref = q_ref, ci_lower = ci_lower, ci_upper = ci_upper)
+  
+  # Color palette matching barplot
+  method_colors <- c("#4DAF4A", "#E41A1C", "#377EB8", "#984EA3")
+  names(method_colors) <- c("SALVE", "GEX", "longread", "HCR")
+  plot_colors <- method_colors[method_names]
+  
+  # Axis limits
+  all_exp <- unlist(q_methods)
+  
+  ggplot() +
+    geom_ribbon(data = ci_df, aes(x = ref, ymin = ci_lower, ymax = ci_upper),
+                fill = "grey70", alpha = 0.4) +
+    geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "grey40") +
+    geom_line(data = df, aes(x = ref, y = exp, color = method), linewidth = 1) +
+    scale_color_manual(values = plot_colors) +
+    coord_cartesian(
+      xlim = c(0, max(q_ref) * 1.05),
+      ylim = c(0, max(all_exp) * 1.05)
+    ) +
+    theme_bw() +
+    theme(
+      legend.position = "top",
+      plot.subtitle = element_text(size = 9)
+    ) +
+    labs(
+      x = "Reference quantiles (HCR)",
+      y = "Method quantiles",
+      title = paste0(var_name, ": Q-Q plot vs HCR reference"),
+      subtitle = subtitle_text,
+      color = NULL
+    )
+}
+
+
+plot_qq_grid <- function(
+    method_data,
+    ref_data,
+    var_names = c("US", "spliced", "SS", "MS"),
+    method_names = c("SALVE", "GEX", "longread"),
+    output_file = NULL,
+    width = 12,
+    height = 10,
+    n_boot = 1000,
+    seed = 123
+) {
+  
+  plot_list <- list()
+  
+  for (var in var_names) {
+    method_list <- setNames(
+      lapply(method_names, function(m) method_data[[m]][[var]]),
+      method_names
+    )
+    
+    p <- plot_qq_comparison(
+      method_list = method_list,
+      ref_vec = ref_data[[var]],
+      var_name = var,
+      n_boot = n_boot,
+      seed = seed
+    )
+    
+    plot_list[[var]] <- p
+  }
+  
+  combined <- gridExtra::arrangeGrob(grobs = plot_list, ncol = 2)
+  
+  if (!is.null(output_file)) {
+    ggplot2::ggsave(output_file, combined, width = width, height = height)
+    message("Saved: ", output_file)
+  }
+  
+  grid::grid.draw(combined)
+  invisible(plot_list)
+}
+
+
+# Single plot:
+# plot_qq_comparison(
+#   method_list = list(
+#     SALVE = df_SALVE$US,
+#     GEX = df_GEX$GEX.US,
+#     longread = df_longread$US
+#   ),
+#   ref_vec = sample2$US,
+#   var_name = "US"
+# )
+
+# Grid of plots:
+method_data <- list(
+  SALVE = list(US = exp1$US, SS = exp1$SS, MS = exp1$MS, spliced = exp1$spliced),
+  GEX = list(US = exp2$US, SS = exp2$SS, MS = exp2$MS, spliced = exp2$spliced),
+  longread = list(US = longread$US, SS = longread$SS, MS = longread$MS, spliced = longread$spliced)
+)
+ref_data <- list(US = fish$US, SS = fish$SS, MS = fish$MS, spliced = fish$spliced)
+
+plot_qq_grid(
+  method_data = method_data,
+  ref_data = ref_data,
+  var_names = c("US", "spliced", "SS", "MS"),
+  output_file = paste0(output.dir, "QQ_four_grid.pdf")
+)
+
+```
+
+
+For Elena's RPPR
+```{r}
+D195 <- current_df %>%
+  mutate(spliceform = if_else(US > 0 & SALVE > 0, "US", "any")) %>%
+  mutate(spliceform = if_else(SALVE > 0, spliceform, "none")) %>%
+  arrange(spliceform != "none")
+output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/joint/plots/"
+
+umap <- ggplot(D195, aes(x = UMAP1, y = UMAP2)) +
+  geom_point(aes(color = spliceform), size = 1, shape = 16) +
+  theme_classic() +
+  scale_color_manual(values = c("none" = "gray93", "US" = "purple", "any" = "red")) +
+  theme(legend.position = "bottom",
+        legend.title = element_text(size = rel(0.6)),
+        legend.text = element_text(size = rel(0.6), angle = 30),
+        axis.text = element_blank(),
+        axis.ticks = element_blank()) +
+  labs(title = paste0("D195 joint SIV spliceforms: SALVE"), color = "")
+print(umap)
+
+ggsave(umap, file = paste0(output.dir, "D195_SALVE_spliceforms.pdf"),
+       device = "pdf")
+
+
+invitro <- df %>%
+  mutate(spliceform = case_when(
+    SALVE == 0 ~ "none",
+    spliced > 0 ~ "spliced",
+    spliced == 0 & US > 0 ~ "nospliced",
+    spliced == 0 & US == 0 ~ "any"
+  )) %>%
+  mutate(spliceform = factor(spliceform, levels = c("none", "any", "nospliced", "spliced"))) %>%
+  arrange(spliceform)
+output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/joint/plots/"
+
+umap <- ggplot(invitro, aes(x = UMAP1, y = UMAP2)) +
+  geom_point(aes(color = spliceform), size = 1, shape = 16) +
+  theme_classic() +
+  scale_color_manual(values = c("none" = "gray93", "spliced" = "blue", "nospliced" = "purple", "any" = "red")) +
+  theme(legend.position = "bottom",
+        legend.title = element_text(size = rel(0.6)),
+        legend.text = element_text(size = rel(0.6), angle = 30),
+        axis.text = element_blank(),
+        axis.ticks = element_blank()) +
+  labs(title = paste0("Invitro joint SIV spliceforms: SALVE"), color = "")
+print(umap)
+
+ggsave(umap, file = paste0(output.dir, "Invitro_SALVE_spliceforms.pdf"),
+       device = "pdf")
+
+```
+
+
+
+
