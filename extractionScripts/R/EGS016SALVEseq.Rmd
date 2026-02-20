@@ -3918,6 +3918,7 @@ ggplot(comparison_df, aes(x = pattern, y = log2_fold_change, fill = log2_fold_ch
     size = 4
   )
 ggsave(paste0(output.dir, "invitro_SIVposneg_log2fc.pdf"))
+
 ```
 
 Subsetting for splice+SIV+ vs splice-SIV+
@@ -4038,6 +4039,535 @@ ggplot(comparison_df, aes(x = pattern, y = log2_fold_change, fill = log2_fold_ch
     size = 4
   )
 ggsave(paste0(output.dir, "invitro_spliceNonsplice_log2fc.pdf"))
+```
+
+
+### cNMF
+
+
+```{r}
+
+# =============================================================================
+# cNMF Pattern Annotation by Biological Program
+# =============================================================================
+# Annotates cNMF patterns using:
+#   1. Preranked GSEA on gene_spectra_score (Z-scores) -- primary method
+#   2. ORA on top 50 genes per pattern -- supplementary method
+#
+# Preranked GSEA is preferred because cNMF produces continuous gene loadings
+# across all genes, and GSEA leverages the full ranked structure without an
+# arbitrary top-N cutoff (Kotliar et al., eLife 2019).
+# Top 50 genes for ORA follows the community standard established by
+# Gavish et al., Nature 2023 for cross-study program comparison.
+
+# =============================================================================
+# Configuration
+# =============================================================================
+load_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/cNMF/"
+rds_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/Seurat/RDS/"
+samples <- c("invitro", "D195", "Pacute")
+selected_ks <- c(7, 8, 8)
+
+for (i in 1:length(samples)) {
+  run_name <- samples[i]
+  selected_k <- selected_ks[i]
+  output_dir <- paste0("/projects/b1042/GoyalLab/egrody/extractedData/EGS016/joint/plots/cNMF/", run_name, "/")
+  if (!dir.exists(output_dir)) {
+    dir.create(output_dir, recursive = TRUE)
+  }
+  cat("Loading: ",run_name, "\n")
+
+  # =============================================================================
+  # 1. Load cNMF Outputs
+  # =============================================================================
+  usage_file <- file.path(load_dir, paste0(run_name, "_usage_K", selected_k, ".csv"))
+  spectra_file <- file.path(load_dir, paste0(run_name, "_spectra_K", selected_k, ".csv"))
+  spectra_tpm_file <- file.path(load_dir, paste0(run_name, "_spectra_tpm_K", selected_k, ".csv"))
+  top_genes_file <- file.path(load_dir, paste0(run_name, "_top_genes_K", selected_k, ".csv"))
+  
+  organism <- "Macaca mulatta"
+  n_top_genes_ora <- 50
+  gsea_pval_cutoff <- 0.05
+  ora_pval_cutoff <- 0.05
+  
+  usage <- read.csv(usage_file, row.names = 1, check.names = FALSE)
+  spectra <- read.csv(spectra_file, row.names = 1, check.names = FALSE)
+  spectra_tpm <- read.csv(spectra_tpm_file, row.names = 1, check.names = FALSE)
+  top_genes <- read.csv(top_genes_file, row.names = 1, check.names = FALSE)
+  
+  #cat("Loaded cNMF outputs:\n")
+  #cat("  Usage matrix:", nrow(usage), "cells x", ncol(usage), "patterns\n")
+  #cat("  Spectra (Z-score) matrix:", nrow(spectra), "genes x", ncol(spectra), "patterns\n")
+  #cat("  Spectra (TPM) matrix:", nrow(spectra_tpm), "genes x", ncol(spectra_tpm), "patterns\n")
+  
+  cat("\nTop 20 genes per pattern (by Z-score loading):\n")
+  for (pat in colnames(spectra)) {
+    pat_scores <- spectra[[pat]]
+    names(pat_scores) <- rownames(spectra)
+    top_20 <- names(sort(pat_scores, decreasing = TRUE))[1:20]
+    cat(paste0("  ", pat, ": ", paste(top_20, collapse = ", "), "\n"))
+  }
+  
+  # =============================================================================
+  # 2. Build Gene Set Collections from MSigDB
+  # =============================================================================
+  hallmark_sets <- msigdbr(species = organism, collection = "H") %>%
+    split(x = .$gene_symbol, f = .$gs_name)
+  
+  reactome_sets <- msigdbr(species = organism, collection = "C2", subcollection = "CP:REACTOME") %>%
+    split(x = .$gene_symbol, f = .$gs_name)
+  
+  gobp_sets <- msigdbr(species = organism, collection = "C5", subcollection = "GO:BP") %>%
+    split(x = .$gene_symbol, f = .$gs_name)
+  
+  #cat("\nGene set collections loaded:\n")
+  #cat("  Hallmark:", length(hallmark_sets), "sets\n")
+  #cat("  Reactome:", length(reactome_sets), "sets\n")
+  #cat("  GO:BP:", length(gobp_sets), "sets\n")
+  
+  # =============================================================================
+  # 3. Preranked GSEA per Pattern
+  # =============================================================================
+  # gene_spectra_score Z-scores reflect expected change in gene expression per
+  # unit increase in pattern usage. fgsea uses the full ranked vector per pattern
+  # rather than a fixed top-N cutoff (Kotliar et al., eLife 2019, Methods).s
+  
+  cat("\nRunning preranked GSEA (Hallmark)...\n")
+  suppressWarnings(
+    gsea_hallmark <- run_preranked_gsea(spectra, hallmark_sets, gsea_pval_cutoff)
+  )
+  
+  cat("Running preranked GSEA (Reactome)...\n")
+  suppressWarnings(
+    gsea_reactome <- run_preranked_gsea(spectra, reactome_sets, gsea_pval_cutoff)
+  )
+  
+  cat("Running preranked GSEA (GO:BP)...\n")
+  suppressWarnings(
+    gsea_gobp <- run_preranked_gsea(spectra, gobp_sets, gsea_pval_cutoff)
+  )
+  
+  cat("\nTop 5 Hallmark terms per pattern (by NES):\n")
+  for (pat in colnames(spectra)) {
+    pat_res <- gsea_hallmark[gsea_hallmark$pattern == pat, ]
+    if (nrow(pat_res) == 0) {
+      cat(paste0("  ", pat, ": no significant terms\n"))
+      next
+    }
+    pat_res <- pat_res[order(abs(pat_res$NES), decreasing = TRUE), ]
+    top_terms <- head(pat_res, 5)
+    for (j in seq_len(nrow(top_terms))) {
+      direction <- ifelse(top_terms$NES[j] > 0, "+", "-")
+      term <- gsub("^HALLMARK_", "", top_terms$pathway[j])
+      cat(sprintf("  %s: [%s] %s (NES=%.2f, padj=%.1e)\n",
+                  pat, direction, term, top_terms$NES[j], top_terms$padj[j]))
+    }
+  }
+  
+  # =============================================================================
+  # 4. ORA per Pattern (Top 50 Genes) -- Hypergeometric Test
+  # =============================================================================
+
+  top50_per_pattern <- get_top_n_genes(spectra, n = n_top_genes_ora)
+  background <- rownames(spectra)
+  
+  cat("\nRunning ORA on top", n_top_genes_ora, "genes per pattern (GO:BP)...\n")
+  ora_results <- list()
+  for (pat in names(top50_per_pattern)) {
+    ora_results[[pat]] <- run_ora_hypergeometric(
+      query_genes = top50_per_pattern[[pat]],
+      gene_sets = gobp_sets,
+      background_genes = background,
+      pval_cutoff = ora_pval_cutoff
+    )
+  }
+  
+  cat("\nTop 5 ORA GO:BP terms per pattern:\n")
+  for (pat in names(ora_results)) {
+    res <- ora_results[[pat]]
+    if (nrow(res) == 0) {
+      cat(paste0("  ", pat, ": no significant terms\n"))
+      next
+    }
+    top_terms <- head(res, 5)
+    for (j in seq_len(nrow(top_terms))) {
+      cat(sprintf("  %s: %s (padj=%.1e, %d/%d genes)\n",
+                  pat, gsub("^GOBP_", "", top_terms$pathway[j]),
+                  top_terms$padj[j], top_terms$overlap[j], n_top_genes_ora))
+    }
+  }
+  
+  # =============================================================================
+  # 5. Visualization
+  # =============================================================================
+  
+  # --- 5a. GSEA Hallmark NES heatmap ---
+  if (nrow(gsea_hallmark) > 0) {
+    nes_matrix <- gsea_hallmark %>%
+      select(pattern, pathway, NES) %>%
+      mutate(pathway = gsub("^HALLMARK_", "", pathway)) %>%
+      pivot_wider(names_from = pattern, values_from = NES, values_fill = 0) %>%
+      tibble::column_to_rownames("pathway")
+  
+    nes_mat <- as.matrix(nes_matrix)
+    max_abs <- max(abs(nes_mat), na.rm = TRUE)
+  
+    p_hallmark <- pheatmap::pheatmap(
+      nes_mat,
+      color = colorRampPalette(c("blue", "white", "red"))(100),
+      breaks = seq(-max_abs, max_abs, length.out = 101),
+      cluster_cols = TRUE,
+      cluster_rows = TRUE,
+      fontsize_row = 7,
+      fontsize_col = 10,
+      main = "GSEA Hallmark NES per cNMF Pattern",
+      silent = TRUE
+    )
+  
+    ggsave(
+      file.path(output_dir, "cNMF_gsea_hallmark_heatmap.pdf"),
+      plot = p_hallmark,
+      width = 10,
+      height = max(6, nrow(nes_mat) * 0.25)
+    )
+    cat("\nSaved Hallmark GSEA heatmap.\n")
+  }
+  
+  # --- 5b. Top genes dot plot per pattern ---
+  n_show <- 20
+  plot_data <- list()
+  for (pat in colnames(spectra)) {
+    scores <- spectra[[pat]]
+    names(scores) <- rownames(spectra)
+    top_g <- names(sort(scores, decreasing = TRUE))[1:n_show]
+  
+    plot_data[[pat]] <- data.frame(
+      gene = factor(top_g, levels = rev(top_g)),
+      pattern = pat,
+      z_score = spectra[top_g, pat],
+      tpm = spectra_tpm[top_g, pat],
+      stringsAsFactors = FALSE
+    )
+  }
+  plot_df <- do.call(rbind, plot_data)
+  
+  p_dotplot <- ggplot(plot_df, aes(x = pattern, y = gene, color = z_score, size = tpm)) +
+    geom_point() +
+    scale_color_gradient2(low = "blue", mid = "white", high = "red", midpoint = 0,
+                          name = "Z-score") +
+    scale_size_continuous(name = "TPM loading", range = c(0.5, 4)) +
+    facet_wrap(~pattern, scales = "free_y", nrow = 1) +
+    theme_minimal(base_size = 9) +
+    theme(
+      axis.text.x = element_blank(),
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(size = 10, face = "bold"),
+      panel.grid.major.x = element_blank()
+    ) +
+    labs(x = NULL, y = NULL, title = "Top 20 genes per cNMF pattern")
+  
+  ggsave(
+    file.path(output_dir, "cNMF_top_genes_dotplot.pdf"),
+    plot = p_dotplot,
+    width = 3 * selected_k,
+    height = 8
+  )
+  cat("Saved top genes dot plot.\n")
+  
+  # -- plot GSEA --
+  
+  n_top_gsea_per_collection <- 5
+  for (pat in colnames(spectra)) {
+    
+    combined_list <- list()
+    
+    for (collection_name in c("Hallmark", "Reactome", "GO:BP")) {
+      
+      gsea_df <- switch(collection_name,
+        "Hallmark" = gsea_hallmark,
+        "Reactome" = gsea_reactome,
+        "GO:BP"    = gsea_gobp
+      )
+      
+      if (is.null(gsea_df) || nrow(gsea_df) == 0) next
+      
+      pat_df <- gsea_df[gsea_df$pattern == pat, ]
+      if (nrow(pat_df) == 0) next
+      
+      prefix_pattern <- switch(collection_name,
+        "Hallmark" = "^HALLMARK_",
+        "Reactome" = "^REACTOME_",
+        "GO:BP"    = "^GOBP_"
+      )
+      
+      pat_df$pathway_clean <- gsub(prefix_pattern, "", pat_df$pathway)
+      pat_df$pathway_clean <- gsub("_", " ", pat_df$pathway_clean)
+      pat_df$pathway_clean <- tolower(pat_df$pathway_clean)
+      pat_df$pathway_clean <- paste0(toupper(substring(pat_df$pathway_clean, 1, 1)),
+                                      substring(pat_df$pathway_clean, 2))
+      pat_df$pathway_clean <- ifelse(nchar(pat_df$pathway_clean) > 50,
+                                      paste0(substr(pat_df$pathway_clean, 1, 47), "..."),
+                                      pat_df$pathway_clean)
+      
+      # Top N by |NES| per collection
+      pat_df <- pat_df[order(abs(pat_df$NES), decreasing = TRUE), ]
+      pat_df <- head(pat_df, n_top_gsea_per_collection)
+      pat_df$collection <- collection_name
+      
+      combined_list[[collection_name]] <- pat_df
+    }
+    
+    if (length(combined_list) == 0) next
+    combined_df <- do.call(rbind, combined_list)
+    
+    combined_df$neg_log10_padj <- -log10(combined_df$padj)
+    
+    # Set collection as ordered factor for grouping
+    combined_df$collection <- factor(combined_df$collection,
+                                      levels = c("Hallmark", "Reactome", "GO:BP"))
+    
+    # Within each collection, order by NES
+    combined_df <- combined_df[order(combined_df$collection, combined_df$NES), ]
+    
+    # Create unique y labels (in case of duplicate pathway names across collections)
+    combined_df$y_label <- make.unique(combined_df$pathway_clean, sep = " ")
+    combined_df$y_label <- factor(combined_df$y_label, levels = combined_df$y_label)
+    
+    # Symmetric NES axis
+    max_abs_nes <- max(abs(combined_df$NES)) * 1.05
+    
+    p <- ggplot(combined_df, aes(x = NES, y = y_label, fill = NES, size = neg_log10_padj)) +
+      geom_point(shape = 21, stroke = 0.3) +
+      scale_fill_gradient2(low = "#2166AC", mid = "white", high = "#B2182B", midpoint = 0,
+                           name = "NES") +
+      scale_size_continuous(name = expression(-log[10]~p[adj]), range = c(2, 7)) +
+      scale_x_continuous(limits = c(-max_abs_nes, max_abs_nes)) +
+      geom_vline(xintercept = 0, linetype = "dashed", color = "grey40", linewidth = 0.3) +
+      facet_grid(collection ~ ., scales = "free_y", space = "free_y", switch = "y") +
+      theme_minimal(base_size = 10) +
+      theme(
+        panel.grid.major.y = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.text.y = element_text(size = 9),
+        strip.text.y.left = element_text(size = 10, face = "bold", angle = 0),
+        strip.placement = "outside",
+        plot.title = element_text(size = 11, face = "bold"),
+        legend.position = "right"
+      ) +
+      labs(
+        x = "Normalized Enrichment Score (NES)",
+        y = NULL,
+        title = paste0(pat, " \u2014 GSEA")
+      )
+    
+    n_terms <- nrow(combined_df)
+    ggsave(
+      file.path(output_dir, paste0("cNMF_gsea_combined_", pat, ".pdf")),
+      plot = p,
+      width = 9,
+      height = max(4, n_terms * 0.32 + 2)
+    )
+  }
+  cat("Saved combined GSEA dot plots per pattern.\n")
+  
+  # Plot ORA
+  n_top_ora <- 10
+  
+  for (pat in names(ora_results)) {
+    res <- ora_results[[pat]]
+    if (is.null(res) || nrow(res) == 0) next
+    
+    res$pathway_clean <- gsub("^GOBP_", "", res$pathway)
+    res$pathway_clean <- gsub("_", " ", res$pathway_clean)
+    res$pathway_clean <- tolower(res$pathway_clean)
+    res$pathway_clean <- paste0(toupper(substring(res$pathway_clean, 1, 1)),
+                                 substring(res$pathway_clean, 2))
+    res$pathway_clean <- ifelse(nchar(res$pathway_clean) > 50,
+                                 paste0(substr(res$pathway_clean, 1, 47), "..."),
+                                 res$pathway_clean)
+    
+    res$gene_ratio <- res$overlap / res$query_size
+    res$neg_log10_padj <- -log10(res$padj)
+    
+    # Top N by padj
+    res <- head(res[order(res$padj), ], n_top_ora)
+    
+    # Order by gene ratio for plotting
+    res <- res[order(res$gene_ratio), ]
+    res$pathway_clean <- make.unique(res$pathway_clean, sep = " ")
+    res <- res[order(res$gene_ratio), ]
+    res$pathway_clean <- factor(res$pathway_clean, levels = res$pathway_clean)
+    
+    p <- ggplot(res, aes(x = gene_ratio, y = pathway_clean, size = overlap, color = neg_log10_padj)) +
+      geom_point() +
+      scale_color_viridis_c(option = "inferno", direction = -1, end = 0.85,
+                            name = expression(-log[10]~p[adj])) +
+      scale_size_continuous(name = "Overlap", range = c(2, 7)) +
+      theme_minimal(base_size = 10) +
+      theme(
+        panel.grid.major.y = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.text.y = element_text(size = 9),
+        plot.title = element_text(size = 11, face = "bold"),
+        legend.position = "right"
+      ) +
+      labs(
+        x = "Gene ratio (overlap / query size)",
+        y = NULL,
+        title = paste0(pat, " \u2014 ORA GO:BP (top ", n_top_genes_ora, " genes)")
+      )
+    
+    ggsave(
+      file.path(output_dir, paste0("cNMF_ora_gobp_", pat, ".pdf")),
+      plot = p,
+      width = 8,
+      height = max(3, nrow(res) * 0.35 + 1)
+    )
+  }
+  cat("Saved ORA GO:BP dot plots per pattern.\n")
+  
+  # --- 5c. Save results ---
+  collapse_leading_edge <- function(df) {
+    if ("leadingEdge" %in% colnames(df) && is.list(df$leadingEdge)) {
+      df$leadingEdge <- vapply(df$leadingEdge, paste, collapse = ";", FUN.VALUE = character(1))
+    }
+    df
+  }
+  
+  write.csv(collapse_leading_edge(gsea_hallmark), file.path(output_dir, "gsea_hallmark_results.csv"), 
+            row.names = FALSE)
+  write.csv(collapse_leading_edge(gsea_reactome), file.path(output_dir, "gsea_reactome_results.csv"), 
+            row.names = FALSE)
+  write.csv(collapse_leading_edge(gsea_gobp), file.path(output_dir, "gsea_gobp_results.csv"), 
+            row.names = FALSE)
+  
+  ora_combined <- do.call(rbind, lapply(names(ora_results), function(pat) {
+    df <- ora_results[[pat]]
+    if (nrow(df) > 0) df$pattern <- pat
+    df
+  }))
+  if (!is.null(ora_combined) && nrow(ora_combined) > 0) {
+    write.csv(ora_combined, file.path(output_dir, "ora_gobp_results.csv"), row.names = FALSE)
+  }
+  
+  top50_df <- data.frame(
+    lapply(top50_per_pattern, function(x) { length(x) <- n_top_genes_ora; x }),
+    check.names = FALSE
+  )
+  write.csv(top50_df, file.path(output_dir, "top50_genes_per_pattern.csv"), row.names = FALSE)
+  
+  cat("All annotation outputs saved to:", output_dir, "\n")
+  
+  # Plot cNMF pattern UMAP
+  seurat_obj <- readRDS(paste0(rds_dir, run_name, ".rds"))
+  seurat_obj <- add_cnmf_to_seurat(seurat_obj, usage)
+  fplot <- FeaturePlot(seurat_obj, features = paste0("Pattern_", 1:selected_k), ncol = 4) &
+  scale_color_viridis_c()
+  ggsave(fplot, file = paste0(output_dir, run_name, "_umap_pattern_weight.pdf"),
+         width = 16, height = 8)
+}
+
+
+
+
+for (i in 1:length(samples)) {
+  run_name <- samples[i]
+  selected_k <- selected_ks[i]
+  output_dir <- paste0("/projects/b1042/GoyalLab/egrody/extractedData/EGS016/joint/plots/cNMF/", run_name, "/")
+  if (!dir.exists(output_dir)) {
+    dir.create(output_dir, recursive = TRUE)
+  }
+  cat("Loading: ",run_name, "\n")
+
+  usage_file <- file.path(load_dir, paste0(run_name, "_usage_K", selected_k, ".csv"))
+  usage <- read.csv(usage_file, row.names = 1, check.names = FALSE)
+  
+  # Plot cNMF pattern UMAP
+  rds_file <- list.files(rds_dir, pattern = paste0("^", run_name, "\\.rds$"), 
+                         ignore.case = TRUE, full.names = TRUE)
+  seurat_obj <- readRDS(rds_file[1])
+  seurat_obj <- add_cnmf_to_seurat(seurat_obj, usage)
+  fplot <- FeaturePlot(seurat_obj, features = paste0("Pattern_", 1:selected_k), ncol = 4) &
+  scale_color_viridis_c()
+  ggsave(fplot, file = paste0(output_dir, run_name, "_umap_pattern_weight.pdf"),
+         width = 16, height = 8)
+}
+
+```
+
+SIV+ vs SIV-
+```{r}
+# =============================================================================
+# Pattern Marker Identification
+# =============================================================================
+# Step 1: Pattern markers weighted for druggability
+result <- find_pattern_markers(
+  spectra_tpm = spectra_tpm,
+  spectra_score = spectra,
+  n_markers = 100,
+  method = "rank_product",
+  min_score = 5,             # require meaningful expression
+  exclude_shared = TRUE,     # remove multi-pattern genes
+  shared_threshold = 2.0     # require 2x enrichment over next-best
+)
+
+# Step 2: Filter against a druggability annotation
+# (e.g., DGIdb categories, surface proteins, kinases)
+# druggable_genes <- read.csv("dgidb_druggable_genome.csv")$gene
+# for (pat in names(result$markers)) {
+#   targetable <- intersect(result$markers[[pat]], druggable_genes)
+#   cat(sprintf("  %s: %d druggable markers out of %d\n",
+#               pat, length(targetable), length(result$markers[[pat]])))
+# }
+
+# Print top 20 markers per pattern:
+markers <- result$markers
+for (pat in names(markers)) {
+  cat(sprintf("  %s: %s\n", pat, paste(head(markers[[pat]], 20), collapse = ", ")))
+}
+
+# =============================================================================
+# 3. Infected vs Uninfected Comparison
+# =============================================================================
+
+joint_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/joint/dataframes/"
+invitro_both <- read.csv(paste0(joint_dir, "Invitro_both.csv"))
+invitro_GEXonly <- read.csv(paste0(joint_dir, "Invitro_onlySingleCell.csv"))
+invitro_SALVEonly <- read.csv(paste0(joint_dir, "Invitro_onlySALVE.csv"))
+invitro_all <- read.csv(paste0(joint_dir, "Invitro_all.csv"))
+
+infected <- rbind(invitro_SALVEonly, invitro_both)
+infected_cellids <- infected$cellID
+comparison <- compare_pattern_usage(usage, infected_cellids)
+
+# =============================================================================
+# Example Complete Analysis
+# =============================================================================
+# Uncomment and run with your data:
+
+# # Load Seurat object
+invitro <- readRDS("/projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/Seurat/RDS/Invitro.rds")
+seurat_obj <- invitro
+
+# Add cNMF patterns to Seurat
+seurat_obj <- add_cnmf_to_seurat(seurat_obj, usage)
+
+# # Define infected cells
+# infected <- rbind(invitro_SALVEonly, invitro_both)
+# infected_cellids <- infected$cellID
+#
+# # Run comparison
+# comparison <- compare_pattern_usage(usage, infected_cellids)
+#
+# # Generate plots
+# plot_pattern_violins(comparison, file.path(output_dir, "cnmf_pattern_violins.pdf"))
+# plot_log2fc(comparison, file.path(output_dir, "cnmf_log2fc.pdf"))
+# plot_marker_heatmap(spectra, markers, n_genes = 20, file.path(output_dir, "cnmf_marker_heatmap.pdf"))
+
+# Feature plots in Seurat
+FeaturePlot(seurat_obj, features = paste0("Pattern_", 1:selected_k), ncol = 3)
+
+
 ```
 
 

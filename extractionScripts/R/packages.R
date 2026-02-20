@@ -1,8 +1,8 @@
 # packages.R
 # Installing and loading all required packages with version tracking
 
+
 packages <- c(
-  "CoGAPS",
   "data.table",
   "doParallel",
   "dplyr",
@@ -12,6 +12,7 @@ packages <- c(
   "grid",
   "gridExtra",
   "metap",
+  "msigdbr",
   "openxlsx",
   "parallel",
   "patchwork",
@@ -44,6 +45,64 @@ load_packages_with_versions <- function(packages, versions_file, update_versions
     versions_df <- data.frame(package = character(), version = character())
   }
   
+  # ---- Phase 1: Install version-mismatched packages in a subprocess --------
+  # A subprocess has a clean namespace environment, so unloadNamespace() will
+  # never fail due to reverse-dependency imports from the main session.
+  
+  pkgs_to_install <- character()
+  vers_to_install <- character()
+  
+  for (pkg in packages) {
+    target_version <- versions_df$version[versions_df$package == pkg]
+    if (length(target_version) == 0 || is.na(target_version)) next
+    
+    installed_version <- tryCatch(
+      as.character(packageVersion(pkg)),
+      error = function(e) NA_character_
+    )
+    
+    if (is.na(installed_version) || installed_version != target_version) {
+      pkgs_to_install <- c(pkgs_to_install, pkg)
+      vers_to_install <- c(vers_to_install, target_version)
+    }
+  }
+  
+  if (length(pkgs_to_install) > 0) {
+    cat("Installing", length(pkgs_to_install),
+        "package(s) with version mismatches...\n")
+    
+    # Each package is installed in its OWN Rscript process. This prevents
+    # namespace contamination: installing CoGAPS in subprocess A may load
+    # fgsea/data.table as transitive dependencies during dependency resolution.
+    # If data.table were then installed in the same subprocess, the loaded
+    # fgsea namespace would block unloadNamespace("data.table"). Separate
+    # processes guarantee a clean namespace environment per install.
+    #
+    # dependencies = FALSE because these packages are already installed (just
+    # at the wrong version). Their dependency trees are already satisfied on
+    # disk. Using TRUE would trigger dependency resolution that can load
+    # namespaces and recreate the original conflict.
+    
+    for (i in seq_along(pkgs_to_install)) {
+      pkg <- pkgs_to_install[i]
+      ver <- vers_to_install[i]
+      cat("  [", i, "/", length(pkgs_to_install), "] ", pkg, " ", ver, " ...\n", sep = "")
+      
+      install_expr <- sprintf(
+        'if (!requireNamespace("remotes", quietly = TRUE)) install.packages("remotes", quiet = TRUE); remotes::install_version("%s", version = "%s", dependencies = FALSE, quiet = TRUE, upgrade = "never")',
+        pkg, ver
+      )
+      
+      exit_code <- system2("Rscript", args = c("-e", shQuote(install_expr)),
+                           stdout = "", stderr = "")
+      if (exit_code != 0) {
+        cat("    WARNING: install of", pkg, ver, "exited with code", exit_code, "\n")
+      }
+    }
+  }
+  
+  # ---- Phase 2: Load all packages and track new ones -----------------------
+  
   new_packages <- character()
   new_versions <- character()
   
@@ -51,7 +110,7 @@ load_packages_with_versions <- function(packages, versions_file, update_versions
     target_version <- versions_df$version[versions_df$package == pkg]
     
     if (length(target_version) == 0 || is.na(target_version)) {
-      # Package not in versions file: install latest and track
+      # Package not in versions file: install latest if missing, then track
       installed_version <- tryCatch(
         as.character(packageVersion(pkg)),
         error = function(e) NA_character_
@@ -74,7 +133,7 @@ load_packages_with_versions <- function(packages, versions_file, update_versions
       }
       
     } else {
-      # Package in versions file: enforce specific version
+      # Package with pinned version: verify and load
       installed_version <- tryCatch(
         as.character(packageVersion(pkg)),
         error = function(e) NA_character_
@@ -83,23 +142,14 @@ load_packages_with_versions <- function(packages, versions_file, update_versions
       if (!is.na(installed_version) && installed_version == target_version) {
         library(pkg, character.only = TRUE, quietly = TRUE, warn.conflicts = FALSE)
       } else {
-        tryCatch({
-          remotes::install_version(
-            pkg,
-            version = target_version,
-            dependencies = TRUE,
-            quiet = TRUE,
-            upgrade = "never"
-          )
-          library(pkg, character.only = TRUE, quietly = TRUE, warn.conflicts = FALSE)
-        }, error = function(e) {
-          cat("  Error installing", pkg, "version", target_version, ":", e$message, "\n")
-        })
+        cat("WARNING:", pkg, "version", target_version, "not available after install.",
+            "Installed:", ifelse(is.na(installed_version), "none", installed_version), "\n")
       }
     }
   }
   
-  # Update versions file with new packages
+  # ---- Update versions file with newly tracked packages --------------------
+  
   if (update_versions_file && length(new_packages) > 0) {
     new_entries <- data.frame(package = new_packages, version = new_versions)
     versions_df <- rbind(versions_df, new_entries)
@@ -108,6 +158,18 @@ load_packages_with_versions <- function(packages, versions_file, update_versions
   }
   
   invisible(versions_df)
+}
+
+# Bioconductor packages (not available on CRAN)
+bioc_packages <- c("fgsea", "zellkonverter", "SingleCellExperiment")
+if (!requireNamespace("BiocManager", quietly = TRUE)) {
+  install.packages("BiocManager", quiet = TRUE)
+}
+for (pkg in bioc_packages) {
+  if (!requireNamespace(pkg, quietly = TRUE)) {
+    BiocManager::install(pkg, update = FALSE, ask = FALSE)
+  }
+  library(pkg, character.only = TRUE, quietly = TRUE, warn.conflicts = FALSE)
 }
 
 # Run the loader
