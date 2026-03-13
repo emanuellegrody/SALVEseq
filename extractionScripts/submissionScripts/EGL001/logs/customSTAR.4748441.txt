@@ -1,0 +1,1275 @@
+========================================
+RNA-SEQ PROCESSING PIPELINE
+========================================
+Samples CSV: /projects/b1042/GoyalLab/egrody/extractionScripts/submissionScripts/customSTAR_samples.csv
+Found 14 samples to process
+STAR Index: /projects/b1042/GoyalLab/egrody/genomes/STAR_GRCm39/
+GTF File: /projects/b1042/GoyalLab/egrody/genomes/STAR_GRCm39//inputs/genes.gtf
+FASTQ Directory: /projects/b1042/GoyalLab/egrody/rawData/EGL001/fastq/
+Output Root: /projects/b1042/GoyalLab/egrody/extractedData/EGL001/
+Cell barcode length: 16
+UMI length: 12
+Create BAM index: true
+
+========================================
+PROCESSING SAMPLE: Kras_v3_WT_combined
+========================================
+Step 1: Locating input files...
+R1 file: /projects/b1042/GoyalLab/egrody/rawData/EGL001/fastq/Kras_v3_WT_combined_S01_R1_001.fastq.gz
+R2 file: /projects/b1042/GoyalLab/egrody/rawData/EGL001/fastq/Kras_v3_WT_combined_S01_R2_001.fastq.gz
+
+Step 2: Running STAR alignment...
+Sep 23 14:34:25 ..... started STAR run
+Sep 23 14:34:25 ..... loading genome
+Sep 23 14:34:33 ..... started mapping
+Sep 23 14:35:34 ..... finished mapping
+Sep 23 14:35:34 ..... started sorting BAM
+Sep 23 14:35:36 ..... finished successfully
+STAR alignment completed
+Creating BAM index for STAR output...
+BAM index created successfully
+
+Step 3: Extracting UMI and cell barcodes...
+Processing sample: Kras_v3_WT_combined
+Input: /projects/b1042/GoyalLab/egrody/rawData/EGL001/fastq/Kras_v3_WT_combined_S01_R1_001.fastq.gz
+Output: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//logs/Kras_v3_WT_combined_barcode_umi.tsv
+Cell barcode length: 16
+UMI length: 12
+  Processed 1,000,000 reads...
+  Processed 2,000,000 reads...
+  Processed 3,000,000 reads...
+  Processed 4,000,000 reads...
+  Processed 5,000,000 reads...
+Processed 5,023,376 total reads
+Extracted barcodes/UMIs from 5,023,376 reads (100.0%)
+Successfully created /projects/b1042/GoyalLab/egrody/extractedData/EGL001//logs/Kras_v3_WT_combined_barcode_umi.tsv
+UMI extraction completed
+
+Step 4: Adding barcodes to BAM...
+Processing sample: Kras_v3_WT_combined
+Input BAM: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//STAR/Kras_v3_WT_combined_Aligned.sortedByCoord.out.bam
+Input TSV: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//logs/Kras_v3_WT_combined_barcode_umi.tsv
+Output BAM: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_UMI/Kras_v3_WT_combined_tagged.bam
+
+Loading barcode/UMI mapping...
+  Loaded 1,000,000 barcode mappings...
+  Loaded 2,000,000 barcode mappings...
+  Loaded 3,000,000 barcode mappings...
+  Loaded 4,000,000 barcode mappings...
+  Loaded 5,000,000 barcode mappings...
+Loaded 5,023,376 barcode mappings from 5,023,376 lines
+
+Processing BAM file...
+  Processed 1,000,000 reads, tagged 1,000,000...
+  Processed 2,000,000 reads, tagged 2,000,000...
+  Processed 3,000,000 reads, tagged 3,000,000...
+  Processed 4,000,000 reads, tagged 4,000,000...
+Processed 4,211,896 total reads
+Tagged 4,211,896 reads with barcodes/UMIs (100.0%)
+
+Creating BAM index...
+✓ Created index: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_UMI/Kras_v3_WT_combined_tagged.bam.bai
+
+Successfully processed Kras_v3_WT_combined
+   Total reads: 4,211,896
+   Tagged reads: 4,211,896
+   Output: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_UMI/Kras_v3_WT_combined_tagged.bam
+BAM tagging completed
+
+Step 5: Running featureCounts to add gene annotations...
+Running featureCounts with gene features for optimal single-cell assignment...
+featureCounts completed
+Converting XT:Z tags to GX:Z tags and sorting...
+FeatureCounts BAM processed and indexed
+
+=== FeatureCounts Assignment Summary ===
+Status	/projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_UMI/Kras_v3_WT_combined_tagged.bam
+Assigned	3601194
+Unassigned_Unmapped	0
+Unassigned_Read_Type	0
+Unassigned_Singleton	0
+Unassigned_MappingQuality	0
+Unassigned_Chimera	0
+Unassigned_FragmentLength	0
+Unassigned_Duplicate	0
+Unassigned_MultiMapping	0
+Unassigned_Secondary	0
+Unassigned_NonSplit	0
+Unassigned_NoFeatures	610702
+Unassigned_Overlapping_Length	0
+Unassigned_Ambiguity	0
+
+Assignment Rate: 3601194/3601194 reads assigned (100.0%)
+Excellent assignment rate for single-cell data!
+========================================
+
+Step 6: Adding XF flags...
+XF tagging completed
+Cleaning up intermediate files...
+Sample Kras_v3_WT_combined processed successfully
+
+========================================
+PROCESSING SAMPLE: Slk_v3_WT_combined
+========================================
+Step 1: Locating input files...
+R1 file: /projects/b1042/GoyalLab/egrody/rawData/EGL001/fastq/Slk_v3_WT_combined_S01_R1_001.fastq.gz
+R2 file: /projects/b1042/GoyalLab/egrody/rawData/EGL001/fastq/Slk_v3_WT_combined_S01_R2_001.fastq.gz
+
+Step 2: Running STAR alignment...
+Sep 23 14:40:11 ..... started STAR run
+Sep 23 14:40:11 ..... loading genome
+Sep 23 14:40:21 ..... started mapping
+Sep 23 14:40:34 ..... finished mapping
+Sep 23 14:40:34 ..... started sorting BAM
+Sep 23 14:40:36 ..... finished successfully
+STAR alignment completed
+Creating BAM index for STAR output...
+BAM index created successfully
+
+Step 3: Extracting UMI and cell barcodes...
+Processing sample: Slk_v3_WT_combined
+Input: /projects/b1042/GoyalLab/egrody/rawData/EGL001/fastq/Slk_v3_WT_combined_S01_R1_001.fastq.gz
+Output: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//logs/Slk_v3_WT_combined_barcode_umi.tsv
+Cell barcode length: 16
+UMI length: 12
+  Processed 1,000,000 reads...
+Processed 1,727,582 total reads
+Extracted barcodes/UMIs from 1,727,582 reads (100.0%)
+Successfully created /projects/b1042/GoyalLab/egrody/extractedData/EGL001//logs/Slk_v3_WT_combined_barcode_umi.tsv
+UMI extraction completed
+
+Step 4: Adding barcodes to BAM...
+Processing sample: Slk_v3_WT_combined
+Input BAM: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//STAR/Slk_v3_WT_combined_Aligned.sortedByCoord.out.bam
+Input TSV: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//logs/Slk_v3_WT_combined_barcode_umi.tsv
+Output BAM: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_UMI/Slk_v3_WT_combined_tagged.bam
+
+Loading barcode/UMI mapping...
+  Loaded 1,000,000 barcode mappings...
+Loaded 1,727,582 barcode mappings from 1,727,582 lines
+
+Processing BAM file...
+  Processed 1,000,000 reads, tagged 1,000,000...
+Processed 1,889,902 total reads
+Tagged 1,889,902 reads with barcodes/UMIs (100.0%)
+
+Creating BAM index...
+✓ Created index: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_UMI/Slk_v3_WT_combined_tagged.bam.bai
+
+Successfully processed Slk_v3_WT_combined
+   Total reads: 1,889,902
+   Tagged reads: 1,889,902
+   Output: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_UMI/Slk_v3_WT_combined_tagged.bam
+BAM tagging completed
+
+Step 5: Running featureCounts to add gene annotations...
+Running featureCounts with gene features for optimal single-cell assignment...
+featureCounts completed
+Converting XT:Z tags to GX:Z tags and sorting...
+FeatureCounts BAM processed and indexed
+
+=== FeatureCounts Assignment Summary ===
+Status	/projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_UMI/Slk_v3_WT_combined_tagged.bam
+Assigned	1696096
+Unassigned_Unmapped	0
+Unassigned_Read_Type	0
+Unassigned_Singleton	0
+Unassigned_MappingQuality	0
+Unassigned_Chimera	0
+Unassigned_FragmentLength	0
+Unassigned_Duplicate	0
+Unassigned_MultiMapping	0
+Unassigned_Secondary	0
+Unassigned_NonSplit	0
+Unassigned_NoFeatures	193806
+Unassigned_Overlapping_Length	0
+Unassigned_Ambiguity	0
+
+Assignment Rate: 1696096/1696096 reads assigned (100.0%)
+Excellent assignment rate for single-cell data!
+========================================
+
+Step 6: Adding XF flags...
+XF tagging completed
+Cleaning up intermediate files...
+Sample Slk_v3_WT_combined processed successfully
+
+========================================
+PROCESSING SAMPLE: Lsm14b_v3_WT_combined
+========================================
+Step 1: Locating input files...
+R1 file: /projects/b1042/GoyalLab/egrody/rawData/EGL001/fastq/Lsm14b_v3_WT_combined_S01_R1_001.fastq.gz
+R2 file: /projects/b1042/GoyalLab/egrody/rawData/EGL001/fastq/Lsm14b_v3_WT_combined_S01_R2_001.fastq.gz
+
+Step 2: Running STAR alignment...
+Sep 23 14:42:35 ..... started STAR run
+Sep 23 14:42:35 ..... loading genome
+Sep 23 14:42:42 ..... started mapping
+Sep 23 14:42:59 ..... finished mapping
+Sep 23 14:42:59 ..... started sorting BAM
+Sep 23 14:43:00 ..... finished successfully
+STAR alignment completed
+Creating BAM index for STAR output...
+BAM index created successfully
+
+Step 3: Extracting UMI and cell barcodes...
+Processing sample: Lsm14b_v3_WT_combined
+Input: /projects/b1042/GoyalLab/egrody/rawData/EGL001/fastq/Lsm14b_v3_WT_combined_S01_R1_001.fastq.gz
+Output: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//logs/Lsm14b_v3_WT_combined_barcode_umi.tsv
+Cell barcode length: 16
+UMI length: 12
+  Processed 1,000,000 reads...
+Processed 1,519,711 total reads
+Extracted barcodes/UMIs from 1,519,711 reads (100.0%)
+Successfully created /projects/b1042/GoyalLab/egrody/extractedData/EGL001//logs/Lsm14b_v3_WT_combined_barcode_umi.tsv
+UMI extraction completed
+
+Step 4: Adding barcodes to BAM...
+Processing sample: Lsm14b_v3_WT_combined
+Input BAM: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//STAR/Lsm14b_v3_WT_combined_Aligned.sortedByCoord.out.bam
+Input TSV: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//logs/Lsm14b_v3_WT_combined_barcode_umi.tsv
+Output BAM: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_UMI/Lsm14b_v3_WT_combined_tagged.bam
+
+Loading barcode/UMI mapping...
+  Loaded 1,000,000 barcode mappings...
+Loaded 1,519,711 barcode mappings from 1,519,711 lines
+
+Processing BAM file...
+  Processed 1,000,000 reads, tagged 1,000,000...
+Processed 1,460,967 total reads
+Tagged 1,460,967 reads with barcodes/UMIs (100.0%)
+
+Creating BAM index...
+✓ Created index: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_UMI/Lsm14b_v3_WT_combined_tagged.bam.bai
+
+Successfully processed Lsm14b_v3_WT_combined
+   Total reads: 1,460,967
+   Tagged reads: 1,460,967
+   Output: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_UMI/Lsm14b_v3_WT_combined_tagged.bam
+BAM tagging completed
+
+Step 5: Running featureCounts to add gene annotations...
+Running featureCounts with gene features for optimal single-cell assignment...
+featureCounts completed
+Converting XT:Z tags to GX:Z tags and sorting...
+FeatureCounts BAM processed and indexed
+
+=== FeatureCounts Assignment Summary ===
+Status	/projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_UMI/Lsm14b_v3_WT_combined_tagged.bam
+Assigned	1166380
+Unassigned_Unmapped	0
+Unassigned_Read_Type	0
+Unassigned_Singleton	0
+Unassigned_MappingQuality	0
+Unassigned_Chimera	0
+Unassigned_FragmentLength	0
+Unassigned_Duplicate	0
+Unassigned_MultiMapping	0
+Unassigned_Secondary	0
+Unassigned_NonSplit	0
+Unassigned_NoFeatures	294587
+Unassigned_Overlapping_Length	0
+Unassigned_Ambiguity	0
+
+Assignment Rate: 1166380/1166380 reads assigned (100.0%)
+Excellent assignment rate for single-cell data!
+========================================
+
+Step 6: Adding XF flags...
+XF tagging completed
+Cleaning up intermediate files...
+Sample Lsm14b_v3_WT_combined processed successfully
+
+========================================
+PROCESSING SAMPLE: Dgkd_v3_WT_combined
+========================================
+Step 1: Locating input files...
+R1 file: /projects/b1042/GoyalLab/egrody/rawData/EGL001/fastq/Dgkd_v3_WT_combined_S01_R1_001.fastq.gz
+R2 file: /projects/b1042/GoyalLab/egrody/rawData/EGL001/fastq/Dgkd_v3_WT_combined_S01_R2_001.fastq.gz
+
+Step 2: Running STAR alignment...
+Sep 23 14:44:45 ..... started STAR run
+Sep 23 14:44:45 ..... loading genome
+Sep 23 14:44:54 ..... started mapping
+Sep 23 14:45:37 ..... finished mapping
+Sep 23 14:45:37 ..... started sorting BAM
+Sep 23 14:45:39 ..... finished successfully
+STAR alignment completed
+Creating BAM index for STAR output...
+BAM index created successfully
+
+Step 3: Extracting UMI and cell barcodes...
+Processing sample: Dgkd_v3_WT_combined
+Input: /projects/b1042/GoyalLab/egrody/rawData/EGL001/fastq/Dgkd_v3_WT_combined_S01_R1_001.fastq.gz
+Output: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//logs/Dgkd_v3_WT_combined_barcode_umi.tsv
+Cell barcode length: 16
+UMI length: 12
+  Processed 1,000,000 reads...
+  Processed 2,000,000 reads...
+  Processed 3,000,000 reads...
+Processed 3,600,541 total reads
+Extracted barcodes/UMIs from 3,600,541 reads (100.0%)
+Successfully created /projects/b1042/GoyalLab/egrody/extractedData/EGL001//logs/Dgkd_v3_WT_combined_barcode_umi.tsv
+UMI extraction completed
+
+Step 4: Adding barcodes to BAM...
+Processing sample: Dgkd_v3_WT_combined
+Input BAM: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//STAR/Dgkd_v3_WT_combined_Aligned.sortedByCoord.out.bam
+Input TSV: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//logs/Dgkd_v3_WT_combined_barcode_umi.tsv
+Output BAM: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_UMI/Dgkd_v3_WT_combined_tagged.bam
+
+Loading barcode/UMI mapping...
+  Loaded 1,000,000 barcode mappings...
+  Loaded 2,000,000 barcode mappings...
+  Loaded 3,000,000 barcode mappings...
+Loaded 3,600,541 barcode mappings from 3,600,541 lines
+
+Processing BAM file...
+  Processed 1,000,000 reads, tagged 1,000,000...
+  Processed 2,000,000 reads, tagged 2,000,000...
+Processed 2,958,664 total reads
+Tagged 2,958,664 reads with barcodes/UMIs (100.0%)
+
+Creating BAM index...
+✓ Created index: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_UMI/Dgkd_v3_WT_combined_tagged.bam.bai
+
+Successfully processed Dgkd_v3_WT_combined
+   Total reads: 2,958,664
+   Tagged reads: 2,958,664
+   Output: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_UMI/Dgkd_v3_WT_combined_tagged.bam
+BAM tagging completed
+
+Step 5: Running featureCounts to add gene annotations...
+Running featureCounts with gene features for optimal single-cell assignment...
+featureCounts completed
+Converting XT:Z tags to GX:Z tags and sorting...
+FeatureCounts BAM processed and indexed
+
+=== FeatureCounts Assignment Summary ===
+Status	/projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_UMI/Dgkd_v3_WT_combined_tagged.bam
+Assigned	2538373
+Unassigned_Unmapped	0
+Unassigned_Read_Type	0
+Unassigned_Singleton	0
+Unassigned_MappingQuality	0
+Unassigned_Chimera	0
+Unassigned_FragmentLength	0
+Unassigned_Duplicate	0
+Unassigned_MultiMapping	0
+Unassigned_Secondary	0
+Unassigned_NonSplit	0
+Unassigned_NoFeatures	420291
+Unassigned_Overlapping_Length	0
+Unassigned_Ambiguity	0
+
+Assignment Rate: 2538373/2538373 reads assigned (100.0%)
+Excellent assignment rate for single-cell data!
+========================================
+
+Step 6: Adding XF flags...
+XF tagging completed
+Cleaning up intermediate files...
+Sample Dgkd_v3_WT_combined processed successfully
+
+========================================
+PROCESSING SAMPLE: Nf2_v4_WT_combined
+========================================
+Step 1: Locating input files...
+R1 file: /projects/b1042/GoyalLab/egrody/rawData/EGL001/fastq/Nf2_v4_WT_combined_S01_R1_001.fastq.gz
+R2 file: /projects/b1042/GoyalLab/egrody/rawData/EGL001/fastq/Nf2_v4_WT_combined_S01_R2_001.fastq.gz
+
+Step 2: Running STAR alignment...
+Sep 23 14:49:01 ..... started STAR run
+Sep 23 14:49:01 ..... loading genome
+Sep 23 14:49:09 ..... started mapping
+Sep 23 14:49:26 ..... finished mapping
+Sep 23 14:49:26 ..... started sorting BAM
+Sep 23 14:49:27 ..... finished successfully
+STAR alignment completed
+Creating BAM index for STAR output...
+BAM index created successfully
+
+Step 3: Extracting UMI and cell barcodes...
+Processing sample: Nf2_v4_WT_combined
+Input: /projects/b1042/GoyalLab/egrody/rawData/EGL001/fastq/Nf2_v4_WT_combined_S01_R1_001.fastq.gz
+Output: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//logs/Nf2_v4_WT_combined_barcode_umi.tsv
+Cell barcode length: 16
+UMI length: 12
+  Processed 1,000,000 reads...
+Processed 1,293,863 total reads
+Extracted barcodes/UMIs from 1,293,863 reads (100.0%)
+Successfully created /projects/b1042/GoyalLab/egrody/extractedData/EGL001//logs/Nf2_v4_WT_combined_barcode_umi.tsv
+UMI extraction completed
+
+Step 4: Adding barcodes to BAM...
+Processing sample: Nf2_v4_WT_combined
+Input BAM: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//STAR/Nf2_v4_WT_combined_Aligned.sortedByCoord.out.bam
+Input TSV: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//logs/Nf2_v4_WT_combined_barcode_umi.tsv
+Output BAM: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_UMI/Nf2_v4_WT_combined_tagged.bam
+
+Loading barcode/UMI mapping...
+  Loaded 1,000,000 barcode mappings...
+Loaded 1,293,863 barcode mappings from 1,293,863 lines
+
+Processing BAM file...
+  Processed 1,000,000 reads, tagged 1,000,000...
+Processed 1,157,586 total reads
+Tagged 1,157,586 reads with barcodes/UMIs (100.0%)
+
+Creating BAM index...
+✓ Created index: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_UMI/Nf2_v4_WT_combined_tagged.bam.bai
+
+Successfully processed Nf2_v4_WT_combined
+   Total reads: 1,157,586
+   Tagged reads: 1,157,586
+   Output: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_UMI/Nf2_v4_WT_combined_tagged.bam
+BAM tagging completed
+
+Step 5: Running featureCounts to add gene annotations...
+Running featureCounts with gene features for optimal single-cell assignment...
+featureCounts completed
+Converting XT:Z tags to GX:Z tags and sorting...
+FeatureCounts BAM processed and indexed
+
+=== FeatureCounts Assignment Summary ===
+Status	/projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_UMI/Nf2_v4_WT_combined_tagged.bam
+Assigned	979474
+Unassigned_Unmapped	0
+Unassigned_Read_Type	0
+Unassigned_Singleton	0
+Unassigned_MappingQuality	0
+Unassigned_Chimera	0
+Unassigned_FragmentLength	0
+Unassigned_Duplicate	0
+Unassigned_MultiMapping	0
+Unassigned_Secondary	0
+Unassigned_NonSplit	0
+Unassigned_NoFeatures	178112
+Unassigned_Overlapping_Length	0
+Unassigned_Ambiguity	0
+
+Assignment Rate: 979474/979474 reads assigned (100.0%)
+Excellent assignment rate for single-cell data!
+========================================
+
+Step 6: Adding XF flags...
+XF tagging completed
+Cleaning up intermediate files...
+Sample Nf2_v4_WT_combined processed successfully
+
+========================================
+PROCESSING SAMPLE: Slk_v4_WT_combined
+========================================
+Step 1: Locating input files...
+R1 file: /projects/b1042/GoyalLab/egrody/rawData/EGL001/fastq/Slk_v4_WT_combined_S01_R1_001.fastq.gz
+R2 file: /projects/b1042/GoyalLab/egrody/rawData/EGL001/fastq/Slk_v4_WT_combined_S01_R2_001.fastq.gz
+
+Step 2: Running STAR alignment...
+Sep 23 14:50:54 ..... started STAR run
+Sep 23 14:50:54 ..... loading genome
+Sep 23 14:51:01 ..... started mapping
+Sep 23 14:51:17 ..... finished mapping
+Sep 23 14:51:17 ..... started sorting BAM
+Sep 23 14:51:19 ..... finished successfully
+STAR alignment completed
+Creating BAM index for STAR output...
+BAM index created successfully
+
+Step 3: Extracting UMI and cell barcodes...
+Processing sample: Slk_v4_WT_combined
+Input: /projects/b1042/GoyalLab/egrody/rawData/EGL001/fastq/Slk_v4_WT_combined_S01_R1_001.fastq.gz
+Output: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//logs/Slk_v4_WT_combined_barcode_umi.tsv
+Cell barcode length: 16
+UMI length: 12
+  Processed 1,000,000 reads...
+Processed 1,483,300 total reads
+Extracted barcodes/UMIs from 1,483,300 reads (100.0%)
+Successfully created /projects/b1042/GoyalLab/egrody/extractedData/EGL001//logs/Slk_v4_WT_combined_barcode_umi.tsv
+UMI extraction completed
+
+Step 4: Adding barcodes to BAM...
+Processing sample: Slk_v4_WT_combined
+Input BAM: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//STAR/Slk_v4_WT_combined_Aligned.sortedByCoord.out.bam
+Input TSV: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//logs/Slk_v4_WT_combined_barcode_umi.tsv
+Output BAM: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_UMI/Slk_v4_WT_combined_tagged.bam
+
+Loading barcode/UMI mapping...
+  Loaded 1,000,000 barcode mappings...
+Loaded 1,483,300 barcode mappings from 1,483,300 lines
+
+Processing BAM file...
+  Processed 1,000,000 reads, tagged 1,000,000...
+Processed 1,369,518 total reads
+Tagged 1,369,518 reads with barcodes/UMIs (100.0%)
+
+Creating BAM index...
+✓ Created index: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_UMI/Slk_v4_WT_combined_tagged.bam.bai
+
+Successfully processed Slk_v4_WT_combined
+   Total reads: 1,369,518
+   Tagged reads: 1,369,518
+   Output: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_UMI/Slk_v4_WT_combined_tagged.bam
+BAM tagging completed
+
+Step 5: Running featureCounts to add gene annotations...
+Running featureCounts with gene features for optimal single-cell assignment...
+featureCounts completed
+Converting XT:Z tags to GX:Z tags and sorting...
+FeatureCounts BAM processed and indexed
+
+=== FeatureCounts Assignment Summary ===
+Status	/projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_UMI/Slk_v4_WT_combined_tagged.bam
+Assigned	1168843
+Unassigned_Unmapped	0
+Unassigned_Read_Type	0
+Unassigned_Singleton	0
+Unassigned_MappingQuality	0
+Unassigned_Chimera	0
+Unassigned_FragmentLength	0
+Unassigned_Duplicate	0
+Unassigned_MultiMapping	0
+Unassigned_Secondary	0
+Unassigned_NonSplit	0
+Unassigned_NoFeatures	200675
+Unassigned_Overlapping_Length	0
+Unassigned_Ambiguity	0
+
+Assignment Rate: 1168843/1168843 reads assigned (100.0%)
+Excellent assignment rate for single-cell data!
+========================================
+
+Step 6: Adding XF flags...
+XF tagging completed
+Cleaning up intermediate files...
+Sample Slk_v4_WT_combined processed successfully
+
+========================================
+PROCESSING SAMPLE: Lsm14b_v4_WT_combined
+========================================
+Step 1: Locating input files...
+R1 file: /projects/b1042/GoyalLab/egrody/rawData/EGL001/fastq/Lsm14b_v4_WT_combined_S01_R1_001.fastq.gz
+R2 file: /projects/b1042/GoyalLab/egrody/rawData/EGL001/fastq/Lsm14b_v4_WT_combined_S01_R2_001.fastq.gz
+
+Step 2: Running STAR alignment...
+Sep 23 14:52:59 ..... started STAR run
+Sep 23 14:53:00 ..... loading genome
+Sep 23 14:53:07 ..... started mapping
+Sep 23 14:54:09 ..... finished mapping
+Sep 23 14:54:09 ..... started sorting BAM
+Sep 23 14:54:13 ..... finished successfully
+STAR alignment completed
+Creating BAM index for STAR output...
+BAM index created successfully
+
+Step 3: Extracting UMI and cell barcodes...
+Processing sample: Lsm14b_v4_WT_combined
+Input: /projects/b1042/GoyalLab/egrody/rawData/EGL001/fastq/Lsm14b_v4_WT_combined_S01_R1_001.fastq.gz
+Output: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//logs/Lsm14b_v4_WT_combined_barcode_umi.tsv
+Cell barcode length: 16
+UMI length: 12
+  Processed 1,000,000 reads...
+  Processed 2,000,000 reads...
+  Processed 3,000,000 reads...
+  Processed 4,000,000 reads...
+  Processed 5,000,000 reads...
+  Processed 6,000,000 reads...
+Processed 6,724,351 total reads
+Extracted barcodes/UMIs from 6,724,351 reads (100.0%)
+Successfully created /projects/b1042/GoyalLab/egrody/extractedData/EGL001//logs/Lsm14b_v4_WT_combined_barcode_umi.tsv
+UMI extraction completed
+
+Step 4: Adding barcodes to BAM...
+Processing sample: Lsm14b_v4_WT_combined
+Input BAM: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//STAR/Lsm14b_v4_WT_combined_Aligned.sortedByCoord.out.bam
+Input TSV: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//logs/Lsm14b_v4_WT_combined_barcode_umi.tsv
+Output BAM: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_UMI/Lsm14b_v4_WT_combined_tagged.bam
+
+Loading barcode/UMI mapping...
+  Loaded 1,000,000 barcode mappings...
+  Loaded 2,000,000 barcode mappings...
+  Loaded 3,000,000 barcode mappings...
+  Loaded 4,000,000 barcode mappings...
+  Loaded 5,000,000 barcode mappings...
+  Loaded 6,000,000 barcode mappings...
+Loaded 6,724,351 barcode mappings from 6,724,351 lines
+
+Processing BAM file...
+  Processed 1,000,000 reads, tagged 1,000,000...
+  Processed 2,000,000 reads, tagged 2,000,000...
+  Processed 3,000,000 reads, tagged 3,000,000...
+  Processed 4,000,000 reads, tagged 4,000,000...
+  Processed 5,000,000 reads, tagged 5,000,000...
+Processed 5,645,552 total reads
+Tagged 5,645,552 reads with barcodes/UMIs (100.0%)
+
+Creating BAM index...
+✓ Created index: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_UMI/Lsm14b_v4_WT_combined_tagged.bam.bai
+
+Successfully processed Lsm14b_v4_WT_combined
+   Total reads: 5,645,552
+   Tagged reads: 5,645,552
+   Output: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_UMI/Lsm14b_v4_WT_combined_tagged.bam
+BAM tagging completed
+
+Step 5: Running featureCounts to add gene annotations...
+Running featureCounts with gene features for optimal single-cell assignment...
+featureCounts completed
+Converting XT:Z tags to GX:Z tags and sorting...
+FeatureCounts BAM processed and indexed
+
+=== FeatureCounts Assignment Summary ===
+Status	/projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_UMI/Lsm14b_v4_WT_combined_tagged.bam
+Assigned	4791999
+Unassigned_Unmapped	0
+Unassigned_Read_Type	0
+Unassigned_Singleton	0
+Unassigned_MappingQuality	0
+Unassigned_Chimera	0
+Unassigned_FragmentLength	0
+Unassigned_Duplicate	0
+Unassigned_MultiMapping	0
+Unassigned_Secondary	0
+Unassigned_NonSplit	0
+Unassigned_NoFeatures	853553
+Unassigned_Overlapping_Length	0
+Unassigned_Ambiguity	0
+
+Assignment Rate: 4791999/4791999 reads assigned (100.0%)
+Excellent assignment rate for single-cell data!
+========================================
+
+Step 6: Adding XF flags...
+XF tagging completed
+Cleaning up intermediate files...
+Sample Lsm14b_v4_WT_combined processed successfully
+
+========================================
+PROCESSING SAMPLE: Kras_v3_KO_combined
+========================================
+Step 1: Locating input files...
+R1 file: /projects/b1042/GoyalLab/egrody/rawData/EGL001/fastq/Kras_v3_KO_combined_S01_R1_001.fastq.gz
+R2 file: /projects/b1042/GoyalLab/egrody/rawData/EGL001/fastq/Kras_v3_KO_combined_S01_R2_001.fastq.gz
+
+Step 2: Running STAR alignment...
+Sep 23 15:00:42 ..... started STAR run
+Sep 23 15:00:42 ..... loading genome
+Sep 23 15:00:49 ..... started mapping
+Sep 23 15:01:31 ..... finished mapping
+Sep 23 15:01:31 ..... started sorting BAM
+Sep 23 15:01:34 ..... finished successfully
+STAR alignment completed
+Creating BAM index for STAR output...
+BAM index created successfully
+
+Step 3: Extracting UMI and cell barcodes...
+Processing sample: Kras_v3_KO_combined
+Input: /projects/b1042/GoyalLab/egrody/rawData/EGL001/fastq/Kras_v3_KO_combined_S01_R1_001.fastq.gz
+Output: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//logs/Kras_v3_KO_combined_barcode_umi.tsv
+Cell barcode length: 16
+UMI length: 12
+  Processed 1,000,000 reads...
+  Processed 2,000,000 reads...
+  Processed 3,000,000 reads...
+  Processed 4,000,000 reads...
+Processed 4,007,536 total reads
+Extracted barcodes/UMIs from 4,007,536 reads (100.0%)
+Successfully created /projects/b1042/GoyalLab/egrody/extractedData/EGL001//logs/Kras_v3_KO_combined_barcode_umi.tsv
+UMI extraction completed
+
+Step 4: Adding barcodes to BAM...
+Processing sample: Kras_v3_KO_combined
+Input BAM: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//STAR/Kras_v3_KO_combined_Aligned.sortedByCoord.out.bam
+Input TSV: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//logs/Kras_v3_KO_combined_barcode_umi.tsv
+Output BAM: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_UMI/Kras_v3_KO_combined_tagged.bam
+
+Loading barcode/UMI mapping...
+  Loaded 1,000,000 barcode mappings...
+  Loaded 2,000,000 barcode mappings...
+  Loaded 3,000,000 barcode mappings...
+  Loaded 4,000,000 barcode mappings...
+Loaded 4,007,536 barcode mappings from 4,007,536 lines
+
+Processing BAM file...
+  Processed 1,000,000 reads, tagged 1,000,000...
+  Processed 2,000,000 reads, tagged 2,000,000...
+  Processed 3,000,000 reads, tagged 3,000,000...
+Processed 3,792,359 total reads
+Tagged 3,792,359 reads with barcodes/UMIs (100.0%)
+
+Creating BAM index...
+✓ Created index: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_UMI/Kras_v3_KO_combined_tagged.bam.bai
+
+Successfully processed Kras_v3_KO_combined
+   Total reads: 3,792,359
+   Tagged reads: 3,792,359
+   Output: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_UMI/Kras_v3_KO_combined_tagged.bam
+BAM tagging completed
+
+Step 5: Running featureCounts to add gene annotations...
+Running featureCounts with gene features for optimal single-cell assignment...
+featureCounts completed
+Converting XT:Z tags to GX:Z tags and sorting...
+FeatureCounts BAM processed and indexed
+
+=== FeatureCounts Assignment Summary ===
+Status	/projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_UMI/Kras_v3_KO_combined_tagged.bam
+Assigned	2645561
+Unassigned_Unmapped	0
+Unassigned_Read_Type	0
+Unassigned_Singleton	0
+Unassigned_MappingQuality	0
+Unassigned_Chimera	0
+Unassigned_FragmentLength	0
+Unassigned_Duplicate	0
+Unassigned_MultiMapping	0
+Unassigned_Secondary	0
+Unassigned_NonSplit	0
+Unassigned_NoFeatures	1146798
+Unassigned_Overlapping_Length	0
+Unassigned_Ambiguity	0
+
+Assignment Rate: 2645561/2645561 reads assigned (100.0%)
+Excellent assignment rate for single-cell data!
+========================================
+
+Step 6: Adding XF flags...
+XF tagging completed
+Cleaning up intermediate files...
+Sample Kras_v3_KO_combined processed successfully
+
+========================================
+PROCESSING SAMPLE: Slk_v3_KO_combined
+========================================
+Step 1: Locating input files...
+R1 file: /projects/b1042/GoyalLab/egrody/rawData/EGL001/fastq/Slk_v3_KO_combined_S01_R1_001.fastq.gz
+R2 file: /projects/b1042/GoyalLab/egrody/rawData/EGL001/fastq/Slk_v3_KO_combined_S01_R2_001.fastq.gz
+
+Step 2: Running STAR alignment...
+Sep 23 15:05:45 ..... started STAR run
+Sep 23 15:05:45 ..... loading genome
+Sep 23 15:05:53 ..... started mapping
+Sep 23 15:06:08 ..... finished mapping
+Sep 23 15:06:08 ..... started sorting BAM
+Sep 23 15:06:09 ..... finished successfully
+STAR alignment completed
+Creating BAM index for STAR output...
+BAM index created successfully
+
+Step 3: Extracting UMI and cell barcodes...
+Processing sample: Slk_v3_KO_combined
+Input: /projects/b1042/GoyalLab/egrody/rawData/EGL001/fastq/Slk_v3_KO_combined_S01_R1_001.fastq.gz
+Output: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//logs/Slk_v3_KO_combined_barcode_umi.tsv
+Cell barcode length: 16
+UMI length: 12
+  Processed 1,000,000 reads...
+Processed 1,322,604 total reads
+Extracted barcodes/UMIs from 1,322,604 reads (100.0%)
+Successfully created /projects/b1042/GoyalLab/egrody/extractedData/EGL001//logs/Slk_v3_KO_combined_barcode_umi.tsv
+UMI extraction completed
+
+Step 4: Adding barcodes to BAM...
+Processing sample: Slk_v3_KO_combined
+Input BAM: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//STAR/Slk_v3_KO_combined_Aligned.sortedByCoord.out.bam
+Input TSV: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//logs/Slk_v3_KO_combined_barcode_umi.tsv
+Output BAM: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_UMI/Slk_v3_KO_combined_tagged.bam
+
+Loading barcode/UMI mapping...
+  Loaded 1,000,000 barcode mappings...
+Loaded 1,322,604 barcode mappings from 1,322,604 lines
+
+Processing BAM file...
+  Processed 1,000,000 reads, tagged 1,000,000...
+Processed 1,243,694 total reads
+Tagged 1,243,694 reads with barcodes/UMIs (100.0%)
+
+Creating BAM index...
+✓ Created index: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_UMI/Slk_v3_KO_combined_tagged.bam.bai
+
+Successfully processed Slk_v3_KO_combined
+   Total reads: 1,243,694
+   Tagged reads: 1,243,694
+   Output: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_UMI/Slk_v3_KO_combined_tagged.bam
+BAM tagging completed
+
+Step 5: Running featureCounts to add gene annotations...
+Running featureCounts with gene features for optimal single-cell assignment...
+featureCounts completed
+Converting XT:Z tags to GX:Z tags and sorting...
+FeatureCounts BAM processed and indexed
+
+=== FeatureCounts Assignment Summary ===
+Status	/projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_UMI/Slk_v3_KO_combined_tagged.bam
+Assigned	915616
+Unassigned_Unmapped	0
+Unassigned_Read_Type	0
+Unassigned_Singleton	0
+Unassigned_MappingQuality	0
+Unassigned_Chimera	0
+Unassigned_FragmentLength	0
+Unassigned_Duplicate	0
+Unassigned_MultiMapping	0
+Unassigned_Secondary	0
+Unassigned_NonSplit	0
+Unassigned_NoFeatures	328078
+Unassigned_Overlapping_Length	0
+Unassigned_Ambiguity	0
+
+Assignment Rate: 915616/915616 reads assigned (100.0%)
+Excellent assignment rate for single-cell data!
+========================================
+
+Step 6: Adding XF flags...
+XF tagging completed
+Cleaning up intermediate files...
+Sample Slk_v3_KO_combined processed successfully
+
+========================================
+PROCESSING SAMPLE: Lsm14b_v3_KO_combined
+========================================
+Step 1: Locating input files...
+R1 file: /projects/b1042/GoyalLab/egrody/rawData/EGL001/fastq/Lsm14b_v3_KO_combined_S01_R1_001.fastq.gz
+R2 file: /projects/b1042/GoyalLab/egrody/rawData/EGL001/fastq/Lsm14b_v3_KO_combined_S01_R2_001.fastq.gz
+
+Step 2: Running STAR alignment...
+Sep 23 15:07:47 ..... started STAR run
+Sep 23 15:07:47 ..... loading genome
+Sep 23 15:07:55 ..... started mapping
+Sep 23 15:08:05 ..... finished mapping
+Sep 23 15:08:05 ..... started sorting BAM
+Sep 23 15:08:07 ..... finished successfully
+STAR alignment completed
+Creating BAM index for STAR output...
+BAM index created successfully
+
+Step 3: Extracting UMI and cell barcodes...
+Processing sample: Lsm14b_v3_KO_combined
+Input: /projects/b1042/GoyalLab/egrody/rawData/EGL001/fastq/Lsm14b_v3_KO_combined_S01_R1_001.fastq.gz
+Output: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//logs/Lsm14b_v3_KO_combined_barcode_umi.tsv
+Cell barcode length: 16
+UMI length: 12
+Processed 933,640 total reads
+Extracted barcodes/UMIs from 933,640 reads (100.0%)
+Successfully created /projects/b1042/GoyalLab/egrody/extractedData/EGL001//logs/Lsm14b_v3_KO_combined_barcode_umi.tsv
+UMI extraction completed
+
+Step 4: Adding barcodes to BAM...
+Processing sample: Lsm14b_v3_KO_combined
+Input BAM: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//STAR/Lsm14b_v3_KO_combined_Aligned.sortedByCoord.out.bam
+Input TSV: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//logs/Lsm14b_v3_KO_combined_barcode_umi.tsv
+Output BAM: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_UMI/Lsm14b_v3_KO_combined_tagged.bam
+
+Loading barcode/UMI mapping...
+Loaded 933,640 barcode mappings from 933,640 lines
+
+Processing BAM file...
+Processed 916,919 total reads
+Tagged 916,919 reads with barcodes/UMIs (100.0%)
+
+Creating BAM index...
+✓ Created index: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_UMI/Lsm14b_v3_KO_combined_tagged.bam.bai
+
+Successfully processed Lsm14b_v3_KO_combined
+   Total reads: 916,919
+   Tagged reads: 916,919
+   Output: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_UMI/Lsm14b_v3_KO_combined_tagged.bam
+BAM tagging completed
+
+Step 5: Running featureCounts to add gene annotations...
+Running featureCounts with gene features for optimal single-cell assignment...
+featureCounts completed
+Converting XT:Z tags to GX:Z tags and sorting...
+FeatureCounts BAM processed and indexed
+
+=== FeatureCounts Assignment Summary ===
+Status	/projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_UMI/Lsm14b_v3_KO_combined_tagged.bam
+Assigned	675931
+Unassigned_Unmapped	0
+Unassigned_Read_Type	0
+Unassigned_Singleton	0
+Unassigned_MappingQuality	0
+Unassigned_Chimera	0
+Unassigned_FragmentLength	0
+Unassigned_Duplicate	0
+Unassigned_MultiMapping	0
+Unassigned_Secondary	0
+Unassigned_NonSplit	0
+Unassigned_NoFeatures	240988
+Unassigned_Overlapping_Length	0
+Unassigned_Ambiguity	0
+
+Assignment Rate: 675931/675931 reads assigned (100.0%)
+Excellent assignment rate for single-cell data!
+========================================
+
+Step 6: Adding XF flags...
+XF tagging completed
+Cleaning up intermediate files...
+Sample Lsm14b_v3_KO_combined processed successfully
+
+========================================
+PROCESSING SAMPLE: Dgkd_v3_KO_combined
+========================================
+Step 1: Locating input files...
+R1 file: /projects/b1042/GoyalLab/egrody/rawData/EGL001/fastq/Dgkd_v3_KO_combined_S01_R1_001.fastq.gz
+R2 file: /projects/b1042/GoyalLab/egrody/rawData/EGL001/fastq/Dgkd_v3_KO_combined_S01_R2_001.fastq.gz
+
+Step 2: Running STAR alignment...
+Sep 23 15:09:21 ..... started STAR run
+Sep 23 15:09:21 ..... loading genome
+Sep 23 15:09:28 ..... started mapping
+Sep 23 15:10:17 ..... finished mapping
+Sep 23 15:10:18 ..... started sorting BAM
+Sep 23 15:10:20 ..... finished successfully
+STAR alignment completed
+Creating BAM index for STAR output...
+BAM index created successfully
+
+Step 3: Extracting UMI and cell barcodes...
+Processing sample: Dgkd_v3_KO_combined
+Input: /projects/b1042/GoyalLab/egrody/rawData/EGL001/fastq/Dgkd_v3_KO_combined_S01_R1_001.fastq.gz
+Output: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//logs/Dgkd_v3_KO_combined_barcode_umi.tsv
+Cell barcode length: 16
+UMI length: 12
+  Processed 1,000,000 reads...
+  Processed 2,000,000 reads...
+  Processed 3,000,000 reads...
+  Processed 4,000,000 reads...
+Processed 4,627,438 total reads
+Extracted barcodes/UMIs from 4,627,438 reads (100.0%)
+Successfully created /projects/b1042/GoyalLab/egrody/extractedData/EGL001//logs/Dgkd_v3_KO_combined_barcode_umi.tsv
+UMI extraction completed
+
+Step 4: Adding barcodes to BAM...
+Processing sample: Dgkd_v3_KO_combined
+Input BAM: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//STAR/Dgkd_v3_KO_combined_Aligned.sortedByCoord.out.bam
+Input TSV: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//logs/Dgkd_v3_KO_combined_barcode_umi.tsv
+Output BAM: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_UMI/Dgkd_v3_KO_combined_tagged.bam
+
+Loading barcode/UMI mapping...
+  Loaded 1,000,000 barcode mappings...
+  Loaded 2,000,000 barcode mappings...
+  Loaded 3,000,000 barcode mappings...
+  Loaded 4,000,000 barcode mappings...
+Loaded 4,627,438 barcode mappings from 4,627,438 lines
+
+Processing BAM file...
+  Processed 1,000,000 reads, tagged 1,000,000...
+  Processed 2,000,000 reads, tagged 2,000,000...
+  Processed 3,000,000 reads, tagged 3,000,000...
+  Processed 4,000,000 reads, tagged 4,000,000...
+Processed 4,207,729 total reads
+Tagged 4,207,729 reads with barcodes/UMIs (100.0%)
+
+Creating BAM index...
+✓ Created index: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_UMI/Dgkd_v3_KO_combined_tagged.bam.bai
+
+Successfully processed Dgkd_v3_KO_combined
+   Total reads: 4,207,729
+   Tagged reads: 4,207,729
+   Output: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_UMI/Dgkd_v3_KO_combined_tagged.bam
+BAM tagging completed
+
+Step 5: Running featureCounts to add gene annotations...
+Running featureCounts with gene features for optimal single-cell assignment...
+featureCounts completed
+Converting XT:Z tags to GX:Z tags and sorting...
+FeatureCounts BAM processed and indexed
+
+=== FeatureCounts Assignment Summary ===
+Status	/projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_UMI/Dgkd_v3_KO_combined_tagged.bam
+Assigned	3105651
+Unassigned_Unmapped	0
+Unassigned_Read_Type	0
+Unassigned_Singleton	0
+Unassigned_MappingQuality	0
+Unassigned_Chimera	0
+Unassigned_FragmentLength	0
+Unassigned_Duplicate	0
+Unassigned_MultiMapping	0
+Unassigned_Secondary	0
+Unassigned_NonSplit	0
+Unassigned_NoFeatures	1102078
+Unassigned_Overlapping_Length	0
+Unassigned_Ambiguity	0
+
+Assignment Rate: 3105651/3105651 reads assigned (100.0%)
+Excellent assignment rate for single-cell data!
+========================================
+
+Step 6: Adding XF flags...
+XF tagging completed
+Cleaning up intermediate files...
+Sample Dgkd_v3_KO_combined processed successfully
+
+========================================
+PROCESSING SAMPLE: Nf2_v4_KO_combined
+========================================
+Step 1: Locating input files...
+R1 file: /projects/b1042/GoyalLab/egrody/rawData/EGL001/fastq/Nf2_v4_KO_combined_S01_R1_001.fastq.gz
+R2 file: /projects/b1042/GoyalLab/egrody/rawData/EGL001/fastq/Nf2_v4_KO_combined_S01_R2_001.fastq.gz
+
+Step 2: Running STAR alignment...
+Sep 23 15:14:47 ..... started STAR run
+Sep 23 15:14:47 ..... loading genome
+Sep 23 15:14:54 ..... started mapping
+Sep 23 15:15:20 ..... finished mapping
+Sep 23 15:15:20 ..... started sorting BAM
+Sep 23 15:15:22 ..... finished successfully
+STAR alignment completed
+Creating BAM index for STAR output...
+BAM index created successfully
+
+Step 3: Extracting UMI and cell barcodes...
+Processing sample: Nf2_v4_KO_combined
+Input: /projects/b1042/GoyalLab/egrody/rawData/EGL001/fastq/Nf2_v4_KO_combined_S01_R1_001.fastq.gz
+Output: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//logs/Nf2_v4_KO_combined_barcode_umi.tsv
+Cell barcode length: 16
+UMI length: 12
+  Processed 1,000,000 reads...
+  Processed 2,000,000 reads...
+Processed 2,621,014 total reads
+Extracted barcodes/UMIs from 2,621,014 reads (100.0%)
+Successfully created /projects/b1042/GoyalLab/egrody/extractedData/EGL001//logs/Nf2_v4_KO_combined_barcode_umi.tsv
+UMI extraction completed
+
+Step 4: Adding barcodes to BAM...
+Processing sample: Nf2_v4_KO_combined
+Input BAM: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//STAR/Nf2_v4_KO_combined_Aligned.sortedByCoord.out.bam
+Input TSV: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//logs/Nf2_v4_KO_combined_barcode_umi.tsv
+Output BAM: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_UMI/Nf2_v4_KO_combined_tagged.bam
+
+Loading barcode/UMI mapping...
+  Loaded 1,000,000 barcode mappings...
+  Loaded 2,000,000 barcode mappings...
+Loaded 2,621,014 barcode mappings from 2,621,014 lines
+
+Processing BAM file...
+  Processed 1,000,000 reads, tagged 1,000,000...
+  Processed 2,000,000 reads, tagged 2,000,000...
+Processed 2,460,208 total reads
+Tagged 2,460,208 reads with barcodes/UMIs (100.0%)
+
+Creating BAM index...
+✓ Created index: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_UMI/Nf2_v4_KO_combined_tagged.bam.bai
+
+Successfully processed Nf2_v4_KO_combined
+   Total reads: 2,460,208
+   Tagged reads: 2,460,208
+   Output: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_UMI/Nf2_v4_KO_combined_tagged.bam
+BAM tagging completed
+
+Step 5: Running featureCounts to add gene annotations...
+Running featureCounts with gene features for optimal single-cell assignment...
+featureCounts completed
+Converting XT:Z tags to GX:Z tags and sorting...
+FeatureCounts BAM processed and indexed
+
+=== FeatureCounts Assignment Summary ===
+Status	/projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_UMI/Nf2_v4_KO_combined_tagged.bam
+Assigned	1854236
+Unassigned_Unmapped	0
+Unassigned_Read_Type	0
+Unassigned_Singleton	0
+Unassigned_MappingQuality	0
+Unassigned_Chimera	0
+Unassigned_FragmentLength	0
+Unassigned_Duplicate	0
+Unassigned_MultiMapping	0
+Unassigned_Secondary	0
+Unassigned_NonSplit	0
+Unassigned_NoFeatures	605972
+Unassigned_Overlapping_Length	0
+Unassigned_Ambiguity	0
+
+Assignment Rate: 1854236/1854236 reads assigned (100.0%)
+Excellent assignment rate for single-cell data!
+========================================
+
+Step 6: Adding XF flags...
+XF tagging completed
+Cleaning up intermediate files...
+Sample Nf2_v4_KO_combined processed successfully
+
+========================================
+PROCESSING SAMPLE: Slk_v4_KO_combined
+========================================
+Step 1: Locating input files...
+R1 file: /projects/b1042/GoyalLab/egrody/rawData/EGL001/fastq/Slk_v4_KO_combined_S01_R1_001.fastq.gz
+R2 file: /projects/b1042/GoyalLab/egrody/rawData/EGL001/fastq/Slk_v4_KO_combined_S01_R2_001.fastq.gz
+
+Step 2: Running STAR alignment...
+Sep 23 15:18:15 ..... started STAR run
+Sep 23 15:18:15 ..... loading genome
+Sep 23 15:18:24 ..... started mapping
+Sep 23 15:18:42 ..... finished mapping
+Sep 23 15:18:42 ..... started sorting BAM
+Sep 23 15:18:43 ..... finished successfully
+STAR alignment completed
+Creating BAM index for STAR output...
+BAM index created successfully
+
+Step 3: Extracting UMI and cell barcodes...
+Processing sample: Slk_v4_KO_combined
+Input: /projects/b1042/GoyalLab/egrody/rawData/EGL001/fastq/Slk_v4_KO_combined_S01_R1_001.fastq.gz
+Output: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//logs/Slk_v4_KO_combined_barcode_umi.tsv
+Cell barcode length: 16
+UMI length: 12
+  Processed 1,000,000 reads...
+Processed 1,737,122 total reads
+Extracted barcodes/UMIs from 1,737,122 reads (100.0%)
+Successfully created /projects/b1042/GoyalLab/egrody/extractedData/EGL001//logs/Slk_v4_KO_combined_barcode_umi.tsv
+UMI extraction completed
+
+Step 4: Adding barcodes to BAM...
+Processing sample: Slk_v4_KO_combined
+Input BAM: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//STAR/Slk_v4_KO_combined_Aligned.sortedByCoord.out.bam
+Input TSV: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//logs/Slk_v4_KO_combined_barcode_umi.tsv
+Output BAM: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_UMI/Slk_v4_KO_combined_tagged.bam
+
+Loading barcode/UMI mapping...
+  Loaded 1,000,000 barcode mappings...
+Loaded 1,737,122 barcode mappings from 1,737,122 lines
+
+Processing BAM file...
+  Processed 1,000,000 reads, tagged 1,000,000...
+Processed 1,577,604 total reads
+Tagged 1,577,604 reads with barcodes/UMIs (100.0%)
+
+Creating BAM index...
+✓ Created index: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_UMI/Slk_v4_KO_combined_tagged.bam.bai
+
+Successfully processed Slk_v4_KO_combined
+   Total reads: 1,577,604
+   Tagged reads: 1,577,604
+   Output: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_UMI/Slk_v4_KO_combined_tagged.bam
+BAM tagging completed
+
+Step 5: Running featureCounts to add gene annotations...
+Running featureCounts with gene features for optimal single-cell assignment...
+featureCounts completed
+Converting XT:Z tags to GX:Z tags and sorting...
+FeatureCounts BAM processed and indexed
+
+=== FeatureCounts Assignment Summary ===
+Status	/projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_UMI/Slk_v4_KO_combined_tagged.bam
+Assigned	1112397
+Unassigned_Unmapped	0
+Unassigned_Read_Type	0
+Unassigned_Singleton	0
+Unassigned_MappingQuality	0
+Unassigned_Chimera	0
+Unassigned_FragmentLength	0
+Unassigned_Duplicate	0
+Unassigned_MultiMapping	0
+Unassigned_Secondary	0
+Unassigned_NonSplit	0
+Unassigned_NoFeatures	465207
+Unassigned_Overlapping_Length	0
+Unassigned_Ambiguity	0
+
+Assignment Rate: 1112397/1112397 reads assigned (100.0%)
+Excellent assignment rate for single-cell data!
+========================================
+
+Step 6: Adding XF flags...
+XF tagging completed
+Cleaning up intermediate files...
+Sample Slk_v4_KO_combined processed successfully
+
+========================================
+PROCESSING SAMPLE: Lsm14b_v4_KO_combined
+========================================
+Step 1: Locating input files...
+R1 file: /projects/b1042/GoyalLab/egrody/rawData/EGL001/fastq/Lsm14b_v4_KO_combined_S01_R1_001.fastq.gz
+R2 file: /projects/b1042/GoyalLab/egrody/rawData/EGL001/fastq/Lsm14b_v4_KO_combined_S01_R2_001.fastq.gz
+
+Step 2: Running STAR alignment...
+Sep 23 15:20:45 ..... started STAR run
+Sep 23 15:20:46 ..... loading genome
+Sep 23 15:20:54 ..... started mapping
+Sep 23 15:21:12 ..... finished mapping
+Sep 23 15:21:12 ..... started sorting BAM
+Sep 23 15:21:15 ..... finished successfully
+STAR alignment completed
+Creating BAM index for STAR output...
+BAM index created successfully
+
+Step 3: Extracting UMI and cell barcodes...
+Processing sample: Lsm14b_v4_KO_combined
+Input: /projects/b1042/GoyalLab/egrody/rawData/EGL001/fastq/Lsm14b_v4_KO_combined_S01_R1_001.fastq.gz
+Output: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//logs/Lsm14b_v4_KO_combined_barcode_umi.tsv
+Cell barcode length: 16
+UMI length: 12
+  Processed 1,000,000 reads...
+Processed 1,350,541 total reads
+Extracted barcodes/UMIs from 1,350,541 reads (100.0%)
+Successfully created /projects/b1042/GoyalLab/egrody/extractedData/EGL001//logs/Lsm14b_v4_KO_combined_barcode_umi.tsv
+UMI extraction completed
+
+Step 4: Adding barcodes to BAM...
+Processing sample: Lsm14b_v4_KO_combined
+Input BAM: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//STAR/Lsm14b_v4_KO_combined_Aligned.sortedByCoord.out.bam
+Input TSV: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//logs/Lsm14b_v4_KO_combined_barcode_umi.tsv
+Output BAM: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_UMI/Lsm14b_v4_KO_combined_tagged.bam
+
+Loading barcode/UMI mapping...
+  Loaded 1,000,000 barcode mappings...
+Loaded 1,350,541 barcode mappings from 1,350,541 lines
+
+Processing BAM file...
+  Processed 1,000,000 reads, tagged 1,000,000...
+Processed 1,271,390 total reads
+Tagged 1,271,390 reads with barcodes/UMIs (100.0%)
+
+Creating BAM index...
+✓ Created index: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_UMI/Lsm14b_v4_KO_combined_tagged.bam.bai
+
+Successfully processed Lsm14b_v4_KO_combined
+   Total reads: 1,271,390
+   Tagged reads: 1,271,390
+   Output: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_UMI/Lsm14b_v4_KO_combined_tagged.bam
+BAM tagging completed
+
+Step 5: Running featureCounts to add gene annotations...
+Running featureCounts with gene features for optimal single-cell assignment...
+featureCounts completed
+Converting XT:Z tags to GX:Z tags and sorting...
+FeatureCounts BAM processed and indexed
+
+=== FeatureCounts Assignment Summary ===
+Status	/projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_UMI/Lsm14b_v4_KO_combined_tagged.bam
+Assigned	973012
+Unassigned_Unmapped	0
+Unassigned_Read_Type	0
+Unassigned_Singleton	0
+Unassigned_MappingQuality	0
+Unassigned_Chimera	0
+Unassigned_FragmentLength	0
+Unassigned_Duplicate	0
+Unassigned_MultiMapping	0
+Unassigned_Secondary	0
+Unassigned_NonSplit	0
+Unassigned_NoFeatures	298378
+Unassigned_Overlapping_Length	0
+Unassigned_Ambiguity	0
+
+Assignment Rate: 973012/973012 reads assigned (100.0%)
+Excellent assignment rate for single-cell data!
+========================================
+
+Step 6: Adding XF flags...
+XF tagging completed
+Cleaning up intermediate files...
+Sample Lsm14b_v4_KO_combined processed successfully
+
+========================================
+PIPELINE COMPLETE
+========================================
+Total samples: 14
+Successfully processed: 14
+Failed: 0
+
+Summary written to: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//pipeline_summary.txt
+
+All samples processed successfully!
+Final BAM files with CB/UB/GX/XF tags: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_final/

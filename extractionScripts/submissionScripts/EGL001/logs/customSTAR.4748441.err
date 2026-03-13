@@ -1,0 +1,994 @@
+
+        ==========     _____ _    _ ____  _____  ______          _____  
+        =====         / ____| |  | |  _ \|  __ \|  ____|   /\   |  __ \ 
+          =====      | (___ | |  | | |_) | |__) | |__     /  \  | |  | |
+            ====      \___ \| |  | |  _ <|  _  /|  __|   / /\ \ | |  | |
+              ====    ____) | |__| | |_) | | \ \| |____ / ____ \| |__| |
+        ==========   |_____/ \____/|____/|_|  \_\______/_/    \_\_____/
+	  v2.0.3
+
+//========================== featureCounts setting ===========================\\
+||                                                                            ||
+||             Input files : 1 BAM file                                       ||
+||                                                                            ||
+||                           Kras_v3_WT_combined_tagged.bam                   ||
+||                                                                            ||
+||             Output file : Kras_v3_WT_combined_featureCounts.txt            ||
+||                 Summary : Kras_v3_WT_combined_featureCounts.txt.summary    ||
+||              Paired-end : no                                               ||
+||        Count read pairs : no                                               ||
+||              Annotation : genes.gtf (GTF)                                  ||
+||      Dir for temp files : ./                                               ||
+||      Assignment details : <input_file>.featureCounts.bam                   ||
+||                      (Note that files are saved to the output directory)   ||
+||                                                                            ||
+||                                                                            ||
+||                 Threads : 8                                                ||
+||                   Level : meta-feature level                               ||
+||      Multimapping reads : counted (fractional)                             ||
+|| Multi-overlapping reads : counted                                          ||
+||   Min overlapping bases : 1                                                ||
+||                                                                            ||
+\\============================================================================//
+
+//================================= Running ==================================\\
+||                                                                            ||
+|| Load annotation file genes.gtf ...                                         ||
+||    Features : 33696                                                        ||
+||    Meta-features : 33696                                                   ||
+||    Chromosomes/contigs : 35                                                ||
+||                                                                            ||
+|| Process BAM file Kras_v3_WT_combined_tagged.bam...                         ||
+||    Single-end reads are included.                                          ||
+||    Total alignments : 4211896                                              ||
+||    Successfully assigned alignments : 3601194 (85.5%)                      ||
+||    Running time : 0.05 minutes                                             ||
+||                                                                            ||
+|| Write the final count table.                                               ||
+|| Write the read assignment summary.                                         ||
+||                                                                            ||
+|| Summary of counting results can be found in file "Kras_v3_WT_combined_fea  ||
+|| tureCounts.txt.summary"                                                    ||
+||                                                                            ||
+\\============================================================================//
+
+[bam_sort_core] merging from 0 files and 4 in-memory blocks...
+2025-09-23 14:38:30,220 - INFO - Processing: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_UMI/Kras_v3_WT_combined_tagged_sorted.bam -> /projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_final/Kras_v3_WT_combined_final.bam
+2025-09-23 14:38:30,220 - INFO - Finding UMI representatives...
+2025-09-23 14:38:51,445 - INFO - Found 1831305 UMI representatives
+2025-09-23 14:38:51,687 - INFO - Adding XF flags to reads...
+2025-09-23 14:40:06,668 - INFO - Processed 4,211,896 reads
+2025-09-23 14:40:06,668 - INFO - XF flag distribution:
+2025-09-23 14:40:06,668 - INFO -   XF= 0:  500,773 ( 11.9%) - Unmapped/low quality/missing tags
+2025-09-23 14:40:06,668 - INFO -   XF= 1:  109,929 (  2.6%) - Mapped only
+2025-09-23 14:40:06,668 - INFO -   XF=16: 1,021,203 ( 24.2%) - Feature assigned only
+2025-09-23 14:40:06,668 - INFO -   XF=17:  620,655 ( 14.7%) - Mapped + Feature (duplicate)
+2025-09-23 14:40:06,668 - INFO -   XF=20:   51,319 (  1.2%) - Feature + Multiple genes
+2025-09-23 14:40:06,668 - INFO -   XF=21:  244,161 (  5.8%) - Mapped + Feature + Multiple genes
+2025-09-23 14:40:06,668 - INFO -   XF=25: 1,663,856 ( 39.5%) - Mapped + Feature + Counted (UMI)
+2025-09-23 14:40:06,909 - INFO - Indexing output BAM...
+2025-09-23 14:40:11,306 - INFO - Complete!
+/var/spool/slurmd/job4748441/slurm_script: line 376: /proc/sys/vm/drop_caches: Permission denied
+
+        ==========     _____ _    _ ____  _____  ______          _____  
+        =====         / ____| |  | |  _ \|  __ \|  ____|   /\   |  __ \ 
+          =====      | (___ | |  | | |_) | |__) | |__     /  \  | |  | |
+            ====      \___ \| |  | |  _ <|  _  /|  __|   / /\ \ | |  | |
+              ====    ____) | |__| | |_) | | \ \| |____ / ____ \| |__| |
+        ==========   |_____/ \____/|____/|_|  \_\______/_/    \_\_____/
+	  v2.0.3
+
+//========================== featureCounts setting ===========================\\
+||                                                                            ||
+||             Input files : 1 BAM file                                       ||
+||                                                                            ||
+||                           Slk_v3_WT_combined_tagged.bam                    ||
+||                                                                            ||
+||             Output file : Slk_v3_WT_combined_featureCounts.txt             ||
+||                 Summary : Slk_v3_WT_combined_featureCounts.txt.summary     ||
+||              Paired-end : no                                               ||
+||        Count read pairs : no                                               ||
+||              Annotation : genes.gtf (GTF)                                  ||
+||      Dir for temp files : ./                                               ||
+||      Assignment details : <input_file>.featureCounts.bam                   ||
+||                      (Note that files are saved to the output directory)   ||
+||                                                                            ||
+||                                                                            ||
+||                 Threads : 8                                                ||
+||                   Level : meta-feature level                               ||
+||      Multimapping reads : counted (fractional)                             ||
+|| Multi-overlapping reads : counted                                          ||
+||   Min overlapping bases : 1                                                ||
+||                                                                            ||
+\\============================================================================//
+
+//================================= Running ==================================\\
+||                                                                            ||
+|| Load annotation file genes.gtf ...                                         ||
+||    Features : 33696                                                        ||
+||    Meta-features : 33696                                                   ||
+||    Chromosomes/contigs : 35                                                ||
+||                                                                            ||
+|| Process BAM file Slk_v3_WT_combined_tagged.bam...                          ||
+||    Single-end reads are included.                                          ||
+||    Total alignments : 1889902                                              ||
+||    Successfully assigned alignments : 1696096 (89.7%)                      ||
+||    Running time : 0.03 minutes                                             ||
+||                                                                            ||
+|| Write the final count table.                                               ||
+|| Write the read assignment summary.                                         ||
+||                                                                            ||
+|| Summary of counting results can be found in file "Slk_v3_WT_combined_feat  ||
+|| ureCounts.txt.summary"                                                     ||
+||                                                                            ||
+\\============================================================================//
+
+[bam_sort_core] merging from 0 files and 4 in-memory blocks...
+2025-09-23 14:41:51,424 - INFO - Processing: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_UMI/Slk_v3_WT_combined_tagged_sorted.bam -> /projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_final/Slk_v3_WT_combined_final.bam
+2025-09-23 14:41:51,424 - INFO - Finding UMI representatives...
+2025-09-23 14:42:00,370 - INFO - Found 430300 UMI representatives
+2025-09-23 14:42:00,526 - INFO - Adding XF flags to reads...
+2025-09-23 14:42:32,934 - INFO - Processed 1,889,902 reads
+2025-09-23 14:42:32,934 - INFO - XF flag distribution:
+2025-09-23 14:42:32,934 - INFO -   XF= 0:  143,773 (  7.6%) - Unmapped/low quality/missing tags
+2025-09-23 14:42:32,934 - INFO -   XF= 1:   50,033 (  2.6%) - Mapped only
+2025-09-23 14:42:32,934 - INFO -   XF=16:  434,014 ( 23.0%) - Feature assigned only
+2025-09-23 14:42:32,934 - INFO -   XF=17:  653,615 ( 34.6%) - Mapped + Feature (duplicate)
+2025-09-23 14:42:32,934 - INFO -   XF=20:   22,901 (  1.2%) - Feature + Multiple genes
+2025-09-23 14:42:32,934 - INFO -   XF=21:  217,060 ( 11.5%) - Mapped + Feature + Multiple genes
+2025-09-23 14:42:32,934 - INFO -   XF=25:  368,506 ( 19.5%) - Mapped + Feature + Counted (UMI)
+2025-09-23 14:42:33,013 - INFO - Indexing output BAM...
+2025-09-23 14:42:34,813 - INFO - Complete!
+/var/spool/slurmd/job4748441/slurm_script: line 376: /proc/sys/vm/drop_caches: Permission denied
+
+        ==========     _____ _    _ ____  _____  ______          _____  
+        =====         / ____| |  | |  _ \|  __ \|  ____|   /\   |  __ \ 
+          =====      | (___ | |  | | |_) | |__) | |__     /  \  | |  | |
+            ====      \___ \| |  | |  _ <|  _  /|  __|   / /\ \ | |  | |
+              ====    ____) | |__| | |_) | | \ \| |____ / ____ \| |__| |
+        ==========   |_____/ \____/|____/|_|  \_\______/_/    \_\_____/
+	  v2.0.3
+
+//========================== featureCounts setting ===========================\\
+||                                                                            ||
+||             Input files : 1 BAM file                                       ||
+||                                                                            ||
+||                           Lsm14b_v3_WT_combined_tagged.bam                 ||
+||                                                                            ||
+||             Output file : Lsm14b_v3_WT_combined_featureCounts.txt          ||
+||                 Summary : Lsm14b_v3_WT_combined_featureCounts.txt.summary  ||
+||              Paired-end : no                                               ||
+||        Count read pairs : no                                               ||
+||              Annotation : genes.gtf (GTF)                                  ||
+||      Dir for temp files : ./                                               ||
+||      Assignment details : <input_file>.featureCounts.bam                   ||
+||                      (Note that files are saved to the output directory)   ||
+||                                                                            ||
+||                                                                            ||
+||                 Threads : 8                                                ||
+||                   Level : meta-feature level                               ||
+||      Multimapping reads : counted (fractional)                             ||
+|| Multi-overlapping reads : counted                                          ||
+||   Min overlapping bases : 1                                                ||
+||                                                                            ||
+\\============================================================================//
+
+//================================= Running ==================================\\
+||                                                                            ||
+|| Load annotation file genes.gtf ...                                         ||
+||    Features : 33696                                                        ||
+||    Meta-features : 33696                                                   ||
+||    Chromosomes/contigs : 35                                                ||
+||                                                                            ||
+|| Process BAM file Lsm14b_v3_WT_combined_tagged.bam...                       ||
+||    Single-end reads are included.                                          ||
+||    Total alignments : 1460967                                              ||
+||    Successfully assigned alignments : 1166380 (79.8%)                      ||
+||    Running time : 0.02 minutes                                             ||
+||                                                                            ||
+|| Write the final count table.                                               ||
+|| Write the read assignment summary.                                         ||
+||                                                                            ||
+|| Summary of counting results can be found in file "Lsm14b_v3_WT_combined_f  ||
+|| eatureCounts.txt.summary"                                                  ||
+||                                                                            ||
+\\============================================================================//
+
+[bam_sort_core] merging from 0 files and 4 in-memory blocks...
+2025-09-23 14:44:07,781 - INFO - Processing: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_UMI/Lsm14b_v3_WT_combined_tagged_sorted.bam -> /projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_final/Lsm14b_v3_WT_combined_final.bam
+2025-09-23 14:44:07,781 - INFO - Finding UMI representatives...
+2025-09-23 14:44:14,994 - INFO - Found 765522 UMI representatives
+2025-09-23 14:44:15,046 - INFO - Adding XF flags to reads...
+2025-09-23 14:44:43,328 - INFO - Processed 1,460,967 reads
+2025-09-23 14:44:43,328 - INFO - XF flag distribution:
+2025-09-23 14:44:43,328 - INFO -   XF= 0:  200,460 ( 13.7%) - Unmapped/low quality/missing tags
+2025-09-23 14:44:43,328 - INFO -   XF= 1:   94,127 (  6.4%) - Mapped only
+2025-09-23 14:44:43,328 - INFO -   XF=16:  299,187 ( 20.5%) - Feature assigned only
+2025-09-23 14:44:43,328 - INFO -   XF=17:   73,328 (  5.0%) - Mapped + Feature (duplicate)
+2025-09-23 14:44:43,328 - INFO -   XF=20:   25,343 (  1.7%) - Feature + Multiple genes
+2025-09-23 14:44:43,328 - INFO -   XF=21:   69,712 (  4.8%) - Mapped + Feature + Multiple genes
+2025-09-23 14:44:43,328 - INFO -   XF=25:  698,810 ( 47.8%) - Mapped + Feature + Counted (UMI)
+2025-09-23 14:44:43,421 - INFO - Indexing output BAM...
+2025-09-23 14:44:45,004 - INFO - Complete!
+/var/spool/slurmd/job4748441/slurm_script: line 376: /proc/sys/vm/drop_caches: Permission denied
+
+        ==========     _____ _    _ ____  _____  ______          _____  
+        =====         / ____| |  | |  _ \|  __ \|  ____|   /\   |  __ \ 
+          =====      | (___ | |  | | |_) | |__) | |__     /  \  | |  | |
+            ====      \___ \| |  | |  _ <|  _  /|  __|   / /\ \ | |  | |
+              ====    ____) | |__| | |_) | | \ \| |____ / ____ \| |__| |
+        ==========   |_____/ \____/|____/|_|  \_\______/_/    \_\_____/
+	  v2.0.3
+
+//========================== featureCounts setting ===========================\\
+||                                                                            ||
+||             Input files : 1 BAM file                                       ||
+||                                                                            ||
+||                           Dgkd_v3_WT_combined_tagged.bam                   ||
+||                                                                            ||
+||             Output file : Dgkd_v3_WT_combined_featureCounts.txt            ||
+||                 Summary : Dgkd_v3_WT_combined_featureCounts.txt.summary    ||
+||              Paired-end : no                                               ||
+||        Count read pairs : no                                               ||
+||              Annotation : genes.gtf (GTF)                                  ||
+||      Dir for temp files : ./                                               ||
+||      Assignment details : <input_file>.featureCounts.bam                   ||
+||                      (Note that files are saved to the output directory)   ||
+||                                                                            ||
+||                                                                            ||
+||                 Threads : 8                                                ||
+||                   Level : meta-feature level                               ||
+||      Multimapping reads : counted (fractional)                             ||
+|| Multi-overlapping reads : counted                                          ||
+||   Min overlapping bases : 1                                                ||
+||                                                                            ||
+\\============================================================================//
+
+//================================= Running ==================================\\
+||                                                                            ||
+|| Load annotation file genes.gtf ...                                         ||
+||    Features : 33696                                                        ||
+||    Meta-features : 33696                                                   ||
+||    Chromosomes/contigs : 35                                                ||
+||                                                                            ||
+|| Process BAM file Dgkd_v3_WT_combined_tagged.bam...                         ||
+||    Single-end reads are included.                                          ||
+||    Total alignments : 2958664                                              ||
+||    Successfully assigned alignments : 2538373 (85.8%)                      ||
+||    Running time : 0.04 minutes                                             ||
+||                                                                            ||
+|| Write the final count table.                                               ||
+|| Write the read assignment summary.                                         ||
+||                                                                            ||
+|| Summary of counting results can be found in file "Dgkd_v3_WT_combined_fea  ||
+|| tureCounts.txt.summary"                                                    ||
+||                                                                            ||
+\\============================================================================//
+
+[bam_sort_core] merging from 0 files and 4 in-memory blocks...
+2025-09-23 14:47:48,668 - INFO - Processing: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_UMI/Dgkd_v3_WT_combined_tagged_sorted.bam -> /projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_final/Dgkd_v3_WT_combined_final.bam
+2025-09-23 14:47:48,668 - INFO - Finding UMI representatives...
+2025-09-23 14:48:03,732 - INFO - Found 1414946 UMI representatives
+2025-09-23 14:48:03,901 - INFO - Adding XF flags to reads...
+2025-09-23 14:48:58,198 - INFO - Processed 2,958,664 reads
+2025-09-23 14:48:58,199 - INFO - XF flag distribution:
+2025-09-23 14:48:58,199 - INFO -   XF= 0:  338,852 ( 11.5%) - Unmapped/low quality/missing tags
+2025-09-23 14:48:58,199 - INFO -   XF= 1:   81,439 (  2.8%) - Mapped only
+2025-09-23 14:48:58,199 - INFO -   XF=16:  650,320 ( 22.0%) - Feature assigned only
+2025-09-23 14:48:58,199 - INFO -   XF=17:  395,344 ( 13.4%) - Mapped + Feature (duplicate)
+2025-09-23 14:48:58,199 - INFO -   XF=20:   35,988 (  1.2%) - Feature + Multiple genes
+2025-09-23 14:48:58,199 - INFO -   XF=21:  165,478 (  5.6%) - Mapped + Feature + Multiple genes
+2025-09-23 14:48:58,199 - INFO -   XF=25: 1,291,243 ( 43.6%) - Mapped + Feature + Counted (UMI)
+2025-09-23 14:48:58,378 - INFO - Indexing output BAM...
+2025-09-23 14:49:01,511 - INFO - Complete!
+/var/spool/slurmd/job4748441/slurm_script: line 376: /proc/sys/vm/drop_caches: Permission denied
+
+        ==========     _____ _    _ ____  _____  ______          _____  
+        =====         / ____| |  | |  _ \|  __ \|  ____|   /\   |  __ \ 
+          =====      | (___ | |  | | |_) | |__) | |__     /  \  | |  | |
+            ====      \___ \| |  | |  _ <|  _  /|  __|   / /\ \ | |  | |
+              ====    ____) | |__| | |_) | | \ \| |____ / ____ \| |__| |
+        ==========   |_____/ \____/|____/|_|  \_\______/_/    \_\_____/
+	  v2.0.3
+
+//========================== featureCounts setting ===========================\\
+||                                                                            ||
+||             Input files : 1 BAM file                                       ||
+||                                                                            ||
+||                           Nf2_v4_WT_combined_tagged.bam                    ||
+||                                                                            ||
+||             Output file : Nf2_v4_WT_combined_featureCounts.txt             ||
+||                 Summary : Nf2_v4_WT_combined_featureCounts.txt.summary     ||
+||              Paired-end : no                                               ||
+||        Count read pairs : no                                               ||
+||              Annotation : genes.gtf (GTF)                                  ||
+||      Dir for temp files : ./                                               ||
+||      Assignment details : <input_file>.featureCounts.bam                   ||
+||                      (Note that files are saved to the output directory)   ||
+||                                                                            ||
+||                                                                            ||
+||                 Threads : 8                                                ||
+||                   Level : meta-feature level                               ||
+||      Multimapping reads : counted (fractional)                             ||
+|| Multi-overlapping reads : counted                                          ||
+||   Min overlapping bases : 1                                                ||
+||                                                                            ||
+\\============================================================================//
+
+//================================= Running ==================================\\
+||                                                                            ||
+|| Load annotation file genes.gtf ...                                         ||
+||    Features : 33696                                                        ||
+||    Meta-features : 33696                                                   ||
+||    Chromosomes/contigs : 35                                                ||
+||                                                                            ||
+|| Process BAM file Nf2_v4_WT_combined_tagged.bam...                          ||
+||    Single-end reads are included.                                          ||
+||    Total alignments : 1157586                                              ||
+||    Successfully assigned alignments : 979474 (84.6%)                       ||
+||    Running time : 0.02 minutes                                             ||
+||                                                                            ||
+|| Write the final count table.                                               ||
+|| Write the read assignment summary.                                         ||
+||                                                                            ||
+|| Summary of counting results can be found in file "Nf2_v4_WT_combined_feat  ||
+|| ureCounts.txt.summary"                                                     ||
+||                                                                            ||
+\\============================================================================//
+
+[bam_sort_core] merging from 0 files and 4 in-memory blocks...
+2025-09-23 14:50:21,964 - INFO - Processing: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_UMI/Nf2_v4_WT_combined_tagged_sorted.bam -> /projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_final/Nf2_v4_WT_combined_final.bam
+2025-09-23 14:50:21,964 - INFO - Finding UMI representatives...
+2025-09-23 14:50:28,042 - INFO - Found 631252 UMI representatives
+2025-09-23 14:50:28,095 - INFO - Adding XF flags to reads...
+2025-09-23 14:50:52,494 - INFO - Processed 1,157,586 reads
+2025-09-23 14:50:52,494 - INFO - XF flag distribution:
+2025-09-23 14:50:52,494 - INFO -   XF= 0:  143,692 ( 12.4%) - Unmapped/low quality/missing tags
+2025-09-23 14:50:52,494 - INFO -   XF= 1:   34,420 (  3.0%) - Mapped only
+2025-09-23 14:50:52,495 - INFO -   XF=16:  248,451 ( 21.5%) - Feature assigned only
+2025-09-23 14:50:52,495 - INFO -   XF=17:   77,921 (  6.7%) - Mapped + Feature (duplicate)
+2025-09-23 14:50:52,495 - INFO -   XF=20:   12,762 (  1.1%) - Feature + Multiple genes
+2025-09-23 14:50:52,495 - INFO -   XF=21:   66,705 (  5.8%) - Mapped + Feature + Multiple genes
+2025-09-23 14:50:52,495 - INFO -   XF=25:  573,635 ( 49.6%) - Mapped + Feature + Counted (UMI)
+2025-09-23 14:50:52,572 - INFO - Indexing output BAM...
+2025-09-23 14:50:53,909 - INFO - Complete!
+/var/spool/slurmd/job4748441/slurm_script: line 376: /proc/sys/vm/drop_caches: Permission denied
+
+        ==========     _____ _    _ ____  _____  ______          _____  
+        =====         / ____| |  | |  _ \|  __ \|  ____|   /\   |  __ \ 
+          =====      | (___ | |  | | |_) | |__) | |__     /  \  | |  | |
+            ====      \___ \| |  | |  _ <|  _  /|  __|   / /\ \ | |  | |
+              ====    ____) | |__| | |_) | | \ \| |____ / ____ \| |__| |
+        ==========   |_____/ \____/|____/|_|  \_\______/_/    \_\_____/
+	  v2.0.3
+
+//========================== featureCounts setting ===========================\\
+||                                                                            ||
+||             Input files : 1 BAM file                                       ||
+||                                                                            ||
+||                           Slk_v4_WT_combined_tagged.bam                    ||
+||                                                                            ||
+||             Output file : Slk_v4_WT_combined_featureCounts.txt             ||
+||                 Summary : Slk_v4_WT_combined_featureCounts.txt.summary     ||
+||              Paired-end : no                                               ||
+||        Count read pairs : no                                               ||
+||              Annotation : genes.gtf (GTF)                                  ||
+||      Dir for temp files : ./                                               ||
+||      Assignment details : <input_file>.featureCounts.bam                   ||
+||                      (Note that files are saved to the output directory)   ||
+||                                                                            ||
+||                                                                            ||
+||                 Threads : 8                                                ||
+||                   Level : meta-feature level                               ||
+||      Multimapping reads : counted (fractional)                             ||
+|| Multi-overlapping reads : counted                                          ||
+||   Min overlapping bases : 1                                                ||
+||                                                                            ||
+\\============================================================================//
+
+//================================= Running ==================================\\
+||                                                                            ||
+|| Load annotation file genes.gtf ...                                         ||
+||    Features : 33696                                                        ||
+||    Meta-features : 33696                                                   ||
+||    Chromosomes/contigs : 35                                                ||
+||                                                                            ||
+|| Process BAM file Slk_v4_WT_combined_tagged.bam...                          ||
+||    Single-end reads are included.                                          ||
+||    Total alignments : 1369518                                              ||
+||    Successfully assigned alignments : 1168843 (85.3%)                      ||
+||    Running time : 0.02 minutes                                             ||
+||                                                                            ||
+|| Write the final count table.                                               ||
+|| Write the read assignment summary.                                         ||
+||                                                                            ||
+|| Summary of counting results can be found in file "Slk_v4_WT_combined_feat  ||
+|| ureCounts.txt.summary"                                                     ||
+||                                                                            ||
+\\============================================================================//
+
+[bam_sort_core] merging from 0 files and 4 in-memory blocks...
+2025-09-23 14:52:22,176 - INFO - Processing: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_UMI/Slk_v4_WT_combined_tagged_sorted.bam -> /projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_final/Slk_v4_WT_combined_final.bam
+2025-09-23 14:52:22,176 - INFO - Finding UMI representatives...
+2025-09-23 14:52:29,260 - INFO - Found 728373 UMI representatives
+2025-09-23 14:52:29,328 - INFO - Adding XF flags to reads...
+2025-09-23 14:52:57,260 - INFO - Processed 1,369,518 reads
+2025-09-23 14:52:57,260 - INFO - XF flag distribution:
+2025-09-23 14:52:57,260 - INFO -   XF= 0:  163,686 ( 12.0%) - Unmapped/low quality/missing tags
+2025-09-23 14:52:57,260 - INFO -   XF= 1:   36,989 (  2.7%) - Mapped only
+2025-09-23 14:52:57,260 - INFO -   XF=16:  298,503 ( 21.8%) - Feature assigned only
+2025-09-23 14:52:57,260 - INFO -   XF=17:  113,260 (  8.3%) - Mapped + Feature (duplicate)
+2025-09-23 14:52:57,260 - INFO -   XF=20:   15,232 (  1.1%) - Feature + Multiple genes
+2025-09-23 14:52:57,260 - INFO -   XF=21:   79,506 (  5.8%) - Mapped + Feature + Multiple genes
+2025-09-23 14:52:57,260 - INFO -   XF=25:  662,342 ( 48.4%) - Mapped + Feature + Counted (UMI)
+2025-09-23 14:52:57,351 - INFO - Indexing output BAM...
+2025-09-23 14:52:59,082 - INFO - Complete!
+/var/spool/slurmd/job4748441/slurm_script: line 376: /proc/sys/vm/drop_caches: Permission denied
+
+        ==========     _____ _    _ ____  _____  ______          _____  
+        =====         / ____| |  | |  _ \|  __ \|  ____|   /\   |  __ \ 
+          =====      | (___ | |  | | |_) | |__) | |__     /  \  | |  | |
+            ====      \___ \| |  | |  _ <|  _  /|  __|   / /\ \ | |  | |
+              ====    ____) | |__| | |_) | | \ \| |____ / ____ \| |__| |
+        ==========   |_____/ \____/|____/|_|  \_\______/_/    \_\_____/
+	  v2.0.3
+
+//========================== featureCounts setting ===========================\\
+||                                                                            ||
+||             Input files : 1 BAM file                                       ||
+||                                                                            ||
+||                           Lsm14b_v4_WT_combined_tagged.bam                 ||
+||                                                                            ||
+||             Output file : Lsm14b_v4_WT_combined_featureCounts.txt          ||
+||                 Summary : Lsm14b_v4_WT_combined_featureCounts.txt.summary  ||
+||              Paired-end : no                                               ||
+||        Count read pairs : no                                               ||
+||              Annotation : genes.gtf (GTF)                                  ||
+||      Dir for temp files : ./                                               ||
+||      Assignment details : <input_file>.featureCounts.bam                   ||
+||                      (Note that files are saved to the output directory)   ||
+||                                                                            ||
+||                                                                            ||
+||                 Threads : 8                                                ||
+||                   Level : meta-feature level                               ||
+||      Multimapping reads : counted (fractional)                             ||
+|| Multi-overlapping reads : counted                                          ||
+||   Min overlapping bases : 1                                                ||
+||                                                                            ||
+\\============================================================================//
+
+//================================= Running ==================================\\
+||                                                                            ||
+|| Load annotation file genes.gtf ...                                         ||
+||    Features : 33696                                                        ||
+||    Meta-features : 33696                                                   ||
+||    Chromosomes/contigs : 35                                                ||
+||                                                                            ||
+|| Process BAM file Lsm14b_v4_WT_combined_tagged.bam...                       ||
+||    Single-end reads are included.                                          ||
+||    Total alignments : 5645552                                              ||
+||    Successfully assigned alignments : 4791999 (84.9%)                      ||
+||    Running time : 0.07 minutes                                             ||
+||                                                                            ||
+|| Write the final count table.                                               ||
+|| Write the read assignment summary.                                         ||
+||                                                                            ||
+|| Summary of counting results can be found in file "Lsm14b_v4_WT_combined_f  ||
+|| eatureCounts.txt.summary"                                                  ||
+||                                                                            ||
+\\============================================================================//
+
+[bam_sort_core] merging from 0 files and 4 in-memory blocks...
+2025-09-23 14:58:19,753 - INFO - Processing: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_UMI/Lsm14b_v4_WT_combined_tagged_sorted.bam -> /projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_final/Lsm14b_v4_WT_combined_final.bam
+2025-09-23 14:58:19,754 - INFO - Finding UMI representatives...
+2025-09-23 14:58:48,393 - INFO - Found 2530859 UMI representatives
+2025-09-23 14:58:48,733 - INFO - Adding XF flags to reads...
+2025-09-23 15:00:36,221 - INFO - Processed 5,645,552 reads
+2025-09-23 15:00:36,221 - INFO - XF flag distribution:
+2025-09-23 15:00:36,221 - INFO -   XF= 0:  698,284 ( 12.4%) - Unmapped/low quality/missing tags
+2025-09-23 15:00:36,221 - INFO -   XF= 1:  155,269 (  2.8%) - Mapped only
+2025-09-23 15:00:36,221 - INFO -   XF=16: 1,295,380 ( 22.9%) - Feature assigned only
+2025-09-23 15:00:36,221 - INFO -   XF=17:  808,811 ( 14.3%) - Mapped + Feature (duplicate)
+2025-09-23 15:00:36,221 - INFO -   XF=20:   64,021 (  1.1%) - Feature + Multiple genes
+2025-09-23 15:00:36,222 - INFO -   XF=21:  325,007 (  5.8%) - Mapped + Feature + Multiple genes
+2025-09-23 15:00:36,222 - INFO -   XF=25: 2,298,780 ( 40.7%) - Mapped + Feature + Counted (UMI)
+2025-09-23 15:00:36,543 - INFO - Indexing output BAM...
+2025-09-23 15:00:42,378 - INFO - Complete!
+/var/spool/slurmd/job4748441/slurm_script: line 376: /proc/sys/vm/drop_caches: Permission denied
+
+        ==========     _____ _    _ ____  _____  ______          _____  
+        =====         / ____| |  | |  _ \|  __ \|  ____|   /\   |  __ \ 
+          =====      | (___ | |  | | |_) | |__) | |__     /  \  | |  | |
+            ====      \___ \| |  | |  _ <|  _  /|  __|   / /\ \ | |  | |
+              ====    ____) | |__| | |_) | | \ \| |____ / ____ \| |__| |
+        ==========   |_____/ \____/|____/|_|  \_\______/_/    \_\_____/
+	  v2.0.3
+
+//========================== featureCounts setting ===========================\\
+||                                                                            ||
+||             Input files : 1 BAM file                                       ||
+||                                                                            ||
+||                           Kras_v3_KO_combined_tagged.bam                   ||
+||                                                                            ||
+||             Output file : Kras_v3_KO_combined_featureCounts.txt            ||
+||                 Summary : Kras_v3_KO_combined_featureCounts.txt.summary    ||
+||              Paired-end : no                                               ||
+||        Count read pairs : no                                               ||
+||              Annotation : genes.gtf (GTF)                                  ||
+||      Dir for temp files : ./                                               ||
+||      Assignment details : <input_file>.featureCounts.bam                   ||
+||                      (Note that files are saved to the output directory)   ||
+||                                                                            ||
+||                                                                            ||
+||                 Threads : 8                                                ||
+||                   Level : meta-feature level                               ||
+||      Multimapping reads : counted (fractional)                             ||
+|| Multi-overlapping reads : counted                                          ||
+||   Min overlapping bases : 1                                                ||
+||                                                                            ||
+\\============================================================================//
+
+//================================= Running ==================================\\
+||                                                                            ||
+|| Load annotation file genes.gtf ...                                         ||
+||    Features : 33696                                                        ||
+||    Meta-features : 33696                                                   ||
+||    Chromosomes/contigs : 35                                                ||
+||                                                                            ||
+|| Process BAM file Kras_v3_KO_combined_tagged.bam...                         ||
+||    Single-end reads are included.                                          ||
+||    Total alignments : 3792359                                              ||
+||    Successfully assigned alignments : 2645561 (69.8%)                      ||
+||    Running time : 0.05 minutes                                             ||
+||                                                                            ||
+|| Write the final count table.                                               ||
+|| Write the read assignment summary.                                         ||
+||                                                                            ||
+|| Summary of counting results can be found in file "Kras_v3_KO_combined_fea  ||
+|| tureCounts.txt.summary"                                                    ||
+||                                                                            ||
+\\============================================================================//
+
+[bam_sort_core] merging from 0 files and 4 in-memory blocks...
+2025-09-23 15:04:14,611 - INFO - Processing: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_UMI/Kras_v3_KO_combined_tagged_sorted.bam -> /projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_final/Kras_v3_KO_combined_final.bam
+2025-09-23 15:04:14,611 - INFO - Finding UMI representatives...
+2025-09-23 15:04:31,991 - INFO - Found 1570127 UMI representatives
+2025-09-23 15:04:32,129 - INFO - Adding XF flags to reads...
+2025-09-23 15:05:41,421 - INFO - Processed 3,792,359 reads
+2025-09-23 15:05:41,421 - INFO - XF flag distribution:
+2025-09-23 15:05:41,421 - INFO -   XF= 0:  594,045 ( 15.7%) - Unmapped/low quality/missing tags
+2025-09-23 15:05:41,421 - INFO -   XF= 1:  552,753 ( 14.6%) - Mapped only
+2025-09-23 15:05:41,421 - INFO -   XF=16:  737,078 ( 19.4%) - Feature assigned only
+2025-09-23 15:05:41,421 - INFO -   XF=17:  246,031 (  6.5%) - Mapped + Feature (duplicate)
+2025-09-23 15:05:41,421 - INFO -   XF=20:   65,397 (  1.7%) - Feature + Multiple genes
+2025-09-23 15:05:41,421 - INFO -   XF=21:  171,160 (  4.5%) - Mapped + Feature + Multiple genes
+2025-09-23 15:05:41,421 - INFO -   XF=25: 1,425,895 ( 37.6%) - Mapped + Feature + Counted (UMI)
+2025-09-23 15:05:41,610 - INFO - Indexing output BAM...
+2025-09-23 15:05:45,751 - INFO - Complete!
+/var/spool/slurmd/job4748441/slurm_script: line 376: /proc/sys/vm/drop_caches: Permission denied
+
+        ==========     _____ _    _ ____  _____  ______          _____  
+        =====         / ____| |  | |  _ \|  __ \|  ____|   /\   |  __ \ 
+          =====      | (___ | |  | | |_) | |__) | |__     /  \  | |  | |
+            ====      \___ \| |  | |  _ <|  _  /|  __|   / /\ \ | |  | |
+              ====    ____) | |__| | |_) | | \ \| |____ / ____ \| |__| |
+        ==========   |_____/ \____/|____/|_|  \_\______/_/    \_\_____/
+	  v2.0.3
+
+//========================== featureCounts setting ===========================\\
+||                                                                            ||
+||             Input files : 1 BAM file                                       ||
+||                                                                            ||
+||                           Slk_v3_KO_combined_tagged.bam                    ||
+||                                                                            ||
+||             Output file : Slk_v3_KO_combined_featureCounts.txt             ||
+||                 Summary : Slk_v3_KO_combined_featureCounts.txt.summary     ||
+||              Paired-end : no                                               ||
+||        Count read pairs : no                                               ||
+||              Annotation : genes.gtf (GTF)                                  ||
+||      Dir for temp files : ./                                               ||
+||      Assignment details : <input_file>.featureCounts.bam                   ||
+||                      (Note that files are saved to the output directory)   ||
+||                                                                            ||
+||                                                                            ||
+||                 Threads : 8                                                ||
+||                   Level : meta-feature level                               ||
+||      Multimapping reads : counted (fractional)                             ||
+|| Multi-overlapping reads : counted                                          ||
+||   Min overlapping bases : 1                                                ||
+||                                                                            ||
+\\============================================================================//
+
+//================================= Running ==================================\\
+||                                                                            ||
+|| Load annotation file genes.gtf ...                                         ||
+||    Features : 33696                                                        ||
+||    Meta-features : 33696                                                   ||
+||    Chromosomes/contigs : 35                                                ||
+||                                                                            ||
+|| Process BAM file Slk_v3_KO_combined_tagged.bam...                          ||
+||    Single-end reads are included.                                          ||
+||    Total alignments : 1243694                                              ||
+||    Successfully assigned alignments : 915616 (73.6%)                       ||
+||    Running time : 0.02 minutes                                             ||
+||                                                                            ||
+|| Write the final count table.                                               ||
+|| Write the read assignment summary.                                         ||
+||                                                                            ||
+|| Summary of counting results can be found in file "Slk_v3_KO_combined_feat  ||
+|| ureCounts.txt.summary"                                                     ||
+||                                                                            ||
+\\============================================================================//
+
+[bam_sort_core] merging from 0 files and 4 in-memory blocks...
+2025-09-23 15:07:12,466 - INFO - Processing: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_UMI/Slk_v3_KO_combined_tagged_sorted.bam -> /projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_final/Slk_v3_KO_combined_final.bam
+2025-09-23 15:07:12,466 - INFO - Finding UMI representatives...
+2025-09-23 15:07:18,632 - INFO - Found 632229 UMI representatives
+2025-09-23 15:07:18,678 - INFO - Adding XF flags to reads...
+2025-09-23 15:07:46,169 - INFO - Processed 1,243,694 reads
+2025-09-23 15:07:46,169 - INFO - XF flag distribution:
+2025-09-23 15:07:46,169 - INFO -   XF= 0:  182,243 ( 14.7%) - Unmapped/low quality/missing tags
+2025-09-23 15:07:46,169 - INFO -   XF= 1:  145,835 ( 11.7%) - Mapped only
+2025-09-23 15:07:46,169 - INFO -   XF=16:  212,388 ( 17.1%) - Feature assigned only
+2025-09-23 15:07:46,169 - INFO -   XF=17:   47,970 (  3.9%) - Mapped + Feature (duplicate)
+2025-09-23 15:07:46,169 - INFO -   XF=20:   18,908 (  1.5%) - Feature + Multiple genes
+2025-09-23 15:07:46,169 - INFO -   XF=21:   51,497 (  4.1%) - Mapped + Feature + Multiple genes
+2025-09-23 15:07:46,169 - INFO -   XF=25:  584,853 ( 47.0%) - Mapped + Feature + Counted (UMI)
+2025-09-23 15:07:46,245 - INFO - Indexing output BAM...
+2025-09-23 15:07:47,746 - INFO - Complete!
+/var/spool/slurmd/job4748441/slurm_script: line 376: /proc/sys/vm/drop_caches: Permission denied
+
+        ==========     _____ _    _ ____  _____  ______          _____  
+        =====         / ____| |  | |  _ \|  __ \|  ____|   /\   |  __ \ 
+          =====      | (___ | |  | | |_) | |__) | |__     /  \  | |  | |
+            ====      \___ \| |  | |  _ <|  _  /|  __|   / /\ \ | |  | |
+              ====    ____) | |__| | |_) | | \ \| |____ / ____ \| |__| |
+        ==========   |_____/ \____/|____/|_|  \_\______/_/    \_\_____/
+	  v2.0.3
+
+//========================== featureCounts setting ===========================\\
+||                                                                            ||
+||             Input files : 1 BAM file                                       ||
+||                                                                            ||
+||                           Lsm14b_v3_KO_combined_tagged.bam                 ||
+||                                                                            ||
+||             Output file : Lsm14b_v3_KO_combined_featureCounts.txt          ||
+||                 Summary : Lsm14b_v3_KO_combined_featureCounts.txt.summary  ||
+||              Paired-end : no                                               ||
+||        Count read pairs : no                                               ||
+||              Annotation : genes.gtf (GTF)                                  ||
+||      Dir for temp files : ./                                               ||
+||      Assignment details : <input_file>.featureCounts.bam                   ||
+||                      (Note that files are saved to the output directory)   ||
+||                                                                            ||
+||                                                                            ||
+||                 Threads : 8                                                ||
+||                   Level : meta-feature level                               ||
+||      Multimapping reads : counted (fractional)                             ||
+|| Multi-overlapping reads : counted                                          ||
+||   Min overlapping bases : 1                                                ||
+||                                                                            ||
+\\============================================================================//
+
+//================================= Running ==================================\\
+||                                                                            ||
+|| Load annotation file genes.gtf ...                                         ||
+||    Features : 33696                                                        ||
+||    Meta-features : 33696                                                   ||
+||    Chromosomes/contigs : 35                                                ||
+||                                                                            ||
+|| Process BAM file Lsm14b_v3_KO_combined_tagged.bam...                       ||
+||    Single-end reads are included.                                          ||
+||    Total alignments : 916919                                               ||
+||    Successfully assigned alignments : 675931 (73.7%)                       ||
+||    Running time : 0.02 minutes                                             ||
+||                                                                            ||
+|| Write the final count table.                                               ||
+|| Write the read assignment summary.                                         ||
+||                                                                            ||
+|| Summary of counting results can be found in file "Lsm14b_v3_KO_combined_f  ||
+|| eatureCounts.txt.summary"                                                  ||
+||                                                                            ||
+\\============================================================================//
+
+[bam_sort_core] merging from 0 files and 4 in-memory blocks...
+2025-09-23 15:08:54,974 - INFO - Processing: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_UMI/Lsm14b_v3_KO_combined_tagged_sorted.bam -> /projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_final/Lsm14b_v3_KO_combined_final.bam
+2025-09-23 15:08:54,975 - INFO - Finding UMI representatives...
+2025-09-23 15:08:59,281 - INFO - Found 437868 UMI representatives
+2025-09-23 15:08:59,313 - INFO - Adding XF flags to reads...
+2025-09-23 15:09:19,753 - INFO - Processed 916,919 reads
+2025-09-23 15:09:19,753 - INFO - XF flag distribution:
+2025-09-23 15:09:19,753 - INFO -   XF= 0:  141,429 ( 15.4%) - Unmapped/low quality/missing tags
+2025-09-23 15:09:19,753 - INFO -   XF= 1:   99,559 ( 10.9%) - Mapped only
+2025-09-23 15:09:19,753 - INFO -   XF=16:  187,106 ( 20.4%) - Feature assigned only
+2025-09-23 15:09:19,753 - INFO -   XF=17:   32,512 (  3.5%) - Mapped + Feature (duplicate)
+2025-09-23 15:09:19,753 - INFO -   XF=20:   14,596 (  1.6%) - Feature + Multiple genes
+2025-09-23 15:09:19,753 - INFO -   XF=21:   46,070 (  5.0%) - Mapped + Feature + Multiple genes
+2025-09-23 15:09:19,753 - INFO -   XF=25:  395,647 ( 43.1%) - Mapped + Feature + Counted (UMI)
+2025-09-23 15:09:19,808 - INFO - Indexing output BAM...
+2025-09-23 15:09:20,864 - INFO - Complete!
+/var/spool/slurmd/job4748441/slurm_script: line 376: /proc/sys/vm/drop_caches: Permission denied
+
+        ==========     _____ _    _ ____  _____  ______          _____  
+        =====         / ____| |  | |  _ \|  __ \|  ____|   /\   |  __ \ 
+          =====      | (___ | |  | | |_) | |__) | |__     /  \  | |  | |
+            ====      \___ \| |  | |  _ <|  _  /|  __|   / /\ \ | |  | |
+              ====    ____) | |__| | |_) | | \ \| |____ / ____ \| |__| |
+        ==========   |_____/ \____/|____/|_|  \_\______/_/    \_\_____/
+	  v2.0.3
+
+//========================== featureCounts setting ===========================\\
+||                                                                            ||
+||             Input files : 1 BAM file                                       ||
+||                                                                            ||
+||                           Dgkd_v3_KO_combined_tagged.bam                   ||
+||                                                                            ||
+||             Output file : Dgkd_v3_KO_combined_featureCounts.txt            ||
+||                 Summary : Dgkd_v3_KO_combined_featureCounts.txt.summary    ||
+||              Paired-end : no                                               ||
+||        Count read pairs : no                                               ||
+||              Annotation : genes.gtf (GTF)                                  ||
+||      Dir for temp files : ./                                               ||
+||      Assignment details : <input_file>.featureCounts.bam                   ||
+||                      (Note that files are saved to the output directory)   ||
+||                                                                            ||
+||                                                                            ||
+||                 Threads : 8                                                ||
+||                   Level : meta-feature level                               ||
+||      Multimapping reads : counted (fractional)                             ||
+|| Multi-overlapping reads : counted                                          ||
+||   Min overlapping bases : 1                                                ||
+||                                                                            ||
+\\============================================================================//
+
+//================================= Running ==================================\\
+||                                                                            ||
+|| Load annotation file genes.gtf ...                                         ||
+||    Features : 33696                                                        ||
+||    Meta-features : 33696                                                   ||
+||    Chromosomes/contigs : 35                                                ||
+||                                                                            ||
+|| Process BAM file Dgkd_v3_KO_combined_tagged.bam...                         ||
+||    Single-end reads are included.                                          ||
+||    Total alignments : 4207729                                              ||
+||    Successfully assigned alignments : 3105651 (73.8%)                      ||
+||    Running time : 0.05 minutes                                             ||
+||                                                                            ||
+|| Write the final count table.                                               ||
+|| Write the read assignment summary.                                         ||
+||                                                                            ||
+|| Summary of counting results can be found in file "Dgkd_v3_KO_combined_fea  ||
+|| tureCounts.txt.summary"                                                    ||
+||                                                                            ||
+\\============================================================================//
+
+[bam_sort_core] merging from 0 files and 4 in-memory blocks...
+2025-09-23 15:13:08,122 - INFO - Processing: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_UMI/Dgkd_v3_KO_combined_tagged_sorted.bam -> /projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_final/Dgkd_v3_KO_combined_final.bam
+2025-09-23 15:13:08,122 - INFO - Finding UMI representatives...
+2025-09-23 15:13:27,413 - INFO - Found 1808349 UMI representatives
+2025-09-23 15:13:27,580 - INFO - Adding XF flags to reads...
+2025-09-23 15:14:42,616 - INFO - Processed 4,207,729 reads
+2025-09-23 15:14:42,617 - INFO - XF flag distribution:
+2025-09-23 15:14:42,617 - INFO -   XF= 0:  611,238 ( 14.5%) - Unmapped/low quality/missing tags
+2025-09-23 15:14:42,617 - INFO -   XF= 1:  490,840 ( 11.7%) - Mapped only
+2025-09-23 15:14:42,617 - INFO -   XF=16:  893,998 ( 21.2%) - Feature assigned only
+2025-09-23 15:14:42,617 - INFO -   XF=17:  301,279 (  7.2%) - Mapped + Feature (duplicate)
+2025-09-23 15:14:42,617 - INFO -   XF=20:   66,157 (  1.6%) - Feature + Multiple genes
+2025-09-23 15:14:42,617 - INFO -   XF=21:  210,414 (  5.0%) - Mapped + Feature + Multiple genes
+2025-09-23 15:14:42,617 - INFO -   XF=25: 1,633,803 ( 38.8%) - Mapped + Feature + Counted (UMI)
+2025-09-23 15:14:42,839 - INFO - Indexing output BAM...
+2025-09-23 15:14:47,160 - INFO - Complete!
+/var/spool/slurmd/job4748441/slurm_script: line 376: /proc/sys/vm/drop_caches: Permission denied
+
+        ==========     _____ _    _ ____  _____  ______          _____  
+        =====         / ____| |  | |  _ \|  __ \|  ____|   /\   |  __ \ 
+          =====      | (___ | |  | | |_) | |__) | |__     /  \  | |  | |
+            ====      \___ \| |  | |  _ <|  _  /|  __|   / /\ \ | |  | |
+              ====    ____) | |__| | |_) | | \ \| |____ / ____ \| |__| |
+        ==========   |_____/ \____/|____/|_|  \_\______/_/    \_\_____/
+	  v2.0.3
+
+//========================== featureCounts setting ===========================\\
+||                                                                            ||
+||             Input files : 1 BAM file                                       ||
+||                                                                            ||
+||                           Nf2_v4_KO_combined_tagged.bam                    ||
+||                                                                            ||
+||             Output file : Nf2_v4_KO_combined_featureCounts.txt             ||
+||                 Summary : Nf2_v4_KO_combined_featureCounts.txt.summary     ||
+||              Paired-end : no                                               ||
+||        Count read pairs : no                                               ||
+||              Annotation : genes.gtf (GTF)                                  ||
+||      Dir for temp files : ./                                               ||
+||      Assignment details : <input_file>.featureCounts.bam                   ||
+||                      (Note that files are saved to the output directory)   ||
+||                                                                            ||
+||                                                                            ||
+||                 Threads : 8                                                ||
+||                   Level : meta-feature level                               ||
+||      Multimapping reads : counted (fractional)                             ||
+|| Multi-overlapping reads : counted                                          ||
+||   Min overlapping bases : 1                                                ||
+||                                                                            ||
+\\============================================================================//
+
+//================================= Running ==================================\\
+||                                                                            ||
+|| Load annotation file genes.gtf ...                                         ||
+||    Features : 33696                                                        ||
+||    Meta-features : 33696                                                   ||
+||    Chromosomes/contigs : 35                                                ||
+||                                                                            ||
+|| Process BAM file Nf2_v4_KO_combined_tagged.bam...                          ||
+||    Single-end reads are included.                                          ||
+||    Total alignments : 2460208                                              ||
+||    Successfully assigned alignments : 1854236 (75.4%)                      ||
+||    Running time : 0.03 minutes                                             ||
+||                                                                            ||
+|| Write the final count table.                                               ||
+|| Write the read assignment summary.                                         ||
+||                                                                            ||
+|| Summary of counting results can be found in file "Nf2_v4_KO_combined_feat  ||
+|| ureCounts.txt.summary"                                                     ||
+||                                                                            ||
+\\============================================================================//
+
+[bam_sort_core] merging from 0 files and 4 in-memory blocks...
+2025-09-23 15:17:12,603 - INFO - Processing: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_UMI/Nf2_v4_KO_combined_tagged_sorted.bam -> /projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_final/Nf2_v4_KO_combined_final.bam
+2025-09-23 15:17:12,603 - INFO - Finding UMI representatives...
+2025-09-23 15:17:24,112 - INFO - Found 1096379 UMI representatives
+2025-09-23 15:17:24,222 - INFO - Adding XF flags to reads...
+2025-09-23 15:18:12,723 - INFO - Processed 2,460,208 reads
+2025-09-23 15:18:12,723 - INFO - XF flag distribution:
+2025-09-23 15:18:12,723 - INFO -   XF= 0:  357,931 ( 14.5%) - Unmapped/low quality/missing tags
+2025-09-23 15:18:12,723 - INFO -   XF= 1:  248,041 ( 10.1%) - Mapped only
+2025-09-23 15:18:12,723 - INFO -   XF=16:  515,777 ( 21.0%) - Feature assigned only
+2025-09-23 15:18:12,723 - INFO -   XF=17:  183,658 (  7.5%) - Mapped + Feature (duplicate)
+2025-09-23 15:18:12,723 - INFO -   XF=20:   35,659 (  1.4%) - Feature + Multiple genes
+2025-09-23 15:18:12,723 - INFO -   XF=21:  130,805 (  5.3%) - Mapped + Feature + Multiple genes
+2025-09-23 15:18:12,723 - INFO -   XF=25:  988,337 ( 40.2%) - Mapped + Feature + Counted (UMI)
+2025-09-23 15:18:12,859 - INFO - Indexing output BAM...
+2025-09-23 15:18:15,468 - INFO - Complete!
+/var/spool/slurmd/job4748441/slurm_script: line 376: /proc/sys/vm/drop_caches: Permission denied
+
+        ==========     _____ _    _ ____  _____  ______          _____  
+        =====         / ____| |  | |  _ \|  __ \|  ____|   /\   |  __ \ 
+          =====      | (___ | |  | | |_) | |__) | |__     /  \  | |  | |
+            ====      \___ \| |  | |  _ <|  _  /|  __|   / /\ \ | |  | |
+              ====    ____) | |__| | |_) | | \ \| |____ / ____ \| |__| |
+        ==========   |_____/ \____/|____/|_|  \_\______/_/    \_\_____/
+	  v2.0.3
+
+//========================== featureCounts setting ===========================\\
+||                                                                            ||
+||             Input files : 1 BAM file                                       ||
+||                                                                            ||
+||                           Slk_v4_KO_combined_tagged.bam                    ||
+||                                                                            ||
+||             Output file : Slk_v4_KO_combined_featureCounts.txt             ||
+||                 Summary : Slk_v4_KO_combined_featureCounts.txt.summary     ||
+||              Paired-end : no                                               ||
+||        Count read pairs : no                                               ||
+||              Annotation : genes.gtf (GTF)                                  ||
+||      Dir for temp files : ./                                               ||
+||      Assignment details : <input_file>.featureCounts.bam                   ||
+||                      (Note that files are saved to the output directory)   ||
+||                                                                            ||
+||                                                                            ||
+||                 Threads : 8                                                ||
+||                   Level : meta-feature level                               ||
+||      Multimapping reads : counted (fractional)                             ||
+|| Multi-overlapping reads : counted                                          ||
+||   Min overlapping bases : 1                                                ||
+||                                                                            ||
+\\============================================================================//
+
+//================================= Running ==================================\\
+||                                                                            ||
+|| Load annotation file genes.gtf ...                                         ||
+||    Features : 33696                                                        ||
+||    Meta-features : 33696                                                   ||
+||    Chromosomes/contigs : 35                                                ||
+||                                                                            ||
+|| Process BAM file Slk_v4_KO_combined_tagged.bam...                          ||
+||    Single-end reads are included.                                          ||
+||    Total alignments : 1577604                                              ||
+||    Successfully assigned alignments : 1112397 (70.5%)                      ||
+||    Running time : 0.02 minutes                                             ||
+||                                                                            ||
+|| Write the final count table.                                               ||
+|| Write the read assignment summary.                                         ||
+||                                                                            ||
+|| Summary of counting results can be found in file "Slk_v4_KO_combined_feat  ||
+|| ureCounts.txt.summary"                                                     ||
+||                                                                            ||
+\\============================================================================//
+
+[bam_sort_core] merging from 0 files and 4 in-memory blocks...
+2025-09-23 15:20:03,150 - INFO - Processing: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_UMI/Slk_v4_KO_combined_tagged_sorted.bam -> /projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_final/Slk_v4_KO_combined_final.bam
+2025-09-23 15:20:03,150 - INFO - Finding UMI representatives...
+2025-09-23 15:20:10,409 - INFO - Found 695665 UMI representatives
+2025-09-23 15:20:10,466 - INFO - Adding XF flags to reads...
+2025-09-23 15:20:43,206 - INFO - Processed 1,577,604 reads
+2025-09-23 15:20:43,206 - INFO - XF flag distribution:
+2025-09-23 15:20:43,206 - INFO -   XF= 0:  254,306 ( 16.1%) - Unmapped/low quality/missing tags
+2025-09-23 15:20:43,206 - INFO -   XF= 1:  210,901 ( 13.4%) - Mapped only
+2025-09-23 15:20:43,206 - INFO -   XF=16:  305,758 ( 19.4%) - Feature assigned only
+2025-09-23 15:20:43,206 - INFO -   XF=17:   79,573 (  5.0%) - Mapped + Feature (duplicate)
+2025-09-23 15:20:43,206 - INFO -   XF=20:   23,237 (  1.5%) - Feature + Multiple genes
+2025-09-23 15:20:43,206 - INFO -   XF=21:   73,130 (  4.6%) - Mapped + Feature + Multiple genes
+2025-09-23 15:20:43,206 - INFO -   XF=25:  630,699 ( 40.0%) - Mapped + Feature + Counted (UMI)
+2025-09-23 15:20:43,290 - INFO - Indexing output BAM...
+2025-09-23 15:20:45,032 - INFO - Complete!
+/var/spool/slurmd/job4748441/slurm_script: line 376: /proc/sys/vm/drop_caches: Permission denied
+
+        ==========     _____ _    _ ____  _____  ______          _____  
+        =====         / ____| |  | |  _ \|  __ \|  ____|   /\   |  __ \ 
+          =====      | (___ | |  | | |_) | |__) | |__     /  \  | |  | |
+            ====      \___ \| |  | |  _ <|  _  /|  __|   / /\ \ | |  | |
+              ====    ____) | |__| | |_) | | \ \| |____ / ____ \| |__| |
+        ==========   |_____/ \____/|____/|_|  \_\______/_/    \_\_____/
+	  v2.0.3
+
+//========================== featureCounts setting ===========================\\
+||                                                                            ||
+||             Input files : 1 BAM file                                       ||
+||                                                                            ||
+||                           Lsm14b_v4_KO_combined_tagged.bam                 ||
+||                                                                            ||
+||             Output file : Lsm14b_v4_KO_combined_featureCounts.txt          ||
+||                 Summary : Lsm14b_v4_KO_combined_featureCounts.txt.summary  ||
+||              Paired-end : no                                               ||
+||        Count read pairs : no                                               ||
+||              Annotation : genes.gtf (GTF)                                  ||
+||      Dir for temp files : ./                                               ||
+||      Assignment details : <input_file>.featureCounts.bam                   ||
+||                      (Note that files are saved to the output directory)   ||
+||                                                                            ||
+||                                                                            ||
+||                 Threads : 8                                                ||
+||                   Level : meta-feature level                               ||
+||      Multimapping reads : counted (fractional)                             ||
+|| Multi-overlapping reads : counted                                          ||
+||   Min overlapping bases : 1                                                ||
+||                                                                            ||
+\\============================================================================//
+
+//================================= Running ==================================\\
+||                                                                            ||
+|| Load annotation file genes.gtf ...                                         ||
+||    Features : 33696                                                        ||
+||    Meta-features : 33696                                                   ||
+||    Chromosomes/contigs : 35                                                ||
+||                                                                            ||
+|| Process BAM file Lsm14b_v4_KO_combined_tagged.bam...                       ||
+||    Single-end reads are included.                                          ||
+||    Total alignments : 1271390                                              ||
+||    Successfully assigned alignments : 973012 (76.5%)                       ||
+||    Running time : 0.02 minutes                                             ||
+||                                                                            ||
+|| Write the final count table.                                               ||
+|| Write the read assignment summary.                                         ||
+||                                                                            ||
+|| Summary of counting results can be found in file "Lsm14b_v4_KO_combined_f  ||
+|| eatureCounts.txt.summary"                                                  ||
+||                                                                            ||
+\\============================================================================//
+
+[bam_sort_core] merging from 0 files and 4 in-memory blocks...
+2025-09-23 15:22:16,963 - INFO - Processing: /projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_UMI/Lsm14b_v4_KO_combined_tagged_sorted.bam -> /projects/b1042/GoyalLab/egrody/extractedData/EGL001//bams_final/Lsm14b_v4_KO_combined_final.bam
+2025-09-23 15:22:16,963 - INFO - Finding UMI representatives...
+2025-09-23 15:22:23,327 - INFO - Found 619089 UMI representatives
+2025-09-23 15:22:23,377 - INFO - Adding XF flags to reads...
+2025-09-23 15:22:49,436 - INFO - Processed 1,271,390 reads
+2025-09-23 15:22:49,436 - INFO - XF flag distribution:
+2025-09-23 15:22:49,469 - INFO -   XF= 0:  188,643 ( 14.8%) - Unmapped/low quality/missing tags
+2025-09-23 15:22:49,469 - INFO -   XF= 1:  109,735 (  8.6%) - Mapped only
+2025-09-23 15:22:49,469 - INFO -   XF=16:  272,683 ( 21.4%) - Feature assigned only
+2025-09-23 15:22:49,469 - INFO -   XF=17:   57,136 (  4.5%) - Mapped + Feature (duplicate)
+2025-09-23 15:22:49,469 - INFO -   XF=20:   17,819 (  1.4%) - Feature + Multiple genes
+2025-09-23 15:22:49,469 - INFO -   XF=21:   66,398 (  5.2%) - Mapped + Feature + Multiple genes
+2025-09-23 15:22:49,469 - INFO -   XF=25:  558,976 ( 44.0%) - Mapped + Feature + Counted (UMI)
+2025-09-23 15:22:49,544 - INFO - Indexing output BAM...
+2025-09-23 15:22:50,963 - INFO - Complete!
+/var/spool/slurmd/job4748441/slurm_script: line 376: /proc/sys/vm/drop_caches: Permission denied

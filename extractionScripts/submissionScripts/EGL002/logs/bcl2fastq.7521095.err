@@ -1,0 +1,38 @@
+BCL to FASTQ file converter
+bcl2fastq v2.20.0.422
+Copyright (c) 2007-2017 Illumina, Inc.
+
+2025-10-16 07:15:51 [14cbfc39c0c0] Command-line invocation: bcl2fastq --create-fastq-for-index-reads --ignore-missing-positions --ignore-missing-controls --ignore-missing-filter --ignore-missing-bcls --no-lane-splitting --output-dir=/projects/b1042/GoyalLab/egrody/rawData/EGL002/Sequencing/fastq/ --runfolder-dir=/projects/b1042/GoyalLab/egrody/rawData/EGL002/Sequencing/251015_VH01990_49_222C3H5NX/ --sample-sheet=/projects/b1042/GoyalLab/egrody/rawData/EGL002/Sequencing/20251014_sampleSheet.csv 
+2025-10-16 07:15:51 [14cbfc39c0c0] INFO: Minimum log level: INFO
+2025-10-16 07:15:51 [14cbfc39c0c0] INFO: Sample sheet: '/projects/b1042/GoyalLab/egrody/rawData/EGL002/Sequencing/20251014_sampleSheet.csv'
+2025-10-16 07:15:51 [14cbfc39c0c0] INFO: Runfolder path: '/projects/b1042/GoyalLab/egrody/rawData/EGL002/Sequencing/251015_VH01990_49_222C3H5NX/'
+2025-10-16 07:15:51 [14cbfc39c0c0] INFO: Input path: '/projects/b1042/GoyalLab/egrody/rawData/EGL002/Sequencing/251015_VH01990_49_222C3H5NX/Data/Intensities/BaseCalls/'
+2025-10-16 07:15:51 [14cbfc39c0c0] INFO: Intensities path: '/projects/b1042/GoyalLab/egrody/rawData/EGL002/Sequencing/251015_VH01990_49_222C3H5NX/Data/Intensities/'
+2025-10-16 07:15:51 [14cbfc39c0c0] INFO: Output path: '/projects/b1042/GoyalLab/egrody/rawData/EGL002/Sequencing/fastq/'
+2025-10-16 07:15:51 [14cbfc39c0c0] INFO: InterOp path: '/projects/b1042/GoyalLab/egrody/rawData/EGL002/Sequencing/251015_VH01990_49_222C3H5NX/InterOp/'
+2025-10-16 07:15:51 [14cbfc39c0c0] INFO: Stats path: '/projects/b1042/GoyalLab/egrody/rawData/EGL002/Sequencing/fastq/Stats/'
+2025-10-16 07:15:51 [14cbfc39c0c0] INFO: Reports path: '/projects/b1042/GoyalLab/egrody/rawData/EGL002/Sequencing/fastq/Reports/'
+2025-10-16 07:15:51 [14cbfc39c0c0] INFO: Detected CPUs: 52
+2025-10-16 07:15:51 [14cbfc39c0c0] INFO: Loading threads: 4
+2025-10-16 07:15:51 [14cbfc39c0c0] INFO: Processing threads: 52
+2025-10-16 07:15:51 [14cbfc39c0c0] INFO: Writing threads: 4
+2025-10-16 07:15:51 [14cbfc39c0c0] INFO: Allowed barcode mismatches: 1 
+2025-10-16 07:15:51 [14cbfc39c0c0] INFO: Tiles: <ALL>
+2025-10-16 07:15:51 [14cbfc39c0c0] INFO: Minimum trimmed read length: 35
+2025-10-16 07:15:51 [14cbfc39c0c0] INFO: Use bases masks: <NONE>
+2025-10-16 07:15:51 [14cbfc39c0c0] INFO: Mask short adapter reads: 22
+2025-10-16 07:15:51 [14cbfc39c0c0] INFO: Adapter stringency: 0.9
+2025-10-16 07:15:51 [14cbfc39c0c0] INFO: Adapter trimming method: Allow matches with indels
+2025-10-16 07:15:51 [14cbfc39c0c0] INFO: Ignore missing BCLs: YES
+2025-10-16 07:15:51 [14cbfc39c0c0] INFO: Ignore missing filters: YES
+2025-10-16 07:15:51 [14cbfc39c0c0] INFO: Ignore missing positions: YES
+2025-10-16 07:15:51 [14cbfc39c0c0] INFO: Ignore missing controls: YES
+2025-10-16 07:15:51 [14cbfc39c0c0] INFO: Include non-PF clusters: NO
+2025-10-16 07:15:51 [14cbfc39c0c0] INFO: Create FASTQs for index reads: YES
+2025-10-16 07:15:51 [14cbfc39c0c0] INFO: Use bgzf compression for FASTQ files: YES
+2025-10-16 07:15:51 [14cbfc39c0c0] INFO: FASTQ compression level: 4
+2025-10-16 07:15:51 [14cbfc39c0c0] INFO: RunInfo.xml: '"/projects/b1042/GoyalLab/egrody/rawData/EGL002/Sequencing/251015_VH01990_49_222C3H5NX/RunInfo.xml"'
+2025-10-16 07:15:51 [14cbfc39c0c0] ERROR: bcl2fastq::common::Exception: 2025-Oct-16 07:15:51: Success (0): /software/sources/builds/bcl2fastq2/bcl2fastq/src/cxx/lib/layout/Layout.cpp(650): Throw in function void bcl2fastq::layout::checkForDuplicateSample(const string&, const bcl2fastq::layout::SampleInfo&, const bcl2fastq::layout::SampleInfo&)
+Dynamic exception type: boost::exception_detail::clone_impl<bcl2fastq::common::InputDataError>
+std::exception::what: Only 1 project is allowed for a given sampleId. SampleId: 'Pacute_PL_D4'.
+

@@ -1,0 +1,328 @@
+Running in batch mode using CSV files
+Found 14 samples in /projects/b1042/GoyalLab/egrody/extractionScripts/submissionScripts/customSTAR_samples.csv
+Found 5 coordinate ranges in /projects/b1042/GoyalLab/egrody/extractionScripts/submissionScripts/bamsort_v3_coordinates.csv
+Processing sample: Kras_v3_WT_combined
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGL001/bams_final/Kras_v3_WT_combined_final.bam
+  Alignment: Kras (Chromosome: chr6, Position 145170799-145220245)
+  Successfully processed Kras_v3_WT_combined for Kras
+  Statistics: Rows=4976, Total reads=8852
+  -----------------------------
+  Alignment: Nf2 (Chromosome: chr11, Position 4730577-4779814)
+  Successfully processed Kras_v3_WT_combined for Nf2
+  Statistics: Rows=38, Total reads=48
+  -----------------------------
+  Alignment: Slk (Chromosome: chr19, Position 47616086-47642455)
+  Successfully processed Kras_v3_WT_combined for Slk
+  Statistics: Rows=7, Total reads=7
+  -----------------------------
+  Alignment: Lsm14b (Chromosome: chr2, Position 179673586-180035461)
+  Successfully processed Kras_v3_WT_combined for Lsm14b
+  Statistics: Rows=772, Total reads=941
+  -----------------------------
+  Alignment: Dgkd (Chromosome: chr1, Position 87869090-87944490)
+  Successfully processed Kras_v3_WT_combined for Dgkd
+  Statistics: Rows=58, Total reads=60
+  -----------------------------
+=============================
+Processing sample: Slk_v3_WT_combined
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGL001/bams_final/Slk_v3_WT_combined_final.bam
+  Alignment: Kras (Chromosome: chr6, Position 145170799-145220245)
+  Successfully processed Slk_v3_WT_combined for Kras
+  Statistics: Rows=0, Total reads=0
+  -----------------------------
+  Alignment: Nf2 (Chromosome: chr11, Position 4730577-4779814)
+  Successfully processed Slk_v3_WT_combined for Nf2
+  Statistics: Rows=0, Total reads=0
+  -----------------------------
+  Alignment: Slk (Chromosome: chr19, Position 47616086-47642455)
+  Successfully processed Slk_v3_WT_combined for Slk
+  Statistics: Rows=352, Total reads=692
+  -----------------------------
+  Alignment: Lsm14b (Chromosome: chr2, Position 179673586-180035461)
+  Successfully processed Slk_v3_WT_combined for Lsm14b
+  Statistics: Rows=307, Total reads=621
+  -----------------------------
+  Alignment: Dgkd (Chromosome: chr1, Position 87869090-87944490)
+  Successfully processed Slk_v3_WT_combined for Dgkd
+  Statistics: Rows=0, Total reads=0
+  -----------------------------
+=============================
+Processing sample: Lsm14b_v3_WT_combined
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGL001/bams_final/Lsm14b_v3_WT_combined_final.bam
+  Alignment: Kras (Chromosome: chr6, Position 145170799-145220245)
+  Successfully processed Lsm14b_v3_WT_combined for Kras
+  Statistics: Rows=13, Total reads=13
+  -----------------------------
+  Alignment: Nf2 (Chromosome: chr11, Position 4730577-4779814)
+  Successfully processed Lsm14b_v3_WT_combined for Nf2
+  Statistics: Rows=4, Total reads=4
+  -----------------------------
+  Alignment: Slk (Chromosome: chr19, Position 47616086-47642455)
+  Successfully processed Lsm14b_v3_WT_combined for Slk
+  Statistics: Rows=4, Total reads=4
+  -----------------------------
+  Alignment: Lsm14b (Chromosome: chr2, Position 179673586-180035461)
+  Successfully processed Lsm14b_v3_WT_combined for Lsm14b
+  Statistics: Rows=857, Total reads=896
+  -----------------------------
+  Alignment: Dgkd (Chromosome: chr1, Position 87869090-87944490)
+  Successfully processed Lsm14b_v3_WT_combined for Dgkd
+  Statistics: Rows=30, Total reads=31
+  -----------------------------
+=============================
+Processing sample: Dgkd_v3_WT_combined
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGL001/bams_final/Dgkd_v3_WT_combined_final.bam
+  Alignment: Kras (Chromosome: chr6, Position 145170799-145220245)
+  Successfully processed Dgkd_v3_WT_combined for Kras
+  Statistics: Rows=36, Total reads=48
+  -----------------------------
+  Alignment: Nf2 (Chromosome: chr11, Position 4730577-4779814)
+  Successfully processed Dgkd_v3_WT_combined for Nf2
+  Statistics: Rows=34, Total reads=46
+  -----------------------------
+  Alignment: Slk (Chromosome: chr19, Position 47616086-47642455)
+  Successfully processed Dgkd_v3_WT_combined for Slk
+  Statistics: Rows=5, Total reads=5
+  -----------------------------
+  Alignment: Lsm14b (Chromosome: chr2, Position 179673586-180035461)
+  Successfully processed Dgkd_v3_WT_combined for Lsm14b
+  Statistics: Rows=665, Total reads=792
+  -----------------------------
+  Alignment: Dgkd (Chromosome: chr1, Position 87869090-87944490)
+  Successfully processed Dgkd_v3_WT_combined for Dgkd
+  Statistics: Rows=1095, Total reads=2424
+  -----------------------------
+=============================
+Processing sample: Nf2_v4_WT_combined
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGL001/bams_final/Nf2_v4_WT_combined_final.bam
+  Alignment: Kras (Chromosome: chr6, Position 145170799-145220245)
+  Successfully processed Nf2_v4_WT_combined for Kras
+  Statistics: Rows=21, Total reads=23
+  -----------------------------
+  Alignment: Nf2 (Chromosome: chr11, Position 4730577-4779814)
+  Successfully processed Nf2_v4_WT_combined for Nf2
+  Statistics: Rows=1311, Total reads=2233
+  -----------------------------
+  Alignment: Slk (Chromosome: chr19, Position 47616086-47642455)
+  Successfully processed Nf2_v4_WT_combined for Slk
+  Statistics: Rows=4, Total reads=4
+  -----------------------------
+  Alignment: Lsm14b (Chromosome: chr2, Position 179673586-180035461)
+  Successfully processed Nf2_v4_WT_combined for Lsm14b
+  Statistics: Rows=296, Total reads=328
+  -----------------------------
+  Alignment: Dgkd (Chromosome: chr1, Position 87869090-87944490)
+  Successfully processed Nf2_v4_WT_combined for Dgkd
+  Statistics: Rows=21, Total reads=21
+  -----------------------------
+=============================
+Processing sample: Slk_v4_WT_combined
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGL001/bams_final/Slk_v4_WT_combined_final.bam
+  Alignment: Kras (Chromosome: chr6, Position 145170799-145220245)
+  Successfully processed Slk_v4_WT_combined for Kras
+  Statistics: Rows=22, Total reads=31
+  -----------------------------
+  Alignment: Nf2 (Chromosome: chr11, Position 4730577-4779814)
+  Successfully processed Slk_v4_WT_combined for Nf2
+  Statistics: Rows=13, Total reads=14
+  -----------------------------
+  Alignment: Slk (Chromosome: chr19, Position 47616086-47642455)
+  Successfully processed Slk_v4_WT_combined for Slk
+  Statistics: Rows=1434, Total reads=2197
+  -----------------------------
+  Alignment: Lsm14b (Chromosome: chr2, Position 179673586-180035461)
+  Successfully processed Slk_v4_WT_combined for Lsm14b
+  Statistics: Rows=294, Total reads=329
+  -----------------------------
+  Alignment: Dgkd (Chromosome: chr1, Position 87869090-87944490)
+  Successfully processed Slk_v4_WT_combined for Dgkd
+  Statistics: Rows=18, Total reads=19
+  -----------------------------
+=============================
+Processing sample: Lsm14b_v4_WT_combined
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGL001/bams_final/Lsm14b_v4_WT_combined_final.bam
+  Alignment: Kras (Chromosome: chr6, Position 145170799-145220245)
+  Successfully processed Lsm14b_v4_WT_combined for Kras
+  Statistics: Rows=74, Total reads=118
+  -----------------------------
+  Alignment: Nf2 (Chromosome: chr11, Position 4730577-4779814)
+  Successfully processed Lsm14b_v4_WT_combined for Nf2
+  Statistics: Rows=49, Total reads=57
+  -----------------------------
+  Alignment: Slk (Chromosome: chr19, Position 47616086-47642455)
+  Successfully processed Lsm14b_v4_WT_combined for Slk
+  Statistics: Rows=13, Total reads=13
+  -----------------------------
+  Alignment: Lsm14b (Chromosome: chr2, Position 179673586-180035461)
+  Successfully processed Lsm14b_v4_WT_combined for Lsm14b
+  Statistics: Rows=2775, Total reads=3989
+  -----------------------------
+  Alignment: Dgkd (Chromosome: chr1, Position 87869090-87944490)
+  Successfully processed Lsm14b_v4_WT_combined for Dgkd
+  Statistics: Rows=80, Total reads=92
+  -----------------------------
+=============================
+Processing sample: Kras_v3_KO_combined
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGL001/bams_final/Kras_v3_KO_combined_final.bam
+  Alignment: Kras (Chromosome: chr6, Position 145170799-145220245)
+  Successfully processed Kras_v3_KO_combined for Kras
+  Statistics: Rows=133, Total reads=148
+  -----------------------------
+  Alignment: Nf2 (Chromosome: chr11, Position 4730577-4779814)
+  Successfully processed Kras_v3_KO_combined for Nf2
+  Statistics: Rows=6, Total reads=6
+  -----------------------------
+  Alignment: Slk (Chromosome: chr19, Position 47616086-47642455)
+  Successfully processed Kras_v3_KO_combined for Slk
+  Statistics: Rows=18, Total reads=21
+  -----------------------------
+  Alignment: Lsm14b (Chromosome: chr2, Position 179673586-180035461)
+  Successfully processed Kras_v3_KO_combined for Lsm14b
+  Statistics: Rows=1211, Total reads=1380
+  -----------------------------
+  Alignment: Dgkd (Chromosome: chr1, Position 87869090-87944490)
+  Successfully processed Kras_v3_KO_combined for Dgkd
+  Statistics: Rows=36, Total reads=39
+  -----------------------------
+=============================
+Processing sample: Slk_v3_KO_combined
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGL001/bams_final/Slk_v3_KO_combined_final.bam
+  Alignment: Kras (Chromosome: chr6, Position 145170799-145220245)
+  Successfully processed Slk_v3_KO_combined for Kras
+  Statistics: Rows=7, Total reads=7
+  -----------------------------
+  Alignment: Nf2 (Chromosome: chr11, Position 4730577-4779814)
+  Successfully processed Slk_v3_KO_combined for Nf2
+  Statistics: Rows=10, Total reads=12
+  -----------------------------
+  Alignment: Slk (Chromosome: chr19, Position 47616086-47642455)
+  Successfully processed Slk_v3_KO_combined for Slk
+  Statistics: Rows=3546, Total reads=5343
+  -----------------------------
+  Alignment: Lsm14b (Chromosome: chr2, Position 179673586-180035461)
+  Successfully processed Slk_v3_KO_combined for Lsm14b
+  Statistics: Rows=357, Total reads=370
+  -----------------------------
+  Alignment: Dgkd (Chromosome: chr1, Position 87869090-87944490)
+  Successfully processed Slk_v3_KO_combined for Dgkd
+  Statistics: Rows=6, Total reads=6
+  -----------------------------
+=============================
+Processing sample: Lsm14b_v3_KO_combined
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGL001/bams_final/Lsm14b_v3_KO_combined_final.bam
+  Alignment: Kras (Chromosome: chr6, Position 145170799-145220245)
+  Successfully processed Lsm14b_v3_KO_combined for Kras
+  Statistics: Rows=6, Total reads=7
+  -----------------------------
+  Alignment: Nf2 (Chromosome: chr11, Position 4730577-4779814)
+  Successfully processed Lsm14b_v3_KO_combined for Nf2
+  Statistics: Rows=5, Total reads=6
+  -----------------------------
+  Alignment: Slk (Chromosome: chr19, Position 47616086-47642455)
+  Successfully processed Lsm14b_v3_KO_combined for Slk
+  Statistics: Rows=5, Total reads=5
+  -----------------------------
+  Alignment: Lsm14b (Chromosome: chr2, Position 179673586-180035461)
+  Successfully processed Lsm14b_v3_KO_combined for Lsm14b
+  Statistics: Rows=1299, Total reads=1411
+  -----------------------------
+  Alignment: Dgkd (Chromosome: chr1, Position 87869090-87944490)
+  Successfully processed Lsm14b_v3_KO_combined for Dgkd
+  Statistics: Rows=5, Total reads=5
+  -----------------------------
+=============================
+Processing sample: Dgkd_v3_KO_combined
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGL001/bams_final/Dgkd_v3_KO_combined_final.bam
+  Alignment: Kras (Chromosome: chr6, Position 145170799-145220245)
+  Successfully processed Dgkd_v3_KO_combined for Kras
+  Statistics: Rows=18, Total reads=21
+  -----------------------------
+  Alignment: Nf2 (Chromosome: chr11, Position 4730577-4779814)
+  Successfully processed Dgkd_v3_KO_combined for Nf2
+  Statistics: Rows=13, Total reads=15
+  -----------------------------
+  Alignment: Slk (Chromosome: chr19, Position 47616086-47642455)
+  Successfully processed Dgkd_v3_KO_combined for Slk
+  Statistics: Rows=11, Total reads=11
+  -----------------------------
+  Alignment: Lsm14b (Chromosome: chr2, Position 179673586-180035461)
+  Successfully processed Dgkd_v3_KO_combined for Lsm14b
+  Statistics: Rows=1078, Total reads=1207
+  -----------------------------
+  Alignment: Dgkd (Chromosome: chr1, Position 87869090-87944490)
+  Successfully processed Dgkd_v3_KO_combined for Dgkd
+  Statistics: Rows=1570, Total reads=2966
+  -----------------------------
+=============================
+Processing sample: Nf2_v4_KO_combined
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGL001/bams_final/Nf2_v4_KO_combined_final.bam
+  Alignment: Kras (Chromosome: chr6, Position 145170799-145220245)
+  Successfully processed Nf2_v4_KO_combined for Kras
+  Statistics: Rows=3, Total reads=4
+  -----------------------------
+  Alignment: Nf2 (Chromosome: chr11, Position 4730577-4779814)
+  Successfully processed Nf2_v4_KO_combined for Nf2
+  Statistics: Rows=983, Total reads=1255
+  -----------------------------
+  Alignment: Slk (Chromosome: chr19, Position 47616086-47642455)
+  Successfully processed Nf2_v4_KO_combined for Slk
+  Statistics: Rows=12, Total reads=13
+  -----------------------------
+  Alignment: Lsm14b (Chromosome: chr2, Position 179673586-180035461)
+  Successfully processed Nf2_v4_KO_combined for Lsm14b
+  Statistics: Rows=559, Total reads=603
+  -----------------------------
+  Alignment: Dgkd (Chromosome: chr1, Position 87869090-87944490)
+  Successfully processed Nf2_v4_KO_combined for Dgkd
+  Statistics: Rows=11, Total reads=11
+  -----------------------------
+=============================
+Processing sample: Slk_v4_KO_combined
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGL001/bams_final/Slk_v4_KO_combined_final.bam
+  Alignment: Kras (Chromosome: chr6, Position 145170799-145220245)
+  Successfully processed Slk_v4_KO_combined for Kras
+  Statistics: Rows=10, Total reads=10
+  -----------------------------
+  Alignment: Nf2 (Chromosome: chr11, Position 4730577-4779814)
+  Successfully processed Slk_v4_KO_combined for Nf2
+  Statistics: Rows=4, Total reads=4
+  -----------------------------
+  Alignment: Slk (Chromosome: chr19, Position 47616086-47642455)
+  Successfully processed Slk_v4_KO_combined for Slk
+  Statistics: Rows=6849, Total reads=10625
+  -----------------------------
+  Alignment: Lsm14b (Chromosome: chr2, Position 179673586-180035461)
+  Successfully processed Slk_v4_KO_combined for Lsm14b
+  Statistics: Rows=367, Total reads=390
+  -----------------------------
+  Alignment: Dgkd (Chromosome: chr1, Position 87869090-87944490)
+  Successfully processed Slk_v4_KO_combined for Dgkd
+  Statistics: Rows=7, Total reads=7
+  -----------------------------
+=============================
+Processing sample: Lsm14b_v4_KO_combined
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGL001/bams_final/Lsm14b_v4_KO_combined_final.bam
+  Alignment: Kras (Chromosome: chr6, Position 145170799-145220245)
+  Successfully processed Lsm14b_v4_KO_combined for Kras
+  Statistics: Rows=6, Total reads=6
+  -----------------------------
+  Alignment: Nf2 (Chromosome: chr11, Position 4730577-4779814)
+  Successfully processed Lsm14b_v4_KO_combined for Nf2
+  Statistics: Rows=3, Total reads=4
+  -----------------------------
+  Alignment: Slk (Chromosome: chr19, Position 47616086-47642455)
+  Successfully processed Lsm14b_v4_KO_combined for Slk
+  Statistics: Rows=4, Total reads=4
+  -----------------------------
+  Alignment: Lsm14b (Chromosome: chr2, Position 179673586-180035461)
+  Successfully processed Lsm14b_v4_KO_combined for Lsm14b
+  Statistics: Rows=2097, Total reads=2404
+  -----------------------------
+  Alignment: Dgkd (Chromosome: chr1, Position 87869090-87944490)
+  Successfully processed Lsm14b_v4_KO_combined for Dgkd
+  Statistics: Rows=8, Total reads=9
+  -----------------------------
+=============================
+All samples and alignments processed!
+Summary written to: /projects/b1042/GoyalLab/egrody/extractedData/EGL001/SALVE/bamsort/all_samples_alignment_summary.txt
+Processed 14 samples from CSV

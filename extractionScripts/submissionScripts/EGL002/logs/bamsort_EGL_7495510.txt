@@ -1,0 +1,76 @@
+Running in batch mode using CSV files
+Found 4 samples in /projects/b1042/GoyalLab/egrody/extractionScripts/submissionScripts/mkcounts_v4.csv
+Found 5 coordinate ranges in /projects/b1042/GoyalLab/egrody/extractionScripts/submissionScripts/bamsort_v4_coordinates.csv
+Processing sample: EGL002_WT_Nf2
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/counts/nointron/GRCm39_EGL002_WT_Nf2/outs/possorted_genome_bam.bam
+  Alignment: Kras (Chromosome: chr6, Position 145170799-145170923)
+  Successfully processed EGL002_WT_Nf2 for Kras
+  Statistics: Rows=167, Total reads=255
+  -----------------------------
+  Alignment: Nf2 (Chromosome: chr11, Position 4730577-4730622)
+  Successfully processed EGL002_WT_Nf2 for Nf2
+  Statistics: Rows=2622, Total reads=1615777
+  -----------------------------
+  Alignment: Slk (Chromosome: chr19, Position 47616086-47616179)
+  Successfully processed EGL002_WT_Nf2 for Slk
+  Statistics: Rows=247, Total reads=15490
+  -----------------------------
+  Alignment: Lsm14b (Chromosome: chr2, Position 179673586-179673664)
+  Successfully processed EGL002_WT_Nf2 for Lsm14b
+  Statistics: Rows=25, Total reads=61
+  -----------------------------
+  Alignment: Dgkd (Chromosome: chr1, Position 87869090-87869221)
+  Successfully processed EGL002_WT_Nf2 for Dgkd
+  Statistics: Rows=16, Total reads=326
+  -----------------------------
+=============================
+Processing sample: EGL002_WT_Slkv4
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/counts/nointron/GRCm39_EGL002_WT_Slkv4/outs/possorted_genome_bam.bam
+  Alignment: Kras (Chromosome: chr6, Position 145170799-145170923)
+  Successfully processed EGL002_WT_Slkv4 for Kras
+  Statistics: Rows=138, Total reads=193
+  -----------------------------
+  Alignment: Nf2 (Chromosome: chr11, Position 4730577-4730622)
+  Successfully processed EGL002_WT_Slkv4 for Nf2
+  Statistics: Rows=466, Total reads=11607
+  -----------------------------
+  Alignment: Slk (Chromosome: chr19, Position 47616086-47616179)
+  Successfully processed EGL002_WT_Slkv4 for Slk
+  Statistics: Rows=665, Total reads=399310
+  -----------------------------
+  Alignment: Lsm14b (Chromosome: chr2, Position 179673586-179673664)
+  Successfully processed EGL002_WT_Slkv4 for Lsm14b
+  Statistics: Rows=19, Total reads=37
+  -----------------------------
+  Alignment: Dgkd (Chromosome: chr1, Position 87869090-87869221)
+  Successfully processed EGL002_WT_Slkv4 for Dgkd
+  Statistics: Rows=6, Total reads=40
+  -----------------------------
+=============================
+Processing sample: EGL002_KO_Nf2
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/counts/nointron/GRCm39_EGL002_KO_Nf2/outs/possorted_genome_bam.bam
+  Alignment: Kras (Chromosome: chr6, Position 145170799-145170923)
+  Successfully processed EGL002_KO_Nf2 for Kras
+  Statistics: Rows=17, Total reads=19
+  -----------------------------
+  Alignment: Nf2 (Chromosome: chr11, Position 4730577-4730622)
+  Successfully processed EGL002_KO_Nf2 for Nf2
+  Statistics: Rows=664, Total reads=62964
+  -----------------------------
+  Alignment: Slk (Chromosome: chr19, Position 47616086-47616179)
+  Successfully processed EGL002_KO_Nf2 for Slk
+  Statistics: Rows=441, Total reads=5698
+  -----------------------------
+  Alignment: Lsm14b (Chromosome: chr2, Position 179673586-179673664)
+  Successfully processed EGL002_KO_Nf2 for Lsm14b
+  Statistics: Rows=57, Total reads=65
+  -----------------------------
+  Alignment: Dgkd (Chromosome: chr1, Position 87869090-87869221)
+  Successfully processed EGL002_KO_Nf2 for Dgkd
+  Statistics: Rows=1, Total reads=1
+  -----------------------------
+=============================
+Error: BAM file does not exist: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/counts/nointron/GRCm39_EGL002_KO_Slkv4/outs/possorted_genome_bam.bam
+All samples and alignments processed!
+Summary written to: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/bamsort/nointron/all_samples_alignment_summary.txt
+Processed 4 samples from CSV

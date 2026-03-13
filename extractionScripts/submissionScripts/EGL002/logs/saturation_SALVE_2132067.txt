@@ -1,0 +1,586 @@
+All imports OK
+==========================================
+Targeted Saturation Analysis
+Started: Mon Mar  9 11:47:56 CDT 2026
+Samples: WT_Kras WT_Slkv3 WT_Lsm14b WT_Dgkd WT_Nf2 WT_Slkv4 KO_Kras KO_Slkv3 KO_Lsm14b KO_Dgkd KO_Nf2 KO_Slkv4
+Coordinates: /projects/b1042/GoyalLab/egrody/extractionScripts/submissionScripts/bamsort_v4_coordinates.csv
+Reference: '(from CSV Chr column)'
+Filters: min_reads_per_umi=2, min_umi_per_cell=2
+==========================================
+
+=== Processing: WT_Kras ===
+Loaded 4783 filtered barcodes.
+Loaded 5 regions from /projects/b1042/GoyalLab/egrody/extractionScripts/submissionScripts/bamsort_v4_coordinates.csv:
+  Kras: chr6:145170799-145170923
+  Nf2: chr11:4730577-4730622
+  Slk: chr19:47616086-47616179
+  Lsm14b: chr2:179673586-179673664
+  Dgkd: chr1:87869090-87869221
+
+=== Extracting reads from BAM ===
+Filters: min_reads_per_umi=2, min_umi_per_cell=2
+  Kras (chr6:145170799-145170923): raw=10678012 reads, 7100 UMIs, 2716 barcodes -> filtered=10479596 reads, 827 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+  Nf2 (chr11:4730577-4730622): raw=20 reads, 8 UMIs, 8 barcodes -> filtered=0 reads, 0 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+  Slk (chr19:47616086-47616179): raw=1034 reads, 72 UMIs, 70 barcodes -> filtered=325 reads, 2 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+  Lsm14b (chr2:179673586-179673664): raw=15882 reads, 424 UMIs, 394 barcodes -> filtered=807 reads, 12 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+  Dgkd (chr1:87869090-87869221): raw=0 reads, 0 UMIs, 0 barcodes -> filtered=0 reads, 0 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+
+=== Per-region summary ===
+  Kras: 10479596 reads, 827 barcodes
+  Nf2: 0 reads, 0 barcodes
+  Slk: 325 reads, 2 barcodes
+  Lsm14b: 807 reads, 12 barcodes
+  Dgkd: 0 reads, 0 barcodes
+
+=== Rarefaction analysis ===
+  Kras: 10479596 reads, 827 barcodes, 12671.8 reads/barcode, saturation=1.000, marginal gain from 2nd half=0.8%
+  Nf2: 0 reads, skipping rarefaction.
+  Slk: 325 reads, 2 barcodes, 162.5 reads/barcode, saturation=0.994, marginal gain from 2nd half=0.0%
+  Lsm14b: 807 reads, 12 barcodes, 67.2 reads/barcode, saturation=0.985, marginal gain from 2nd half=1.7%
+  Dgkd: 0 reads, skipping rarefaction.
+
+=== Generating plots ===
+Saved: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/saturation/v4//WT_Kras_rarefaction.png
+Saved: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/saturation/v4//WT_Kras_per_region.png
+
+=== UMI-level saturation (threshold=2) ===
+  Kras: 7100 UMIs, 3909 above threshold (55.1%), 3191 borderline (at 1 reads), median reads/UMI=2, UMI saturation=1.000
+  Nf2: 8 UMIs, 5 above threshold (62.5%), 3 borderline (at 1 reads), median reads/UMI=2, UMI saturation=0.850
+  Slk: 72 UMIs, 47 above threshold (65.3%), 25 borderline (at 1 reads), median reads/UMI=2, UMI saturation=0.976
+  Lsm14b: 424 UMIs, 259 above threshold (61.1%), 165 borderline (at 1 reads), median reads/UMI=2, UMI saturation=0.990
+Saved: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/saturation/v4//WT_Kras_umi_distribution.png
+
+=== Interpretation ===
+  Kras: 12671.8 reads/barcode, marginal gain=0.8% -- SATURATED -- more reads unlikely to find new positive cells.
+  Nf2: no reads detected.
+  Slk: 162.5 reads/barcode, marginal gain=0.0% -- SATURATED -- more reads unlikely to find new positive cells.
+  Lsm14b: 67.2 reads/barcode, marginal gain=1.7% -- SATURATED -- more reads unlikely to find new positive cells.
+  Dgkd: no reads detected.
+
+All outputs saved with prefix: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/saturation/v4//WT_Kras
+
+=== Processing: WT_Slkv3 ===
+Loaded 4867 filtered barcodes.
+Loaded 5 regions from /projects/b1042/GoyalLab/egrody/extractionScripts/submissionScripts/bamsort_v4_coordinates.csv:
+  Kras: chr6:145170799-145170923
+  Nf2: chr11:4730577-4730622
+  Slk: chr19:47616086-47616179
+  Lsm14b: chr2:179673586-179673664
+  Dgkd: chr1:87869090-87869221
+
+=== Extracting reads from BAM ===
+Filters: min_reads_per_umi=2, min_umi_per_cell=2
+  Kras (chr6:145170799-145170923): raw=31871 reads, 3158 UMIs, 2149 barcodes -> filtered=13830 reads, 296 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+  Nf2 (chr11:4730577-4730622): raw=35 reads, 16 UMIs, 16 barcodes -> filtered=0 reads, 0 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+  Slk (chr19:47616086-47616179): raw=48897 reads, 503 UMIs, 451 barcodes -> filtered=27296 reads, 16 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+  Lsm14b (chr2:179673586-179673664): raw=10535 reads, 445 UMIs, 415 barcodes -> filtered=109 reads, 8 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+  Dgkd (chr1:87869090-87869221): raw=0 reads, 0 UMIs, 0 barcodes -> filtered=0 reads, 0 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+
+=== Per-region summary ===
+  Kras: 13830 reads, 296 barcodes
+  Nf2: 0 reads, 0 barcodes
+  Slk: 27296 reads, 16 barcodes
+  Lsm14b: 109 reads, 8 barcodes
+  Dgkd: 0 reads, 0 barcodes
+
+=== Rarefaction analysis ===
+  Kras: 13830 reads, 296 barcodes, 46.7 reads/barcode, saturation=0.979, marginal gain from 2nd half=1.0%
+  Nf2: 0 reads, skipping rarefaction.
+  Slk: 27296 reads, 16 barcodes, 1706.0 reads/barcode, saturation=0.999, marginal gain from 2nd half=0.6%
+  Lsm14b: 109 reads, 8 barcodes, 13.6 reads/barcode, saturation=0.927, marginal gain from 2nd half=0.0%
+  Dgkd: 0 reads, skipping rarefaction.
+
+=== Generating plots ===
+Saved: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/saturation/v4//WT_Slkv3_rarefaction.png
+Saved: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/saturation/v4//WT_Slkv3_per_region.png
+
+=== UMI-level saturation (threshold=2) ===
+  Kras: 3158 UMIs, 1774 above threshold (56.2%), 1384 borderline (at 1 reads), median reads/UMI=2, UMI saturation=0.957
+  Nf2: 16 UMIs, 12 above threshold (75.0%), 4 borderline (at 1 reads), median reads/UMI=2, UMI saturation=0.886
+  Slk: 503 UMIs, 286 above threshold (56.9%), 217 borderline (at 1 reads), median reads/UMI=2, UMI saturation=0.996
+  Lsm14b: 445 UMIs, 241 above threshold (54.2%), 204 borderline (at 1 reads), median reads/UMI=2, UMI saturation=0.981
+Saved: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/saturation/v4//WT_Slkv3_umi_distribution.png
+
+=== Interpretation ===
+  Kras: 46.7 reads/barcode, marginal gain=1.0% -- SATURATED -- more reads unlikely to find new positive cells.
+  Nf2: no reads detected.
+  Slk: 1706.0 reads/barcode, marginal gain=0.6% -- SATURATED -- more reads unlikely to find new positive cells.
+  Lsm14b: 13.6 reads/barcode, marginal gain=0.0% -- SATURATED -- more reads unlikely to find new positive cells.
+  Dgkd: no reads detected.
+
+All outputs saved with prefix: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/saturation/v4//WT_Slkv3
+
+=== Processing: WT_Lsm14b ===
+Loaded 5366 filtered barcodes.
+Loaded 5 regions from /projects/b1042/GoyalLab/egrody/extractionScripts/submissionScripts/bamsort_v4_coordinates.csv:
+  Kras: chr6:145170799-145170923
+  Nf2: chr11:4730577-4730622
+  Slk: chr19:47616086-47616179
+  Lsm14b: chr2:179673586-179673664
+  Dgkd: chr1:87869090-87869221
+
+=== Extracting reads from BAM ===
+Filters: min_reads_per_umi=2, min_umi_per_cell=2
+  Kras (chr6:145170799-145170923): raw=58031 reads, 1834 UMIs, 1364 barcodes -> filtered=18695 reads, 164 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+  Nf2 (chr11:4730577-4730622): raw=46 reads, 20 UMIs, 20 barcodes -> filtered=0 reads, 0 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+  Slk (chr19:47616086-47616179): raw=1235 reads, 55 UMIs, 51 barcodes -> filtered=408 reads, 1 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+  Lsm14b (chr2:179673586-179673664): raw=3902944 reads, 2511 UMIs, 1590 barcodes -> filtered=3874463 reads, 222 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+  Dgkd (chr1:87869090-87869221): raw=0 reads, 0 UMIs, 0 barcodes -> filtered=0 reads, 0 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+
+=== Per-region summary ===
+  Kras: 18695 reads, 164 barcodes
+  Nf2: 0 reads, 0 barcodes
+  Slk: 408 reads, 1 barcodes
+  Lsm14b: 3874463 reads, 222 barcodes
+  Dgkd: 0 reads, 0 barcodes
+
+=== Rarefaction analysis ===
+  Kras: 18695 reads, 164 barcodes, 114.0 reads/barcode, saturation=0.991, marginal gain from 2nd half=1.5%
+  Nf2: 0 reads, skipping rarefaction.
+  Slk: 408 reads, 1 barcodes, 408.0 reads/barcode, saturation=0.998, marginal gain from 2nd half=0.0%
+  Lsm14b: 3874463 reads, 222 barcodes, 17452.5 reads/barcode, saturation=1.000, marginal gain from 2nd half=1.2%
+  Dgkd: 0 reads, skipping rarefaction.
+
+=== Generating plots ===
+Saved: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/saturation/v4//WT_Lsm14b_rarefaction.png
+Saved: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/saturation/v4//WT_Lsm14b_per_region.png
+
+=== UMI-level saturation (threshold=2) ===
+  Kras: 1834 UMIs, 1128 above threshold (61.5%), 706 borderline (at 1 reads), median reads/UMI=2, UMI saturation=0.988
+  Nf2: 20 UMIs, 10 above threshold (50.0%), 10 borderline (at 1 reads), median reads/UMI=2, UMI saturation=0.783
+  Slk: 55 UMIs, 34 above threshold (61.8%), 21 borderline (at 1 reads), median reads/UMI=2, UMI saturation=0.983
+  Lsm14b: 2511 UMIs, 1446 above threshold (57.6%), 1065 borderline (at 1 reads), median reads/UMI=2, UMI saturation=1.000
+Saved: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/saturation/v4//WT_Lsm14b_umi_distribution.png
+
+=== Interpretation ===
+  Kras: 114.0 reads/barcode, marginal gain=1.5% -- SATURATED -- more reads unlikely to find new positive cells.
+  Nf2: no reads detected.
+  Slk: 408.0 reads/barcode, marginal gain=0.0% -- SATURATED -- more reads unlikely to find new positive cells.
+  Lsm14b: 17452.5 reads/barcode, marginal gain=1.2% -- SATURATED -- more reads unlikely to find new positive cells.
+  Dgkd: no reads detected.
+
+All outputs saved with prefix: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/saturation/v4//WT_Lsm14b
+
+=== Processing: WT_Dgkd ===
+Loaded 7747 filtered barcodes.
+Loaded 5 regions from /projects/b1042/GoyalLab/egrody/extractionScripts/submissionScripts/bamsort_v4_coordinates.csv:
+  Kras: chr6:145170799-145170923
+  Nf2: chr11:4730577-4730622
+  Slk: chr19:47616086-47616179
+  Lsm14b: chr2:179673586-179673664
+  Dgkd: chr1:87869090-87869221
+
+=== Extracting reads from BAM ===
+Filters: min_reads_per_umi=2, min_umi_per_cell=2
+  Kras (chr6:145170799-145170923): raw=162 reads, 97 UMIs, 93 barcodes -> filtered=9 reads, 2 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+  Nf2 (chr11:4730577-4730622): raw=13473 reads, 876 UMIs, 765 barcodes -> filtered=896 reads, 38 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+  Slk (chr19:47616086-47616179): raw=3211 reads, 161 UMIs, 150 barcodes -> filtered=101 reads, 2 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+  Lsm14b (chr2:179673586-179673664): raw=36 reads, 16 UMIs, 16 barcodes -> filtered=0 reads, 0 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+  Dgkd (chr1:87869090-87869221): raw=7805 reads, 53 UMIs, 52 barcodes -> filtered=0 reads, 0 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+
+=== Per-region summary ===
+  Kras: 9 reads, 2 barcodes
+  Nf2: 896 reads, 38 barcodes
+  Slk: 101 reads, 2 barcodes
+  Lsm14b: 0 reads, 0 barcodes
+  Dgkd: 0 reads, 0 barcodes
+
+=== Rarefaction analysis ===
+  Kras: 9 reads, 2 barcodes, 4.5 reads/barcode, saturation=0.778, marginal gain from 2nd half=11.1%
+  Nf2: 896 reads, 38 barcodes, 23.6 reads/barcode, saturation=0.958, marginal gain from 2nd half=3.0%
+  Slk: 101 reads, 2 barcodes, 50.5 reads/barcode, saturation=0.980, marginal gain from 2nd half=0.0%
+  Lsm14b: 0 reads, skipping rarefaction.
+  Dgkd: 0 reads, skipping rarefaction.
+
+=== Generating plots ===
+Saved: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/saturation/v4//WT_Dgkd_rarefaction.png
+Saved: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/saturation/v4//WT_Dgkd_per_region.png
+
+=== UMI-level saturation (threshold=2) ===
+  Kras: 97 UMIs, 41 above threshold (42.3%), 56 borderline (at 1 reads), median reads/UMI=1, UMI saturation=0.654
+  Nf2: 876 UMIs, 466 above threshold (53.2%), 410 borderline (at 1 reads), median reads/UMI=2, UMI saturation=0.970
+  Slk: 161 UMIs, 93 above threshold (57.8%), 68 borderline (at 1 reads), median reads/UMI=2, UMI saturation=0.979
+  Lsm14b: 16 UMIs, 7 above threshold (43.8%), 9 borderline (at 1 reads), median reads/UMI=1, UMI saturation=0.750
+  Dgkd: 53 UMIs, 25 above threshold (47.2%), 28 borderline (at 1 reads), median reads/UMI=1, UMI saturation=0.996
+Saved: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/saturation/v4//WT_Dgkd_umi_distribution.png
+
+=== Interpretation ===
+  Kras: 4.5 reads/barcode, marginal gain=11.1% -- NEAR SATURATION -- modest gains from deeper sequencing.
+  Nf2: 23.6 reads/barcode, marginal gain=3.0% -- SATURATED -- more reads unlikely to find new positive cells.
+  Slk: 50.5 reads/barcode, marginal gain=0.0% -- SATURATED -- more reads unlikely to find new positive cells.
+  Lsm14b: no reads detected.
+  Dgkd: no reads detected.
+
+All outputs saved with prefix: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/saturation/v4//WT_Dgkd
+
+=== Processing: WT_Nf2 ===
+Loaded 5003 filtered barcodes.
+Loaded 5 regions from /projects/b1042/GoyalLab/egrody/extractionScripts/submissionScripts/bamsort_v4_coordinates.csv:
+  Kras: chr6:145170799-145170923
+  Nf2: chr11:4730577-4730622
+  Slk: chr19:47616086-47616179
+  Lsm14b: chr2:179673586-179673664
+  Dgkd: chr1:87869090-87869221
+
+=== Extracting reads from BAM ===
+Filters: min_reads_per_umi=2, min_umi_per_cell=2
+  Kras (chr6:145170799-145170923): raw=116 reads, 68 UMIs, 67 barcodes -> filtered=0 reads, 0 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+  Nf2 (chr11:4730577-4730622): raw=2265726 reads, 3267 UMIs, 1731 barcodes -> filtered=2215682 reads, 266 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+  Slk (chr19:47616086-47616179): raw=14163 reads, 306 UMIs, 276 barcodes -> filtered=5392 reads, 9 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+  Lsm14b (chr2:179673586-179673664): raw=37 reads, 14 UMIs, 14 barcodes -> filtered=0 reads, 0 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+  Dgkd (chr1:87869090-87869221): raw=313 reads, 16 UMIs, 16 barcodes -> filtered=0 reads, 0 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+
+=== Per-region summary ===
+  Kras: 0 reads, 0 barcodes
+  Nf2: 2215682 reads, 266 barcodes
+  Slk: 5392 reads, 9 barcodes
+  Lsm14b: 0 reads, 0 barcodes
+  Dgkd: 0 reads, 0 barcodes
+
+=== Rarefaction analysis ===
+  Kras: 0 reads, skipping rarefaction.
+  Nf2: 2215682 reads, 266 barcodes, 8329.6 reads/barcode, saturation=1.000, marginal gain from 2nd half=2.0%
+  Slk: 5392 reads, 9 barcodes, 599.1 reads/barcode, saturation=0.998, marginal gain from 2nd half=1.1%
+  Lsm14b: 0 reads, skipping rarefaction.
+  Dgkd: 0 reads, skipping rarefaction.
+
+=== Generating plots ===
+Saved: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/saturation/v4//WT_Nf2_rarefaction.png
+Saved: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/saturation/v4//WT_Nf2_per_region.png
+
+=== UMI-level saturation (threshold=2) ===
+  Kras: 68 UMIs, 20 above threshold (29.4%), 48 borderline (at 1 reads), median reads/UMI=1, UMI saturation=0.586
+  Nf2: 3267 UMIs, 1824 above threshold (55.8%), 1443 borderline (at 1 reads), median reads/UMI=2, UMI saturation=0.999
+  Slk: 306 UMIs, 190 above threshold (62.1%), 116 borderline (at 1 reads), median reads/UMI=2, UMI saturation=0.992
+  Lsm14b: 14 UMIs, 10 above threshold (71.4%), 4 borderline (at 1 reads), median reads/UMI=2, UMI saturation=0.892
+  Dgkd: 16 UMIs, 12 above threshold (75.0%), 4 borderline (at 1 reads), median reads/UMI=2, UMI saturation=0.987
+Saved: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/saturation/v4//WT_Nf2_umi_distribution.png
+
+=== Interpretation ===
+  Kras: no reads detected.
+  Nf2: 8329.6 reads/barcode, marginal gain=2.0% -- SATURATED -- more reads unlikely to find new positive cells.
+  Slk: 599.1 reads/barcode, marginal gain=1.1% -- SATURATED -- more reads unlikely to find new positive cells.
+  Lsm14b: no reads detected.
+  Dgkd: no reads detected.
+
+All outputs saved with prefix: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/saturation/v4//WT_Nf2
+
+=== Processing: WT_Slkv4 ===
+Loaded 4898 filtered barcodes.
+Loaded 5 regions from /projects/b1042/GoyalLab/egrody/extractionScripts/submissionScripts/bamsort_v4_coordinates.csv:
+  Kras: chr6:145170799-145170923
+  Nf2: chr11:4730577-4730622
+  Slk: chr19:47616086-47616179
+  Lsm14b: chr2:179673586-179673664
+  Dgkd: chr1:87869090-87869221
+
+=== Extracting reads from BAM ===
+Filters: min_reads_per_umi=2, min_umi_per_cell=2
+  Kras (chr6:145170799-145170923): raw=76 reads, 56 UMIs, 56 barcodes -> filtered=0 reads, 0 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+  Nf2 (chr11:4730577-4730622): raw=14037 reads, 668 UMIs, 582 barcodes -> filtered=2030 reads, 30 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+  Slk (chr19:47616086-47616179): raw=601902 reads, 658 UMIs, 492 barcodes -> filtered=549802 reads, 32 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+  Lsm14b (chr2:179673586-179673664): raw=18 reads, 9 UMIs, 9 barcodes -> filtered=0 reads, 0 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+  Dgkd (chr1:87869090-87869221): raw=46 reads, 5 UMIs, 5 barcodes -> filtered=0 reads, 0 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+
+=== Per-region summary ===
+  Kras: 0 reads, 0 barcodes
+  Nf2: 2030 reads, 30 barcodes
+  Slk: 549802 reads, 32 barcodes
+  Lsm14b: 0 reads, 0 barcodes
+  Dgkd: 0 reads, 0 barcodes
+
+=== Rarefaction analysis ===
+  Kras: 0 reads, skipping rarefaction.
+  Nf2: 2030 reads, 30 barcodes, 67.7 reads/barcode, saturation=0.985, marginal gain from 2nd half=0.7%
+  Slk: 549802 reads, 32 barcodes, 17181.3 reads/barcode, saturation=1.000, marginal gain from 2nd half=0.3%
+  Lsm14b: 0 reads, skipping rarefaction.
+  Dgkd: 0 reads, skipping rarefaction.
+
+=== Generating plots ===
+Saved: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/saturation/v4//WT_Slkv4_rarefaction.png
+Saved: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/saturation/v4//WT_Slkv4_per_region.png
+
+=== UMI-level saturation (threshold=2) ===
+  Kras: 56 UMIs, 18 above threshold (32.1%), 38 borderline (at 1 reads), median reads/UMI=1, UMI saturation=0.500
+  Nf2: 668 UMIs, 405 above threshold (60.6%), 263 borderline (at 1 reads), median reads/UMI=2, UMI saturation=0.981
+  Slk: 658 UMIs, 376 above threshold (57.1%), 282 borderline (at 1 reads), median reads/UMI=2, UMI saturation=1.000
+  Lsm14b: 9 UMIs, 4 above threshold (44.4%), 5 borderline (at 1 reads), median reads/UMI=1, UMI saturation=0.722
+  Dgkd: 5 UMIs, 2 above threshold (40.0%), 3 borderline (at 1 reads), median reads/UMI=1, UMI saturation=0.935
+Saved: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/saturation/v4//WT_Slkv4_umi_distribution.png
+
+=== Interpretation ===
+  Kras: no reads detected.
+  Nf2: 67.7 reads/barcode, marginal gain=0.7% -- SATURATED -- more reads unlikely to find new positive cells.
+  Slk: 17181.3 reads/barcode, marginal gain=0.3% -- SATURATED -- more reads unlikely to find new positive cells.
+  Lsm14b: no reads detected.
+  Dgkd: no reads detected.
+
+All outputs saved with prefix: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/saturation/v4//WT_Slkv4
+
+=== Processing: KO_Kras ===
+Loaded 66558 filtered barcodes.
+Loaded 5 regions from /projects/b1042/GoyalLab/egrody/extractionScripts/submissionScripts/bamsort_v4_coordinates.csv:
+  Kras: chr6:145170799-145170923
+  Nf2: chr11:4730577-4730622
+  Slk: chr19:47616086-47616179
+  Lsm14b: chr2:179673586-179673664
+  Dgkd: chr1:87869090-87869221
+
+=== Extracting reads from BAM ===
+Filters: min_reads_per_umi=2, min_umi_per_cell=2
+  Kras (chr6:145170799-145170923): raw=1712583 reads, 4114 UMIs, 3505 barcodes -> filtered=595057 reads, 145 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+  Nf2 (chr11:4730577-4730622): raw=7 reads, 4 UMIs, 4 barcodes -> filtered=0 reads, 0 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+  Slk (chr19:47616086-47616179): raw=951 reads, 161 UMIs, 160 barcodes -> filtered=0 reads, 0 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+  Lsm14b (chr2:179673586-179673664): raw=10590 reads, 900 UMIs, 888 barcodes -> filtered=149 reads, 5 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+  Dgkd (chr1:87869090-87869221): raw=1201 reads, 103 UMIs, 102 barcodes -> filtered=0 reads, 0 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+
+=== Per-region summary ===
+  Kras: 595057 reads, 145 barcodes
+  Nf2: 0 reads, 0 barcodes
+  Slk: 0 reads, 0 barcodes
+  Lsm14b: 149 reads, 5 barcodes
+  Dgkd: 0 reads, 0 barcodes
+
+=== Rarefaction analysis ===
+  Kras: 595057 reads, 145 barcodes, 4103.8 reads/barcode, saturation=1.000, marginal gain from 2nd half=0.2%
+  Nf2: 0 reads, skipping rarefaction.
+  Slk: 0 reads, skipping rarefaction.
+  Lsm14b: 149 reads, 5 barcodes, 29.8 reads/barcode, saturation=0.966, marginal gain from 2nd half=0.0%
+  Dgkd: 0 reads, skipping rarefaction.
+
+=== Generating plots ===
+Saved: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/saturation/v4//KO_Kras_rarefaction.png
+Saved: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/saturation/v4//KO_Kras_per_region.png
+
+=== UMI-level saturation (threshold=2) ===
+  Kras: 4114 UMIs, 2341 above threshold (56.9%), 1773 borderline (at 1 reads), median reads/UMI=2, UMI saturation=0.999
+  Nf2: 4 UMIs, 1 above threshold (25.0%), 3 borderline (at 1 reads), median reads/UMI=1, UMI saturation=0.571
+  Slk: 161 UMIs, 102 above threshold (63.4%), 59 borderline (at 1 reads), median reads/UMI=2, UMI saturation=0.938
+  Lsm14b: 900 UMIs, 705 above threshold (78.3%), 195 borderline (at 1 reads), median reads/UMI=5, UMI saturation=0.982
+  Dgkd: 103 UMIs, 54 above threshold (52.4%), 49 borderline (at 1 reads), median reads/UMI=2, UMI saturation=0.959
+Saved: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/saturation/v4//KO_Kras_umi_distribution.png
+
+=== Interpretation ===
+  Kras: 4103.8 reads/barcode, marginal gain=0.2% -- SATURATED -- more reads unlikely to find new positive cells.
+  Nf2: no reads detected.
+  Slk: no reads detected.
+  Lsm14b: 29.8 reads/barcode, marginal gain=0.0% -- SATURATED -- more reads unlikely to find new positive cells.
+  Dgkd: no reads detected.
+
+All outputs saved with prefix: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/saturation/v4//KO_Kras
+
+=== Processing: KO_Slkv3 ===
+Loaded 64556 filtered barcodes.
+Loaded 5 regions from /projects/b1042/GoyalLab/egrody/extractionScripts/submissionScripts/bamsort_v4_coordinates.csv:
+  Kras: chr6:145170799-145170923
+  Nf2: chr11:4730577-4730622
+  Slk: chr19:47616086-47616179
+  Lsm14b: chr2:179673586-179673664
+  Dgkd: chr1:87869090-87869221
+
+=== Extracting reads from BAM ===
+Filters: min_reads_per_umi=2, min_umi_per_cell=2
+  Kras (chr6:145170799-145170923): raw=11461 reads, 1362 UMIs, 1328 barcodes -> filtered=519 reads, 16 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+  Nf2 (chr11:4730577-4730622): raw=6 reads, 4 UMIs, 4 barcodes -> filtered=0 reads, 0 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+  Slk (chr19:47616086-47616179): raw=109840 reads, 3383 UMIs, 3209 barcodes -> filtered=16603 reads, 33 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+  Lsm14b (chr2:179673586-179673664): raw=22666 reads, 1871 UMIs, 1833 barcodes -> filtered=819 reads, 18 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+  Dgkd (chr1:87869090-87869221): raw=2491 reads, 383 UMIs, 381 barcodes -> filtered=7 reads, 1 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+
+=== Per-region summary ===
+  Kras: 519 reads, 16 barcodes
+  Nf2: 0 reads, 0 barcodes
+  Slk: 16603 reads, 33 barcodes
+  Lsm14b: 819 reads, 18 barcodes
+  Dgkd: 7 reads, 1 barcodes
+
+=== Rarefaction analysis ===
+  Kras: 519 reads, 16 barcodes, 32.4 reads/barcode, saturation=0.969, marginal gain from 2nd half=0.0%
+  Nf2: 0 reads, skipping rarefaction.
+  Slk: 16603 reads, 33 barcodes, 503.1 reads/barcode, saturation=0.998, marginal gain from 2nd half=0.9%
+  Lsm14b: 819 reads, 18 barcodes, 45.5 reads/barcode, saturation=0.978, marginal gain from 2nd half=0.0%
+  Dgkd: 7 reads, 1 barcodes, 7.0 reads/barcode, saturation=0.857, marginal gain from 2nd half=0.0%
+
+=== Generating plots ===
+Saved: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/saturation/v4//KO_Slkv3_rarefaction.png
+Saved: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/saturation/v4//KO_Slkv3_per_region.png
+
+=== UMI-level saturation (threshold=2) ===
+  Kras: 1362 UMIs, 916 above threshold (67.3%), 446 borderline (at 1 reads), median reads/UMI=3, UMI saturation=0.961
+  Nf2: 4 UMIs, 1 above threshold (25.0%), 3 borderline (at 1 reads), median reads/UMI=1, UMI saturation=0.500
+  Slk: 3383 UMIs, 1737 above threshold (51.3%), 1646 borderline (at 1 reads), median reads/UMI=2, UMI saturation=0.985
+  Lsm14b: 1871 UMIs, 1223 above threshold (65.4%), 648 borderline (at 1 reads), median reads/UMI=2, UMI saturation=0.971
+  Dgkd: 383 UMIs, 206 above threshold (53.8%), 177 borderline (at 1 reads), median reads/UMI=2, UMI saturation=0.929
+Saved: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/saturation/v4//KO_Slkv3_umi_distribution.png
+
+=== Interpretation ===
+  Kras: 32.4 reads/barcode, marginal gain=0.0% -- SATURATED -- more reads unlikely to find new positive cells.
+  Nf2: no reads detected.
+  Slk: 503.1 reads/barcode, marginal gain=0.9% -- SATURATED -- more reads unlikely to find new positive cells.
+  Lsm14b: 45.5 reads/barcode, marginal gain=0.0% -- SATURATED -- more reads unlikely to find new positive cells.
+  Dgkd: 7.0 reads/barcode, marginal gain=0.0% -- SATURATED -- more reads unlikely to find new positive cells.
+
+All outputs saved with prefix: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/saturation/v4//KO_Slkv3
+
+=== Processing: KO_Lsm14b ===
+Loaded 78944 filtered barcodes.
+Loaded 5 regions from /projects/b1042/GoyalLab/egrody/extractionScripts/submissionScripts/bamsort_v4_coordinates.csv:
+  Kras: chr6:145170799-145170923
+  Nf2: chr11:4730577-4730622
+  Slk: chr19:47616086-47616179
+  Lsm14b: chr2:179673586-179673664
+  Dgkd: chr1:87869090-87869221
+
+=== Extracting reads from BAM ===
+Filters: min_reads_per_umi=2, min_umi_per_cell=2
+  Kras (chr6:145170799-145170923): raw=6154 reads, 721 UMIs, 707 barcodes -> filtered=246 reads, 9 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+  Nf2 (chr11:4730577-4730622): raw=8 reads, 5 UMIs, 5 barcodes -> filtered=0 reads, 0 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+  Slk (chr19:47616086-47616179): raw=1157 reads, 191 UMIs, 187 barcodes -> filtered=7 reads, 1 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+  Lsm14b (chr2:179673586-179673664): raw=3548624 reads, 8227 UMIs, 6994 barcodes -> filtered=1568753 reads, 322 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+  Dgkd (chr1:87869090-87869221): raw=1159 reads, 88 UMIs, 87 barcodes -> filtered=22 reads, 1 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+
+=== Per-region summary ===
+  Kras: 246 reads, 9 barcodes
+  Nf2: 0 reads, 0 barcodes
+  Slk: 7 reads, 1 barcodes
+  Lsm14b: 1568753 reads, 322 barcodes
+  Dgkd: 22 reads, 1 barcodes
+
+=== Rarefaction analysis ===
+  Kras: 246 reads, 9 barcodes, 27.3 reads/barcode, saturation=0.963, marginal gain from 2nd half=0.0%
+  Nf2: 0 reads, skipping rarefaction.
+  Slk: 7 reads, 1 barcodes, 7.0 reads/barcode, saturation=0.857, marginal gain from 2nd half=0.0%
+  Lsm14b: 1568753 reads, 322 barcodes, 4871.9 reads/barcode, saturation=1.000, marginal gain from 2nd half=0.5%
+  Dgkd: 22 reads, 1 barcodes, 22.0 reads/barcode, saturation=0.955, marginal gain from 2nd half=0.0%
+
+=== Generating plots ===
+Saved: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/saturation/v4//KO_Lsm14b_rarefaction.png
+Saved: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/saturation/v4//KO_Lsm14b_per_region.png
+
+=== UMI-level saturation (threshold=2) ===
+  Kras: 721 UMIs, 594 above threshold (82.4%), 127 borderline (at 1 reads), median reads/UMI=5, UMI saturation=0.979
+  Nf2: 5 UMIs, 1 above threshold (20.0%), 4 borderline (at 1 reads), median reads/UMI=1, UMI saturation=0.500
+  Slk: 191 UMIs, 133 above threshold (69.6%), 58 borderline (at 1 reads), median reads/UMI=2, UMI saturation=0.950
+  Lsm14b: 8227 UMIs, 4668 above threshold (56.7%), 3559 borderline (at 1 reads), median reads/UMI=2, UMI saturation=0.999
+  Dgkd: 88 UMIs, 44 above threshold (50.0%), 44 borderline (at 1 reads), median reads/UMI=2, UMI saturation=0.962
+Saved: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/saturation/v4//KO_Lsm14b_umi_distribution.png
+
+=== Interpretation ===
+  Kras: 27.3 reads/barcode, marginal gain=0.0% -- SATURATED -- more reads unlikely to find new positive cells.
+  Nf2: no reads detected.
+  Slk: 7.0 reads/barcode, marginal gain=0.0% -- SATURATED -- more reads unlikely to find new positive cells.
+  Lsm14b: 4871.9 reads/barcode, marginal gain=0.5% -- SATURATED -- more reads unlikely to find new positive cells.
+  Dgkd: 22.0 reads/barcode, marginal gain=0.0% -- SATURATED -- more reads unlikely to find new positive cells.
+
+All outputs saved with prefix: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/saturation/v4//KO_Lsm14b
+
+=== Processing: KO_Dgkd ===
+Loaded 74570 filtered barcodes.
+Loaded 5 regions from /projects/b1042/GoyalLab/egrody/extractionScripts/submissionScripts/bamsort_v4_coordinates.csv:
+  Kras: chr6:145170799-145170923
+  Nf2: chr11:4730577-4730622
+  Slk: chr19:47616086-47616179
+  Lsm14b: chr2:179673586-179673664
+  Dgkd: chr1:87869090-87869221
+
+=== Extracting reads from BAM ===
+Filters: min_reads_per_umi=2, min_umi_per_cell=2
+  Kras (chr6:145170799-145170923): raw=7170 reads, 786 UMIs, 770 barcodes -> filtered=328 reads, 11 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+  Nf2 (chr11:4730577-4730622): raw=2 reads, 2 UMIs, 2 barcodes -> filtered=0 reads, 0 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+  Slk (chr19:47616086-47616179): raw=1209 reads, 207 UMIs, 204 barcodes -> filtered=18 reads, 3 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+  Lsm14b (chr2:179673586-179673664): raw=14663 reads, 1170 UMIs, 1151 barcodes -> filtered=218 reads, 6 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+  Dgkd (chr1:87869090-87869221): raw=178086 reads, 1606 UMIs, 1535 barcodes -> filtered=163074 reads, 14 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+
+=== Per-region summary ===
+  Kras: 328 reads, 11 barcodes
+  Nf2: 0 reads, 0 barcodes
+  Slk: 18 reads, 3 barcodes
+  Lsm14b: 218 reads, 6 barcodes
+  Dgkd: 163074 reads, 14 barcodes
+
+=== Rarefaction analysis ===
+  Kras: 328 reads, 11 barcodes, 29.8 reads/barcode, saturation=0.966, marginal gain from 2nd half=0.0%
+  Nf2: 0 reads, skipping rarefaction.
+  Slk: 18 reads, 3 barcodes, 6.0 reads/barcode, saturation=0.833, marginal gain from 2nd half=3.4%
+  Lsm14b: 218 reads, 6 barcodes, 36.3 reads/barcode, saturation=0.972, marginal gain from 2nd half=0.0%
+  Dgkd: 163074 reads, 14 barcodes, 11648.1 reads/barcode, saturation=1.000, marginal gain from 2nd half=2.9%
+
+=== Generating plots ===
+Saved: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/saturation/v4//KO_Dgkd_rarefaction.png
+Saved: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/saturation/v4//KO_Dgkd_per_region.png
+
+=== UMI-level saturation (threshold=2) ===
+  Kras: 786 UMIs, 611 above threshold (77.7%), 175 borderline (at 1 reads), median reads/UMI=5, UMI saturation=0.976
+  Nf2: 2 UMIs, 0 above threshold (0.0%), 2 borderline (at 1 reads), median reads/UMI=1, UMI saturation=0.000
+  Slk: 207 UMIs, 122 above threshold (58.9%), 85 borderline (at 1 reads), median reads/UMI=2, UMI saturation=0.930
+  Lsm14b: 1170 UMIs, 854 above threshold (73.0%), 316 borderline (at 1 reads), median reads/UMI=4, UMI saturation=0.978
+  Dgkd: 1606 UMIs, 759 above threshold (47.3%), 847 borderline (at 1 reads), median reads/UMI=1, UMI saturation=0.995
+Saved: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/saturation/v4//KO_Dgkd_umi_distribution.png
+
+=== Interpretation ===
+  Kras: 29.8 reads/barcode, marginal gain=0.0% -- SATURATED -- more reads unlikely to find new positive cells.
+  Nf2: no reads detected.
+  Slk: 6.0 reads/barcode, marginal gain=3.4% -- SATURATED -- more reads unlikely to find new positive cells.
+  Lsm14b: 36.3 reads/barcode, marginal gain=0.0% -- SATURATED -- more reads unlikely to find new positive cells.
+  Dgkd: 11648.1 reads/barcode, marginal gain=2.9% -- SATURATED -- more reads unlikely to find new positive cells.
+
+All outputs saved with prefix: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/saturation/v4//KO_Dgkd
+
+=== Processing: KO_Nf2 ===
+Loaded 65441 filtered barcodes.
+Loaded 5 regions from /projects/b1042/GoyalLab/egrody/extractionScripts/submissionScripts/bamsort_v4_coordinates.csv:
+  Kras: chr6:145170799-145170923
+  Nf2: chr11:4730577-4730622
+  Slk: chr19:47616086-47616179
+  Lsm14b: chr2:179673586-179673664
+  Dgkd: chr1:87869090-87869221
+
+=== Extracting reads from BAM ===
+Filters: min_reads_per_umi=2, min_umi_per_cell=2
+  Kras (chr6:145170799-145170923): raw=19 reads, 17 UMIs, 17 barcodes -> filtered=0 reads, 0 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+  Nf2 (chr11:4730577-4730622): raw=225016 reads, 1561 UMIs, 1289 barcodes -> filtered=149634 reads, 49 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+  Slk (chr19:47616086-47616179): raw=11459 reads, 905 UMIs, 887 barcodes -> filtered=417 reads, 9 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+  Lsm14b (chr2:179673586-179673664): raw=57 reads, 50 UMIs, 50 barcodes -> filtered=0 reads, 0 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+  Dgkd (chr1:87869090-87869221): raw=3 reads, 2 UMIs, 2 barcodes -> filtered=0 reads, 0 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+
+=== Per-region summary ===
+  Kras: 0 reads, 0 barcodes
+  Nf2: 149634 reads, 49 barcodes
+  Slk: 417 reads, 9 barcodes
+  Lsm14b: 0 reads, 0 barcodes
+  Dgkd: 0 reads, 0 barcodes
+
+=== Rarefaction analysis ===
+  Kras: 0 reads, skipping rarefaction.
+  Nf2: 149634 reads, 49 barcodes, 3053.8 reads/barcode, saturation=1.000, marginal gain from 2nd half=0.0%
+  Slk: 417 reads, 9 barcodes, 46.3 reads/barcode, saturation=0.978, marginal gain from 2nd half=0.0%
+  Lsm14b: 0 reads, skipping rarefaction.
+  Dgkd: 0 reads, skipping rarefaction.
+
+=== Generating plots ===
+Saved: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/saturation/v4//KO_Nf2_rarefaction.png
+Saved: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/saturation/v4//KO_Nf2_per_region.png
+
+=== UMI-level saturation (threshold=2) ===
+  Kras: 17 UMIs, 1 above threshold (5.9%), 16 borderline (at 1 reads), median reads/UMI=1, UMI saturation=0.158
+  Nf2: 1561 UMIs, 907 above threshold (58.1%), 654 borderline (at 1 reads), median reads/UMI=2, UMI saturation=0.997
+  Slk: 905 UMIs, 630 above threshold (69.6%), 275 borderline (at 1 reads), median reads/UMI=3, UMI saturation=0.976
+  Lsm14b: 50 UMIs, 4 above threshold (8.0%), 46 borderline (at 1 reads), median reads/UMI=1, UMI saturation=0.193
+  Dgkd: 2 UMIs, 1 above threshold (50.0%), 1 borderline (at 1 reads), median reads/UMI=2, UMI saturation=0.667
+Saved: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/saturation/v4//KO_Nf2_umi_distribution.png
+
+=== Interpretation ===
+  Kras: no reads detected.
+  Nf2: 3053.8 reads/barcode, marginal gain=0.0% -- SATURATED -- more reads unlikely to find new positive cells.
+  Slk: 46.3 reads/barcode, marginal gain=0.0% -- SATURATED -- more reads unlikely to find new positive cells.
+  Lsm14b: no reads detected.
+  Dgkd: no reads detected.
+
+All outputs saved with prefix: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/saturation/v4//KO_Nf2
+
+=== Processing: KO_Slkv4 ===
+WARNING: BAM not found at /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/counts/nointron/GRCm39_EGL002_KO_Slkv4/outs/possorted_genome_bam.bam, skipping KO_Slkv4
+==========================================
+COMPLETE: 11 succeeded, 1 failed
+Output: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/saturation/v4/
+Finished: Mon Mar  9 11:57:37 CDT 2026
+==========================================

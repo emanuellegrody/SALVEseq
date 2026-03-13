@@ -1,0 +1,4 @@
+ERROR: The --project argument must be specified if BCLs were demultiplexed into multiple project folders. Options:
+Normal_SHAM24_R2
+logs
+Esrp2KO_sham24_R1

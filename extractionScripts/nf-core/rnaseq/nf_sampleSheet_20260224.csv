@@ -1,0 +1,5 @@
+sample,fastq_1,fastq_2,strandedness
+SRR22206369,/projects/b1042/GoyalLab/egrody/publicData/Bangruetal2025/fastq/SRR22206369_1.fastq.gz,/projects/b1042/GoyalLab/egrody/publicData/Bangruetal2025/fastq/SRR22206369_2.fastq.gz,auto
+SRR22206370,/projects/b1042/GoyalLab/egrody/publicData/Bangruetal2025/fastq/SRR22206370_1.fastq.gz,/projects/b1042/GoyalLab/egrody/publicData/Bangruetal2025/fastq/SRR22206370_2.fastq.gz,auto
+SRR22206371,/projects/b1042/GoyalLab/egrody/publicData/Bangruetal2025/fastq/SRR22206371_1.fastq.gz,/projects/b1042/GoyalLab/egrody/publicData/Bangruetal2025/fastq/SRR22206371_2.fastq.gz,auto
+SRR22206372,/projects/b1042/GoyalLab/egrody/publicData/Bangruetal2025/fastq/SRR22206372_1.fastq.gz,/projects/b1042/GoyalLab/egrody/publicData/Bangruetal2025/fastq/SRR22206372_2.fastq.gz,auto

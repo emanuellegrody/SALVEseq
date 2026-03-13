@@ -1,0 +1,52 @@
+Martian Runtime - v4.0.11
+Serving UI at http://qnode0120:37347?auth=TFE-O3JQG8DtZw84e1H460brzuhT53q7NbZ33dBIVwo
+
+Running preflight checks (please wait)...
+Checking sample info...
+Checking FASTQ folder...
+Checking reference...
+Checking reference_path (/gpfs/projects/b1042/GoyalLab/egrody/genomes/Mmul_10_mac239) on qnode0120...
+Checking optional arguments...
+mro: v4.0.11
+mrp: v4.0.11
+Anaconda: Python 3.10.11
+numpy: 1.24.3
+scipy: 1.10.1
+pysam: 0.21.0
+h5py: 3.6.0
+pandas: 1.5.3
+STAR: 2.7.2a
+samtools: samtools 1.16.1
+2025-10-29 12:17:19 [runtime] (ready)           ID.Mmul_10_mac239_WT_Kras_v3.SC_RNA_COUNTER_CS.SC_MULTI_CORE.MULTI_CHEMISTRY_DETECTOR.DETECT_COUNT_CHEMISTRY
+2025-10-29 12:17:19 [runtime] (run:local)       ID.Mmul_10_mac239_WT_Kras_v3.SC_RNA_COUNTER_CS.SC_MULTI_CORE.MULTI_CHEMISTRY_DETECTOR.DETECT_COUNT_CHEMISTRY.fork0.chnk0.main
+2025-10-29 12:17:19 [runtime] (ready)           ID.Mmul_10_mac239_WT_Kras_v3.SC_RNA_COUNTER_CS.SC_MULTI_CORE.MULTI_CHEMISTRY_DETECTOR.CHECK_SINGLE_BEAM_MODE
+2025-10-29 12:17:19 [runtime] (ready)           ID.Mmul_10_mac239_WT_Kras_v3.SC_RNA_COUNTER_CS.SC_MULTI_CORE.SANITIZE_MAP_CALLS
+2025-10-29 12:17:19 [runtime] (ready)           ID.Mmul_10_mac239_WT_Kras_v3.SC_RNA_COUNTER_CS.FULL_COUNT_INPUTS.WRITE_GENE_INDEX
+2025-10-29 12:17:19 [runtime] (run:local)       ID.Mmul_10_mac239_WT_Kras_v3.SC_RNA_COUNTER_CS.FULL_COUNT_INPUTS.WRITE_GENE_INDEX.fork0.chnk0.main
+2025-10-29 12:17:19 [runtime] (ready)           ID.Mmul_10_mac239_WT_Kras_v3.SC_RNA_COUNTER_CS.WRITE_GENE_INDEX
+2025-10-29 12:17:19 [runtime] (run:local)       ID.Mmul_10_mac239_WT_Kras_v3.SC_RNA_COUNTER_CS.WRITE_GENE_INDEX.fork0.chnk0.main
+2025-10-29 12:17:19 [runtime] (ready)           ID.Mmul_10_mac239_WT_Kras_v3.SC_RNA_COUNTER_CS.SC_MULTI_CORE.SPLIT_VDJ_INPUTS
+2025-10-29 12:17:19 [runtime] (ready)           ID.Mmul_10_mac239_WT_Kras_v3.SC_RNA_COUNTER_CS.SC_MULTI_CORE.MAKE_FULL_CONFIG._MAKE_VDJ_CONFIG
+2025-10-29 12:17:19 [runtime] (run:local)       ID.Mmul_10_mac239_WT_Kras_v3.SC_RNA_COUNTER_CS.SC_MULTI_CORE.MAKE_FULL_CONFIG._MAKE_VDJ_CONFIG.fork0.chnk0.main
+2025-10-29 12:17:19 [runtime] (ready)           ID.Mmul_10_mac239_WT_Kras_v3.SC_RNA_COUNTER_CS.SC_MULTI_CORE.MULTI_GEM_WELL_PROCESSOR.COUNT_GEM_WELL_PROCESSOR._BASIC_SC_RNA_COUNTER._MATRIX_COMPUTER.COMPUTE_CORRECTION_FACTOR
+2025-10-29 12:17:19 [runtime] (run:local)       ID.Mmul_10_mac239_WT_Kras_v3.SC_RNA_COUNTER_CS.SC_MULTI_CORE.MULTI_GEM_WELL_PROCESSOR.COUNT_GEM_WELL_PROCESSOR._BASIC_SC_RNA_COUNTER._MATRIX_COMPUTER.COMPUTE_CORRECTION_FACTOR.fork0.chnk0.main
+2025-10-29 12:17:20 [runtime] (failed)          ID.Mmul_10_mac239_WT_Kras_v3.SC_RNA_COUNTER_CS.SC_MULTI_CORE.MULTI_CHEMISTRY_DETECTOR.DETECT_COUNT_CHEMISTRY
+
+[error] Pipestance failed. Error log at:
+Mmul_10_mac239_WT_Kras_v3/SC_RNA_COUNTER_CS/SC_MULTI_CORE/MULTI_CHEMISTRY_DETECTOR/DETECT_COUNT_CHEMISTRY/fork0/chnk0-u1ed5024c1f/_errors
+
+Log message:
+There were not enough reads to auto detect the chemistry: Sample WT_Kras_v3 in "/gpfs/projects/b1042/GoyalLab/egrody/rawData/EGL002/Sequencing/fastq/EGL_002"
+Note that you can avoid auto detection by specifying the specific chemistry type and version.
+- Minimum number of required reads = 10000
+- Number of reads available = 63
+
+Waiting 6 seconds for UI to do final refresh.
+Pipestance failed. Use --noexit option to keep UI running after failure.
+
+2025-10-29 12:17:26 Shutting down.
+Saving pipestance info to "Mmul_10_mac239_WT_Kras_v3/Mmul_10_mac239_WT_Kras_v3.mri.tgz"
+For assistance, upload this file to 10x Genomics by running:
+
+cellranger upload <your_email> "Mmul_10_mac239_WT_Kras_v3/Mmul_10_mac239_WT_Kras_v3.mri.tgz"
+

@@ -1,0 +1,260 @@
+All imports OK
+============================================================
+Normalized BAM Analysis Pipeline
+Conditions: WT vs KO
+Targets: ['Kras', 'Slkv4', 'Nf2', 'Dgkd', 'Lsm14b']
+Subsample: ON
+============================================================
+
+=== PHASE 0: Computing reads/cell per condition x target ===
+
+Target: Kras
+  WT: 4783 cells, 10678049 reads, 2232.50 reads/cell
+  KO: 66558 cells, 1712588 reads, 25.73 reads/cell
+  Normalization: WT subsampled to 0.0115 (target 25.73 reads/cell)
+    samtools view -s 42.0115 -> WT_Kras_subsampled.bam
+Target: Slkv4
+  WT: 4898 cells, 616083 reads, 125.78 reads/cell
+  WARNING: BAM not found: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/counts/nointron/GRCm39_EGL002_KO_Slkv4/outs/possorted_genome_bam.bam
+  Skipping normalization for Slkv4 (missing data)
+Target: Nf2
+  WT: 5003 cells, 2265737 reads, 452.88 reads/cell
+  KO: 65441 cells, 225016 reads, 3.44 reads/cell
+  Normalization: WT subsampled to 0.0076 (target 3.44 reads/cell)
+    samtools view -s 42.0075 -> WT_Nf2_subsampled.bam
+Target: Dgkd
+  WT: 7747 cells, 7805 reads, 1.01 reads/cell
+  KO: 74570 cells, 178086 reads, 2.39 reads/cell
+  Normalization: KO subsampled to 0.4219 (target 1.01 reads/cell)
+    samtools view -s 42.4218 -> KO_Dgkd_subsampled.bam
+Target: Lsm14b
+  WT: 5366 cells, 3902949 reads, 727.35 reads/cell
+  KO: 78944 cells, 3548634 reads, 44.95 reads/cell
+  Normalization: WT subsampled to 0.0618 (target 44.95 reads/cell)
+    samtools view -s 42.0618 -> WT_Lsm14b_subsampled.bam
+
+Normalization summary: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/bamsort/normalized/v4/normalization_summary.csv
+
+=== PHASE 1: ALIGNMENT READ EXTRACTION ===
+
+  WT_Kras -> Kras
+    Processed 179312 reads, found 1048 unique UMI-cell combinations
+    Reads with introns: 10148, without introns: 168014
+    Total valid reads: 173166
+    Log file: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/bamsort/normalized/v4/alignment/stats_WT_Kras_alignment_Kras.txt
+  KO_Kras -> Kras
+    Processed 1837016 reads, found 4957 unique UMI-cell combinations
+    Reads with introns: 94173, without introns: 1729767
+    Total valid reads: 1772244
+    Log file: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/bamsort/normalized/v4/alignment/stats_KO_Kras_alignment_Kras.txt
+  WT_Slkv4 -> Kras
+    Processed 248 reads, found 138 unique UMI-cell combinations
+    Reads with introns: 19, without introns: 205
+    Total valid reads: 193
+    Log file: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/bamsort/normalized/v4/alignment/stats_WT_Slkv4_alignment_Kras.txt
+  WT_Slkv4 -> Nf2
+    Processed 25114 reads, found 466 unique UMI-cell combinations
+    Reads with introns: 20073, without introns: 0
+    Total valid reads: 11607
+    Log file: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/bamsort/normalized/v4/alignment/stats_WT_Slkv4_alignment_Nf2.txt
+  WT_Slkv4 -> Slk
+    Processed 874447 reads, found 665 unique UMI-cell combinations
+    Reads with introns: 819959, without introns: 23337
+    Total valid reads: 399310
+    Log file: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/bamsort/normalized/v4/alignment/stats_WT_Slkv4_alignment_Slk.txt
+  WT_Slkv4 -> Lsm14b
+    Processed 53 reads, found 19 unique UMI-cell combinations
+    Reads with introns: 42, without introns: 0
+    Total valid reads: 37
+    Log file: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/bamsort/normalized/v4/alignment/stats_WT_Slkv4_alignment_Lsm14b.txt
+  WT_Slkv4 -> Dgkd
+    Processed 92 reads, found 6 unique UMI-cell combinations
+    Reads with introns: 90, without introns: 0
+    Total valid reads: 40
+    Log file: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/bamsort/normalized/v4/alignment/stats_WT_Slkv4_alignment_Dgkd.txt
+  KO_Slkv4: no BAM available, skipping
+  WT_Nf2 -> Nf2
+    Processed 18869 reads, found 141 unique UMI-cell combinations
+    Reads with introns: 16497, without introns: 0
+    Total valid reads: 12117
+    Log file: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/bamsort/normalized/v4/alignment/stats_WT_Nf2_alignment_Nf2.txt
+  KO_Nf2 -> Nf2
+    Processed 282569 reads, found 664 unique UMI-cell combinations
+    Reads with introns: 214473, without introns: 0
+    Total valid reads: 62964
+    Log file: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/bamsort/normalized/v4/alignment/stats_KO_Nf2_alignment_Nf2.txt
+  WT_Dgkd -> Dgkd
+    Processed 8013 reads, found 44 unique UMI-cell combinations
+    Reads with introns: 7899, without introns: 5
+    Total valid reads: 6939
+    Log file: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/bamsort/normalized/v4/alignment/stats_WT_Dgkd_alignment_Dgkd.txt
+  KO_Dgkd -> Dgkd
+    Processed 75695 reads, found 729 unique UMI-cell combinations
+    Reads with introns: 73317, without introns: 21
+    Total valid reads: 69838
+    Log file: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/bamsort/normalized/v4/alignment/stats_KO_Dgkd_alignment_Dgkd.txt
+  WT_Lsm14b -> Lsm14b
+    Processed 282018 reads, found 622 unique UMI-cell combinations
+    Reads with introns: 280752, without introns: 0
+    Total valid reads: 241252
+    Log file: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/bamsort/normalized/v4/alignment/stats_WT_Lsm14b_alignment_Lsm14b.txt
+  KO_Lsm14b -> Lsm14b
+    Processed 3882200 reads, found 8103 unique UMI-cell combinations
+    Reads with introns: 3868593, without introns: 0
+    Total valid reads: 3511589
+    Log file: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/bamsort/normalized/v4/alignment/stats_KO_Lsm14b_alignment_Lsm14b.txt
+
+=== PHASE 2: SPLICE SITE DETECTION ===
+
+  WT_Kras
+    Input BAM: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/bamsort/normalized/v4/subsampled_bams/WT_Kras_subsampled.bam
+    Output CSV: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/bamsort/normalized/v4/splice/WT_Kras_splicesites.csv
+    Reference filtering: chr6
+    Minimum intron size: 1000bp
+    Minimum match size: 20bp
+    ------------------------------------------------------------
+    Processing complete!
+    Total reads examined: 206389
+    Reads processed (mapped with CIGAR): 206389
+    Reads from other references: 0
+    Reads without xf:i:25 tag: 206006
+    Reads without qualifying splice pattern: 364
+    Splice junctions found: 19
+    Parameters: min_intron=1000bp, min_match=20bp
+    Output file: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/bamsort/normalized/v4/splice/WT_Kras_splicesites.csv
+  KO_Kras
+    Input BAM: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/counts/nointron/GRCm39_EGL002_KO_Kras/outs/possorted_genome_bam.bam
+    Output CSV: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/bamsort/normalized/v4/splice/KO_Kras_splicesites.csv
+    Reference filtering: chr6
+    Minimum intron size: 1000bp
+    Minimum match size: 20bp
+    ------------------------------------------------------------
+    Processing complete!
+    Total reads examined: 2558576
+    Reads processed (mapped with CIGAR): 2558576
+    Reads from other references: 0
+    Reads without xf:i:25 tag: 2533136
+    Reads without qualifying splice pattern: 23578
+    Splice junctions found: 1866
+    Parameters: min_intron=1000bp, min_match=20bp
+    Output file: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/bamsort/normalized/v4/splice/KO_Kras_splicesites.csv
+  WT_Slkv4
+    Input BAM: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/counts/nointron/GRCm39_EGL002_WT_Slkv4/outs/possorted_genome_bam.bam
+    Output CSV: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/bamsort/normalized/v4/splice/WT_Slkv4_splicesites.csv
+    Reference filtering: chr6
+    Minimum intron size: 1000bp
+    Minimum match size: 20bp
+    ------------------------------------------------------------
+    Processing complete!
+    Total reads examined: 416577
+    Reads processed (mapped with CIGAR): 416577
+    Reads from other references: 0
+    Reads without xf:i:25 tag: 407609
+    Reads without qualifying splice pattern: 8228
+    Splice junctions found: 742
+    Parameters: min_intron=1000bp, min_match=20bp
+    Output file: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/bamsort/normalized/v4/splice/WT_Slkv4_splicesites.csv
+  WT_Nf2
+    Input BAM: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/bamsort/normalized/v4/subsampled_bams/WT_Nf2_subsampled.bam
+    Output CSV: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/bamsort/normalized/v4/splice/WT_Nf2_splicesites.csv
+    Reference filtering: chr11
+    Minimum intron size: 1000bp
+    Minimum match size: 20bp
+    ------------------------------------------------------------
+    Processing complete!
+    Total reads examined: 74459
+    Reads processed (mapped with CIGAR): 74459
+    Reads from other references: 0
+    Reads without xf:i:25 tag: 74186
+    Reads without qualifying splice pattern: 238
+    Splice junctions found: 37
+    Parameters: min_intron=1000bp, min_match=20bp
+    Output file: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/bamsort/normalized/v4/splice/WT_Nf2_splicesites.csv
+  KO_Nf2
+    Input BAM: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/counts/nointron/GRCm39_EGL002_KO_Nf2/outs/possorted_genome_bam.bam
+    Output CSV: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/bamsort/normalized/v4/splice/KO_Nf2_splicesites.csv
+    Reference filtering: chr11
+    Minimum intron size: 1000bp
+    Minimum match size: 20bp
+    ------------------------------------------------------------
+    Processing complete!
+    Total reads examined: 6790707
+    Reads processed (mapped with CIGAR): 6790707
+    Reads from other references: 0
+    Reads without xf:i:25 tag: 6745628
+    Reads without qualifying splice pattern: 41953
+    Splice junctions found: 3360
+    Parameters: min_intron=1000bp, min_match=20bp
+    Output file: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/bamsort/normalized/v4/splice/KO_Nf2_splicesites.csv
+  WT_Dgkd
+    Input BAM: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/counts/nointron/GRCm39_EGL002_WT_Dgkd/outs/possorted_genome_bam.bam
+    Output CSV: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/bamsort/normalized/v4/splice/WT_Dgkd_splicesites.csv
+    Reference filtering: chr1
+    Minimum intron size: 1000bp
+    Minimum match size: 20bp
+    ------------------------------------------------------------
+    Processing complete!
+    Total reads examined: 436042
+    Reads processed (mapped with CIGAR): 436042
+    Reads from other references: 0
+    Reads without xf:i:25 tag: 426404
+    Reads without qualifying splice pattern: 9116
+    Splice junctions found: 532
+    Parameters: min_intron=1000bp, min_match=20bp
+    Output file: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/bamsort/normalized/v4/splice/WT_Dgkd_splicesites.csv
+  KO_Dgkd
+    Input BAM: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/bamsort/normalized/v4/subsampled_bams/KO_Dgkd_subsampled.bam
+    Output CSV: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/bamsort/normalized/v4/splice/KO_Dgkd_splicesites.csv
+    Reference filtering: chr1
+    Minimum intron size: 1000bp
+    Minimum match size: 20bp
+    ------------------------------------------------------------
+    Processing complete!
+    Total reads examined: 358394
+    Reads processed (mapped with CIGAR): 358394
+    Reads from other references: 0
+    Reads without xf:i:25 tag: 349625
+    Reads without qualifying splice pattern: 7991
+    Splice junctions found: 784
+    Parameters: min_intron=1000bp, min_match=20bp
+    Output file: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/bamsort/normalized/v4/splice/KO_Dgkd_splicesites.csv
+  WT_Lsm14b
+    Input BAM: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/bamsort/normalized/v4/subsampled_bams/WT_Lsm14b_subsampled.bam
+    Output CSV: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/bamsort/normalized/v4/splice/WT_Lsm14b_splicesites.csv
+    Reference filtering: chr2
+    Minimum intron size: 1000bp
+    Minimum match size: 20bp
+    ------------------------------------------------------------
+    Processing complete!
+    Total reads examined: 404112
+    Reads processed (mapped with CIGAR): 404112
+    Reads from other references: 0
+    Reads without xf:i:25 tag: 402995
+    Reads without qualifying splice pattern: 1074
+    Splice junctions found: 46
+    Parameters: min_intron=1000bp, min_match=20bp
+    Output file: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/bamsort/normalized/v4/splice/WT_Lsm14b_splicesites.csv
+  KO_Lsm14b
+    Input BAM: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/counts/nointron/GRCm39_EGL002_KO_Lsm14b/outs/possorted_genome_bam.bam
+    Output CSV: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/bamsort/normalized/v4/splice/KO_Lsm14b_splicesites.csv
+    Reference filtering: chr2
+    Minimum intron size: 1000bp
+    Minimum match size: 20bp
+    ------------------------------------------------------------
+    Processing complete!
+    Total reads examined: 5240172
+    Reads processed (mapped with CIGAR): 5240172
+    Reads from other references: 0
+    Reads without xf:i:25 tag: 5215841
+    Reads without qualifying splice pattern: 22874
+    Splice junctions found: 1498
+    Parameters: min_intron=1000bp, min_match=20bp
+    Output file: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/bamsort/normalized/v4/splice/KO_Lsm14b_splicesites.csv
+
+============================================================
+PIPELINE COMPLETE
+Alignment results: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/bamsort/normalized/v4/alignment
+Splice results: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/bamsort/normalized/v4/splice
+Subsampled BAMs: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/bamsort/normalized/v4/subsampled_bams
+============================================================
+Exit code: 0

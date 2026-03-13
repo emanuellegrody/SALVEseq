@@ -1,0 +1,29 @@
+Running in single sample mode for: Esrp2KO_sham24_R1
+Processing single sample: Esrp2KO_sham24_R1
+Found 5 coordinate ranges in /projects/b1042/GoyalLab/egrody/extractionScripts/submissionScripts/bamsort_GEX_coordinates.csv
+Processing sample: Esrp2KO_sham24_R1
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/singleCell/counts/GRCm39_Esrp2KO_sham24_R1/outs/possorted_genome_bam.bam
+  Alignment: Kras (Chromosome: chr6, Position 145162425-145195965)
+  Successfully processed Esrp2KO_sham24_R1 for Kras
+  Statistics: Rows=4927, Total reads=5997
+  -----------------------------
+  Alignment: Nf2 (Chromosome: chr11, Position 4715845-4799536)
+  Successfully processed Esrp2KO_sham24_R1 for Nf2
+  Statistics: Rows=1431, Total reads=1701
+  -----------------------------
+  Alignment: Slk (Chromosome: chr19, Position 47568458-47633685)
+  Successfully processed Esrp2KO_sham24_R1 for Slk
+  Statistics: Rows=3726, Total reads=4501
+  -----------------------------
+  Alignment: Lsm14b (Chromosome: chr2, Position 179666780-179677258)
+  Successfully processed Esrp2KO_sham24_R1 for Lsm14b
+  Statistics: Rows=1672, Total reads=2004
+  -----------------------------
+  Alignment: Dgkd (Chromosome: chr1, Position 87781009-87872902)
+  Successfully processed Esrp2KO_sham24_R1 for Dgkd
+  Statistics: Rows=1672, Total reads=2019
+  -----------------------------
+=============================
+All samples and alignments processed!
+Summary written to: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/singleCell/bamsort/all_samples_alignment_summary.txt
+Processed single sample: Esrp2KO_sham24_R1

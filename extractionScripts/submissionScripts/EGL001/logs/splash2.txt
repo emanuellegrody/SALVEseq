@@ -1,0 +1,94 @@
+Welcome to SPLASH
+Version:  2.11.1
+Current time: 2025-01-12 23:06:29
+----------------  Configuration  ---------------
+input_file: /projects/b1042/GoyalLab/egrody/Kalsotra_fastq/scripts/20250112_input2.txt
+outname_prefix: result
+anchor_len: 27
+gap_len: 0
+target_len: 27
+anchor_list: 
+pvals_correction_col_name: pval_opt
+technology: 10x
+without_compactors: True
+compactors_config: 
+lookup_table_config: 
+poly_ACGT_len: 8
+artifacts: 
+dont_filter_illumina_adapters: False
+anchor_unique_targets_threshold: 1
+anchor_count_threshold: 50
+anchor_samples_threshold: 1
+anchor_sample_counts_threshold: 5
+n_most_freq_targets_for_stats: 0
+n_most_freq_targets_for_dump: 0
+fdr_threshold: 0.05
+min_hamming_threshold: 0
+keep_top_n_target_entropy: 10000
+keep_top_n_effect_size_bin: 20000
+keep_significant_anchors_satc: False
+keep_top_target_entropy_anchors_satc: False
+keep_top_effect_size_bin_anchors_satc: False
+dump_Cjs: False
+max_pval_opt_for_Cjs: 0.1
+n_most_freq_targets: 10
+with_effect_size_cts: False
+with_pval_asymp_opt: False
+without_seqence_entropy: False
+sample_name_to_id: sample_name_to_id.mapping.txt
+dump_sample_anchor_target_count_txt: False
+dump_sample_anchor_target_count_binary: False
+satc_merge_dump_format: splash
+supervised_test_samplesheet: 
+supervised_test_anchor_sample_fraction_cutoff: 0.4
+supervised_test_num_anchors: 20000
+opt_num_inits: 10
+opt_num_iters: 50
+num_rand_cf: 50
+num_splits: 1
+opt_train_fraction: 0.25
+without_alt_max: False
+without_sample_spectral_sum: False
+compute_also_old_base_pvals: False
+Cjs_samplesheet: 
+bin_path: bin
+tmp_dir: 
+n_threads_stage_1: 1
+n_threads_stage_1_internal: 16
+n_threads_stage_1_internal_boost: 1
+n_threads_stage_2: 16
+n_bins: 128
+kmc_use_RAM_only_mode: False
+kmc_max_mem_GB: 12
+dont_clean_up: False
+logs_dir: logs
+cbc_len: 16
+umi_len: 12
+soft_cbc_umi_len_limit: 0
+cbc_filtering_thr: 0
+cell_type_samplesheet: 
+export_cbc_logs: False
+predefined_cbc: 
+export_filtered_input: False
+allow_strange_cbc_umi_reads: False
+postprocessing_item: []
+exclude_postprocessing_item: None
+REMOVE_INPUT: False
+------------------------------------------------
+Starting stage 1
+Current time: 2025-01-12 23:06:30
+Stage 1 done
+Starting stage 2
+Current time: 2025-01-12 23:33:35
+Stage 2 done
+Starting stage 3
+Current time: 2025-01-12 23:36:54
+Stage 3 done
+Start top target entropy select
+Current time: 2025-01-12 23:36:56
+Top target entropy select done
+Start top effect_size_bin select
+Current time: 2025-01-12 23:36:56
+Effect size bin select done
+SPLASH finished!
+Current time: 2025-01-12 23:36:56

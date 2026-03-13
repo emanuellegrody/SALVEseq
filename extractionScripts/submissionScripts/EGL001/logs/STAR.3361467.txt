@@ -1,0 +1,123 @@
+Found 14 samples in /projects/b1042/GoyalLab/egrody/extractionScripts/submissionScripts/mkcounts_EGL.csv
+Processing sample: Kras_v3_WT
+FASTQ file: /projects/b1042/GoyalLab/egrody/rawData/EGL001/fastq/Kras_v3_WT_S8_R2_001.fastq.gz
+Sep 05 11:14:46 ..... started STAR run
+Sep 05 11:14:46 ..... loading genome
+Sep 05 11:14:53 ..... started mapping
+Sep 05 11:15:11 ..... finished mapping
+Sep 05 11:15:11 ..... started sorting BAM
+Sep 05 11:15:12 ..... finished successfully
+Successfully processed sample: Kras_v3_WT
+Processing sample: Slk_v3_WT
+FASTQ file: /projects/b1042/GoyalLab/egrody/rawData/EGL001/fastq/Slk_v3_WT_S9_R2_001.fastq.gz
+Sep 05 11:15:12 ..... started STAR run
+Sep 05 11:15:12 ..... loading genome
+Sep 05 11:15:20 ..... started mapping
+Sep 05 11:15:34 ..... finished mapping
+Sep 05 11:15:34 ..... started sorting BAM
+Sep 05 11:15:35 ..... finished successfully
+Successfully processed sample: Slk_v3_WT
+Processing sample: Lsm14b_v3_WT
+FASTQ file: /projects/b1042/GoyalLab/egrody/rawData/EGL001/fastq/Lsm14b_v3_WT_S10_R2_001.fastq.gz
+Sep 05 11:15:35 ..... started STAR run
+Sep 05 11:15:35 ..... loading genome
+Sep 05 11:15:43 ..... started mapping
+Sep 05 11:16:01 ..... finished mapping
+Sep 05 11:16:01 ..... started sorting BAM
+Sep 05 11:16:02 ..... finished successfully
+Successfully processed sample: Lsm14b_v3_WT
+Processing sample: Dgkd_v3_WT
+FASTQ file: /projects/b1042/GoyalLab/egrody/rawData/EGL001/fastq/Dgkd_v3_WT_S11_R2_001.fastq.gz
+Sep 05 11:16:02 ..... started STAR run
+Sep 05 11:16:02 ..... loading genome
+Sep 05 11:16:10 ..... started mapping
+Sep 05 11:16:21 ..... finished mapping
+Sep 05 11:16:21 ..... started sorting BAM
+Sep 05 11:16:21 ..... finished successfully
+Successfully processed sample: Dgkd_v3_WT
+Processing sample: Nf2_v4_WT
+FASTQ file: /projects/b1042/GoyalLab/egrody/rawData/EGL001/fastq/Nf2_v4_WT_S12_R2_001.fastq.gz
+Sep 05 11:16:21 ..... started STAR run
+Sep 05 11:16:21 ..... loading genome
+Sep 05 11:16:29 ..... started mapping
+Sep 05 11:16:46 ..... finished mapping
+Sep 05 11:16:46 ..... started sorting BAM
+Sep 05 11:16:47 ..... finished successfully
+Successfully processed sample: Nf2_v4_WT
+Processing sample: Slk_v4_WT
+FASTQ file: /projects/b1042/GoyalLab/egrody/rawData/EGL001/fastq/Slk_v4_WT_S13_R2_001.fastq.gz
+Sep 05 11:16:47 ..... started STAR run
+Sep 05 11:16:47 ..... loading genome
+Sep 05 11:16:54 ..... started mapping
+Sep 05 11:17:11 ..... finished mapping
+Sep 05 11:17:11 ..... started sorting BAM
+Sep 05 11:17:12 ..... finished successfully
+Successfully processed sample: Slk_v4_WT
+Processing sample: Lsm14b_v4_WT
+FASTQ file: /projects/b1042/GoyalLab/egrody/rawData/EGL001/fastq/Lsm14b_v4_WT_S14_R2_001.fastq.gz
+Sep 05 11:17:12 ..... started STAR run
+Sep 05 11:17:12 ..... loading genome
+Sep 05 11:17:20 ..... started mapping
+Sep 05 11:18:23 ..... finished mapping
+Sep 05 11:18:23 ..... started sorting BAM
+Sep 05 11:18:27 ..... finished successfully
+Successfully processed sample: Lsm14b_v4_WT
+Processing sample: Kras_v3_KO
+FASTQ file: /projects/b1042/GoyalLab/egrody/rawData/EGL001/fastq/Kras_v3_KO_S15_R2_001.fastq.gz
+Sep 05 11:18:27 ..... started STAR run
+Sep 05 11:18:27 ..... loading genome
+Sep 05 11:18:35 ..... started mapping
+Sep 05 11:18:52 ..... finished mapping
+Sep 05 11:18:52 ..... started sorting BAM
+Sep 05 11:18:53 ..... finished successfully
+Successfully processed sample: Kras_v3_KO
+Processing sample: Slk_v3_KO
+FASTQ file: /projects/b1042/GoyalLab/egrody/rawData/EGL001/fastq/Slk_v3_KO_S16_R2_001.fastq.gz
+Sep 05 11:18:53 ..... started STAR run
+Sep 05 11:18:53 ..... loading genome
+Sep 05 11:19:01 ..... started mapping
+Sep 05 11:19:16 ..... finished mapping
+Sep 05 11:19:16 ..... started sorting BAM
+Sep 05 11:19:17 ..... finished successfully
+Successfully processed sample: Slk_v3_KO
+Processing sample: Lsm14b_v3_KO
+FASTQ file: /projects/b1042/GoyalLab/egrody/rawData/EGL001/fastq/Lsm14b_v3_KO_S17_R2_001.fastq.gz
+Sep 05 11:19:17 ..... started STAR run
+Sep 05 11:19:17 ..... loading genome
+Sep 05 11:19:25 ..... started mapping
+Sep 05 11:19:34 ..... finished mapping
+Sep 05 11:19:35 ..... started sorting BAM
+Sep 05 11:19:35 ..... finished successfully
+Successfully processed sample: Lsm14b_v3_KO
+Processing sample: Dgkd_v3_KO
+FASTQ file: /projects/b1042/GoyalLab/egrody/rawData/EGL001/fastq/Dgkd_v3_KO_S18_R2_001.fastq.gz
+Sep 05 11:19:35 ..... started STAR run
+Sep 05 11:19:35 ..... loading genome
+Sep 05 11:19:43 ..... started mapping
+Sep 05 11:19:58 ..... finished mapping
+Sep 05 11:19:58 ..... started sorting BAM
+Sep 05 11:19:59 ..... finished successfully
+Successfully processed sample: Dgkd_v3_KO
+Processing sample: Nf2_v4_KO
+FASTQ file: /projects/b1042/GoyalLab/egrody/rawData/EGL001/fastq/Nf2_v4_KO_S19_R2_001.fastq.gz
+Sep 05 11:19:59 ..... started STAR run
+Sep 05 11:19:59 ..... loading genome
+Sep 05 11:20:07 ..... started mapping
+Sep 05 11:20:35 ..... finished mapping
+Sep 05 11:20:35 ..... started sorting BAM
+Sep 05 11:20:36 ..... finished successfully
+Successfully processed sample: Nf2_v4_KO
+Processing sample: Slk_v4_KO
+FASTQ file: /projects/b1042/GoyalLab/egrody/rawData/EGL001/fastq/Slk_v4_KO_S20_R2_001.fastq.gz
+Sep 05 11:20:36 ..... started STAR run
+Sep 05 11:20:37 ..... loading genome
+Sep 05 11:20:44 ..... started mapping
+Sep 05 11:21:02 ..... finished mapping
+Sep 05 11:21:03 ..... started sorting BAM
+Sep 05 11:21:04 ..... finished successfully
+Successfully processed sample: Slk_v4_KO
+Processing sample: Lsm14b_v4_KO
+FASTQ file: /projects/b1042/GoyalLab/egrody/rawData/EGL001/fastq/Lsm14b_v4_KO_S21_R2_001.fastq.gz
+Sep 05 11:21:04 ..... started STAR run
+Sep 05 11:21:04 ..... loading genome
+Sep 05 11:21:12 ..... started mapping

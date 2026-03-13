@@ -1,0 +1,55 @@
+BCL to FASTQ file converter
+bcl2fastq v2.20.0.422
+Copyright (c) 2007-2017 Illumina, Inc.
+
+2025-10-16 07:09:53 [14cd153f80c0] Command-line invocation: bcl2fastq --create-fastq-for-index-reads --ignore-missing-positions --ignore-missing-controls --ignore-missing-filter --ignore-missing-bcls --no-lane-splitting --output-dir=/projects/b1042/GoyalLab/egrody/rawData/EGL002/Sequencing/fastq/ --runfolder-dir=/projects/b1042/GoyalLab/egrody/rawData/EGL002/Sequencing/251015_VH01990_49_222C3H5NX/ --sample-sheet=/projects/b1042/GoyalLab/egrody/rawData/EGL002/Sequencing/20251014_sampleSheet.csv 
+2025-10-16 07:09:53 [14cd153f80c0] INFO: Minimum log level: INFO
+2025-10-16 07:09:53 [14cd153f80c0] INFO: Sample sheet: '/projects/b1042/GoyalLab/egrody/rawData/EGL002/Sequencing/20251014_sampleSheet.csv'
+2025-10-16 07:09:53 [14cd153f80c0] ERROR: bcl2fastq::common::Exception: 2025-Oct-16 07:09:53: Inappropriate ioctl for device (25): /software/sources/builds/bcl2fastq2/bcl2fastq/src/cxx/include/common/CsvGrammar.hpp(92): Throw in function bcl2fastq::common::CsvGrammarAttribute bcl2fastq::common::parseCsvData(Iterator, Iterator) [with Iterator = __gnu_cxx::__normal_iterator<char*, std::vector<char> >; bcl2fastq::common::CsvGrammarAttribute = std::vector<std::vector<std::__cxx11::basic_string<char> > >]
+Dynamic exception type: boost::exception_detail::clone_impl<bcl2fastq::common::InputDataError>
+std::exception::what: Could not parse the CSV stream text:
+﻿[Header],,,,
+Experiment Name,20251014_EGL002,,,
+Date,14-Oct-25,,,
+Workflow,GenerateFASTQ,,,
+Application,FASTQ Only,,,
+Instrument Type,NextSeq2000,,,
+Chemistry,Amplicon,,,
+,,,,
+[Reads],,,,
+Read1Cycles,61,,,
+Read2Cycles,61,,,
+Index1Cycles,8,,,
+Index2Cycles,8,,,
+,,,,
+[Data],,,,
+Sample_ID,Sample_Name,index,index2,Sample_Project
+Pacute_PL_LTR,Pacute_PL_LTR,TTATTCGA,AGCAGGAC,EGS_013
+Pacute_PL_D1,Pacute_PL_D1,ATGGAGGG,AATGGGTT,EGS_013
+Pacute_PL_D4,Pacute_PL_D4,ACCAGACA,CCTAGTTC,EGS_013
+Pacute_PL_nef,Pacute_PL_nef,AACCACGC,TAACCTGA,EGS_013
+Pacute_CI_LTR,Pacute_CI_LTR,CGCATGTT,GTAGAGAC,EGS_013
+Pacute_CI_D1,Pacute_CI_D1,CGCATGTT,ACTATCTG,EGS_013
+Pacute_CI_D4,Pacute_CI_D4,CGCATGTT,ACACTCTT,EGS_013
+Pacute_CI_nef,Pacute_CI_nef,CGCATGTT,ATGGCGTG,EGS_013
+WT Kras v3,WT Kras v3,TTTGATCC,GTAGAGAC,EGL_002
+WT Slk v3,WT Slk v3,TTTGATCC,ACTATCTG,EGL_002
+WT Lsm14b v3,WT Lsm14b v3,TTTGATCC,ACACTCTT,EGL_002
+WT Dgkd v3,WT Dgkd v3,TTTGATCC,ATGGCGTG,EGL_002
+WT Nf2 v4,WT Nf2 v4,TTTGATCC,TCCAGCCT,EGL_002
+WT Slk v4,WT Slk v4,TTTGATCC,GGTGTCAC,EGL_002
+KO Kras v3,KO Kras v3,TTTCGTAG,GTAGAGAC,EGL_002
+KO Slk v3,KO Slk v3,TTTCGTAG,ACTATCTG,EGL_002
+KO Lsm14b,KO Lsm14b,TTTCGTAG,ACACTCTT,EGL_002
+KO Dgkd v3,KO Dgkd v3,TTTCGTAG,ATGGCGTG,EGL_002
+KO Nf2 v4,KO Nf2 v4,TTTCGTAG,TCCAGCCT,EGL_002
+KO Slk v4,KO Slk v4,TTTCGTAG,GGTGTCAC,EGL_002
+Pacute_PL_D4,Pacute_PL_D4,ACAGTAAC,AACGAACT,EGS_018
+W2_PL_D4,W2_PL_D4,TCTACCAT,GACTCTCC,EGS_018
+D0_PL_D4,D0_PL_D4,CACGGTGA,TGTGACGA,EGS_018
+Invitro_PL_D4,Invitro_PL_D4,GTAGACGA,ACCACACT,EGS_018
+W0_PL_D4,W0_PL_D4,TCGGCTCT,AGACCATC,EGS_018
+D195_PL_D4,D195_PL_D4,CAATCCCG,TACTACTC,EGS_018
+W0_KLRB1,W0_KLRB1,TATCAGCC,AGGACGAA,EGS_018
+
+

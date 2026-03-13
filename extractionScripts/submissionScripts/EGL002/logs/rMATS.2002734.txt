@@ -1,0 +1,95 @@
+gtf: 23.25204300880432
+There are 78298 distinct gene ID in the gtf file
+There are 278375 distinct transcript ID in the gtf file
+There are 43834 one-transcript genes in the gtf file
+There are 1298756 exons in the gtf file
+There are 31588 one-exon transcripts in the gtf file
+There are 24329 one-transcript genes with only one exon in the transcript
+Average number of transcripts per gene is 3.555327
+Average number of exons per transcript is 4.665491
+Average number of exons per transcript excluding one-exon tx is 5.134663
+Average number of gene per geneGroup is 9.397106
+statistic: 0.034284114837646484
+
+read outcome totals across all BAMs
+USED: 463261032
+NOT_PAIRED: 678
+NOT_NH_1: 179271561
+NOT_EXPECTED_CIGAR: 3186178
+NOT_EXPECTED_READ_LENGTH: 0
+NOT_EXPECTED_STRAND: 0
+EXON_NOT_MATCHED_TO_ANNOTATION: 45175929
+JUNCTION_NOT_MATCHED_TO_ANNOTATION: 1674009
+CLIPPED: 39108032
+total: 731677419
+outcomes by BAM written to: rmats_tmp/2026-03-08-12_43_49_796701_read_outcomes_by_bam.txt
+
+novel: 623.1441049575806
+The splicing graph and candidate read have been saved into rmats_tmp/2026-03-08-12_43_49_796701_*.rmats
+save: 5.015665054321289
+loadsg: 0.13787293434143066
+
+==========
+Done processing each gene from dictionary to compile AS events
+Found 75390 exon skipping events
+Found 7597 exon MX events
+Found 22265 alt SS events
+There are 12981 alt 3 SS events and 9284 alt 5 SS events.
+Found 8158 RI events
+==========
+
+ase: 2.4122872352600098
+count: 7.780915260314941
+Processing count files.
+Done processing count files.
+rMATS splicing analysis complete
+Searching rMATS/SE.MATS.JCEC.txt (32312 events)
+Searching rMATS/A3SS.MATS.JCEC.txt (4154 events)
+Searching rMATS/A5SS.MATS.JCEC.txt (2725 events)
+Searching rMATS/MXE.MATS.JCEC.txt (4888 events)
+Searching rMATS/RI.MATS.JCEC.txt (3460 events)
+
+======================================================================
+RESULTS: Delta-PSI (WT - KO) for target exons
+  b1 = WT (SRR22206371, SRR22206372)
+  b2 = KO (SRR22206369, SRR22206370)
+======================================================================
+
+No target exons found in any event type file.
+Possible causes:
+  - Gene symbols may differ in the GTF (check capitalization)
+  - Coordinates may not match (check genome build)
+  - Exons may not show alternative splicing in this dataset
+
+Searching for gene names regardless of coordinates:
+  Found Slk in SE at chr19:47597343-47597508
+  Found Slk in SE at chr19:47600013-47600062
+  Found Slk in SE at chr19:47616086-47616179
+  Found Nf2 in SE at chr11:4730577-4730622
+  Found Nf2 in SE at chr11:4749860-4749995
+  Found Nf2 in SE at chr11:4756253-4756336
+  Found Nf2 in SE at chr11:4758695-4758834
+  Found Nf2 in SE at chr11:4766081-4766165
+  Found Nf2 in SE at chr11:4768504-4768627
+  Found Dgkd in SE at chr1:87808089-87808200
+  Found Dgkd in SE at chr1:87809580-87809661
+  Found Dgkd in SE at chr1:87842821-87842926
+  Found Dgkd in SE at chr1:87869090-87869221
+  Found Lsm14b in SE at chr2:179670750-179670867
+  Found Lsm14b in SE at chr2:179673153-179673321
+  Found Lsm14b in SE at chr2:179673153-179673321
+  Found Lsm14b in SE at chr2:179673586-179673664
+  Found Lsm14b in SE at chr2:179673586-179673664
+  Found Kras in SE at chr6:145170799-145170923
+  Found Kras in SE at chr6:145177820-145177980
+  Found Kras in SE at chr6:145179973-145180152
+  Found Kras in SE at chr6:145192922-145193036
+  Found Slk in MXE at chr19:47597343-47597508
+  Found Nf2 in MXE at chr11:4758256-4758325
+  Found Dgkd in MXE at chr1:87809580-87809661
+  Found Slk in RI at chr19:47610674-47611133
+
+WARNING: No events found for: Dgkd, Kras, Lsm14b, Nf2, Slk
+Check if these genes have alternative splicing detected in this dataset,
+or verify gene symbol capitalization matches the GTF.
+Extraction complete

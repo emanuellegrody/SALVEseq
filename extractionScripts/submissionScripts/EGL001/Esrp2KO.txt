@@ -1,0 +1,1 @@
+/projects/b1042/GoyalLab/egrody/Kalsotra_fastq/fastq/Esrp2KO_sham24_R1/Esrp2KO_sham24_R1_S1_L003_R1_001.fastq.gz,/projects/b1042/GoyalLab/egrody/Kalsotra_fastq/fastq/Esrp2KO_sham24_R1/Esrp2KO_sham24_R1_S1_L003_R2_001.fastq
