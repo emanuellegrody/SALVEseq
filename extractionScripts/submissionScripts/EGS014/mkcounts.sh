@@ -15,4 +15,5 @@ cd "${4%/}"
 genome_name=$(basename "${3%/}")
 
 /home/egy2296/packages/cellranger-7.2.0/cellranger count --id=${genome_name}_$1 \
---fastqs="${2%/}" --sample=$1 --transcriptome="${3%/}"
+--fastqs="${2%/}" --sample=$1 --transcriptome="${3%/}" \
+--nosecondary

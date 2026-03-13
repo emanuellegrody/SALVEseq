@@ -1,0 +1,14 @@
+=== Adding XF flags to BAM file ===
+Input: /projects/b1042/GoyalLab/egrody/extractedData/EGS018/SALVE/STAR/bams_UMI/KLRB1_W2_combined_tagged.bam
+Output: /projects/b1042/GoyalLab/egrody/extractedData/EGS018/SALVE/STAR/bams_xf/KLRB1_W2_combined_tagged.bam
+Parameters: barcode=CB, umi=UB, gene=GX, mapq=255
+
+
+=== Complete ===
+Output BAM with XF flags: /projects/b1042/GoyalLab/egrody/extractedData/EGS018/SALVE/STAR/bams_xf/KLRB1_W2_combined_tagged.bam
+Output BAM index: /projects/b1042/GoyalLab/egrody/extractedData/EGS018/SALVE/STAR/bams_xf/KLRB1_W2_combined_tagged.bam.bai
+
+=== Quick Validation ===
+XF flag distribution:
+  XF= 0:  3483492 reads (Unmapped/low quality)
+  XF= 1: 12383692 reads (Mapped only)

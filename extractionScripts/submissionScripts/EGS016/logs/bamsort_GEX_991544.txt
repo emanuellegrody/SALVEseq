@@ -1,0 +1,73 @@
+Found 3 samples in /projects/b1042/GoyalLab/egrody/extractionScripts/submissionScripts/GEX_samples_part1.csv
+Found 5 coordinate ranges in /projects/b1042/GoyalLab/egrody/extractionScripts/submissionScripts/bamsort_coordinates_GEX.csv
+Processing sample: Invitro
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGS002/singleCell/counts/Mmul_10_mac239v4/Mmul_10_mac239v4_Invitro_CD4/outs/possorted_genome_bam.bam
+  Alignment: LTR_D1 (Position 1-422)
+  Successfully processed Invitro for LTR_D1
+  Statistics: Rows=886, Total reads=1304
+  -----------------------------
+  Alignment: D1_A1 (Position 432-4642)
+  Successfully processed Invitro for D1_A1
+  Statistics: Rows=45419, Total reads=121355
+  -----------------------------
+  Alignment: A1_D4 (Position 4652-6035)
+  Successfully processed Invitro for A1_D4
+  Statistics: Rows=2251, Total reads=5374
+  -----------------------------
+  Alignment: D4_A7 (Position 6045-8243)
+  Successfully processed Invitro for D4_A7
+  Statistics: Rows=186, Total reads=281
+  -----------------------------
+  Alignment: A7_LTR (Position 8253-9578)
+  Successfully processed Invitro for A7_LTR
+  Statistics: Rows=1208, Total reads=1978
+  -----------------------------
+=============================
+Processing sample: W0
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGS002/singleCell/counts/Mmul_10_mac239v4/Mmul_10_mac239v4_HD88_W0/outs/possorted_genome_bam.bam
+  Alignment: LTR_D1 (Position 1-422)
+  Successfully processed W0 for LTR_D1
+  Statistics: Rows=0, Total reads=0
+  -----------------------------
+  Alignment: D1_A1 (Position 432-4642)
+  Successfully processed W0 for D1_A1
+  Statistics: Rows=0, Total reads=0
+  -----------------------------
+  Alignment: A1_D4 (Position 4652-6035)
+  Successfully processed W0 for A1_D4
+  Statistics: Rows=0, Total reads=0
+  -----------------------------
+  Alignment: D4_A7 (Position 6045-8243)
+  Successfully processed W0 for D4_A7
+  Statistics: Rows=0, Total reads=0
+  -----------------------------
+  Alignment: A7_LTR (Position 8253-9578)
+  Successfully processed W0 for A7_LTR
+  Statistics: Rows=0, Total reads=0
+  -----------------------------
+=============================
+Processing sample: W2
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGS002/singleCell/counts/Mmul_10_mac239v4/Mmul_10_mac239v4_A8R095_W2/outs/possorted_genome_bam.bam
+  Alignment: LTR_D1 (Position 1-422)
+  Successfully processed W2 for LTR_D1
+  Statistics: Rows=386, Total reads=600
+  -----------------------------
+  Alignment: D1_A1 (Position 432-4642)
+  Successfully processed W2 for D1_A1
+  Statistics: Rows=30439, Total reads=80528
+  -----------------------------
+  Alignment: A1_D4 (Position 4652-6035)
+  Successfully processed W2 for A1_D4
+  Statistics: Rows=1726, Total reads=4634
+  -----------------------------
+  Alignment: D4_A7 (Position 6045-8243)
+  Successfully processed W2 for D4_A7
+  Statistics: Rows=100, Total reads=143
+  -----------------------------
+  Alignment: A7_LTR (Position 8253-9578)
+  Successfully processed W2 for A7_LTR
+  Statistics: Rows=602, Total reads=1174
+  -----------------------------
+=============================
+All samples and alignments processed!
+Summary written to: /projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/bamsort/alignment/v4/all_samples_alignment_summary.txt

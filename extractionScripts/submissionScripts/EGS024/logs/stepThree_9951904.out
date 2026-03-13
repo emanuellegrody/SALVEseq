@@ -1,0 +1,18 @@
+starcode running for GFP_barcode_1
+GFP_barcode_1 50_d8 done
+GFP_barcode_1 40_d8 done
+GFP_barcode_1 30_d8 done
+GFP_barcode_1 30_d6 done
+Loaded 324500 reads. Applying starcode replacements...
+Creating starcode replaced table...
+Done. Output written to /projects/b1042/GoyalLab/egrody/extractedData/EGS024/stepThree/GFP_barcode_1/stepThreeStarcodeShavedReads.txt
+GFP_barcode_1 complete
+starcode running for GFP_barcode_9
+GFP_barcode_9 50_d8 done
+GFP_barcode_9 40_d8 done
+GFP_barcode_9 30_d8 done
+GFP_barcode_9 30_d6 done
+Loaded 294248 reads. Applying starcode replacements...
+Creating starcode replaced table...
+Done. Output written to /projects/b1042/GoyalLab/egrody/extractedData/EGS024/stepThree/GFP_barcode_9/stepThreeStarcodeShavedReads.txt
+GFP_barcode_9 complete

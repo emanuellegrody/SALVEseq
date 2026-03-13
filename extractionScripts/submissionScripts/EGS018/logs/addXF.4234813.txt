@@ -1,0 +1,22 @@
+=== Running AddXF on GX-tagged BAM ===
+Input:  /projects/b1042/GoyalLab/egrody/extractedData/EGS018/SALVE/STAR/bams_UMI/KLRB1_W2_combined_tagged_sorted.bam
+Output: /projects/b1042/GoyalLab/egrody/extractedData/EGS018/SALVE/STAR/bams_final/KLRB1_W2_combined_final_new.bam
+
+Verifying input BAM has GX tags...
+Found 308/1000 reads with GX tags
+
+Running addXF.py...
+
+=== SUCCESS! ===
+Checking XF flag distribution in new final BAM:
+  XF= 0:      394 reads (Unmapped/low quality/missing tags)
+  XF= 1:      298 reads (Mapped only)
+  XF=16:       52 reads (Other)
+  XF=17:       37 reads (Mapped+Feature (duplicates))
+  XF=21:       47 reads (Mapped+Feature+MultiGene)
+  XF=25:      172 reads (Mapped+Feature+Counted)
+
+Sample reads with GX tags and XF flags:
+VH01990:44:AAHJW7YM5:1:1310:55856:15066	1	NH:i:2	HI:i:2	AS:i:74	nM:i:7	CB:Z:GATGGGACTAGAGGGA	UB:Z:TAGACGGGCGGG	XS:Z:Assigned	XN:i:1	GX:Z:ENSMMUG00000023296	xf:i:16
+VH01990:44:AAHJW7YM5:1:1401:23401:48992	1	NH:i:2	HI:i:2	AS:i:78	nM:i:0	CB:Z:GGTGTGGTGAGAGGGT	UB:Z:TGGAGGGGATGT	XS:Z:Assigned	XN:i:1	GX:Z:ENSMMUG00000023296	xf:i:16
+VH01990:46:AAHKL3HM5:1:1304:37375:42366	1	NH:i:1	HI:i:1	AS:i:84	nM:i:8	CB:Z:GGGGCTGGGAGGAAGG	UB:Z:GGGAGGTGTGGC	XS:Z:Assigned	XN:i:1	GX:Z:ENSMMUG00000023296	xf:i:25

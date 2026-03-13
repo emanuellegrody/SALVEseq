@@ -1,0 +1,856 @@
+========================================
+Processing: /projects/b1042/GoyalLab/egrody/rawData/EGS023//20251117/TIFF/
+========================================
+
+======================================================================
+big-FISH Multi-FOV Pipeline (Manual Segmentation)
+======================================================================
+Input directory: /projects/b1042/GoyalLab/egrody/rawData/EGS023//20251117/TIFF/
+Mask directory: /projects/b1042/GoyalLab/egrody/rawData/EGS023/masks/
+Output directory: /projects/b1042/GoyalLab/egrody/extractedData/EGS023/big-FISH/manual/
+Channels: ['Red', 'Gold70', 'FarRed']
+FOV pattern: (\d{8}_[A-Z0-9]+_[a-z]+_slide\d+_\d+(?:_XY\d+)?)
+Found 19 FOVs to process
+======================================================================
+
+
+Processing FOV 1/19
+
+======================================================================
+Processing FOV: 20251117_EGS023_bingo_slide2_006
+======================================================================
+Loading manual segmentation mask: ROIs2Label_20251117_EGS023_bingo_slide2_006_Camera - FarRed_Z10.tif
+Loaded mask with 4 cells
+Found 17 z-slices: ['Z01', 'Z02', 'Z03', 'Z04', 'Z05', 'Z06', 'Z07', 'Z08', 'Z09', 'Z10', 'Z11', 'Z12', 'Z13', 'Z14', 'Z15', 'Z16', 'Z17']
+Loading images...
+Image stack shape: (3, 17, 2304, 2304) [channels, z, y, x]
+Detecting spots...
+pol: 114 spots (threshold: 29.0)
+env: 193 spots (threshold: 147.0)
+nef: 163 spots (threshold: 98.0)
+Decomposing dense regions and clustering foci...
+pol: 5 clusters
+env: 2 clusters
+nef: 4 clusters
+Removing transcription sites...
+  Intensity-based TS removal: TS center at (1146, 778), radius=15, 1 clusters in TS, 82 spots removed
+  Intensity-based TS removal: TS center at (1146, 778), radius=15, 0 clusters in TS, 0 spots removed
+  Intensity-based TS removal: TS center at (1146, 777), radius=15, 1 clusters in TS, 247 spots removed
+After TS removal: pol=150, env=766, nef=162
+Performing colocalization analysis...
+Classifying splicing patterns...
+Colocalization: nef+env=88, nef+env+pol=85
+Classification: US=85, SS=3, MS=74
+
+
+Processing FOV 2/19
+
+======================================================================
+Processing FOV: 20251117_EGS023_bingo_slide2_008
+======================================================================
+Loading manual segmentation mask: ROIs2Label_20251117_EGS023_bingo_slide2_008_Camera - FarRed_Z09.tif
+Loaded mask with 3 cells
+Found 17 z-slices: ['Z01', 'Z02', 'Z03', 'Z04', 'Z05', 'Z06', 'Z07', 'Z08', 'Z09', 'Z10', 'Z11', 'Z12', 'Z13', 'Z14', 'Z15', 'Z16', 'Z17']
+Loading images...
+Image stack shape: (3, 17, 2304, 2304) [channels, z, y, x]
+Detecting spots...
+pol: 174 spots (threshold: 29.0)
+env: 259 spots (threshold: 103.0)
+nef: 227 spots (threshold: 58.0)
+Decomposing dense regions and clustering foci...
+pol: 7 clusters
+env: 10 clusters
+nef: 10 clusters
+Removing transcription sites...
+  Intensity-based TS removal: TS center at (931, 974), radius=15, 1 clusters in TS, 79 spots removed
+  Intensity-based TS removal: TS center at (931, 974), radius=15, 1 clusters in TS, 143 spots removed
+  Intensity-based TS removal: TS center at (932, 973), radius=15, 1 clusters in TS, 97 spots removed
+After TS removal: pol=194, env=319, nef=310
+Performing colocalization analysis...
+Classifying splicing patterns...
+Colocalization: nef+env=244, nef+env+pol=187
+Classification: US=187, SS=56, MS=65
+
+
+Processing FOV 3/19
+
+======================================================================
+Processing FOV: 20251117_EGS023_bingo_slide3_001
+======================================================================
+Loading manual segmentation mask: ROIs2Label_20251117_EGS023_bingo_slide3_001_Camera - FarRed_Z09.tif
+Loaded mask with 15 cells
+Found 17 z-slices: ['Z01', 'Z02', 'Z03', 'Z04', 'Z05', 'Z06', 'Z07', 'Z08', 'Z09', 'Z10', 'Z11', 'Z12', 'Z13', 'Z14', 'Z15', 'Z16', 'Z17']
+Loading images...
+Image stack shape: (3, 17, 2304, 2304) [channels, z, y, x]
+Detecting spots...
+pol: 99 spots (threshold: 24.0)
+env: 175 spots (threshold: 84.0)
+nef: 168 spots (threshold: 44.0)
+Decomposing dense regions and clustering foci...
+pol: 3 clusters
+env: 10 clusters
+nef: 9 clusters
+Removing transcription sites...
+  Intensity-based TS removal: TS center at (848, 1208), radius=15, 1 clusters in TS, 50 spots removed
+  Intensity-based TS removal: TS center at (847, 1207), radius=15, 1 clusters in TS, 92 spots removed
+  Intensity-based TS removal: TS center at (849, 1207), radius=15, 1 clusters in TS, 85 spots removed
+After TS removal: pol=108, env=247, nef=231
+Performing colocalization analysis...
+Classifying splicing patterns...
+Colocalization: nef+env=147, nef+env+pol=93
+Classification: US=93, SS=49, MS=84
+
+
+Processing FOV 4/19
+
+======================================================================
+Processing FOV: 20251117_EGS023_bingo_slide3_002
+======================================================================
+Loading manual segmentation mask: ROIs2Label_20251117_EGS023_bingo_slide3_002_Camera - FarRed_Z09.tif
+Loaded mask with 16 cells
+Found 17 z-slices: ['Z01', 'Z02', 'Z03', 'Z04', 'Z05', 'Z06', 'Z07', 'Z08', 'Z09', 'Z10', 'Z11', 'Z12', 'Z13', 'Z14', 'Z15', 'Z16', 'Z17']
+Loading images...
+Image stack shape: (3, 17, 2304, 2304) [channels, z, y, x]
+Detecting spots...
+pol: 62 spots (threshold: 26.0)
+env: 123 spots (threshold: 89.0)
+nef: 122 spots (threshold: 54.0)
+Decomposing dense regions and clustering foci...
+pol: 3 clusters
+env: 3 clusters
+nef: 6 clusters
+Removing transcription sites...
+  Intensity-based TS removal: TS center at (919, 1323), radius=15, 1 clusters in TS, 46 spots removed
+  Intensity-based TS removal: TS center at (909, 1333), radius=15, 0 clusters in TS, 0 spots removed
+  Intensity-based TS removal: TS center at (910, 1331), radius=15, 1 clusters in TS, 96 spots removed
+After TS removal: pol=60, env=235, nef=131
+Performing colocalization analysis...
+Classifying splicing patterns...
+Colocalization: nef+env=64, nef+env+pol=50
+Classification: US=50, SS=13, MS=67
+
+
+Processing FOV 5/19
+
+======================================================================
+Processing FOV: 20251117_EGS023_bingo_slide3_003
+======================================================================
+Loading manual segmentation mask: ROIs2Label_20251117_EGS023_bingo_slide3_003_Camera - FarRed_Z09.tif
+Loaded mask with 9 cells
+Found 17 z-slices: ['Z01', 'Z02', 'Z03', 'Z04', 'Z05', 'Z06', 'Z07', 'Z08', 'Z09', 'Z10', 'Z11', 'Z12', 'Z13', 'Z14', 'Z15', 'Z16', 'Z17']
+Loading images...
+Image stack shape: (3, 17, 2304, 2304) [channels, z, y, x]
+Detecting spots...
+pol: 46 spots (threshold: 24.0)
+env: 96 spots (threshold: 76.0)
+nef: 90 spots (threshold: 44.0)
+Decomposing dense regions and clustering foci...
+pol: 2 clusters
+env: 5 clusters
+nef: 2 clusters
+Removing transcription sites...
+  Intensity-based TS removal: TS center at (707, 1322), radius=15, 1 clusters in TS, 82 spots removed
+  Intensity-based TS removal: TS center at (759, 1367), radius=15, 1 clusters in TS, 20 spots removed
+  Intensity-based TS removal: TS center at (707, 1323), radius=15, 1 clusters in TS, 110 spots removed
+After TS removal: pol=51, env=136, nef=114
+Performing colocalization analysis...
+Classifying splicing patterns...
+Colocalization: nef+env=34, nef+env+pol=27
+Classification: US=27, SS=7, MS=78
+
+
+Processing FOV 6/19
+
+======================================================================
+Processing FOV: 20251117_EGS023_bingo_slide3_004
+======================================================================
+Loading manual segmentation mask: ROIs2Label_20251117_EGS023_bingo_slide3_004_Camera - FarRed_Z09.tif
+Loaded mask with 5 cells
+Found 17 z-slices: ['Z01', 'Z02', 'Z03', 'Z04', 'Z05', 'Z06', 'Z07', 'Z08', 'Z09', 'Z10', 'Z11', 'Z12', 'Z13', 'Z14', 'Z15', 'Z16', 'Z17']
+Loading images...
+Image stack shape: (3, 17, 2304, 2304) [channels, z, y, x]
+Detecting spots...
+pol: 169 spots (threshold: 27.0)
+env: 258 spots (threshold: 124.0)
+nef: 262 spots (threshold: 64.0)
+Decomposing dense regions and clustering foci...
+pol: 11 clusters
+env: 8 clusters
+nef: 7 clusters
+Removing transcription sites...
+  Intensity-based TS removal: TS center at (836, 1454), radius=15, 2 clusters in TS, 101 spots removed
+  Intensity-based TS removal: TS center at (837, 1453), radius=15, 0 clusters in TS, 0 spots removed
+  Intensity-based TS removal: TS center at (837, 1452), radius=15, 2 clusters in TS, 301 spots removed
+After TS removal: pol=218, env=711, nef=377
+Performing colocalization analysis...
+Classifying splicing patterns...
+Colocalization: nef+env=197, nef+env+pol=191
+Classification: US=191, SS=6, MS=180
+
+
+Processing FOV 7/19
+
+======================================================================
+Processing FOV: 20251117_EGS023_bingo_slide3_005
+======================================================================
+Loading manual segmentation mask: ROIs2Label_20251117_EGS023_bingo_slide3_005_Camera - FarRed_Z09.tif
+Loaded mask with 3 cells
+Found 17 z-slices: ['Z01', 'Z02', 'Z03', 'Z04', 'Z05', 'Z06', 'Z07', 'Z08', 'Z09', 'Z10', 'Z11', 'Z12', 'Z13', 'Z14', 'Z15', 'Z16', 'Z17']
+Loading images...
+Image stack shape: (3, 17, 2304, 2304) [channels, z, y, x]
+Detecting spots...
+pol: 76 spots (threshold: 24.0)
+env: 162 spots (threshold: 83.0)
+nef: 132 spots (threshold: 55.0)
+Decomposing dense regions and clustering foci...
+pol: 2 clusters
+env: 6 clusters
+nef: 7 clusters
+Removing transcription sites...
+  Intensity-based TS removal: TS center at (838, 1206), radius=15, 1 clusters in TS, 8 spots removed
+  Intensity-based TS removal: TS center at (834, 1249), radius=15, 1 clusters in TS, 80 spots removed
+  Intensity-based TS removal: TS center at (838, 1208), radius=15, 1 clusters in TS, 43 spots removed
+After TS removal: pol=81, env=232, nef=209
+Performing colocalization analysis...
+Classifying splicing patterns...
+Colocalization: nef+env=148, nef+env+pol=70
+Classification: US=70, SS=74, MS=61
+
+
+Processing FOV 8/19
+
+======================================================================
+Processing FOV: 20251117_EGS023_bingo_slide3_006
+======================================================================
+Loading manual segmentation mask: ROIs2Label_20251117_EGS023_bingo_slide3_006_Camera - FarRed_Z09.tif
+Loaded mask with 6 cells
+Found 17 z-slices: ['Z01', 'Z02', 'Z03', 'Z04', 'Z05', 'Z06', 'Z07', 'Z08', 'Z09', 'Z10', 'Z11', 'Z12', 'Z13', 'Z14', 'Z15', 'Z16', 'Z17']
+Loading images...
+Image stack shape: (3, 17, 2304, 2304) [channels, z, y, x]
+Detecting spots...
+pol: 97 spots (threshold: 25.0)
+env: 182 spots (threshold: 76.0)
+nef: 144 spots (threshold: 45.0)
+Decomposing dense regions and clustering foci...
+pol: 3 clusters
+env: 4 clusters
+nef: 6 clusters
+Removing transcription sites...
+  Intensity-based TS removal: TS center at (653, 805), radius=15, 1 clusters in TS, 60 spots removed
+  Intensity-based TS removal: TS center at (652, 805), radius=15, 1 clusters in TS, 204 spots removed
+  Intensity-based TS removal: TS center at (655, 806), radius=15, 1 clusters in TS, 168 spots removed
+After TS removal: pol=95, env=183, nef=181
+Performing colocalization analysis...
+Classifying splicing patterns...
+Colocalization: nef+env=103, nef+env+pol=90
+Classification: US=90, SS=13, MS=78
+
+
+Processing FOV 9/19
+
+======================================================================
+Processing FOV: 20251117_EGS023_bingo_slide3_007
+======================================================================
+Loading manual segmentation mask: ROIs2Label_20251117_EGS023_bingo_slide3_007_Camera - FarRed_Z09.tif
+Loaded mask with 20 cells
+Found 17 z-slices: ['Z01', 'Z02', 'Z03', 'Z04', 'Z05', 'Z06', 'Z07', 'Z08', 'Z09', 'Z10', 'Z11', 'Z12', 'Z13', 'Z14', 'Z15', 'Z16', 'Z17']
+Loading images...
+Image stack shape: (3, 17, 2304, 2304) [channels, z, y, x]
+Detecting spots...
+pol: 78 spots (threshold: 42.0)
+env: 17 spots (threshold: 9.0)
+nef: 101 spots (threshold: 88.0)
+Decomposing dense regions and clustering foci...
+pol: 3 clusters
+env: 2 clusters
+nef: 4 clusters
+Removing transcription sites...
+  Intensity-based TS removal: TS center at (1077, 1069), radius=15, 1 clusters in TS, 52 spots removed
+  Intensity-based TS removal: TS center at (422, 117), radius=15, 1 clusters in TS, 66 spots removed
+  Intensity-based TS removal: TS center at (1078, 1069), radius=15, 1 clusters in TS, 60 spots removed
+After TS removal: pol=76, env=57, nef=137
+Performing colocalization analysis...
+Classifying splicing patterns...
+Colocalization: nef+env=6, nef+env+pol=2
+Classification: US=2, SS=4, MS=131
+
+
+Processing FOV 10/19
+
+======================================================================
+Processing FOV: 20251117_EGS023_bingo_slide3_008
+======================================================================
+Loading manual segmentation mask: ROIs2Label_20251117_EGS023_bingo_slide3_008_Camera - FarRed_Z09.tif
+Loaded mask with 24 cells
+Found 17 z-slices: ['Z01', 'Z02', 'Z03', 'Z04', 'Z05', 'Z06', 'Z07', 'Z08', 'Z09', 'Z10', 'Z11', 'Z12', 'Z13', 'Z14', 'Z15', 'Z16', 'Z17']
+Loading images...
+Image stack shape: (3, 17, 2304, 2304) [channels, z, y, x]
+Detecting spots...
+pol: 70 spots (threshold: 42.0)
+env: 83 spots (threshold: 298.0)
+nef: 147 spots (threshold: 80.0)
+Decomposing dense regions and clustering foci...
+pol: 2 clusters
+env: 6 clusters
+nef: 4 clusters
+Removing transcription sites...
+  Intensity-based TS removal: TS center at (839, 1332), radius=15, 1 clusters in TS, 54 spots removed
+  Intensity-based TS removal: TS center at (840, 1338), radius=15, 2 clusters in TS, 34 spots removed
+  Intensity-based TS removal: TS center at (839, 1333), radius=15, 1 clusters in TS, 163 spots removed
+After TS removal: pol=52, env=92, nef=196
+Performing colocalization analysis...
+Classifying splicing patterns...
+Colocalization: nef+env=69, nef+env+pol=51
+Classification: US=51, SS=18, MS=120
+
+
+Processing FOV 11/19
+
+======================================================================
+Processing FOV: 20251117_EGS023_bingo_slide3_009
+======================================================================
+Loading manual segmentation mask: ROIs2Label_20251117_EGS023_bingo_slide3_009_Camera - FarRed_Z09.tif
+Loaded mask with 8 cells
+Found 17 z-slices: ['Z01', 'Z02', 'Z03', 'Z04', 'Z05', 'Z06', 'Z07', 'Z08', 'Z09', 'Z10', 'Z11', 'Z12', 'Z13', 'Z14', 'Z15', 'Z16', 'Z17']
+Loading images...
+Image stack shape: (3, 17, 2304, 2304) [channels, z, y, x]
+Detecting spots...
+pol: 162 spots (threshold: 25.0)
+env: 266 spots (threshold: 114.0)
+nef: 277 spots (threshold: 62.0)
+Decomposing dense regions and clustering foci...
+pol: 7 clusters
+env: 5 clusters
+nef: 10 clusters
+Removing transcription sites...
+  Intensity-based TS removal: TS center at (908, 1144), radius=15, 1 clusters in TS, 91 spots removed
+  Intensity-based TS removal: TS center at (908, 1144), radius=15, 0 clusters in TS, 0 spots removed
+  Intensity-based TS removal: TS center at (907, 1142), radius=15, 1 clusters in TS, 112 spots removed
+After TS removal: pol=156, env=657, nef=389
+Performing colocalization analysis...
+Classifying splicing patterns...
+Colocalization: nef+env=241, nef+env+pol=148
+Classification: US=148, SS=89, MS=148
+
+
+Processing FOV 12/19
+
+======================================================================
+Processing FOV: 20251117_EGS023_bingo_slide3_010
+======================================================================
+Loading manual segmentation mask: ROIs2Label_20251117_EGS023_bingo_slide3_010_Camera - FarRed_Z09.tif
+Loaded mask with 26 cells
+Found 17 z-slices: ['Z01', 'Z02', 'Z03', 'Z04', 'Z05', 'Z06', 'Z07', 'Z08', 'Z09', 'Z10', 'Z11', 'Z12', 'Z13', 'Z14', 'Z15', 'Z16', 'Z17']
+Loading images...
+Image stack shape: (3, 17, 2304, 2304) [channels, z, y, x]
+Detecting spots...
+pol: 106 spots (threshold: 36.0)
+env: 191 spots (threshold: 203.0)
+nef: 214 spots (threshold: 83.0)
+Decomposing dense regions and clustering foci...
+pol: 8 clusters
+env: 13 clusters
+nef: 10 clusters
+Removing transcription sites...
+  Intensity-based TS removal: TS center at (792, 908), radius=15, 1 clusters in TS, 40 spots removed
+  Intensity-based TS removal: TS center at (778, 875), radius=15, 2 clusters in TS, 134 spots removed
+  Intensity-based TS removal: TS center at (780, 875), radius=15, 1 clusters in TS, 83 spots removed
+After TS removal: pol=164, env=418, nef=365
+Performing colocalization analysis...
+Classifying splicing patterns...
+Colocalization: nef+env=224, nef+env+pol=159
+Classification: US=159, SS=63, MS=137
+
+
+Processing FOV 13/19
+
+======================================================================
+Processing FOV: 20251117_EGS023_bingo_slide3_011
+======================================================================
+Loading manual segmentation mask: ROIs2Label_20251117_EGS023_bingo_slide3_011_Camera - FarRed_Z09.tif
+Loaded mask with 9 cells
+Found 17 z-slices: ['Z01', 'Z02', 'Z03', 'Z04', 'Z05', 'Z06', 'Z07', 'Z08', 'Z09', 'Z10', 'Z11', 'Z12', 'Z13', 'Z14', 'Z15', 'Z16', 'Z17']
+Loading images...
+Image stack shape: (3, 17, 2304, 2304) [channels, z, y, x]
+Detecting spots...
+pol: 74 spots (threshold: 25.0)
+env: 33 spots (threshold: 7.898989898989899)
+nef: 121 spots (threshold: 68.0)
+Decomposing dense regions and clustering foci...
+pol: 3 clusters
+env: 0 clusters
+nef: 2 clusters
+Removing transcription sites...
+  Intensity-based TS removal: TS center at (654, 1433), radius=15, 1 clusters in TS, 7 spots removed
+  Intensity-based TS removal: TS center at (680, 1420), radius=15, 1 clusters in TS, 147 spots removed
+After TS removal: pol=78, env=33, nef=95
+Performing colocalization analysis...
+Classifying splicing patterns...
+Colocalization: nef+env=3, nef+env+pol=2
+Classification: US=2, SS=1, MS=92
+
+
+Processing FOV 14/19
+
+======================================================================
+Processing FOV: 20251117_EGS023_bingo_slide3_012
+======================================================================
+Loading manual segmentation mask: ROIs2Label_20251117_EGS023_bingo_slide3_012_Camera - FarRed_Z09.tif
+Loaded mask with 15 cells
+Found 17 z-slices: ['Z01', 'Z02', 'Z03', 'Z04', 'Z05', 'Z06', 'Z07', 'Z08', 'Z09', 'Z10', 'Z11', 'Z12', 'Z13', 'Z14', 'Z15', 'Z16', 'Z17']
+Loading images...
+Image stack shape: (3, 17, 2304, 2304) [channels, z, y, x]
+Detecting spots...
+pol: 135 spots (threshold: 24.0)
+env: 30 spots (threshold: 7.777777777777778)
+nef: 184 spots (threshold: 57.0)
+Decomposing dense regions and clustering foci...
+pol: 5 clusters
+env: 0 clusters
+nef: 7 clusters
+Removing transcription sites...
+  Intensity-based TS removal: TS center at (1093, 1934), radius=15, 1 clusters in TS, 42 spots removed
+  Intensity-based TS removal: TS center at (1094, 1932), radius=15, 1 clusters in TS, 75 spots removed
+After TS removal: pol=168, env=30, nef=417
+Performing colocalization analysis...
+Classifying splicing patterns...
+  Warning: Too few spots for colocalization (2 vs 168), returning empty
+Colocalization: nef+env=2, nef+env+pol=0
+Classification: US=0, SS=2, MS=415
+
+
+Processing FOV 15/19
+
+======================================================================
+Processing FOV: 20251117_EGS023_bingo_slide3_015
+======================================================================
+Loading manual segmentation mask: ROIs2Label_20251117_EGS023_bingo_slide3_015_Camera - FarRed_Z09.tif
+Loaded mask with 1 cells
+Found 17 z-slices: ['Z01', 'Z02', 'Z03', 'Z04', 'Z05', 'Z06', 'Z07', 'Z08', 'Z09', 'Z10', 'Z11', 'Z12', 'Z13', 'Z14', 'Z15', 'Z16', 'Z17']
+Loading images...
+Image stack shape: (3, 17, 2304, 2304) [channels, z, y, x]
+Detecting spots...
+pol: 225 spots (threshold: 66.0)
+env: 204 spots (threshold: 197.0)
+nef: 349 spots (threshold: 341.0)
+Decomposing dense regions and clustering foci...
+pol: 7 clusters
+env: 5 clusters
+nef: 3 clusters
+Removing transcription sites...
+  Intensity-based TS removal: TS center at (1233, 1339), radius=15, 1 clusters in TS, 16 spots removed
+  Intensity-based TS removal: TS center at (1208, 1332), radius=15, 1 clusters in TS, 116 spots removed
+  Intensity-based TS removal: TS center at (1209, 1333), radius=15, 0 clusters in TS, 0 spots removed
+After TS removal: pol=145, env=362, nef=1017
+Performing colocalization analysis...
+Classifying splicing patterns...
+Colocalization: nef+env=258, nef+env+pol=110
+Classification: US=110, SS=123, MS=636
+
+
+Processing FOV 16/19
+
+======================================================================
+Processing FOV: 20251117_EGS023_bingo_slide3_017
+======================================================================
+Loading manual segmentation mask: ROIs2Label_20251117_EGS023_bingo_slide3_017_Camera - FarRed_Z09.tif
+Loaded mask with 8 cells
+Found 17 z-slices: ['Z01', 'Z02', 'Z03', 'Z04', 'Z05', 'Z06', 'Z07', 'Z08', 'Z09', 'Z10', 'Z11', 'Z12', 'Z13', 'Z14', 'Z15', 'Z16', 'Z17']
+Loading images...
+Image stack shape: (3, 17, 2304, 2304) [channels, z, y, x]
+Detecting spots...
+pol: 90 spots (threshold: 24.0)
+env: 148 spots (threshold: 86.0)
+nef: 107 spots (threshold: 59.0)
+Decomposing dense regions and clustering foci...
+pol: 5 clusters
+env: 8 clusters
+nef: 7 clusters
+Removing transcription sites...
+  Intensity-based TS removal: TS center at (1030, 1267), radius=15, 1 clusters in TS, 9 spots removed
+  Intensity-based TS removal: TS center at (1034, 1289), radius=15, 2 clusters in TS, 53 spots removed
+  Intensity-based TS removal: TS center at (1015, 1273), radius=15, 2 clusters in TS, 27 spots removed
+After TS removal: pol=107, env=212, nef=154
+Performing colocalization analysis...
+Classifying splicing patterns...
+Colocalization: nef+env=115, nef+env+pol=100
+Classification: US=100, SS=10, MS=38
+
+
+Processing FOV 17/19
+
+======================================================================
+Processing FOV: 20251117_EGS023_bingo_slide3_018
+======================================================================
+Loading manual segmentation mask: ROIs2Label_20251117_EGS023_bingo_slide3_018_Camera - FarRed_Z09.tif
+Loaded mask with 3 cells
+Found 17 z-slices: ['Z01', 'Z02', 'Z03', 'Z04', 'Z05', 'Z06', 'Z07', 'Z08', 'Z09', 'Z10', 'Z11', 'Z12', 'Z13', 'Z14', 'Z15', 'Z16', 'Z17']
+Loading images...
+Image stack shape: (3, 17, 2304, 2304) [channels, z, y, x]
+Detecting spots...
+pol: 129 spots (threshold: 24.0)
+env: 189 spots (threshold: 84.0)
+nef: 149 spots (threshold: 61.0)
+Decomposing dense regions and clustering foci...
+pol: 4 clusters
+env: 8 clusters
+nef: 8 clusters
+Removing transcription sites...
+  Intensity-based TS removal: TS center at (929, 1469), radius=15, 1 clusters in TS, 71 spots removed
+  Intensity-based TS removal: TS center at (928, 1470), radius=15, 1 clusters in TS, 115 spots removed
+  Intensity-based TS removal: TS center at (929, 1470), radius=15, 2 clusters in TS, 70 spots removed
+After TS removal: pol=139, env=263, nef=176
+Performing colocalization analysis...
+Classifying splicing patterns...
+Colocalization: nef+env=144, nef+env+pol=130
+Classification: US=130, SS=13, MS=32
+
+
+Processing FOV 18/19
+
+======================================================================
+Processing FOV: 20251117_EGS023_bingo_slide3_019
+======================================================================
+Loading manual segmentation mask: ROIs2Label_20251117_EGS023_bingo_slide3_019_Camera - FarRed_Z09.tif
+Loaded mask with 9 cells
+Found 17 z-slices: ['Z01', 'Z02', 'Z03', 'Z04', 'Z05', 'Z06', 'Z07', 'Z08', 'Z09', 'Z10', 'Z11', 'Z12', 'Z13', 'Z14', 'Z15', 'Z16', 'Z17']
+Loading images...
+Image stack shape: (3, 17, 2304, 2304) [channels, z, y, x]
+Detecting spots...
+pol: 125 spots (threshold: 24.0)
+env: 187 spots (threshold: 86.0)
+nef: 144 spots (threshold: 56.0)
+Decomposing dense regions and clustering foci...
+pol: 9 clusters
+env: 8 clusters
+nef: 7 clusters
+Removing transcription sites...
+  Intensity-based TS removal: TS center at (955, 939), radius=15, 1 clusters in TS, 17 spots removed
+  Intensity-based TS removal: TS center at (955, 940), radius=15, 1 clusters in TS, 137 spots removed
+  Intensity-based TS removal: TS center at (955, 940), radius=15, 1 clusters in TS, 69 spots removed
+After TS removal: pol=143, env=224, nef=183
+Performing colocalization analysis...
+Classifying splicing patterns...
+Colocalization: nef+env=137, nef+env+pol=134
+Classification: US=134, SS=3, MS=46
+
+
+Processing FOV 19/19
+
+======================================================================
+Processing FOV: 20251117_EGS023_bingo_slide3_020
+======================================================================
+Loading manual segmentation mask: ROIs2Label_20251117_EGS023_bingo_slide3_020_Camera - FarRed_Z09.tif
+Loaded mask with 7 cells
+Found 17 z-slices: ['Z01', 'Z02', 'Z03', 'Z04', 'Z05', 'Z06', 'Z07', 'Z08', 'Z09', 'Z10', 'Z11', 'Z12', 'Z13', 'Z14', 'Z15', 'Z16', 'Z17']
+Loading images...
+Image stack shape: (3, 17, 2304, 2304) [channels, z, y, x]
+Detecting spots...
+pol: 142 spots (threshold: 24.0)
+env: 223 spots (threshold: 90.0)
+nef: 196 spots (threshold: 54.0)
+Decomposing dense regions and clustering foci...
+pol: 3 clusters
+env: 4 clusters
+nef: 8 clusters
+Removing transcription sites...
+  Intensity-based TS removal: TS center at (1370, 1668), radius=15, 1 clusters in TS, 66 spots removed
+  Intensity-based TS removal: TS center at (1372, 1680), radius=15, 1 clusters in TS, 509 spots removed
+  Intensity-based TS removal: TS center at (1370, 1668), radius=15, 1 clusters in TS, 289 spots removed
+After TS removal: pol=111, env=195, nef=266
+Performing colocalization analysis...
+Classifying splicing patterns...
+Colocalization: nef+env=82, nef+env+pol=71
+Classification: US=71, SS=11, MS=173
+
+======================================================================
+PIPELINE SUMMARY
+======================================================================
+Total FOVs found: 19
+Successfully processed: 19
+Skipped (missing channels/mask): 0
+Errors: 0
+
+Appended 191 rows to: /projects/b1042/GoyalLab/egrody/extractedData/EGS023/big-FISH/manual/all_cells_stats.csv
+
+----------------------------------------------------------------------
+PER-CELL RESULTS
+----------------------------------------------------------------------
+FOV / Cell                                   US     SS     MS  Total     Area
+----------------------------------------------------------------------
+20251117_EGS023_bingo_slide2_006/cell_1       0      0      0      0     5660
+20251117_EGS023_bingo_slide2_006/cell_2       0      0      1      1     4030
+20251117_EGS023_bingo_slide2_006/cell_3      85      0      2     87    26936
+20251117_EGS023_bingo_slide2_006/cell_4       0      0      1      1     6017
+20251117_EGS023_bingo_slide2_008/cell_1     180     50      6    236    11464
+20251117_EGS023_bingo_slide2_008/cell_2       0      1      0      1     4493
+20251117_EGS023_bingo_slide2_008/cell_3       7      1      0      8     5540
+20251117_EGS023_bingo_slide3_001/cell_1       0      0      0      0     8289
+20251117_EGS023_bingo_slide3_001/cell_2       0      1      0      1     8779
+20251117_EGS023_bingo_slide3_001/cell_3       1      0      1      2     6655
+20251117_EGS023_bingo_slide3_001/cell_4       0      0      0      0     6824
+20251117_EGS023_bingo_slide3_001/cell_5       0      0      2      2     8805
+20251117_EGS023_bingo_slide3_001/cell_6       0      0      1      1     9750
+20251117_EGS023_bingo_slide3_001/cell_7       0      0      0      0     7102
+20251117_EGS023_bingo_slide3_001/cell_8       0      0      1      1     4974
+20251117_EGS023_bingo_slide3_001/cell_9      85     45      1    131     9623
+20251117_EGS023_bingo_slide3_001/cell_10      1      0      0      1     5065
+20251117_EGS023_bingo_slide3_001/cell_11      0      0      3      3     4199
+20251117_EGS023_bingo_slide3_001/cell_12      0      0      0      0     4358
+20251117_EGS023_bingo_slide3_001/cell_13      0      0      0      0     5385
+20251117_EGS023_bingo_slide3_001/cell_14      0      0      0      0     8108
+20251117_EGS023_bingo_slide3_001/cell_15      0      0      1      1     6305
+20251117_EGS023_bingo_slide3_002/cell_1       0      0      0      0     7736
+20251117_EGS023_bingo_slide3_002/cell_2       0      1      0      1     7138
+20251117_EGS023_bingo_slide3_002/cell_3       2      0      0      2    10095
+20251117_EGS023_bingo_slide3_002/cell_4       0      0      0      0     8176
+20251117_EGS023_bingo_slide3_002/cell_5       0      0      0      0     6648
+20251117_EGS023_bingo_slide3_002/cell_6       1      0      0      1     6100
+20251117_EGS023_bingo_slide3_002/cell_7       1      0      3      4     7358
+20251117_EGS023_bingo_slide3_002/cell_8       0      0      0      0     5469
+20251117_EGS023_bingo_slide3_002/cell_9      43     12      0     55    12284
+20251117_EGS023_bingo_slide3_002/cell_10      0      0      1      1     6674
+20251117_EGS023_bingo_slide3_002/cell_11      0      0      0      0     6309
+20251117_EGS023_bingo_slide3_002/cell_12      0      0      0      0     7159
+20251117_EGS023_bingo_slide3_002/cell_13      0      0      0      0     6752
+20251117_EGS023_bingo_slide3_002/cell_14      0      0      2      2     6093
+20251117_EGS023_bingo_slide3_002/cell_15      0      0      0      0     5946
+20251117_EGS023_bingo_slide3_002/cell_16      0      0      0      0     7188
+20251117_EGS023_bingo_slide3_003/cell_1      14      0     17     31     5686
+20251117_EGS023_bingo_slide3_003/cell_2       3      0      1      4     6224
+20251117_EGS023_bingo_slide3_003/cell_3       0      2      0      2     4825
+20251117_EGS023_bingo_slide3_003/cell_4       0      0      0      0     6942
+20251117_EGS023_bingo_slide3_003/cell_5       1      0      0      1     5087
+20251117_EGS023_bingo_slide3_003/cell_6       0      2      1      3     6597
+20251117_EGS023_bingo_slide3_003/cell_7       0      0      2      2    10680
+20251117_EGS023_bingo_slide3_003/cell_8       0      0      0      0     4806
+20251117_EGS023_bingo_slide3_003/cell_9       0      0      0      0     4990
+20251117_EGS023_bingo_slide3_004/cell_1       0      0      1      1     8911
+20251117_EGS023_bingo_slide3_004/cell_2       1      0      0      1     5084
+20251117_EGS023_bingo_slide3_004/cell_3     141      0      0    141     9085
+20251117_EGS023_bingo_slide3_004/cell_4       0      0      0      0     5875
+20251117_EGS023_bingo_slide3_004/cell_5       0      0      2      2     5608
+20251117_EGS023_bingo_slide3_005/cell_1      66     65      5    136    10585
+20251117_EGS023_bingo_slide3_005/cell_2       0      0      0      0     8542
+20251117_EGS023_bingo_slide3_005/cell_3       0      0      0      0     7236
+20251117_EGS023_bingo_slide3_006/cell_1       0      0      0      0     8589
+20251117_EGS023_bingo_slide3_006/cell_2      89      0     18    107     9857
+20251117_EGS023_bingo_slide3_006/cell_3       0      1      0      1     6719
+20251117_EGS023_bingo_slide3_006/cell_4       0      0      0      0     7873
+20251117_EGS023_bingo_slide3_006/cell_5       0      0      1      1     8095
+20251117_EGS023_bingo_slide3_006/cell_6       0      0      0      0     5754
+20251117_EGS023_bingo_slide3_007/cell_1       0      0    101    101     6228
+20251117_EGS023_bingo_slide3_007/cell_2       0      0      0      0     4347
+20251117_EGS023_bingo_slide3_007/cell_3       0      0      0      0     5037
+20251117_EGS023_bingo_slide3_007/cell_4       0      0      0      0     5495
+20251117_EGS023_bingo_slide3_007/cell_5       0      0      0      0     6704
+20251117_EGS023_bingo_slide3_007/cell_6       0      0      0      0     4914
+20251117_EGS023_bingo_slide3_007/cell_7       0      0      0      0     5931
+20251117_EGS023_bingo_slide3_007/cell_8       0      0      0      0     4126
+20251117_EGS023_bingo_slide3_007/cell_9       0      0      0      0     5706
+20251117_EGS023_bingo_slide3_007/cell_10      0      0      1      1     7648
+20251117_EGS023_bingo_slide3_007/cell_11      0      0      0      0     5507
+20251117_EGS023_bingo_slide3_007/cell_12      0      0      0      0     4719
+20251117_EGS023_bingo_slide3_007/cell_13      0      0      0      0     3891
+20251117_EGS023_bingo_slide3_007/cell_14      0      0      0      0     5856
+20251117_EGS023_bingo_slide3_007/cell_15      0      0      0      0     4916
+20251117_EGS023_bingo_slide3_007/cell_16      0      0      0      0     5962
+20251117_EGS023_bingo_slide3_007/cell_17      0      0      0      0     5466
+20251117_EGS023_bingo_slide3_007/cell_18      1      0      0      1     5265
+20251117_EGS023_bingo_slide3_007/cell_19      0      0      0      0     6412
+20251117_EGS023_bingo_slide3_007/cell_20      0      0      0      0     4833
+20251117_EGS023_bingo_slide3_008/cell_1       0      0      0      0     4082
+20251117_EGS023_bingo_slide3_008/cell_2       0      0      0      0     4731
+20251117_EGS023_bingo_slide3_008/cell_3       0      0      0      0     4867
+20251117_EGS023_bingo_slide3_008/cell_4       1      0      0      1     7463
+20251117_EGS023_bingo_slide3_008/cell_5       0      0      0      0     7962
+20251117_EGS023_bingo_slide3_008/cell_6       0      0      2      2     5276
+20251117_EGS023_bingo_slide3_008/cell_7       0      0      1      1     5139
+20251117_EGS023_bingo_slide3_008/cell_8       0      0      1      1     6833
+20251117_EGS023_bingo_slide3_008/cell_9       0      0      1      1     6662
+20251117_EGS023_bingo_slide3_008/cell_10      0      0      0      0     5093
+20251117_EGS023_bingo_slide3_008/cell_11      0      0      0      0     6345
+20251117_EGS023_bingo_slide3_008/cell_12      0      0      0      0     6690
+20251117_EGS023_bingo_slide3_008/cell_13      0      0      0      0     5528
+20251117_EGS023_bingo_slide3_008/cell_14      0      0      0      0     4265
+20251117_EGS023_bingo_slide3_008/cell_15      0      0      0      0     5250
+20251117_EGS023_bingo_slide3_008/cell_16     49     17     43    109     7011
+20251117_EGS023_bingo_slide3_008/cell_17      0      0      3      3     2690
+20251117_EGS023_bingo_slide3_008/cell_18      0      0      1      1     3296
+20251117_EGS023_bingo_slide3_008/cell_19      0      0      1      1     8088
+20251117_EGS023_bingo_slide3_008/cell_20      0      0      1      1     4094
+20251117_EGS023_bingo_slide3_008/cell_21      0      0      1      1     6030
+20251117_EGS023_bingo_slide3_008/cell_22      0      0      0      0     4690
+20251117_EGS023_bingo_slide3_008/cell_23      0      0      1      1     5629
+20251117_EGS023_bingo_slide3_008/cell_24      0      0      1      1     6781
+20251117_EGS023_bingo_slide3_009/cell_1       0      1      0      1     3744
+20251117_EGS023_bingo_slide3_009/cell_2       0      0      0      0     4175
+20251117_EGS023_bingo_slide3_009/cell_3       0      0      0      0     4458
+20251117_EGS023_bingo_slide3_009/cell_4       0      0      1      1     5160
+20251117_EGS023_bingo_slide3_009/cell_5     148     80      0    228     9565
+20251117_EGS023_bingo_slide3_009/cell_6       0      0      2      2     7795
+20251117_EGS023_bingo_slide3_009/cell_7       0      0      2      2     7697
+20251117_EGS023_bingo_slide3_009/cell_8       0      0      0      0     7169
+20251117_EGS023_bingo_slide3_010/cell_1       0      0      0      0     6745
+20251117_EGS023_bingo_slide3_010/cell_2       0      0      0      0     4877
+20251117_EGS023_bingo_slide3_010/cell_3       0      0      0      0     6324
+20251117_EGS023_bingo_slide3_010/cell_4       0      0      0      0     6368
+20251117_EGS023_bingo_slide3_010/cell_5       0      0      0      0     5908
+20251117_EGS023_bingo_slide3_010/cell_6     156     58     12    226     8487
+20251117_EGS023_bingo_slide3_010/cell_7       0      0      1      1     5462
+20251117_EGS023_bingo_slide3_010/cell_8       0      0      0      0     6999
+20251117_EGS023_bingo_slide3_010/cell_9       0      0      0      0     5854
+20251117_EGS023_bingo_slide3_010/cell_10      0      0      2      2     7688
+20251117_EGS023_bingo_slide3_010/cell_11      1      0      1      2     6431
+20251117_EGS023_bingo_slide3_010/cell_12      0      0      0      0     6071
+20251117_EGS023_bingo_slide3_010/cell_13      0      0      0      0     6528
+20251117_EGS023_bingo_slide3_010/cell_14      0      0      0      0     5027
+20251117_EGS023_bingo_slide3_010/cell_15      0      0      0      0     6184
+20251117_EGS023_bingo_slide3_010/cell_16      0      0      0      0     5693
+20251117_EGS023_bingo_slide3_010/cell_17      0      0      0      0     5204
+20251117_EGS023_bingo_slide3_010/cell_18      0      0      2      2     6670
+20251117_EGS023_bingo_slide3_010/cell_19      0      0      1      1     7787
+20251117_EGS023_bingo_slide3_010/cell_20      0      0      0      0     5839
+20251117_EGS023_bingo_slide3_010/cell_21      0      0      0      0     6343
+20251117_EGS023_bingo_slide3_010/cell_22      0      0      0      0     7866
+20251117_EGS023_bingo_slide3_010/cell_23      0      0      0      0     6635
+20251117_EGS023_bingo_slide3_010/cell_24      0      0      0      0     7012
+20251117_EGS023_bingo_slide3_010/cell_25      0      0      1      1     7445
+20251117_EGS023_bingo_slide3_010/cell_26      0      0      0      0     6521
+20251117_EGS023_bingo_slide3_011/cell_1       0      0      0      0     6749
+20251117_EGS023_bingo_slide3_011/cell_2       0      0      0      0     6198
+20251117_EGS023_bingo_slide3_011/cell_3       0      0      1      1     7576
+20251117_EGS023_bingo_slide3_011/cell_4       0      0      0      0     6439
+20251117_EGS023_bingo_slide3_011/cell_5       0      0      1      1     6523
+20251117_EGS023_bingo_slide3_011/cell_6       0      0      0      0     5826
+20251117_EGS023_bingo_slide3_011/cell_7       1      0     42     43     9079
+20251117_EGS023_bingo_slide3_011/cell_8       0      0      1      1     8292
+20251117_EGS023_bingo_slide3_011/cell_9       0      0      0      0     9246
+20251117_EGS023_bingo_slide3_012/cell_1       0      0      0      0     4970
+20251117_EGS023_bingo_slide3_012/cell_2       0      0      0      0     7426
+20251117_EGS023_bingo_slide3_012/cell_3       0      0      0      0     8515
+20251117_EGS023_bingo_slide3_012/cell_4       0      0     33     33     9589
+20251117_EGS023_bingo_slide3_012/cell_5       0      0      1      1     6124
+20251117_EGS023_bingo_slide3_012/cell_6       0      0      1      1     6396
+20251117_EGS023_bingo_slide3_012/cell_7       0      0      0      0     7947
+20251117_EGS023_bingo_slide3_012/cell_8       0      0      0      0     9037
+20251117_EGS023_bingo_slide3_012/cell_9       0      0      0      0     7099
+20251117_EGS023_bingo_slide3_012/cell_10      0      0      0      0    12747
+20251117_EGS023_bingo_slide3_012/cell_11      0      0      0      0    10044
+20251117_EGS023_bingo_slide3_012/cell_12      0      0      0      0     7167
+20251117_EGS023_bingo_slide3_012/cell_13      0      0      0      0     7770
+20251117_EGS023_bingo_slide3_012/cell_14      0      0      0      0     8118
+20251117_EGS023_bingo_slide3_012/cell_15      0      0    312    312    11466
+20251117_EGS023_bingo_slide3_015/cell_1     108    118    362    588     6959
+20251117_EGS023_bingo_slide3_017/cell_1      97      6      0    103     5265
+20251117_EGS023_bingo_slide3_017/cell_2       0      0      1      1     4734
+20251117_EGS023_bingo_slide3_017/cell_3       0      1      0      1     5440
+20251117_EGS023_bingo_slide3_017/cell_4       0      0      0      0     6974
+20251117_EGS023_bingo_slide3_017/cell_5       0      0      0      0     6740
+20251117_EGS023_bingo_slide3_017/cell_6       0      0      1      1     5360
+20251117_EGS023_bingo_slide3_017/cell_7       0      0      0      0     5673
+20251117_EGS023_bingo_slide3_017/cell_8       0      0      0      0     7041
+20251117_EGS023_bingo_slide3_018/cell_1     130      8      0    138     9011
+20251117_EGS023_bingo_slide3_018/cell_2       0      0      1      1     7261
+20251117_EGS023_bingo_slide3_018/cell_3       0      1      3      4     6669
+20251117_EGS023_bingo_slide3_019/cell_1       0      0      0      0     7271
+20251117_EGS023_bingo_slide3_019/cell_2       0      1      0      1     7048
+20251117_EGS023_bingo_slide3_019/cell_3       0      0      0      0     8922
+20251117_EGS023_bingo_slide3_019/cell_4       0      0      0      0     5852
+20251117_EGS023_bingo_slide3_019/cell_5       0      0      0      0     4463
+20251117_EGS023_bingo_slide3_019/cell_6     134      0      7    141     6998
+20251117_EGS023_bingo_slide3_019/cell_7       0      0      0      0     5048
+20251117_EGS023_bingo_slide3_019/cell_8       0      0      0      0     6023
+20251117_EGS023_bingo_slide3_019/cell_9       0      0      0      0     6420
+20251117_EGS023_bingo_slide3_020/cell_1       0      0      0      0     6397
+20251117_EGS023_bingo_slide3_020/cell_2       0      1      4      5     7655
+20251117_EGS023_bingo_slide3_020/cell_3       0      3      1      4     6296
+20251117_EGS023_bingo_slide3_020/cell_4       1      1      1      3     7518
+20251117_EGS023_bingo_slide3_020/cell_5       0      0      0      0     7704
+20251117_EGS023_bingo_slide3_020/cell_6       1      1      0      2     6170
+20251117_EGS023_bingo_slide3_020/cell_7      69      0     85    154     8976
+
+----------------------------------------------------------------------
+FOV SUMMARY
+----------------------------------------------------------------------
+Total cells across all FOVs: 191
+Total spots - US: 1700, SS: 558, MS: 2655
+
+20251117_EGS023_bingo_slide2_006:
+  Cells: 4
+  FOV totals - US: 85, SS: 3, MS: 74
+
+20251117_EGS023_bingo_slide2_008:
+  Cells: 3
+  FOV totals - US: 187, SS: 56, MS: 65
+
+20251117_EGS023_bingo_slide3_001:
+  Cells: 15
+  FOV totals - US: 93, SS: 49, MS: 84
+
+20251117_EGS023_bingo_slide3_002:
+  Cells: 16
+  FOV totals - US: 50, SS: 13, MS: 67
+
+20251117_EGS023_bingo_slide3_003:
+  Cells: 9
+  FOV totals - US: 27, SS: 7, MS: 78
+
+20251117_EGS023_bingo_slide3_004:
+  Cells: 5
+  FOV totals - US: 191, SS: 6, MS: 180
+
+20251117_EGS023_bingo_slide3_005:
+  Cells: 3
+  FOV totals - US: 70, SS: 74, MS: 61
+
+20251117_EGS023_bingo_slide3_006:
+  Cells: 6
+  FOV totals - US: 90, SS: 13, MS: 78
+
+20251117_EGS023_bingo_slide3_007:
+  Cells: 20
+  FOV totals - US: 2, SS: 4, MS: 131
+
+20251117_EGS023_bingo_slide3_008:
+  Cells: 24
+  FOV totals - US: 51, SS: 18, MS: 120
+
+20251117_EGS023_bingo_slide3_009:
+  Cells: 8
+  FOV totals - US: 148, SS: 89, MS: 148
+
+20251117_EGS023_bingo_slide3_010:
+  Cells: 26
+  FOV totals - US: 159, SS: 63, MS: 137
+
+20251117_EGS023_bingo_slide3_011:
+  Cells: 9
+  FOV totals - US: 2, SS: 1, MS: 92
+
+20251117_EGS023_bingo_slide3_012:
+  Cells: 15
+  FOV totals - US: 0, SS: 2, MS: 415
+
+20251117_EGS023_bingo_slide3_015:
+  Cells: 1
+  FOV totals - US: 110, SS: 123, MS: 636
+
+20251117_EGS023_bingo_slide3_017:
+  Cells: 8
+  FOV totals - US: 100, SS: 10, MS: 38
+
+20251117_EGS023_bingo_slide3_018:
+  Cells: 3
+  FOV totals - US: 130, SS: 13, MS: 32
+
+20251117_EGS023_bingo_slide3_019:
+  Cells: 9
+  FOV totals - US: 134, SS: 3, MS: 46
+
+20251117_EGS023_bingo_slide3_020:
+  Cells: 7
+  FOV totals - US: 71, SS: 11, MS: 173
+======================================================================
+Finished processing: 20251117
+

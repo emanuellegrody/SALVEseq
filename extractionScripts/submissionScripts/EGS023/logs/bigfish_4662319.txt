@@ -1,0 +1,518 @@
+
+======================================================================
+big-FISH Multi-FOV Pipeline
+======================================================================
+Input directory: /projects/b1042/GoyalLab/egrody/rawData/EGS023/20251119/TIFF/
+Output directory: /projects/b1042/GoyalLab/egrody/extractedData/EGS023/big-FISH/
+Channels: ['Blue', 'Red', 'Gold70', 'FarRed']
+DAPI present: True
+Found 10 FOVs to process
+======================================================================
+
+
+Processing FOV 1/10
+
+======================================================================
+Processing FOV: 20251119_EGS023_bingo_slide6_001_XY1
+======================================================================
+Found 7 z-slices: ['Z06', 'Z07', 'Z08', 'Z09', 'Z10', 'Z11', 'Z12']
+Loading images...
+Image stack shape: (4, 7, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+  Nuclear threshold (Otsu): 16731
+  Otsu threshold (on clipped image): 0
+  (Image clipped to p10=0, p99=0 to reduce TS influence)
+
+ERROR: Error processing FOV 20251119_EGS023_bingo_slide6_001_XY1: name 'closing' is not defined
+
+
+Processing FOV 2/10
+
+======================================================================
+Processing FOV: 20251119_EGS023_bingo_slide6_002_XY1
+======================================================================
+Found 7 z-slices: ['Z06', 'Z07', 'Z08', 'Z09', 'Z10', 'Z11', 'Z12']
+Loading images...
+Image stack shape: (4, 7, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+  Nuclear threshold (Otsu): 18421
+  Otsu threshold (on clipped image): 0
+  (Image clipped to p10=0, p99=0 to reduce TS influence)
+
+ERROR: Error processing FOV 20251119_EGS023_bingo_slide6_002_XY1: name 'closing' is not defined
+
+
+Processing FOV 3/10
+
+======================================================================
+Processing FOV: 20251119_EGS023_bingo_slide6_003_XY1
+======================================================================
+Found 7 z-slices: ['Z06', 'Z07', 'Z08', 'Z09', 'Z10', 'Z11', 'Z12']
+Loading images...
+Image stack shape: (4, 7, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+  Nuclear threshold (Otsu): 15150
+  Otsu threshold (on clipped image): 0
+  (Image clipped to p10=0, p99=0 to reduce TS influence)
+
+ERROR: Error processing FOV 20251119_EGS023_bingo_slide6_003_XY1: name 'closing' is not defined
+
+
+Processing FOV 4/10
+
+======================================================================
+Processing FOV: 20251119_EGS023_bingo_slide6_004_XY1
+======================================================================
+Found 6 z-slices: ['Z06', 'Z07', 'Z08', 'Z09', 'Z10', 'Z11']
+Loading images...
+Image stack shape: (4, 6, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+  Nuclear threshold (Otsu): 16337
+  Otsu threshold (on clipped image): 0
+  (Image clipped to p10=0, p99=0 to reduce TS influence)
+
+ERROR: Error processing FOV 20251119_EGS023_bingo_slide6_004_XY1: name 'closing' is not defined
+
+
+Processing FOV 5/10
+
+======================================================================
+Processing FOV: 20251119_EGS023_bingo_slide6_005_XY1
+======================================================================
+Found 6 z-slices: ['Z06', 'Z07', 'Z08', 'Z09', 'Z10', 'Z11']
+Loading images...
+Image stack shape: (4, 6, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+  Nuclear threshold (Otsu): 12825
+  Otsu threshold (on clipped image): 0
+  (Image clipped to p10=0, p99=0 to reduce TS influence)
+
+ERROR: Error processing FOV 20251119_EGS023_bingo_slide6_005_XY1: name 'closing' is not defined
+
+
+Processing FOV 6/10
+
+======================================================================
+Processing FOV: 20251119_EGS023_bingo_slide6_006_XY1
+======================================================================
+Found 6 z-slices: ['Z06', 'Z07', 'Z08', 'Z09', 'Z10', 'Z11']
+Loading images...
+Image stack shape: (4, 6, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+  Nuclear threshold (Otsu): 18250
+  Otsu threshold (on clipped image): 0
+  (Image clipped to p10=0, p99=0 to reduce TS influence)
+
+ERROR: Error processing FOV 20251119_EGS023_bingo_slide6_006_XY1: name 'closing' is not defined
+
+
+Processing FOV 7/10
+
+======================================================================
+Processing FOV: 20251119_EGS023_bingo_slide6_007_XY1
+======================================================================
+Found 6 z-slices: ['Z06', 'Z07', 'Z08', 'Z09', 'Z10', 'Z11']
+Loading images...
+Image stack shape: (4, 6, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+  Nuclear threshold (Otsu): 19409
+  Otsu threshold (on clipped image): 0
+  (Image clipped to p10=0, p99=0 to reduce TS influence)
+
+ERROR: Error processing FOV 20251119_EGS023_bingo_slide6_007_XY1: name 'closing' is not defined
+
+
+Processing FOV 8/10
+
+======================================================================
+Processing FOV: 20251119_EGS023_bingo_slide6_008_XY1
+======================================================================
+Found 6 z-slices: ['Z06', 'Z07', 'Z08', 'Z09', 'Z10', 'Z11']
+Loading images...
+Image stack shape: (4, 6, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+  Nuclear threshold (Otsu): 12567
+  Otsu threshold (on clipped image): 0
+  (Image clipped to p10=0, p99=0 to reduce TS influence)
+
+ERROR: Error processing FOV 20251119_EGS023_bingo_slide6_008_XY1: name 'closing' is not defined
+
+
+Processing FOV 9/10
+
+======================================================================
+Processing FOV: 20251119_EGS023_bingo_slide6_009_XY1
+======================================================================
+Found 6 z-slices: ['Z06', 'Z07', 'Z08', 'Z09', 'Z10', 'Z11']
+Loading images...
+Image stack shape: (4, 6, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+  Nuclear threshold (Otsu): 15668
+  Otsu threshold (on clipped image): 0
+  (Image clipped to p10=0, p99=0 to reduce TS influence)
+
+ERROR: Error processing FOV 20251119_EGS023_bingo_slide6_009_XY1: name 'closing' is not defined
+
+
+Processing FOV 10/10
+
+======================================================================
+Processing FOV: 20251119_EGS023_bingo_slide6_011_XY1
+======================================================================
+Found 6 z-slices: ['Z06', 'Z07', 'Z08', 'Z09', 'Z10', 'Z11']
+Loading images...
+Image stack shape: (4, 6, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+  Nuclear threshold (Otsu): 17029
+  Otsu threshold (on clipped image): 0
+  (Image clipped to p10=0, p99=0 to reduce TS influence)
+
+ERROR: Error processing FOV 20251119_EGS023_bingo_slide6_011_XY1: name 'closing' is not defined
+
+======================================================================
+PIPELINE SUMMARY
+======================================================================
+Total FOVs found: 10
+Successfully processed: 0
+Skipped (missing channels): 0
+Errors: 10
+
+Errors encountered (10):
+  20251119_EGS023_bingo_slide6_001_XY1: name 'closing' is not defined
+  20251119_EGS023_bingo_slide6_002_XY1: name 'closing' is not defined
+  20251119_EGS023_bingo_slide6_003_XY1: name 'closing' is not defined
+  20251119_EGS023_bingo_slide6_004_XY1: name 'closing' is not defined
+  20251119_EGS023_bingo_slide6_005_XY1: name 'closing' is not defined
+  20251119_EGS023_bingo_slide6_006_XY1: name 'closing' is not defined
+  20251119_EGS023_bingo_slide6_007_XY1: name 'closing' is not defined
+  20251119_EGS023_bingo_slide6_008_XY1: name 'closing' is not defined
+  20251119_EGS023_bingo_slide6_009_XY1: name 'closing' is not defined
+  20251119_EGS023_bingo_slide6_011_XY1: name 'closing' is not defined
+======================================================================
+
+======================================================================
+big-FISH Multi-FOV Pipeline
+======================================================================
+Input directory: /projects/b1042/GoyalLab/egrody/rawData/EGS023/20251119/TIFF/
+Output directory: /projects/b1042/GoyalLab/egrody/extractedData/EGS023/big-FISH/
+Channels: ['Red', 'Gold70', 'FarRed']
+DAPI present: False
+Found 18 FOVs to process
+======================================================================
+
+
+Processing FOV 1/18
+
+======================================================================
+Processing FOV: 20251119_EGS023_plate_002_XY1
+======================================================================
+Found 6 z-slices: ['Z05', 'Z06', 'Z07', 'Z08', 'Z09', 'Z10']
+Loading images...
+Image stack shape: (3, 6, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+No DAPI channel - using cell-only segmentation
+  Otsu threshold (on clipped image): 1
+  (Image clipped to p10=0, p99=1 to reduce TS influence)
+
+ERROR: Error processing FOV 20251119_EGS023_plate_002_XY1: name 'closing' is not defined
+
+
+Processing FOV 2/18
+
+======================================================================
+Processing FOV: 20251119_EGS023_plate_003_XY1
+======================================================================
+Found 7 z-slices: ['Z05', 'Z06', 'Z07', 'Z08', 'Z09', 'Z10', 'Z11']
+Loading images...
+Image stack shape: (3, 7, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+No DAPI channel - using cell-only segmentation
+  Otsu threshold (on clipped image): 0
+  (Image clipped to p10=0, p99=0 to reduce TS influence)
+
+ERROR: Error processing FOV 20251119_EGS023_plate_003_XY1: name 'closing' is not defined
+
+
+Processing FOV 3/18
+
+======================================================================
+Processing FOV: 20251119_EGS023_plate_004_XY1
+======================================================================
+Found 6 z-slices: ['Z01', 'Z02', 'Z03', 'Z04', 'Z05', 'Z06']
+Loading images...
+Image stack shape: (3, 6, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+No DAPI channel - using cell-only segmentation
+  Otsu threshold (on clipped image): 0
+  (Image clipped to p10=0, p99=0 to reduce TS influence)
+
+ERROR: Error processing FOV 20251119_EGS023_plate_004_XY1: name 'closing' is not defined
+
+
+Processing FOV 4/18
+
+======================================================================
+Processing FOV: 20251119_EGS023_plate_005_XY1
+======================================================================
+Found 6 z-slices: ['Z05', 'Z06', 'Z07', 'Z08', 'Z09', 'Z10']
+Loading images...
+Image stack shape: (3, 6, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+No DAPI channel - using cell-only segmentation
+  Otsu threshold (on clipped image): 0
+  (Image clipped to p10=0, p99=0 to reduce TS influence)
+
+ERROR: Error processing FOV 20251119_EGS023_plate_005_XY1: name 'closing' is not defined
+
+
+Processing FOV 5/18
+
+======================================================================
+Processing FOV: 20251119_EGS023_plate_006_XY1
+======================================================================
+Found 11 z-slices: ['Z01', 'Z02', 'Z03', 'Z04', 'Z05', 'Z06', 'Z07', 'Z08', 'Z09', 'Z10', 'Z11']
+Loading images...
+Image stack shape: (3, 11, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+No DAPI channel - using cell-only segmentation
+  Otsu threshold (on clipped image): 0
+  (Image clipped to p10=0, p99=0 to reduce TS influence)
+
+ERROR: Error processing FOV 20251119_EGS023_plate_006_XY1: name 'closing' is not defined
+
+
+Processing FOV 6/18
+
+======================================================================
+Processing FOV: 20251119_EGS023_plate_009_XY1
+======================================================================
+Found 8 z-slices: ['Z01', 'Z02', 'Z03', 'Z04', 'Z05', 'Z06', 'Z07', 'Z08']
+Loading images...
+Image stack shape: (3, 8, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+No DAPI channel - using cell-only segmentation
+  Otsu threshold (on clipped image): 0
+  (Image clipped to p10=0, p99=0 to reduce TS influence)
+
+ERROR: Error processing FOV 20251119_EGS023_plate_009_XY1: name 'closing' is not defined
+
+
+Processing FOV 7/18
+
+======================================================================
+Processing FOV: 20251119_EGS023_plate_010_XY1
+======================================================================
+Found 6 z-slices: ['Z06', 'Z07', 'Z08', 'Z09', 'Z10', 'Z11']
+Loading images...
+Image stack shape: (3, 6, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+No DAPI channel - using cell-only segmentation
+  Otsu threshold (on clipped image): 0
+  (Image clipped to p10=0, p99=0 to reduce TS influence)
+
+ERROR: Error processing FOV 20251119_EGS023_plate_010_XY1: name 'closing' is not defined
+
+
+Processing FOV 8/18
+
+======================================================================
+Processing FOV: 20251119_EGS023_plate_011_XY1
+======================================================================
+Found 7 z-slices: ['Z05', 'Z06', 'Z07', 'Z08', 'Z09', 'Z10', 'Z11']
+Loading images...
+Image stack shape: (3, 7, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+No DAPI channel - using cell-only segmentation
+  Otsu threshold (on clipped image): 0
+  (Image clipped to p10=0, p99=0 to reduce TS influence)
+
+ERROR: Error processing FOV 20251119_EGS023_plate_011_XY1: name 'closing' is not defined
+
+
+Processing FOV 9/18
+
+======================================================================
+Processing FOV: 20251119_EGS023_plate_013_XY1
+======================================================================
+Found 7 z-slices: ['Z02', 'Z03', 'Z04', 'Z05', 'Z06', 'Z07', 'Z08']
+Loading images...
+Image stack shape: (3, 7, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+No DAPI channel - using cell-only segmentation
+  Otsu threshold (on clipped image): 0
+  (Image clipped to p10=0, p99=0 to reduce TS influence)
+
+ERROR: Error processing FOV 20251119_EGS023_plate_013_XY1: name 'closing' is not defined
+
+
+Processing FOV 10/18
+
+======================================================================
+Processing FOV: 20251119_EGS023_plate_014_XY1
+======================================================================
+Found 6 z-slices: ['Z07', 'Z08', 'Z09', 'Z10', 'Z11', 'Z12']
+Loading images...
+Image stack shape: (3, 6, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+No DAPI channel - using cell-only segmentation
+  Otsu threshold (on clipped image): 0
+  (Image clipped to p10=0, p99=0 to reduce TS influence)
+
+ERROR: Error processing FOV 20251119_EGS023_plate_014_XY1: name 'closing' is not defined
+
+
+Processing FOV 11/18
+
+======================================================================
+Processing FOV: 20251119_EGS023_plate_015_XY1
+======================================================================
+Found 6 z-slices: ['Z06', 'Z07', 'Z08', 'Z09', 'Z10', 'Z11']
+Loading images...
+Image stack shape: (3, 6, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+No DAPI channel - using cell-only segmentation
+  Otsu threshold (on clipped image): 0
+  (Image clipped to p10=0, p99=0 to reduce TS influence)
+
+ERROR: Error processing FOV 20251119_EGS023_plate_015_XY1: name 'closing' is not defined
+
+
+Processing FOV 12/18
+
+======================================================================
+Processing FOV: 20251119_EGS023_plate_016_XY1
+======================================================================
+Found 6 z-slices: ['Z04', 'Z05', 'Z06', 'Z07', 'Z08', 'Z09']
+Loading images...
+Image stack shape: (3, 6, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+No DAPI channel - using cell-only segmentation
+  Otsu threshold (on clipped image): 0
+  (Image clipped to p10=0, p99=0 to reduce TS influence)
+
+ERROR: Error processing FOV 20251119_EGS023_plate_016_XY1: name 'closing' is not defined
+
+
+Processing FOV 13/18
+
+======================================================================
+Processing FOV: 20251119_EGS023_plate_017_XY1
+======================================================================
+Found 6 z-slices: ['Z07', 'Z08', 'Z09', 'Z10', 'Z11', 'Z12']
+Loading images...
+Image stack shape: (3, 6, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+No DAPI channel - using cell-only segmentation
+  Otsu threshold (on clipped image): 0
+  (Image clipped to p10=0, p99=0 to reduce TS influence)
+
+ERROR: Error processing FOV 20251119_EGS023_plate_017_XY1: name 'closing' is not defined
+
+
+Processing FOV 14/18
+
+======================================================================
+Processing FOV: 20251119_EGS023_plate_018_XY1
+======================================================================
+Found 6 z-slices: ['Z07', 'Z08', 'Z09', 'Z10', 'Z11', 'Z12']
+Loading images...
+Image stack shape: (3, 6, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+No DAPI channel - using cell-only segmentation
+  Otsu threshold (on clipped image): 0
+  (Image clipped to p10=0, p99=0 to reduce TS influence)
+
+ERROR: Error processing FOV 20251119_EGS023_plate_018_XY1: name 'closing' is not defined
+
+
+Processing FOV 15/18
+
+======================================================================
+Processing FOV: 20251119_EGS023_plate_019_XY1
+======================================================================
+Found 6 z-slices: ['Z07', 'Z08', 'Z09', 'Z10', 'Z11', 'Z12']
+Loading images...
+Image stack shape: (3, 6, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+No DAPI channel - using cell-only segmentation
+  Otsu threshold (on clipped image): 0
+  (Image clipped to p10=0, p99=0 to reduce TS influence)
+
+ERROR: Error processing FOV 20251119_EGS023_plate_019_XY1: name 'closing' is not defined
+
+
+Processing FOV 16/18
+
+======================================================================
+Processing FOV: 20251119_EGS023_plate_020_XY1
+======================================================================
+Found 6 z-slices: ['Z06', 'Z07', 'Z08', 'Z09', 'Z10', 'Z11']
+Loading images...
+Image stack shape: (3, 6, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+No DAPI channel - using cell-only segmentation
+  Otsu threshold (on clipped image): 0
+  (Image clipped to p10=0, p99=0 to reduce TS influence)
+
+ERROR: Error processing FOV 20251119_EGS023_plate_020_XY1: name 'closing' is not defined
+
+
+Processing FOV 17/18
+
+======================================================================
+Processing FOV: 20251119_EGS023_plate_021_XY1
+======================================================================
+Found 6 z-slices: ['Z05', 'Z06', 'Z07', 'Z08', 'Z09', 'Z10']
+Loading images...
+Image stack shape: (3, 6, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+No DAPI channel - using cell-only segmentation
+  Otsu threshold (on clipped image): 0
+  (Image clipped to p10=0, p99=0 to reduce TS influence)
+
+ERROR: Error processing FOV 20251119_EGS023_plate_021_XY1: name 'closing' is not defined
+
+
+Processing FOV 18/18
+
+======================================================================
+Processing FOV: 20251119_EGS023_plate_022_XY1
+======================================================================
+Found 6 z-slices: ['Z07', 'Z08', 'Z09', 'Z10', 'Z11', 'Z12']
+Loading images...
+Image stack shape: (3, 6, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+No DAPI channel - using cell-only segmentation
+  Otsu threshold (on clipped image): 0
+  (Image clipped to p10=0, p99=0 to reduce TS influence)
+
+ERROR: Error processing FOV 20251119_EGS023_plate_022_XY1: name 'closing' is not defined
+
+======================================================================
+PIPELINE SUMMARY
+======================================================================
+Total FOVs found: 18
+Successfully processed: 0
+Skipped (missing channels): 0
+Errors: 18
+
+Errors encountered (18):
+  20251119_EGS023_plate_002_XY1: name 'closing' is not defined
+  20251119_EGS023_plate_003_XY1: name 'closing' is not defined
+  20251119_EGS023_plate_004_XY1: name 'closing' is not defined
+  20251119_EGS023_plate_005_XY1: name 'closing' is not defined
+  20251119_EGS023_plate_006_XY1: name 'closing' is not defined
+  20251119_EGS023_plate_009_XY1: name 'closing' is not defined
+  20251119_EGS023_plate_010_XY1: name 'closing' is not defined
+  20251119_EGS023_plate_011_XY1: name 'closing' is not defined
+  20251119_EGS023_plate_013_XY1: name 'closing' is not defined
+  20251119_EGS023_plate_014_XY1: name 'closing' is not defined
+  20251119_EGS023_plate_015_XY1: name 'closing' is not defined
+  20251119_EGS023_plate_016_XY1: name 'closing' is not defined
+  20251119_EGS023_plate_017_XY1: name 'closing' is not defined
+  20251119_EGS023_plate_018_XY1: name 'closing' is not defined
+  20251119_EGS023_plate_019_XY1: name 'closing' is not defined
+  20251119_EGS023_plate_020_XY1: name 'closing' is not defined
+  20251119_EGS023_plate_021_XY1: name 'closing' is not defined
+  20251119_EGS023_plate_022_XY1: name 'closing' is not defined
+======================================================================

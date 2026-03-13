@@ -5,7 +5,7 @@ date: "2025-04-04"
 output: html_document
 ---
 
-```{r, echo = FALSE}
+```{r, message=FALSE, warning=FALSE}
 source("~/SALVEseq/packages.R")
 source("~/SALVEseq/functions.R")
 ```
@@ -335,7 +335,7 @@ raw_cellIDs_df <- read.csv("/projects/b1042/GoyalLab/egrody/extractedData/EGS014
 raw_cellIDs <- split(raw_cellIDs_df$cellID, raw_cellIDs_df$sample)
 
 #process_bamsort("SALVE", samples$samples, input.dir, output.dir, raw_cellIDs)
-process_bamsortv5(samples$samples, input.dir, output.dir, raw_cellIDs)
+process_bamsortv5(samples$samples, input.dir, output.dir, raw_cellIDs)z
 
 # minimums
 input_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/bamsort/reads/v5/"
@@ -487,6 +487,9 @@ input_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS004/singleCell/ba
 samples <- list(InvitrocDNA= c("cDNA"))
 input_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS007/longRead/bamsort/splice/"
 
+# UMI lists
+SALVE.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/bamsort/reads/v6/"
+GEX.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/bamsort/reads/v6/"
 
 for (sample_name in names(samples)) {
   cat("\nProcessing sample:", sample_name, "\n")
@@ -498,10 +501,17 @@ for (sample_name in names(samples)) {
     cat("  Reading:", file, "\n")
     data <- read.csv(paste0(input_dir, file, "_splicesites.csv"))
     
+    salve_umi_file <- paste0(SALVE.dir, "minimum/valid_UMI/", sample_name, "_SALVE_valid_cellID_UMI.csv")
+    gex_umi_file <- paste0(GEX.dir, "minimum/valid_UMI/", sample_name, "_GEX_valid_cellID_UMI.csv")
+    salve_umi <- if(file.exists(salve_umi_file)) read.csv(salve_umi_file) else NULL
+    gex_umi <- if(file.exists(gex_umi_file)) read.csv(gex_umi_file) else NULL
+    
     file_data <- data %>%
+      filter(CB %in% salve_umi$cellID & UB %in% salve_umi$UMI) %>%
       count(Donor, Acceptor) %>%
-      filter(n > 1) %>%
+      #filter(n > 1) %>%
       mutate(file = file)
+      
     
     combined_data <- rbind(combined_data, file_data)
   }

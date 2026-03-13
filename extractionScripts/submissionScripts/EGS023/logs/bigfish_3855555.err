@@ -1,0 +1,40 @@
+/home/egy2296/.conda/envs/bigfish_env/lib/python3.6/site-packages/bigfish/detection/utils.py:433: UserWarning: Problem occurs during the computation of a reference spot. Not enough (uncropped) spots have been detected.
+  UserWarning)
+/home/egy2296/.conda/envs/bigfish_env/lib/python3.6/site-packages/bigfish/detection/utils.py:433: UserWarning: Problem occurs during the computation of a reference spot. Not enough (uncropped) spots have been detected.
+  UserWarning)
+Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 722, in run_pipeline
+    result = process_fov(fov, path_input, path_output_base, channels, pipeline_params)
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 614, in process_fov
+    return_indices=False
+  File "/home/egy2296/.conda/envs/bigfish_env/lib/python3.6/site-packages/bigfish/multistack/colocalization.py", line 112, in detect_spots_colocalization
+    threshold = _automated_threshold_setting_colocalization(distances)
+  File "/home/egy2296/.conda/envs/bigfish_env/lib/python3.6/site-packages/bigfish/multistack/colocalization.py", line 154, in _automated_threshold_setting_colocalization
+    min_threshold = distances.min()
+  File "/home/egy2296/.conda/envs/bigfish_env/lib/python3.6/site-packages/numpy/core/_methods.py", line 43, in _amin
+    return umr_minimum(a, axis, None, out, keepdims, initial, where)
+ValueError: zero-size array to reduction operation minimum which has no identity
+Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 722, in run_pipeline
+    result = process_fov(fov, path_input, path_output_base, channels, pipeline_params)
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 614, in process_fov
+    return_indices=False
+  File "/home/egy2296/.conda/envs/bigfish_env/lib/python3.6/site-packages/bigfish/multistack/colocalization.py", line 112, in detect_spots_colocalization
+    threshold = _automated_threshold_setting_colocalization(distances)
+  File "/home/egy2296/.conda/envs/bigfish_env/lib/python3.6/site-packages/bigfish/multistack/colocalization.py", line 154, in _automated_threshold_setting_colocalization
+    min_threshold = distances.min()
+  File "/home/egy2296/.conda/envs/bigfish_env/lib/python3.6/site-packages/numpy/core/_methods.py", line 43, in _amin
+    return umr_minimum(a, axis, None, out, keepdims, initial, where)
+ValueError: zero-size array to reduction operation minimum which has no identity
+Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 722, in run_pipeline
+    result = process_fov(fov, path_input, path_output_base, channels, pipeline_params)
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 614, in process_fov
+    return_indices=False
+  File "/home/egy2296/.conda/envs/bigfish_env/lib/python3.6/site-packages/bigfish/multistack/colocalization.py", line 112, in detect_spots_colocalization
+    threshold = _automated_threshold_setting_colocalization(distances)
+  File "/home/egy2296/.conda/envs/bigfish_env/lib/python3.6/site-packages/bigfish/multistack/colocalization.py", line 154, in _automated_threshold_setting_colocalization
+    min_threshold = distances.min()
+  File "/home/egy2296/.conda/envs/bigfish_env/lib/python3.6/site-packages/numpy/core/_methods.py", line 43, in _amin
+    return umr_minimum(a, axis, None, out, keepdims, initial, where)
+ValueError: zero-size array to reduction operation minimum which has no identity

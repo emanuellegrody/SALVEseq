@@ -1,0 +1,21 @@
+CSV header: Sample_Name,dataset,folder
+Debug - Sample: 'W0', Folder: '/projects/b1042/GoyalLab/egrody/extractedData/EGS002/singleCell/counts/Mmul_10_mac239/'
+Debug - Sample: 'P_acute_GEX', Folder: '/projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/counts/Mmul_10_mac239/'
+Found 2 samples in CSV
+Processing sample: W0
+Folder: /projects/b1042/GoyalLab/egrody/extractedData/EGS002/singleCell/counts/Mmul_10_mac239/
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGS002/singleCell/counts/Mmul_10_mac239/Mmul_10_mac239_W0/outs/possorted_genome_bam.bam
+  Alignment: KLRB1 (Position 10090828-10103486)
+  Successfully processed W0 for KLRB1
+  Statistics: Rows=357, Total reads=724
+  -----------------------------
+Processing sample: P_acute_GEX
+Folder: /projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/counts/Mmul_10_mac239/
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/counts/Mmul_10_mac239/Mmul_10_mac239_P_acute_GEX/outs/possorted_genome_bam.bam
+  Alignment: KLRB1 (Position 10090828-10103486)
+  Successfully processed P_acute_GEX for KLRB1
+  Statistics: Rows=427, Total reads=2714
+  -----------------------------
+=============================
+All samples and alignments processed!
+Summary written to: /projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/bamsort/alignment/KLRB1/all_samples_alignment_summary.txt

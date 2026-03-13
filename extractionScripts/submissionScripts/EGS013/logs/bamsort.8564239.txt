@@ -1,0 +1,21 @@
+Processing sample: D1_up_CI
+Input: /projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/counts/mac239_PacuteD1_up_CI/outs/possorted_genome_bam.bam
+Output: /projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/saturation/bamsort/D1_up_CI_bamsort_reads.csv
+Error processing D1_up_CI
+----------------------------------------
+Processing sample: LTR_CI
+Input: /projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/counts/mac239_PacuteLTR_CI/outs/possorted_genome_bam.bam
+Output: /projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/saturation/bamsort/LTR_CI_bamsort_reads.csv
+Error processing LTR_CI
+----------------------------------------
+Processing sample: nef_CI
+Input: /projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/counts/mac239_Pacutenef_CI/outs/possorted_genome_bam.bam
+Output: /projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/saturation/bamsort/nef_CI_bamsort_reads.csv
+Error processing nef_CI
+----------------------------------------
+Processing sample: tat_up_CI
+Input: /projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/counts/mac239_Pacutetat_up_CI/outs/possorted_genome_bam.bam
+Output: /projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/saturation/bamsort/tat_up_CI_bamsort_reads.csv
+Error processing tat_up_CI
+----------------------------------------
+All samples processed

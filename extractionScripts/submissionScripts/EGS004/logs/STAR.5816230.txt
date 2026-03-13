@@ -1,0 +1,26 @@
+Starting STAR alignment...
+Jun 17 21:06:23 ..... started STAR run
+Jun 17 21:06:23 ..... loading genome
+Jun 17 21:06:23 ..... started 1st pass mapping
+Jun 17 21:43:43 ..... finished 1st pass mapping
+Jun 17 21:43:43 ..... inserting junctions into the genome indices
+Jun 17 21:43:44 ..... started mapping
+Jun 17 22:29:49 ..... finished mapping
+Jun 17 22:29:49 ..... started sorting BAM
+Jun 17 22:29:50 ..... finished successfully
+STAR alignment completed successfully. Indexing BAM file...
+
+========================================
+Analysis completed successfully!
+========================================
+Output files:
+  BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGS004/300cy/counts/polyA/JK85_D13_STAR_Aligned.sortedByCoord.out.bam
+  BAM index: /projects/b1042/GoyalLab/egrody/extractedData/EGS004/300cy/counts/polyA/JK85_D13_STAR_Aligned.sortedByCoord.out.bam.bai
+  Splice junctions: /projects/b1042/GoyalLab/egrody/extractedData/EGS004/300cy/counts/polyA/JK85_D13_STAR_SJ.out.tab
+  Alignment log: /projects/b1042/GoyalLab/egrody/extractedData/EGS004/300cy/counts/polyA/JK85_D13_STAR_Log.final.out
+
+Quick alignment stats:
+                        Uniquely mapped reads % |	0.03%
+                       Number of splices: Total |	12404
+
+Ready for paired read analysis!

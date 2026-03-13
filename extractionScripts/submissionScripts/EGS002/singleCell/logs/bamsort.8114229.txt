@@ -1,0 +1,5 @@
+Results written to /projects/b1042/GoyalLab/egrody/extractedData/EGS002/singleCell/bamsort/alignment/invitro_bamsort_env_upstream.csv
+Total reads processed: 10306
+Reads without CB tag: 548
+Reads without UMI tag: 0
+Reads with valid cell barcodes and UMIs: 9758

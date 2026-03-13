@@ -1,0 +1,5 @@
+Index Read 2 is marked as Reverse Complement in RunInfo.xml: The barcode and UMI outputs will be output in Reverse Complement of Sample Sheet inputs.
+Sample sheet being processed by common lib? Yes
+SampleSheet Settings: 
+  CreateFastqForIndexReads = 0
+

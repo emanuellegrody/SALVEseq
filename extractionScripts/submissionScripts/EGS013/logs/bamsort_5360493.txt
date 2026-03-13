@@ -1,0 +1,7 @@
+CSV header: Sample_Name,dataset,folder
+Found 2 samples in CSV
+Error: BAM file does not exist: /outs/possorted_genome_bam.bam
+Error: BAM file does not exist: /outs/possorted_genome_bam.bam
+=============================
+All samples and alignments processed!
+Summary written to: /projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/bamsort/alignment/KLRB1/all_samples_alignment_summary.txt

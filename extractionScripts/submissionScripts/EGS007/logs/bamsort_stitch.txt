@@ -1,0 +1,96 @@
+UMI Fragment Analysis
+============================================================
+Input BAM:     /projects/b1042/GoyalLab/egrody/extractedData/EGS007/longRead/nf-core/cDNA/bam/dedup/cDNA.dedup.sorted.bam
+Output prefix: /projects/b1042/GoyalLab/egrody/extractedData/EGS007/longRead/bamsort/stitch/
+Chromosome:    mac239
+Min UMIs/cell: 2
+Same strand:   True
+Thresholds:    overlap<=20bp, gap<=500bp, gain>=100bp
+============================================================
+Pass 1: Reading BAM file and grouping by cell/UMI...
+  Filtering for chromosome: mac239
+  Processed 1939 reads from 339 cells
+  174 cells have >= 2 UMIs
+
+Pass 2: Computing pairwise UMI relationships...
+
+============================================================
+PROCESSING SUMMARY
+============================================================
+Target chromosome:           mac239
+Total reads examined:        1939
+Unmapped reads:              0
+Reads without cell barcode:  0
+Reads without UMI:           0
+Reads on other chromosomes:  0
+Reads processed:             1939
+Cells processed:             174
+------------------------------------------------------------
+PAIRWISE ANALYSIS
+------------------------------------------------------------
+Total UMI pairs compared:    23958
+Chromosome mismatch:         0
+Strand mismatch (skipped):   108
+COMPLEMENTARY pairs:         1087
+NESTED pairs:                12884
+REDUNDANT pairs:             1817
+DISTANT pairs:               8062
+============================================================
+
+Output files:
+  Pairs:      /projects/b1042/GoyalLab/egrody/extractedData/EGS007/longRead/bamsort/stitch/cDNA_pairs.csv
+  Candidates: /projects/b1042/GoyalLab/egrody/extractedData/EGS007/longRead/bamsort/stitch/cDNA_candidates.csv
+  Summary:    /projects/b1042/GoyalLab/egrody/extractedData/EGS007/longRead/bamsort/stitch/cDNA_summary.csv
+
+UMI Fragment Stitching
+============================================================
+Candidates file: /projects/b1042/GoyalLab/egrody/extractedData/EGS007/longRead/bamsort/stitch/cDNA_candidates.csv
+Pairs file:      /projects/b1042/GoyalLab/egrody/extractedData/EGS007/longRead/bamsort/stitch/cDNA_pairs.csv
+Output prefix:   stitched
+============================================================
+
+Loading candidate pairs...
+  Loaded pairs from 32 cells
+
+Loading UMI data...
+  Loaded UMI data from 173 cells
+
+Building molecule components...
+Computing chain details...
+Computing statistics...
+Writing output files...
+
+============================================================
+STITCHING SUMMARY
+============================================================
+Total cells analyzed:          173
+Total reconstructed molecules: 1123
+Single-fragment molecules:     1088
+Stitched molecules:            35
+Cells with stitching:          32
+Max fragments per molecule:    146
+Total UMIs stitched:           403
+
+Fragment distribution:
+  1 fragment(s): 1088 molecules
+  2 fragment(s): 9 molecules
+  3 fragment(s): 1 molecules
+  4 fragment(s): 2 molecules
+  5 fragment(s): 2 molecules
+  6 fragment(s): 1 molecules
+  7 fragment(s): 5 molecules
+  8 fragment(s): 3 molecules
+  10 fragment(s): 3 molecules
+  11 fragment(s): 3 molecules
+  12 fragment(s): 1 molecules
+  15 fragment(s): 1 molecules
+  17 fragment(s): 1 molecules
+  19 fragment(s): 1 molecules
+  27 fragment(s): 1 molecules
+  146 fragment(s): 1 molecules
+============================================================
+
+Output files:
+  Molecules: stitched_molecules.csv
+  Chains:    stitched_molecule_chains.csv
+  Stats:     stitched_stitching_stats.csv

@@ -1,0 +1,19 @@
+ERROR: Requested sample(s) not found in fastq directory "/gpfs/projects/b1042/GoyalLab/egrody/rawData/EGS014/Sequencing/fastq"
+Available samples:
+D13_D1_nef
+D13_LTR_tat
+D195_D1_nef
+D195_LTR_tat
+D83_D1_nef
+D83_LTR_tat
+GART_D1_nef
+GART_LTR_tat
+Invitro_D1_nef
+Invitro_LTR_tat
+LART_D1_nef
+LART_LTR_tat
+Lacute_D1_nef
+Lacute_LTR_tat
+PART_D1_nef
+PART_LTR_tat
+Pacute

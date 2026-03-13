@@ -1,0 +1,91 @@
+Found 2 R1 file(s) for sample 'P_acute':
+  - P_acute_GEX_S1_L001_R1_001.fastq.gz
+  - P_acute_GEX_S1_L002_R1_001.fastq.gz
+Found 2 R2 file(s) for sample 'P_acute':
+  - P_acute_GEX_S1_L001_R2_001.fastq.gz
+  - P_acute_GEX_S1_L002_R2_001.fastq.gz
+=========================================
+Step 1: Merging 2 lane(s)
+=========================================
+Multiple lanes detected (2 R1 files, 2 R2 files)
+
+Merging R1 files...
+  R1 merge completed in 423 seconds (size: 7.1G)
+
+Merging R2 files...
+  R2 merge completed in 1257 seconds (size: 16G)
+
+Verifying merged files...
+  R1: 7.1G
+  R2: 16G
+
+=========================================
+Step 2: Counting total reads
+=========================================
+Total reads: 413880741
+Counting completed in 155 seconds
+
+=========================================
+Step 3: Subsampling to all depths in parallel
+=========================================
+Starting 150M subsample (fraction: .3624232421)...
+Starting 200M subsample (fraction: .4832309894)...
+Starting 300M subsample (fraction: .7248464842)...
+[INFO][0m sample by proportion
+[INFO][0m sample by proportion
+[INFO][0m sample by proportion
+Starting 400M subsample (fraction: .9664619789)...
+
+Waiting for all 4 subsampling jobs to complete...
+[INFO][0m sample by proportion
+[INFO][0m sample by proportion
+[INFO][0m sample by proportion
+[INFO][0m sample by proportion
+[INFO][0m sample by proportion
+[INFO][0m 149988988 sequences outputted
+[INFO][0m 200012027 sequences outputted
+[INFO][0m 299997366 sequences outputted
+[INFO][0m 399997842 sequences outputted
+[INFO][0m 149988988 sequences outputted
+  150M completed in 801 seconds
+[INFO][0m 299997366 sequences outputted
+  300M completed in 804 seconds
+[INFO][0m 200012027 sequences outputted
+  200M completed in 814 seconds
+[INFO][0m 399997842 sequences outputted
+  400M completed in 964 seconds
+
+All parallel subsampling completed in 964 seconds
+
+Verifying output files...
+  150M: R1=3.0G, R2=6.7G
+  200M: R1=4.0G, R2=8.8G
+  300M: R1=5.9G, R2=14G
+  400M: R1=7.8G, R2=18G
+
+=========================================
+Step 4: Creating CellRanger-compatible filenames
+=========================================
+Creating P_acute_150M...
+Creating P_acute_200M...
+Creating P_acute_300M...
+Creating P_acute_400M...
+
+=========================================
+Submitting cellranger jobs
+=========================================
+Submitting job for P_acute_150M...
+Submitted batch job 2684558
+Submitting job for P_acute_200M...
+Submitted batch job 2684559
+Submitting job for P_acute_300M...
+Submitted batch job 2684560
+Submitting job for P_acute_400M...
+Submitted batch job 2684561
+
+=========================================
+Complete!
+=========================================
+Subsampled FASTQ files are in: /projects/b1042/GoyalLab/egrody/rawData/EGS009/Sequencing/fastq/subsample
+End time: Fri Dec  5 16:15:45 CST 2025
+Total job time: 2808 seconds

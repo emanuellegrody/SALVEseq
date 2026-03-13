@@ -1,0 +1,47 @@
+Martian Runtime - v4.0.11
+Serving UI at http://qnode0158:39903?auth=-03WWbZMo82rArJx4gGFwJqdVEnQOFQg8jMjz9jZRVE
+
+Running preflight checks (please wait)...
+2025-06-11 17:48:32 [runtime] (ready)           ID.mkref_Mmul_10_mac239v4.MAKE_REFERENCE._MAKE_REFERENCE
+2025-06-11 17:48:32 [runtime] (run:local)       ID.mkref_Mmul_10_mac239v4.MAKE_REFERENCE._MAKE_REFERENCE.fork0.split
+2025-06-11 17:48:37 [runtime] (split_complete)  ID.mkref_Mmul_10_mac239v4.MAKE_REFERENCE._MAKE_REFERENCE
+2025-06-11 17:48:37 [runtime] (run:local)       ID.mkref_Mmul_10_mac239v4.MAKE_REFERENCE._MAKE_REFERENCE.fork0.join
+2025-06-11 17:48:56 [runtime] (failed)          ID.mkref_Mmul_10_mac239v4.MAKE_REFERENCE._MAKE_REFERENCE
+
+[error] Pipestance failed. Error log at:
+mkref_Mmul_10_mac239v4/MAKE_REFERENCE/_MAKE_REFERENCE/fork0/join-u0fe64a07c0/_errors
+
+Log message:
+Traceback (most recent call last):
+  File "/gpfs/home/egy2296/packages/cellranger-7.2.0/external/martian/adapters/python/martian_shell.py", line 648, in _main
+    stage.main()
+  File "/gpfs/home/egy2296/packages/cellranger-7.2.0/external/martian/adapters/python/martian_shell.py", line 617, in main
+    self._run(
+  File "/gpfs/home/egy2296/packages/cellranger-7.2.0/external/martian/adapters/python/martian_shell.py", line 564, in _run
+    cmd()
+  File "/gpfs/home/egy2296/packages/cellranger-7.2.0/external/martian/adapters/python/martian_shell.py", line 618, in <lambda>
+    lambda: self._module.join(args, outs, chunk_defs, chunk_outs)
+  File "/gpfs/home/egy2296/packages/cellranger-7.2.0/mro/rna/stages/make_reference/__init__.py", line 54, in join
+    reference_builder.build_gex_reference()
+  File "/gpfs/home/egy2296/packages/cellranger-7.2.0/lib/python/cellranger/reference_builder.py", line 204, in build_gex_reference
+    self.process_fasta()
+  File "/gpfs/home/egy2296/packages/cellranger-7.2.0/lib/python/cellranger/reference_builder.py", line 90, in process_fasta
+    stdout = tk_subproc.check_output(
+  File "/gpfs/home/egy2296/packages/cellranger-7.2.0/lib/python/tenkit/log_subprocess.py", line 97, in check_output
+    return subprocess.check_output(args, encoding=encoding, **kwargs)
+  File "/gpfs/home/egy2296/packages/cellranger-7.2.0/external/anaconda/lib/python3.10/subprocess.py", line 421, in check_output
+    return run(*popenargs, stdout=PIPE, timeout=timeout, check=True,
+  File "/gpfs/home/egy2296/packages/cellranger-7.2.0/external/anaconda/lib/python3.10/subprocess.py", line 526, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['/gpfs/home/egy2296/packages/cellranger-7.2.0/lib/bin/samtools', 'faidx', '/projects/b1042/GoyalLab/egrody/genomes/mkref_Mmul_10_mac239v4/MAKE_REFERENCE/_MAKE_REFERENCE/fork0/join-u0fe64a07c0/files/reference/fasta/genome.fa']' returned non-zero exit status 1.
+
+
+Waiting 6 seconds for UI to do final refresh.
+Pipestance failed. Use --noexit option to keep UI running after failure.
+
+2025-06-11 17:49:02 Shutting down.
+Saving pipestance info to "mkref_Mmul_10_mac239v4/mkref_Mmul_10_mac239v4.mri.tgz"
+For assistance, upload this file to 10x Genomics by running:
+
+cellranger upload <your_email> "mkref_Mmul_10_mac239v4/mkref_Mmul_10_mac239v4.mri.tgz"
+

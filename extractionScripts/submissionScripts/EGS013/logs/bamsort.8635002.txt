@@ -1,0 +1,178 @@
+Processing sample: D1_up_CI
+Input: /projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/counts/Mmul_10_mac239_Pacute_D1_up_CI/outs/possorted_genome_bam.bam
+Output 1: /projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/bamsort/split/D1_up_CI_bamsort_split_inside.csv
+Output 2: /projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/bamsort/split/D1_up_CI_bamsort_split_outside.csv
+Total reads processed: 2400247
+Reads inside region (mac239:1-9602): 1332960
+Reads outside region: 1067287
+Reads without xf:i:25 tag: 2204655
+Reads without CB tag: 0
+Reads without UMI tag: 0
+Unique cellID-UMI combinations inside region: 42259
+Unique cellID-UMI combinations outside region: 153333
+Total rows in inside CSV: 42259
+Total rows in outside CSV: 153333
+Sum of reads column in inside CSV: 42259
+Sum of reads column in outside CSV: 153333
+Inside region results written to: /projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/bamsort/split/D1_up_CI_bamsort_split_inside.csv
+Outside region results written to: /projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/bamsort/split/D1_up_CI_bamsort_split_outside.csv
+Successfully processed D1_up_CI
+Inside region - Total rows: 42259, Total reads: 42259
+Outside region - Total rows: 153333, Total reads: 153333
+----------------------------------------
+Processing sample: LTR_CI
+Input: /projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/counts/Mmul_10_mac239_Pacute_LTR_CI/outs/possorted_genome_bam.bam
+Output 1: /projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/bamsort/split/LTR_CI_bamsort_split_inside.csv
+Output 2: /projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/bamsort/split/LTR_CI_bamsort_split_outside.csv
+Total reads processed: 4503498
+Reads inside region (mac239:1-9602): 1195475
+Reads outside region: 3308023
+Reads without xf:i:25 tag: 4239280
+Reads without CB tag: 0
+Reads without UMI tag: 0
+Unique cellID-UMI combinations inside region: 11062
+Unique cellID-UMI combinations outside region: 253156
+Total rows in inside CSV: 11062
+Total rows in outside CSV: 253156
+Sum of reads column in inside CSV: 11062
+Sum of reads column in outside CSV: 253156
+Inside region results written to: /projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/bamsort/split/LTR_CI_bamsort_split_inside.csv
+Outside region results written to: /projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/bamsort/split/LTR_CI_bamsort_split_outside.csv
+Successfully processed LTR_CI
+Inside region - Total rows: 11062, Total reads: 11062
+Outside region - Total rows: 253156, Total reads: 253156
+----------------------------------------
+Processing sample: nef_CI
+Input: /projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/counts/Mmul_10_mac239_Pacute_nef_CI/outs/possorted_genome_bam.bam
+Output 1: /projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/bamsort/split/nef_CI_bamsort_split_inside.csv
+Output 2: /projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/bamsort/split/nef_CI_bamsort_split_outside.csv
+Total reads processed: 4012145
+Reads inside region (mac239:1-9602): 604609
+Reads outside region: 3407536
+Reads without xf:i:25 tag: 3704531
+Reads without CB tag: 0
+Reads without UMI tag: 0
+Unique cellID-UMI combinations inside region: 12789
+Unique cellID-UMI combinations outside region: 294825
+Total rows in inside CSV: 12789
+Total rows in outside CSV: 294825
+Sum of reads column in inside CSV: 12789
+Sum of reads column in outside CSV: 294825
+Inside region results written to: /projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/bamsort/split/nef_CI_bamsort_split_inside.csv
+Outside region results written to: /projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/bamsort/split/nef_CI_bamsort_split_outside.csv
+Successfully processed nef_CI
+Inside region - Total rows: 12789, Total reads: 12789
+Outside region - Total rows: 294825, Total reads: 294825
+----------------------------------------
+Processing sample: tat_up_CI
+Input: /projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/counts/Mmul_10_mac239_Pacute_tat_up_CI/outs/possorted_genome_bam.bam
+Output 1: /projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/bamsort/split/tat_up_CI_bamsort_split_inside.csv
+Output 2: /projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/bamsort/split/tat_up_CI_bamsort_split_outside.csv
+Total reads processed: 3475530
+Reads inside region (mac239:1-9602): 1089453
+Reads outside region: 2386077
+Reads without xf:i:25 tag: 3202813
+Reads without CB tag: 0
+Reads without UMI tag: 0
+Unique cellID-UMI combinations inside region: 12984
+Unique cellID-UMI combinations outside region: 259733
+Total rows in inside CSV: 12984
+Total rows in outside CSV: 259733
+Sum of reads column in inside CSV: 12984
+Sum of reads column in outside CSV: 259733
+Inside region results written to: /projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/bamsort/split/tat_up_CI_bamsort_split_inside.csv
+Outside region results written to: /projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/bamsort/split/tat_up_CI_bamsort_split_outside.csv
+Successfully processed tat_up_CI
+Inside region - Total rows: 12984, Total reads: 12984
+Outside region - Total rows: 259733, Total reads: 259733
+----------------------------------------
+Processing sample: D1_up_PL
+Input: /projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/counts/Mmul_10_mac239_Pacute_D1_up_PL/outs/possorted_genome_bam.bam
+Output 1: /projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/bamsort/split/D1_up_PL_bamsort_split_inside.csv
+Output 2: /projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/bamsort/split/D1_up_PL_bamsort_split_outside.csv
+Total reads processed: 1377878
+Reads inside region (mac239:1-9602): 77327
+Reads outside region: 1300551
+Reads without xf:i:25 tag: 1273172
+Reads without CB tag: 0
+Reads without UMI tag: 0
+Unique cellID-UMI combinations inside region: 7233
+Unique cellID-UMI combinations outside region: 97473
+Total rows in inside CSV: 7233
+Total rows in outside CSV: 97473
+Sum of reads column in inside CSV: 7233
+Sum of reads column in outside CSV: 97473
+Inside region results written to: /projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/bamsort/split/D1_up_PL_bamsort_split_inside.csv
+Outside region results written to: /projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/bamsort/split/D1_up_PL_bamsort_split_outside.csv
+Successfully processed D1_up_PL
+Inside region - Total rows: 7233, Total reads: 7233
+Outside region - Total rows: 97473, Total reads: 97473
+----------------------------------------
+Processing sample: LTR_PL
+Input: /projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/counts/Mmul_10_mac239_Pacute_LTR_PL/outs/possorted_genome_bam.bam
+Output 1: /projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/bamsort/split/LTR_PL_bamsort_split_inside.csv
+Output 2: /projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/bamsort/split/LTR_PL_bamsort_split_outside.csv
+Total reads processed: 1889793
+Reads inside region (mac239:1-9602): 916
+Reads outside region: 1888877
+Reads without xf:i:25 tag: 1760477
+Reads without CB tag: 0
+Reads without UMI tag: 0
+Unique cellID-UMI combinations inside region: 151
+Unique cellID-UMI combinations outside region: 129165
+Total rows in inside CSV: 151
+Total rows in outside CSV: 129165
+Sum of reads column in inside CSV: 151
+Sum of reads column in outside CSV: 129165
+Inside region results written to: /projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/bamsort/split/LTR_PL_bamsort_split_inside.csv
+Outside region results written to: /projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/bamsort/split/LTR_PL_bamsort_split_outside.csv
+Successfully processed LTR_PL
+Inside region - Total rows: 151, Total reads: 151
+Outside region - Total rows: 129165, Total reads: 129165
+----------------------------------------
+Processing sample: nef_PL
+Input: /projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/counts/Mmul_10_mac239_Pacute_nef_PL/outs/possorted_genome_bam.bam
+Output 1: /projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/bamsort/split/nef_PL_bamsort_split_inside.csv
+Output 2: /projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/bamsort/split/nef_PL_bamsort_split_outside.csv
+Total reads processed: 1217555
+Reads inside region (mac239:1-9602): 510
+Reads outside region: 1217045
+Reads without xf:i:25 tag: 1134533
+Reads without CB tag: 0
+Reads without UMI tag: 0
+Unique cellID-UMI combinations inside region: 96
+Unique cellID-UMI combinations outside region: 82926
+Total rows in inside CSV: 96
+Total rows in outside CSV: 82926
+Sum of reads column in inside CSV: 96
+Sum of reads column in outside CSV: 82926
+Inside region results written to: /projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/bamsort/split/nef_PL_bamsort_split_inside.csv
+Outside region results written to: /projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/bamsort/split/nef_PL_bamsort_split_outside.csv
+Successfully processed nef_PL
+Inside region - Total rows: 96, Total reads: 96
+Outside region - Total rows: 82926, Total reads: 82926
+----------------------------------------
+Processing sample: tat_up_PL
+Input: /projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/counts/Mmul_10_mac239_Pacute_tat_up_PL/outs/possorted_genome_bam.bam
+Output 1: /projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/bamsort/split/tat_up_PL_bamsort_split_inside.csv
+Output 2: /projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/bamsort/split/tat_up_PL_bamsort_split_outside.csv
+Total reads processed: 678797
+Reads inside region (mac239:1-9602): 45
+Reads outside region: 678752
+Reads without xf:i:25 tag: 601772
+Reads without CB tag: 0
+Reads without UMI tag: 0
+Unique cellID-UMI combinations inside region: 23
+Unique cellID-UMI combinations outside region: 77002
+Total rows in inside CSV: 23
+Total rows in outside CSV: 77002
+Sum of reads column in inside CSV: 23
+Sum of reads column in outside CSV: 77002
+Inside region results written to: /projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/bamsort/split/tat_up_PL_bamsort_split_inside.csv
+Outside region results written to: /projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/bamsort/split/tat_up_PL_bamsort_split_outside.csv
+Successfully processed tat_up_PL
+Inside region - Total rows: 23, Total reads: 23
+Outside region - Total rows: 77002, Total reads: 77002
+----------------------------------------
+All samples processed
+Summary written to: /projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/bamsort/split/all_samples_summary.txt

@@ -1,0 +1,8 @@
+Processing sample: W0_concat
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGS002/singleCell/counts/concat/Mmul_10_mac239_W0_concat/outs/possorted_genome_bam.bam
+  Successfully processed W0_concat for KLRB1
+  Statistics: Rows=570, Total reads=2165
+  -----------------------------
+=============================
+All samples and alignments processed!
+Summary written to: /projects/b1042/GoyalLab/egrody/extractedData/EGS002/singleCell/bamsort/alignment/all_samples_alignment_summary.txt

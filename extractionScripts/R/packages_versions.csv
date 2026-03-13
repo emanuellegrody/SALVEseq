@@ -1,4 +1,5 @@
 "package","version"
+"clustree","0.5.1"
 "CoGAPS","3.29.1"
 "data.table","1.17.8"
 "doParallel","1.0.17"
@@ -18,6 +19,7 @@
 "philentropy","0.9.0"
 "R.utils","2.13.0"
 "reshape2","1.4.4"
+"reticulate","1.44.1"
 "scales","1.4.0"
 "scCustomize","2.1.2"
 "Seurat","5.4.0"

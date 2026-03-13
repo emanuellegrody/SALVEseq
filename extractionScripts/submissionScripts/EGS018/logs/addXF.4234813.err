@@ -1,0 +1,15 @@
+2025-09-18 16:36:15,149 - INFO - Processing: /projects/b1042/GoyalLab/egrody/extractedData/EGS018/SALVE/STAR/bams_UMI/KLRB1_W2_combined_tagged_sorted.bam -> /projects/b1042/GoyalLab/egrody/extractedData/EGS018/SALVE/STAR/bams_final/KLRB1_W2_combined_final_new.bam
+2025-09-18 16:36:15,149 - INFO - Finding UMI representatives...
+2025-09-18 16:40:16,008 - INFO - Found 7898543 UMI representatives
+2025-09-18 16:43:29,971 - INFO - Adding XF flags to reads...
+2025-09-18 16:49:56,931 - INFO - Processed 15,867,184 reads
+2025-09-18 16:49:56,966 - INFO - XF flag distribution:
+2025-09-18 16:49:56,971 - INFO -   XF= 0: 1,352,688 (  8.5%) - Unmapped/low quality/missing tags
+2025-09-18 16:49:56,971 - INFO -   XF= 1: 1,625,610 ( 10.2%) - Mapped only
+2025-09-18 16:49:56,971 - INFO -   XF=16: 1,927,309 ( 12.1%) - Feature assigned only
+2025-09-18 16:49:56,971 - INFO -   XF=17: 2,736,709 ( 17.2%) - Mapped + Feature (duplicate)
+2025-09-18 16:49:56,971 - INFO -   XF=20:  203,495 (  1.3%) - Feature + Multiple genes
+2025-09-18 16:49:56,971 - INFO -   XF=21:  499,483 (  3.1%) - Mapped + Feature + Multiple genes
+2025-09-18 16:49:56,971 - INFO -   XF=25: 7,521,890 ( 47.4%) - Mapped + Feature + Counted (UMI)
+2025-09-18 16:50:21,306 - INFO - Indexing output BAM...
+2025-09-18 16:50:39,589 - INFO - Complete!

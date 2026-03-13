@@ -1,0 +1,7 @@
+Found 5 coordinate ranges in /projects/b1042/GoyalLab/egrody/extractionScripts/submissionScripts/bamsort_coordinates_GEX.csv
+Error: BAM file does not exist: /projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/counts/Mmul_10_mac239_P_acute_150M/outs/possorted_genome_bam.bam
+Error: BAM file does not exist: /projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/counts/Mmul_10_mac239_P_acute_200M/outs/possorted_genome_bam.bam
+Error: BAM file does not exist: /projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/counts/Mmul_10_mac239_P_acute_300M/outs/possorted_genome_bam.bam
+Error: BAM file does not exist: /projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/counts/Mmul_10_mac239_P_acute_400M/outs/possorted_genome_bam.bam
+All samples and alignments processed!
+Summary written to: /projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/bamsort/alignment/subsample/all_samples_alignment_summary.txt

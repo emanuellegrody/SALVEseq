@@ -1,0 +1,1208 @@
+Found 28 samples in /projects/b1042/GoyalLab/egrody/extractionScripts/submissionScripts/mkcounts_sampleSheet.csv
+Found 5 coordinate ranges in /projects/b1042/GoyalLab/egrody/extractionScripts/submissionScripts/bamsort_coordinates_GEX.csv
+Processing sample: Pacute_env_PL
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGS016/SALVE/counts/Mmul_10_mac239/Mmul_10_mac239_Pacute_env_PL/outs/possorted_genome_bam.bam
+  Alignment: LTR_D1 (Position 1-422)
+  Error processing Pacute_env_PL for LTR_D1
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: D1_A1 (Position 432-4642)
+  Error processing Pacute_env_PL for D1_A1
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: A1_D4 (Position 4652-6035)
+  Error processing Pacute_env_PL for A1_D4
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: D4_A7 (Position 6045-8243)
+  Error processing Pacute_env_PL for D4_A7
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: A7_LTR (Position 8253-9578)
+  Error processing Pacute_env_PL for A7_LTR
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+=============================
+Processing sample: Pacute_SSenv_PL
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGS016/SALVE/counts/Mmul_10_mac239/Mmul_10_mac239_Pacute_SSenv_PL/outs/possorted_genome_bam.bam
+  Alignment: LTR_D1 (Position 1-422)
+  Error processing Pacute_SSenv_PL for LTR_D1
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: D1_A1 (Position 432-4642)
+  Error processing Pacute_SSenv_PL for D1_A1
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: A1_D4 (Position 4652-6035)
+  Error processing Pacute_SSenv_PL for A1_D4
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: D4_A7 (Position 6045-8243)
+  Error processing Pacute_SSenv_PL for D4_A7
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: A7_LTR (Position 8253-9578)
+  Error processing Pacute_SSenv_PL for A7_LTR
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+=============================
+Processing sample: Pacute_D1_PL
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGS016/SALVE/counts/Mmul_10_mac239/Mmul_10_mac239_Pacute_D1_PL/outs/possorted_genome_bam.bam
+  Alignment: LTR_D1 (Position 1-422)
+  Error processing Pacute_D1_PL for LTR_D1
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: D1_A1 (Position 432-4642)
+  Error processing Pacute_D1_PL for D1_A1
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: A1_D4 (Position 4652-6035)
+  Error processing Pacute_D1_PL for A1_D4
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: D4_A7 (Position 6045-8243)
+  Error processing Pacute_D1_PL for D4_A7
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: A7_LTR (Position 8253-9578)
+  Error processing Pacute_D1_PL for A7_LTR
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+=============================
+Processing sample: Pacute_pol_PL
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGS016/SALVE/counts/Mmul_10_mac239/Mmul_10_mac239_Pacute_pol_PL/outs/possorted_genome_bam.bam
+  Alignment: LTR_D1 (Position 1-422)
+  Error processing Pacute_pol_PL for LTR_D1
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: D1_A1 (Position 432-4642)
+  Error processing Pacute_pol_PL for D1_A1
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: A1_D4 (Position 4652-6035)
+  Error processing Pacute_pol_PL for A1_D4
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: D4_A7 (Position 6045-8243)
+  Error processing Pacute_pol_PL for D4_A7
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: A7_LTR (Position 8253-9578)
+  Error processing Pacute_pol_PL for A7_LTR
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+=============================
+Processing sample: W2_env_PL
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGS016/SALVE/counts/Mmul_10_mac239/Mmul_10_mac239_W2_env_PL/outs/possorted_genome_bam.bam
+  Alignment: LTR_D1 (Position 1-422)
+  Error processing W2_env_PL for LTR_D1
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: D1_A1 (Position 432-4642)
+  Error processing W2_env_PL for D1_A1
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: A1_D4 (Position 4652-6035)
+  Error processing W2_env_PL for A1_D4
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: D4_A7 (Position 6045-8243)
+  Error processing W2_env_PL for D4_A7
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: A7_LTR (Position 8253-9578)
+  Error processing W2_env_PL for A7_LTR
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+=============================
+Processing sample: W2_SSenv_PL
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGS016/SALVE/counts/Mmul_10_mac239/Mmul_10_mac239_W2_SSenv_PL/outs/possorted_genome_bam.bam
+  Alignment: LTR_D1 (Position 1-422)
+  Error processing W2_SSenv_PL for LTR_D1
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: D1_A1 (Position 432-4642)
+  Error processing W2_SSenv_PL for D1_A1
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: A1_D4 (Position 4652-6035)
+  Error processing W2_SSenv_PL for A1_D4
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: D4_A7 (Position 6045-8243)
+  Error processing W2_SSenv_PL for D4_A7
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: A7_LTR (Position 8253-9578)
+  Error processing W2_SSenv_PL for A7_LTR
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+=============================
+Processing sample: W2_D1_PL
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGS016/SALVE/counts/Mmul_10_mac239/Mmul_10_mac239_W2_D1_PL/outs/possorted_genome_bam.bam
+  Alignment: LTR_D1 (Position 1-422)
+  Error processing W2_D1_PL for LTR_D1
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: D1_A1 (Position 432-4642)
+  Error processing W2_D1_PL for D1_A1
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: A1_D4 (Position 4652-6035)
+  Error processing W2_D1_PL for A1_D4
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: D4_A7 (Position 6045-8243)
+  Error processing W2_D1_PL for D4_A7
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: A7_LTR (Position 8253-9578)
+  Error processing W2_D1_PL for A7_LTR
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+=============================
+Processing sample: W2_pol_PL
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGS016/SALVE/counts/Mmul_10_mac239/Mmul_10_mac239_W2_pol_PL/outs/possorted_genome_bam.bam
+  Alignment: LTR_D1 (Position 1-422)
+  Error processing W2_pol_PL for LTR_D1
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: D1_A1 (Position 432-4642)
+  Error processing W2_pol_PL for D1_A1
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: A1_D4 (Position 4652-6035)
+  Error processing W2_pol_PL for A1_D4
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: D4_A7 (Position 6045-8243)
+  Error processing W2_pol_PL for D4_A7
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: A7_LTR (Position 8253-9578)
+  Error processing W2_pol_PL for A7_LTR
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+=============================
+Processing sample: D0_env_PL
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGS016/SALVE/counts/Mmul_10_mac239/Mmul_10_mac239_D0_env_PL/outs/possorted_genome_bam.bam
+  Alignment: LTR_D1 (Position 1-422)
+  Error processing D0_env_PL for LTR_D1
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: D1_A1 (Position 432-4642)
+  Error processing D0_env_PL for D1_A1
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: A1_D4 (Position 4652-6035)
+  Error processing D0_env_PL for A1_D4
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: D4_A7 (Position 6045-8243)
+  Error processing D0_env_PL for D4_A7
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: A7_LTR (Position 8253-9578)
+  Error processing D0_env_PL for A7_LTR
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+=============================
+Processing sample: D0_SSenv_PL
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGS016/SALVE/counts/Mmul_10_mac239/Mmul_10_mac239_D0_SSenv_PL/outs/possorted_genome_bam.bam
+  Alignment: LTR_D1 (Position 1-422)
+  Error processing D0_SSenv_PL for LTR_D1
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: D1_A1 (Position 432-4642)
+  Error processing D0_SSenv_PL for D1_A1
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: A1_D4 (Position 4652-6035)
+  Error processing D0_SSenv_PL for A1_D4
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: D4_A7 (Position 6045-8243)
+  Error processing D0_SSenv_PL for D4_A7
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: A7_LTR (Position 8253-9578)
+  Error processing D0_SSenv_PL for A7_LTR
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+=============================
+Processing sample: D0_D1_PL
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGS016/SALVE/counts/Mmul_10_mac239/Mmul_10_mac239_D0_D1_PL/outs/possorted_genome_bam.bam
+  Alignment: LTR_D1 (Position 1-422)
+  Error processing D0_D1_PL for LTR_D1
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: D1_A1 (Position 432-4642)
+  Error processing D0_D1_PL for D1_A1
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: A1_D4 (Position 4652-6035)
+  Error processing D0_D1_PL for A1_D4
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: D4_A7 (Position 6045-8243)
+  Error processing D0_D1_PL for D4_A7
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: A7_LTR (Position 8253-9578)
+  Error processing D0_D1_PL for A7_LTR
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+=============================
+Processing sample: D0_pol_PL
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGS016/SALVE/counts/Mmul_10_mac239/Mmul_10_mac239_D0_pol_PL/outs/possorted_genome_bam.bam
+  Alignment: LTR_D1 (Position 1-422)
+  Error processing D0_pol_PL for LTR_D1
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: D1_A1 (Position 432-4642)
+  Error processing D0_pol_PL for D1_A1
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: A1_D4 (Position 4652-6035)
+  Error processing D0_pol_PL for A1_D4
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: D4_A7 (Position 6045-8243)
+  Error processing D0_pol_PL for D4_A7
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: A7_LTR (Position 8253-9578)
+  Error processing D0_pol_PL for A7_LTR
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+=============================
+Processing sample: W0_env_PL
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGS016/SALVE/counts/Mmul_10_mac239/Mmul_10_mac239_W0_env_PL/outs/possorted_genome_bam.bam
+  Alignment: LTR_D1 (Position 1-422)
+  Error processing W0_env_PL for LTR_D1
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: D1_A1 (Position 432-4642)
+  Error processing W0_env_PL for D1_A1
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: A1_D4 (Position 4652-6035)
+  Error processing W0_env_PL for A1_D4
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: D4_A7 (Position 6045-8243)
+  Error processing W0_env_PL for D4_A7
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: A7_LTR (Position 8253-9578)
+  Error processing W0_env_PL for A7_LTR
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+=============================
+Processing sample: W0_SSenv_PL
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGS016/SALVE/counts/Mmul_10_mac239/Mmul_10_mac239_W0_SSenv_PL/outs/possorted_genome_bam.bam
+  Alignment: LTR_D1 (Position 1-422)
+  Error processing W0_SSenv_PL for LTR_D1
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: D1_A1 (Position 432-4642)
+  Error processing W0_SSenv_PL for D1_A1
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: A1_D4 (Position 4652-6035)
+  Error processing W0_SSenv_PL for A1_D4
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: D4_A7 (Position 6045-8243)
+  Error processing W0_SSenv_PL for D4_A7
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: A7_LTR (Position 8253-9578)
+  Error processing W0_SSenv_PL for A7_LTR
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+=============================
+Processing sample: W0_D1_PL
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGS016/SALVE/counts/Mmul_10_mac239/Mmul_10_mac239_W0_D1_PL/outs/possorted_genome_bam.bam
+  Alignment: LTR_D1 (Position 1-422)
+  Error processing W0_D1_PL for LTR_D1
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: D1_A1 (Position 432-4642)
+  Error processing W0_D1_PL for D1_A1
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: A1_D4 (Position 4652-6035)
+  Error processing W0_D1_PL for A1_D4
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: D4_A7 (Position 6045-8243)
+  Error processing W0_D1_PL for D4_A7
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: A7_LTR (Position 8253-9578)
+  Error processing W0_D1_PL for A7_LTR
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+=============================
+Processing sample: W0_pol_PL
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGS016/SALVE/counts/Mmul_10_mac239/Mmul_10_mac239_W0_pol_PL/outs/possorted_genome_bam.bam
+  Alignment: LTR_D1 (Position 1-422)
+  Error processing W0_pol_PL for LTR_D1
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: D1_A1 (Position 432-4642)
+  Error processing W0_pol_PL for D1_A1
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: A1_D4 (Position 4652-6035)
+  Error processing W0_pol_PL for A1_D4
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: D4_A7 (Position 6045-8243)
+  Error processing W0_pol_PL for D4_A7
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: A7_LTR (Position 8253-9578)
+  Error processing W0_pol_PL for A7_LTR
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+=============================
+Processing sample: D83_env_PL
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGS016/SALVE/counts/Mmul_10_mac239/Mmul_10_mac239_D83_env_PL/outs/possorted_genome_bam.bam
+  Alignment: LTR_D1 (Position 1-422)
+  Error processing D83_env_PL for LTR_D1
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: D1_A1 (Position 432-4642)
+  Error processing D83_env_PL for D1_A1
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: A1_D4 (Position 4652-6035)
+  Error processing D83_env_PL for A1_D4
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: D4_A7 (Position 6045-8243)
+  Error processing D83_env_PL for D4_A7
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: A7_LTR (Position 8253-9578)
+  Error processing D83_env_PL for A7_LTR
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+=============================
+Processing sample: D83_SSenv_PL
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGS016/SALVE/counts/Mmul_10_mac239/Mmul_10_mac239_D83_SSenv_PL/outs/possorted_genome_bam.bam
+  Alignment: LTR_D1 (Position 1-422)
+  Error processing D83_SSenv_PL for LTR_D1
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: D1_A1 (Position 432-4642)
+  Error processing D83_SSenv_PL for D1_A1
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: A1_D4 (Position 4652-6035)
+  Error processing D83_SSenv_PL for A1_D4
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: D4_A7 (Position 6045-8243)
+  Error processing D83_SSenv_PL for D4_A7
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: A7_LTR (Position 8253-9578)
+  Error processing D83_SSenv_PL for A7_LTR
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+=============================
+Processing sample: D83_D1_up_PL
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGS016/SALVE/counts/Mmul_10_mac239/Mmul_10_mac239_D83_D1_up_PL/outs/possorted_genome_bam.bam
+  Alignment: LTR_D1 (Position 1-422)
+  Error processing D83_D1_up_PL for LTR_D1
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: D1_A1 (Position 432-4642)
+  Error processing D83_D1_up_PL for D1_A1
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: A1_D4 (Position 4652-6035)
+  Error processing D83_D1_up_PL for A1_D4
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: D4_A7 (Position 6045-8243)
+  Error processing D83_D1_up_PL for D4_A7
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: A7_LTR (Position 8253-9578)
+  Error processing D83_D1_up_PL for A7_LTR
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+=============================
+Processing sample: D83_pol_PL
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGS016/SALVE/counts/Mmul_10_mac239/Mmul_10_mac239_D83_pol_PL/outs/possorted_genome_bam.bam
+  Alignment: LTR_D1 (Position 1-422)
+  Error processing D83_pol_PL for LTR_D1
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: D1_A1 (Position 432-4642)
+  Error processing D83_pol_PL for D1_A1
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: A1_D4 (Position 4652-6035)
+  Error processing D83_pol_PL for A1_D4
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: D4_A7 (Position 6045-8243)
+  Error processing D83_pol_PL for D4_A7
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: A7_LTR (Position 8253-9578)
+  Error processing D83_pol_PL for A7_LTR
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+=============================
+Processing sample: D195_env_PL
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGS016/SALVE/counts/Mmul_10_mac239/Mmul_10_mac239_D195_env_PL/outs/possorted_genome_bam.bam
+  Alignment: LTR_D1 (Position 1-422)
+  Error processing D195_env_PL for LTR_D1
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: D1_A1 (Position 432-4642)
+  Error processing D195_env_PL for D1_A1
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: A1_D4 (Position 4652-6035)
+  Error processing D195_env_PL for A1_D4
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: D4_A7 (Position 6045-8243)
+  Error processing D195_env_PL for D4_A7
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: A7_LTR (Position 8253-9578)
+  Error processing D195_env_PL for A7_LTR
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+=============================
+Processing sample: D195_SSenv_PL
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGS016/SALVE/counts/Mmul_10_mac239/Mmul_10_mac239_D195_SSenv_PL/outs/possorted_genome_bam.bam
+  Alignment: LTR_D1 (Position 1-422)
+  Error processing D195_SSenv_PL for LTR_D1
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: D1_A1 (Position 432-4642)
+  Error processing D195_SSenv_PL for D1_A1
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: A1_D4 (Position 4652-6035)
+  Error processing D195_SSenv_PL for A1_D4
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: D4_A7 (Position 6045-8243)
+  Error processing D195_SSenv_PL for D4_A7
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: A7_LTR (Position 8253-9578)
+  Error processing D195_SSenv_PL for A7_LTR
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+=============================
+Processing sample: D195_D1_PL
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGS016/SALVE/counts/Mmul_10_mac239/Mmul_10_mac239_D195_D1_PL/outs/possorted_genome_bam.bam
+  Alignment: LTR_D1 (Position 1-422)
+  Error processing D195_D1_PL for LTR_D1
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: D1_A1 (Position 432-4642)
+  Error processing D195_D1_PL for D1_A1
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: A1_D4 (Position 4652-6035)
+  Error processing D195_D1_PL for A1_D4
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: D4_A7 (Position 6045-8243)
+  Error processing D195_D1_PL for D4_A7
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: A7_LTR (Position 8253-9578)
+  Error processing D195_D1_PL for A7_LTR
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+=============================
+Processing sample: D195_pol_PL
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGS016/SALVE/counts/Mmul_10_mac239/Mmul_10_mac239_D195_pol_PL/outs/possorted_genome_bam.bam
+  Alignment: LTR_D1 (Position 1-422)
+  Error processing D195_pol_PL for LTR_D1
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: D1_A1 (Position 432-4642)
+  Error processing D195_pol_PL for D1_A1
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: A1_D4 (Position 4652-6035)
+  Error processing D195_pol_PL for A1_D4
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: D4_A7 (Position 6045-8243)
+  Error processing D195_pol_PL for D4_A7
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: A7_LTR (Position 8253-9578)
+  Error processing D195_pol_PL for A7_LTR
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+=============================
+Processing sample: Invitro_env_PL
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGS016/SALVE/counts/Mmul_10_mac239/Mmul_10_mac239_Invitro_env_PL/outs/possorted_genome_bam.bam
+  Alignment: LTR_D1 (Position 1-422)
+  Error processing Invitro_env_PL for LTR_D1
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: D1_A1 (Position 432-4642)
+  Error processing Invitro_env_PL for D1_A1
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: A1_D4 (Position 4652-6035)
+  Error processing Invitro_env_PL for A1_D4
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: D4_A7 (Position 6045-8243)
+  Error processing Invitro_env_PL for D4_A7
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: A7_LTR (Position 8253-9578)
+  Error processing Invitro_env_PL for A7_LTR
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+=============================
+Processing sample: Invitro_SSenv_PL
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGS016/SALVE/counts/Mmul_10_mac239/Mmul_10_mac239_Invitro_SSenv_PL/outs/possorted_genome_bam.bam
+  Alignment: LTR_D1 (Position 1-422)
+  Error processing Invitro_SSenv_PL for LTR_D1
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: D1_A1 (Position 432-4642)
+  Error processing Invitro_SSenv_PL for D1_A1
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: A1_D4 (Position 4652-6035)
+  Error processing Invitro_SSenv_PL for A1_D4
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: D4_A7 (Position 6045-8243)
+  Error processing Invitro_SSenv_PL for D4_A7
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: A7_LTR (Position 8253-9578)
+  Error processing Invitro_SSenv_PL for A7_LTR
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+=============================
+Processing sample: Invitro_D1_PL
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGS016/SALVE/counts/Mmul_10_mac239/Mmul_10_mac239_Invitro_D1_PL/outs/possorted_genome_bam.bam
+  Alignment: LTR_D1 (Position 1-422)
+  Error processing Invitro_D1_PL for LTR_D1
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: D1_A1 (Position 432-4642)
+  Error processing Invitro_D1_PL for D1_A1
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: A1_D4 (Position 4652-6035)
+  Error processing Invitro_D1_PL for A1_D4
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: D4_A7 (Position 6045-8243)
+  Error processing Invitro_D1_PL for D4_A7
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: A7_LTR (Position 8253-9578)
+  Error processing Invitro_D1_PL for A7_LTR
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+=============================
+Processing sample: Invitro_pol_PL
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGS016/SALVE/counts/Mmul_10_mac239/Mmul_10_mac239_Invitro_pol_PL/outs/possorted_genome_bam.bam
+  Alignment: LTR_D1 (Position 1-422)
+  Error processing Invitro_pol_PL for LTR_D1
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: D1_A1 (Position 432-4642)
+  Error processing Invitro_pol_PL for D1_A1
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: A1_D4 (Position 4652-6035)
+  Error processing Invitro_pol_PL for A1_D4
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: D4_A7 (Position 6045-8243)
+  Error processing Invitro_pol_PL for D4_A7
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+  Alignment: A7_LTR (Position 8253-9578)
+  Error processing Invitro_pol_PL for A7_LTR
+  Error message: Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 1, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'
+
+  -----------------------------
+=============================
+All samples and alignments processed!
+Summary written to: /projects/b1042/GoyalLab/egrody/extractedData/EGS016/SALVE/bamsort/alignment/v5coordinates/all_samples_alignment_summary.txt

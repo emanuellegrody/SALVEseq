@@ -1,0 +1,8 @@
+ERROR: Requested sample(s) not found in fastq directory "/gpfs/projects/b1042/GoyalLab/egrody/rawData/EGS014/Sequencing/fastq/GEX"
+Available samples:
+HD88_W0
+JK85_D13
+LP29_D195
+LP29_D83
+L_acute_GEX
+invitro

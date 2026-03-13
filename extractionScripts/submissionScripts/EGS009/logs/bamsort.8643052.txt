@@ -1,0 +1,24 @@
+Processing sample: P_acute_GEX
+Input: /projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/counts/Mmul_10_mac239/Mmul_10_mac239_P_acute_GEX/outs/possorted_genome_bam.bam
+Output 1: /projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/bamsort/split/P_acute_GEX_bamsort_split_inside.csv
+Output 2: /projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/bamsort/split/P_acute_GEX_bamsort_split_outside.csv
+Total reads processed: 400788205
+Reads inside region (mac239:1-9602): 33121
+Reads outside region: 400755084
+Reads without xf:i:25 tag: 350235418
+Reads without CB tag: 0
+Reads without UMI tag: 0
+Unique cellID-UMI combinations inside region: 5500
+Unique cellID-UMI combinations outside region: 50547287
+Total rows in inside CSV: 5500
+Total rows in outside CSV: 50547287
+Sum of reads column in inside CSV: 5500
+Sum of reads column in outside CSV: 50547287
+Inside region results written to: /projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/bamsort/split/P_acute_GEX_bamsort_split_inside.csv
+Outside region results written to: /projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/bamsort/split/P_acute_GEX_bamsort_split_outside.csv
+Successfully processed P_acute_GEX
+Inside region - Total rows: 5500, Total reads: 5500
+Outside region - Total rows: 50547287, Total reads: 50547287
+----------------------------------------
+All samples processed
+Summary written to: /projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/bamsort/split/all_samples_summary.txt

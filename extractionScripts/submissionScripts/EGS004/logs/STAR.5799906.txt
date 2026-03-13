@@ -1,0 +1,7 @@
+Checking GTF file format...
+Found 0 exon lines in GTF file
+Error: No exon lines found in GTF file. Checking file format...
+First 10 lines of GTF file:
+mac239	manual	gene	1	9602	.	+	.	gene_id "mac239_gene"; gene_name "mac239_gene"; gene_biotype "genomic_region";
+mac239	manual	transcript	1	9602	.	+	.	gene_id "mac239_gene"; transcript_id "mac239_transcript"; gene_name "mac239_gene"; gene_biotype "genomic_region";
+mac239	manual	exon	1	9602	.	+	.	gene_id "mac239_gene"; transcript_id "mac239_transcript"; exon_number "1"; gene_name "mac239_gene"; gene_biotype "genomic_region";

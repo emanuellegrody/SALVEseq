@@ -908,14 +908,14 @@ for (i in 1:nrow(samples)) {
   
   tryCatch({
     seurat_obj <- SeuratPipeline(input.dir, sample_name, 
-                                 output_dir = "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/Seurat/plots/", 
+                                 output_dir = "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/Seurat/", 
                                  plots = TRUE, rds = TRUE)
     
     # Generate expression data frame without gene expression
     sample_df <- targetExpressionDF(seurat_obj, genes = "")
 
     # Add sample and target columns to the dataframe
-    sample_df$size <- colSums(GetAssayData(seurat_obj, assay = "RNA", slot = "counts"))
+    sample_df$size <- colSums(GetAssayData(seurat_obj, assay = "RNA", layer = "counts"))
     sample_df$sample <- sample_name
 
     write.csv(sample_df, paste0(output.dir, sample_name, "UMAP_coords.csv"))
@@ -948,7 +948,7 @@ calculate_object_diversity <- function(seurat_obj, celltype_col = "seurat_cluste
   n_celltypes <- length(cell_counts)
   
   # 2. Gene expression variance
-  expr_data <- GetAssayData(seurat_obj, slot = "data")
+  expr_data <- GetAssayData(seurat_obj, layer = "data")
   
   # Calculate coefficient of variation for each gene
   gene_cv <- apply(expr_data, 1, function(x) {
@@ -1250,7 +1250,7 @@ seurat_obj$supervised_cluster <- "Other"
 
 # First identify CD8+ T cells (highest priority - distinct lineage)
 # Use normalized expression data
-cd8_expression <- GetAssayData(seurat_obj, slot = "data")["CD8A", ]
+cd8_expression <- GetAssayData(seurat_obj, layer = "data")["CD8A", ]
 cd8_threshold <- quantile(cd8_expression[cd8_expression > 0], 0.3, na.rm = TRUE)
 
 # If CD8A is detected (non-zero), use expression threshold
@@ -1288,7 +1288,7 @@ FeaturePlot(seurat_obj, features = c("CD8A", "Effector_Score1", "Memory_Score1",
 
 
 # Get CD8A expression from normalized data
-cd8a_expression <- GetAssayData(seurat_obj, slot = "data")["CD8A", ]
+cd8a_expression <- GetAssayData(seurat_obj, layer = "data")["CD8A", ]
 
 # Initialize classification
 seurat_obj$supervised_cluster <- "Other"
@@ -1591,11 +1591,11 @@ for (sample_name in names(joint_data)) {
     filter(SALVE != 0) %>%
     filter(!(cellID %in% both$cellID))
 
-  cat(sample_name, "\t",
-      nrow(current_df), "\t",
-      nrow(both), "\t",
-      nrow(onlySingleCell), "\t",
-      nrow(onlySALVE), "\n")
+  # cat(sample_name, "\t",
+  #     nrow(current_df), "\t",
+  #     nrow(both), "\t",
+  #     nrow(onlySingleCell), "\t",
+  #     nrow(onlySALVE), "\n")
 
   # cat(sample_name, "\tCorrelation:", cor(current_df$GEX, current_df$SALVE), "\n",
   #     "\tMax SALVE:", max(current_df$SALVE), "\n",
@@ -1634,42 +1634,20 @@ for (sample_name in names(joint_data)) {
   #        plot = p)
   # ggsave(paste0(output.dir, sample_name, "_CD4_correlation_2Dbinning.svg"),
   #        plot = p_exclude_zero)
-  # 
-  # 
-  # output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/joint/plots/"
-  # plotUMAP(current_df, colorby = GEX,
-  #        paste0(sample_name, " joint SIV total: GEX (bamsort)"),
-  #        output.dir,
-  #        paste0(sample_name, "_CD4_GEX_bamsort.pdf"),
-  #        comparison = FALSE, color = "red")
-  # plotUMAP(current_df, colorby = SALVE,
-  #        paste0(sample_name, " joint SIV total: SALVE (bamsort)"),
-  #        output.dir,
-  #        paste0(sample_name, "_CD4_SALVE_bamsort.pdf"),
-  #        comparison = FALSE, color = "red")
 
-  # SKIP this chunk
-  # pearson_cor <- cor(current_df$all_spliced, current_df$spliced.x, use = "complete.obs")
-  # r_squared <- pearson_cor^2
-  # lm_model <- lm(spliced.x ~ all_spliced, data = current_df)
-  # slope <- coef(lm_model)[2]
-  # p <- ggplot(data = current_df, aes(x = all_spliced, y = spliced.x)) +
-  #     geom_point() +
-  #   geom_smooth(method = "lm", se = TRUE, color = "red") +
-  #     labs(
-  #       x = "SALVE spliced",
-  #       y = "GEX spliced",
-  #       title = paste("Correlation for ", sample_name)
-  #     ) +
-  #     theme_minimal()# +
-  #     # annotate("text",
-  #     #      x = -Inf, y = Inf,
-  #     #      label = paste("Slope =", round(slope, 3), "\n",
-  #     #                   "R² =", round(r_squared, 3), "\n",
-  #     #                   "r =", round(pearson_cor, 3)),
-  #     #      hjust = -0.1, vjust = 1.2,
-  #     #      size = 4, color = "black")
-  # print(p)
+
+  output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/joint/plots/"
+  plotUMAP(current_df, colorby = GEX,
+         paste0(sample_name, " joint SIV total: GEX (bamsort)"),
+         output.dir,
+         paste0(sample_name, "_CD4_GEX_bamsort.pdf"),
+         comparison = FALSE, color = "red")
+  plotUMAP(current_df, colorby = SALVE,
+         paste0(sample_name, " joint SIV total: SALVE (bamsort)"),
+         output.dir,
+         paste0(sample_name, "_CD4_SALVE_bamsort.pdf"),
+         comparison = FALSE, color = "red")
+
 
   
   #Save CSVs
@@ -1727,7 +1705,7 @@ for (sample_name in names(joint_data)) {
 
 ```
 
-Splicing UMAPS (not updated)
+Splicing UMAPS w expression
 ```{r}
 ## for lightning talk figures
   output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/joint/plots/v5/subset/"
@@ -1751,6 +1729,41 @@ Splicing UMAPS (not updated)
          output.dir,
          paste0(sample_name, "_umap_GEX.svg"),
          comparison = FALSE, color = "purple4")
+```
+
+Splicing UMAPS w/o expression (identity only)
+```{r}
+output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/joint/plots/identity/"
+col1s <- c("infected", "splicers")
+col2s <- c("uninfected", "nonsplicers")
+
+for (i in 1:length(samples)) {
+  sample_name <- samples[i]
+  df <- joint_data[[sample_name]]
+  
+  df <- df %>%
+    mutate(infected = ifelse(SALVE > 0, 1, 0), uninfected = ifelse(SALVE == 0, 1, 0),
+           splicers = ifelse(SS > 0 | MS > 0, 1, 0)) %>%
+    mutate(nonsplicers = ifelse(infected == 1 & splicers == 0, 1, 0))
+  
+  cat(sample_name, "\nTotal:\t", nrow(df),
+        "\nInfected:\t", sum(df$infected),
+        "\nUninfected:\t", sum(df$uninfected),
+        "\nSplice+:\t", sum(df$splicers),
+        "\nSplice-:\t", sum(df$nonsplicers),
+        "\n\n")
+  
+  for (j in 1:length(col1s)) {
+    col1 <- col1s[j]
+    col2 <- col2s[j]
+    
+    create_identity_umap(df, col1, col2,
+              paste0("Identity: ", col1, " vs ", col2),
+              paste0(sample_name, "_identity_", col1, "_", col2, ".pdf"),
+              output_dir = output.dir)
+  }
+}
+
 ```
 
 ### combined counts
@@ -1929,9 +1942,9 @@ for (sample in samples) {
   cells_set2 <- c(cellsList_SALVEonly$cellID, cellsList_both$cellID)
   cells_both <- cellsList_both$cellID
   
-  expr1 <- as.matrix(GetAssayData(seurat_obj[, cells_set1], slot = "data")[var_features, ])
-  expr2 <- as.matrix(GetAssayData(seurat_obj[, cells_set2], slot = "data")[var_features, ])
-  expr_both <- as.matrix(GetAssayData(seurat_obj[, cells_both], slot = "data")[var_features, ])
+  expr1 <- as.matrix(GetAssayData(seurat_obj[, cells_set1], layer = "data")[var_features, ])
+  expr2 <- as.matrix(GetAssayData(seurat_obj[, cells_set2], layer = "data")[var_features, ])
+  expr_both <- as.matrix(GetAssayData(seurat_obj[, cells_both], layer = "data")[var_features, ])
   
   # GEX vs SALVE
   r_squared_matrix <- cor(expr1, expr2, method = "pearson")^2
@@ -1977,7 +1990,7 @@ for (sample in samples) {
   for (i in 1:n_iterations) {
     random_cells <- sample(available_cells, n_cells_set2)
     expr_random <- as.matrix(
-      GetAssayData(seurat_obj[, random_cells], slot = "data")[var_features, ])
+      GetAssayData(seurat_obj[, random_cells], layer = "data")[var_features, ])
     r2_random <- cor(expr1, expr_random, method = "pearson")^2
     max_r2_per_iteration[, i] <- apply(r2_random, 1, max)
   }
@@ -2119,9 +2132,9 @@ for (sample in samples) {
   cells_salve <- c(cellsList_SALVEonly$cellID, cellsList_both$cellID)
   cells_both <- cellsList_both$cellID
   
-  expr_gex <- as.matrix(GetAssayData(seurat_obj[, cells_gex], slot = "data")[var_features, ])
-  expr_salve <- as.matrix(GetAssayData(seurat_obj[, cells_salve], slot = "data")[var_features, ])
-  expr_both <- as.matrix(GetAssayData(seurat_obj[, cells_both], slot = "data")[var_features, ])
+  expr_gex <- as.matrix(GetAssayData(seurat_obj[, cells_gex], layer = "data")[var_features, ])
+  expr_salve <- as.matrix(GetAssayData(seurat_obj[, cells_salve], layer = "data")[var_features, ])
+  expr_both <- as.matrix(GetAssayData(seurat_obj[, cells_both], layer = "data")[var_features, ])
   
   # Function to calculate JS divergence between two expression profiles
   calculate_js <- function(profile1, profile2) {
@@ -2208,7 +2221,7 @@ for (sample in samples) {
   for (iter in 1:n_iterations) {
     random_cells <- sample(available_cells, n_cells_sample)
     expr_random <- as.matrix(
-      GetAssayData(seurat_obj[, random_cells], slot = "data")[var_features, ])
+      GetAssayData(seurat_obj[, random_cells], layer = "data")[var_features, ])
     
     for (i in 1:ncol(expr_gex)) {
       js_values <- apply(expr_random, 2, function(random_cell) {
@@ -2655,8 +2668,8 @@ memory_cd4_markers <- list(
 
 
 subset_memory_cd4 <- function(seurat_obj, min_cd4_expr = 0.5) {
-  cd4_expr <- GetAssayData(seurat_obj, slot = "data")["CD4", ]
-  il7r_expr <- GetAssayData(seurat_obj, slot = "data")["IL7R", ]
+  cd4_expr <- GetAssayData(seurat_obj, layer = "data")["CD4", ]
+  il7r_expr <- GetAssayData(seurat_obj, layer = "data")["IL7R", ]
   
   memory_cd4_cells <- names(cd4_expr)[cd4_expr > min_cd4_expr & il7r_expr > 0]
   seurat_subset <- subset(seurat_obj, cells = memory_cd4_cells)
@@ -2777,8 +2790,8 @@ test_metabolic_correlations <- function(joint_salve_data, joint_rds,
     
     # Add total UMI/genes if not present
     if (!"total_UMI" %in% colnames(seurat_obj@meta.data)) {
-      seurat_obj$total_UMI <- colSums(GetAssayData(seurat_obj, slot = "counts"))
-      seurat_obj$total_genes <- colSums(GetAssayData(seurat_obj, slot = "counts") > 0)
+      seurat_obj$total_UMI <- colSums(GetAssayData(seurat_obj, layer = "counts"))
+      seurat_obj$total_genes <- colSums(GetAssayData(seurat_obj, layer = "counts") > 0)
     }
     
     # Extract all metabolic metrics
@@ -3469,588 +3482,11 @@ for (i in 1:length(samples)) {
 
 
 
-### CoGAPS
-With all genes, takes 6hrs to run
-I determined that 3 is not enough clusters
-```{r all genes}
-invitro <- readRDS("/projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/Seurat/RDS/Invitro.rds")
-
-counts_matrix <- as.matrix(GetAssayData(invitro, assay = "RNA", layer = "counts"))
-norm_counts_matrix <- log1p(counts_matrix)
-invitro_params <- CogapsParams(nIterations=10000,
-  seed=42,
-  nPatterns=3,
-  sparseOptimization=TRUE,
-  distributed="genome-wide")
-invitro_params <- setDistributedParams(invitro_params, nSets=5)
-startTime <- Sys.time()
-invitro_nmf_result <- CoGAPS(norm_counts_matrix, invitro_params)
-endTime <- Sys.time()
-output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/joint/subset/CoGAPS/"
-saveRDS(invitro_nmf_result, paste0(output.dir, "invitro_cogaps_result.rds"))
-
-```
-
-With highly variable genes, takes 4hrs to run
-```{r hvg only}
-invitro <- readRDS("/projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/Seurat/RDS/Invitro.rds")
-invitro_var <- FindVariableFeatures(invitro, selection.method = "mvp", nfeatures = 3000) #mvp robust to sparse data
-hvgs <- VariableFeatures(invitro_var)
-counts_matrix <- as.matrix(GetAssayData(invitro_var, assay = "RNA", layer = "counts"))
-counts_hvg <- counts_matrix[hvgs, ]
-colnames(counts_hvg) <- colnames(invitro_var)
-norm_counts_hvg <- log1p(counts_hvg)
-invitro_params <- CogapsParams(
-    nIterations = 15000,
-    seed = 42,
-    nPatterns = 8,
-    sparseOptimization = TRUE,
-    distributed = "genome-wide"
-)
-invitro_params <- setDistributedParams(invitro_params, nSets = 5)
-startTime <- Sys.time()
-cogapsresult_hvg <- CoGAPS(norm_counts_hvg, invitro_params)
-endTime <- Sys.time()
-output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/joint/subset/CoGAPS/"
-saveRDS(cogapsresult_hvg, paste0(output.dir, "invitro_cogaps_result_hvg.rds"))
-```
-
-
-Looking at results
-```{r for Yuval}
-# for Yuval
-sample_factors <- getSampleFactors(cogapsresult)
-
-# Compute the sum of pattern weights for each cell
-pattern_weight_sums <- rowSums(sample_factors)
-
-# Plot the distribution
-ggplot(data.frame(weight_sum = pattern_weight_sums), aes(x = weight_sum)) +
-  geom_histogram(bins = 50, fill = "steelblue", color = "black") +
-  labs(
-    x = "Sum of Pattern Weights",
-    y = "Number of Cells",
-    title = "Distribution of Total Pattern Weights per Cell"
-  ) +
-  theme_minimal()
-```
-
-
-```{r NMF loading}
-invitro <- readRDS("/projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/Seurat/RDS/Invitro.rds")
-output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/joint/subset/CoGAPS/"
-#cogapsresult <- readRDS(paste0(output.dir, "invitro_cogaps_result.rds"))
-cogapsresult <- readRDS(paste0(output.dir, "invitro_cogaps_result_hvg.rds"))
-patterns_in_order <-t(cogapsresult@sampleFactors[colnames(invitro),])
-invitro[["CoGAPS"]] <- CreateAssayObject(counts = patterns_in_order) 
-DefaultAssay(invitro) <- "CoGAPS" 
-pattern_names = rownames(invitro@assays$CoGAPS)
-
-pm = patternMarkers(cogapsresult)
-
-# plotting FeaturePlots
-library(viridis)
-color_palette <- viridis(n=10) 
-plots <- FeaturePlot(
-  invitro,
-  features = pattern_names,
-  cols = color_palette,
-  reduction = "umap",
-  combine = FALSE 
-)
-plots <- lapply(plots, function(p) {
-  p + 
-    coord_fixed(ratio = 1) +
-    theme(
-      aspect.ratio = 1,
-      legend.position = "none"
-    )
-})
-legend_plot <- FeaturePlot(
-  invitro,
-  features = pattern_names[1],
-  cols = color_palette,
-  reduction = "umap"
-) +
-  coord_fixed(ratio = 1) +
-  theme(
-    legend.position = "right",
-    legend.title = element_text(size = 10),
-    legend.text = element_text(size = 8)
-  ) +
-  labs(color = "Weight")
-library(cowplot)
-shared_legend <- get_legend(legend_plot)
-combined_plots <- wrap_plots(plots, ncol = 4) 
-final_plot <- plot_grid(
-  combined_plots,
-  shared_legend,
-  ncol = 2,
-  rel_widths = c(1, 0.08)
-)
-print(final_plot)
-save_plot(
-  paste0(output.dir, "invitro_patterns_featureplot.pdf"),
-  final_plot,
-  base_width = 12,
-  base_height = 10
-)
-
-```
-
-```{r NMF QC}
-# Check if patterns have meaningful variance or are dominated by a few cells
-library(reshape2)
-
-pattern_weights <- as.data.frame(t(patterns_in_order))
-pattern_weights$cell <- rownames(pattern_weights)
-weights_long <- melt(pattern_weights, id.vars = "cell", variable.name = "Pattern", value.name = "Weight")
-
-ggplot(weights_long, aes(x = Weight)) +
-    geom_histogram(bins = 50) +
-    facet_wrap(~Pattern, scales = "free_y") +
-    theme_minimal() +
-    ggtitle("Distribution of pattern weights across cells")
-
-# High correlation between patterns suggests redundancy (too many patterns)
-# or that patterns aren't capturing distinct signals (too few iterations or patterns)
-pattern_cor <- cor(t(patterns_in_order))
-print(round(pattern_cor, 3))
-
-# Examine what genes define each pattern
-markers = patternMarkers(cogapsresult, threshold = "cut")
-for (i in 1:ncol(cogapsresult@featureLoadings)) {
-  pattern_name <- colnames(cogapsresult@featureLoadings)[i]
-  cat("\nPattern", i, "markers:\n")
-  
-  # patternMarkers returns a list with PatternMarkers element
-  pattern_markers <- markers$PatternMarkers[[pattern_name]]
-  
-  cat("Number of markers:", length(pattern_markers), "\n")
-  cat("Genes:", paste(pattern_markers, collapse = ", "), "\n")
-}
-
-library(fgsea)
-library(msigdbr)
-
-#' Perform hallmark pathway enrichment for CoGAPS patterns
-#' 
-#' @param cogaps_result CoGAPS result object
-#' @param threshold Threshold for patternMarkers ("cut" or "all")
-#' @param species Species for msigdbr ("Homo sapiens" or "Mus musculus")
-#' @param min_size Minimum gene set size for fgsea
-#' @param max_size Maximum gene set size for fgsea
-#' @return List containing enrichment results per pattern and combined data frame
-pattern_hallmark_enrichment <- function(
-    cogaps_result,
-    threshold = "all",
-    species = "Homo sapiens",
-    min_size = 15,
-    max_size = 500
-) {
-  # Get pattern markers
-  markers <- patternMarkers(cogaps_result, threshold = threshold)
-  # Get feature loadings for ranking (used as statistic for fgsea)
-  feature_loadings <- cogaps_result@featureLoadings
-  # Retrieve MSigDB hallmark gene sets
-  hallmark_sets <- msigdbr(species = species, category = "H") %>%
-    split(x = .$gene_symbol, f = .$gs_name)
-  cat("Retrieved", length(hallmark_sets), "hallmark gene sets\n")
-  cat("Total genes in CoGAPS result:", nrow(feature_loadings), "\n")
-  # Run enrichment for each pattern
-  pattern_names <- colnames(feature_loadings)
-  results_list <- list()
-  for (i in seq_along(pattern_names)) {
-    pattern <- pattern_names[i]
-    cat("\nProcessing", pattern, "...\n")
-    # Create ranked gene list from feature loadings
-    # fgsea uses the ranking to compute enrichment
-    gene_ranks <- feature_loadings[, i]
-    names(gene_ranks) <- rownames(feature_loadings)
-    gene_ranks <- sort(gene_ranks, decreasing = TRUE)
-    # Remove NA or zero variance
-    gene_ranks <- gene_ranks[!is.na(gene_ranks)]
-    # Run fgsea
-    fgsea_res <- fgsea(
-      pathways = hallmark_sets,
-      stats = gene_ranks,
-      minSize = min_size,
-      maxSize = max_size
-    )
-    # Add pattern identifier and sort by adjusted p-value
-    fgsea_res$pattern <- pattern
-    fgsea_res <- fgsea_res[order(fgsea_res$padj), ]
-    # Report significant results
-    sig_pathways <- sum(fgsea_res$padj < 0.05, na.rm = TRUE)
-    cat("  Significant pathways (padj < 0.05):", sig_pathways, "\n")
-    
-    results_list[[pattern]] <- fgsea_res
-  }
-  # Combine into single data frame
-  combined_df <- do.call(rbind, results_list)
-  rownames(combined_df) <- NULL
-  
-  # Create summary of top pathway per pattern
-  top_per_pattern <- combined_df %>%
-    group_by(pattern) %>%
-    slice_min(padj, n = 5, with_ties = FALSE) %>%
-    select(pattern, pathway, NES, padj, size) %>%
-    as.data.frame()
-  
-  return(list(
-    by_pattern = results_list,
-    combined = combined_df,
-    top_summary = top_per_pattern
-  ))
-}
-
-# Run the analysis
-hallmark_results <- pattern_hallmark_enrichment(
-  cogaps_result = cogapsresult,
-  #threshold = "cut",
-  species = "Macaca mulatta"
-)
-
-# View top pathways per pattern
-print(hallmark_results$top_summary)
-
-# Export full results
-# write.csv(
-#   hallmark_results$combined,
-#   "cogaps_hallmark_enrichment.csv",
-#   row.names = FALSE
-# )
-
-
-
-
-#' Plot hallmark enrichment as horizontal bar chart
-#' 
-#' @param hallmark_results Output from pattern_hallmark_enrichment()
-#' @param pattern_name Which pattern to plot (e.g., "Pattern_1")
-#' @param top_n Maximum number of pathways to display
-plot_hallmark_bars <- function(
-    hallmark_results,
-    pattern_name,
-    top_n = 20
-) {
-  
-  # Extract results for specified pattern - no filtering by significance
-  plot_data <- hallmark_results$by_pattern[[pattern_name]] %>%
-    arrange(padj) %>%
-    head(top_n) %>%
-    mutate(
-      pathway = gsub("HALLMARK_", "", pathway),
-      neg_log10_padj = -10 * log10(padj),
-      pathway = factor(pathway, levels = rev(pathway))
-    )
-  
-  if (nrow(plot_data) == 0) {
-    cat("No pathways found for", pattern_name, "\n")
-    return(NULL)
-  }
-  
-  # Significance threshold line: -10 * log10(0.05) = 13.01
-  sig_line <- -10 * log10(0.05)
-  
-  # Create plot
-  p <- ggplot(plot_data, aes(x = pathway, y = neg_log10_padj)) +
-    geom_col(fill = "gray50") +
-    geom_hline(yintercept = sig_line, linetype = "dashed", color = "red") +
-    geom_text(
-      aes(label = sprintf("%.3e", padj)),
-      hjust = -0.1,
-      size = 3
-    ) +
-    coord_flip(clip = "off") +
-    theme_minimal() +
-    theme(
-      axis.text.y = element_text(size = 9),
-      plot.title = element_text(hjust = 0.5, face = "bold"),
-      plot.margin = margin(5, 50, 5, 5)
-    ) +
-    labs(
-      x = "MsigDB Hallmark",
-      y = expression("-10" %*% "log10(FDR q-value)"),
-      title = paste("Overrepresented msigDB hallmarks in", pattern_name)
-    ) +
-    scale_y_continuous(expand = expansion(mult = c(0, 0.15)))
-  
-  return(p)
-}
-
-# Plot for a specific pattern
-p <- plot_hallmark_bars(
-  hallmark_results,
-  pattern_name = "Pattern_7",
-  top_n = 20
-)
-print(p)
-
-# Generate plots for all patterns
-pattern_names <- names(hallmark_results$by_pattern)
-
-pdf(paste0(output.dir, "invitro_hallmarks.pdf"), width = 10, height = 8)
-for (pat in pattern_names) {
-  p <- plot_hallmark_bars(
-    hallmark_results,
-    pattern_name = pat,
-    top_n = 20
-  )
-  if (!is.null(p)) print(p)
-}
-dev.off()
-```
-
-Subsetting for infected vs uninfected
-```{r NMF SIV+ v SIV-}
-joint_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/joint/dataframes/"
-invitro_both <- read.csv(paste0(joint_dir, "Invitro_both.csv"))
-invitro_GEXonly <- read.csv(paste0(joint_dir, "Invitro_onlySingleCell.csv"))
-invitro_SALVEonly <- read.csv(paste0(joint_dir, "Invitro_onlySALVE.csv"))
-invitro_all <- read.csv(paste0(joint_dir, "Invitro_all.csv"))
-
-# first by SALVE
-infected <- rbind(invitro_SALVEonly, invitro_both)
-pattern_matrix <- getSampleFactors(cogapsresult)
-infected_cellids <- infected$cellID
-all_cellids <- rownames(pattern_matrix)
-uninfected_cellids <- setdiff(all_cellids, infected_cellids)
-infected_patterns <- pattern_matrix[rownames(pattern_matrix) %in% infected_cellids, ]
-uninfected_patterns <- pattern_matrix[rownames(pattern_matrix) %in% uninfected_cellids, ]
-
-# Compare pattern usage between subsets
-infected_means <- colMeans(infected_patterns)
-uninfected_means <- colMeans(uninfected_patterns)
-
-comparison_df <- data.frame(
-  pattern = colnames(pattern_matrix),
-  infected_mean = infected_means,
-  uninfected_mean = uninfected_means,
-  log2_fold_change = log2(infected_means / uninfected_means)
-)
-print(comparison_df)
-
-stat_results <- lapply(colnames(pattern_matrix), function(pat) {
-  test <- wilcox.test(
-    infected_patterns[, pat],
-    uninfected_patterns[, pat]
-  )
-  data.frame(
-    pattern = pat,
-    p_value = test$p.value,
-    infected_median = median(infected_patterns[, pat]),
-    uninfected_median = median(uninfected_patterns[, pat])
-  )
-})
-stat_df <- do.call(rbind, stat_results)
-stat_df$p_adj <- p.adjust(stat_df$p_value, method = "BH")
-print(stat_df)
-
-
-
-# plot pattern weight
-plot_data <- rbind(
-  data.frame(
-    cellID = rownames(infected_patterns),
-    group = "infected",
-    as.data.frame(infected_patterns)
-  ),
-  data.frame(
-    cellID = rownames(uninfected_patterns),
-    group = "uninfected",
-    as.data.frame(uninfected_patterns)
-  )
-)
-plot_long <- pivot_longer(
-  plot_data,
-  cols = -c(cellID, group),
-  names_to = "pattern",
-  values_to = "weight"
-)
-max_weights <- plot_long %>%
-  group_by(pattern) %>%
-  summarise(ymax = max(weight), .groups = "drop")
-sig_data <- merge(stat_df, max_weights, by = "pattern")
-sig_data$y_pos <- sig_data$ymax * 1.05
-sig_data$label <- case_when(
-  sig_data$p_adj < 0.001 ~ "***",
-  sig_data$p_adj < 0.01 ~ "**",
-  sig_data$p_adj < 0.05 ~ "*",
-  TRUE ~ "ns"
-)
-ggplot(plot_long, aes(x = pattern, y = weight, fill = group)) +
-  geom_boxplot(outlier.size = 0.5) +
-  geom_text(
-    data = sig_data,
-    aes(x = pattern, y = y_pos, label = label),
-    inherit.aes = FALSE,
-    size = 4
-  ) +
-  scale_fill_manual(values = c("infected" = "red", "uninfected" = "gray")) +
-  theme_minimal() +
-  labs(y = "Pattern Weight", x = "Pattern") +
-  theme(legend.position = "right")
-ggsave(paste0(output.dir, "invitro_SIVposneg_patternweight.pdf"))
-
-
-# plot log2FC
-ggplot(comparison_df, aes(x = pattern, y = log2_fold_change, fill = log2_fold_change > 0)) +
-  geom_col() +
-  geom_hline(yintercept = 0, linetype = "dashed") +
-  scale_fill_manual(
-    values = c("TRUE" = "red", "FALSE" = "gray"),
-    labels = c("TRUE" = "Higher in infected", "FALSE" = "Higher in uninfected"),
-    name = "Direction"
-  ) +
-  theme_minimal() +
-  labs(y = "Log2 Fold Change (infected/uninfected)", x = "Pattern") +
-  # Add significance markers
-  geom_text(
-    data = merge(comparison_df, stat_df[, c("pattern", "p_adj")], by = "pattern"),
-    aes(label = case_when(
-      p_adj < 0.001 ~ "***",
-      p_adj < 0.01 ~ "**",
-      p_adj < 0.05 ~ "*",
-      TRUE ~ ""
-    )),
-    vjust = ifelse(comparison_df$log2_fold_change > 0, -0.5, 1.5),
-    size = 4
-  )
-ggsave(paste0(output.dir, "invitro_SIVposneg_log2fc.pdf"))
-
-```
-
-Subsetting for splice+SIV+ vs splice-SIV+
-```{r NMF splice+ v splice-}
-joint_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/joint/dataframes/"
-invitro_both <- read.csv(paste0(joint_dir, "Invitro_both.csv"))
-invitro_GEXonly <- read.csv(paste0(joint_dir, "Invitro_onlySingleCell.csv"))
-invitro_SALVEonly <- read.csv(paste0(joint_dir, "Invitro_onlySALVE.csv"))
-invitro_all <- read.csv(paste0(joint_dir, "Invitro_all.csv"))
-
-# first by SALVE
-infected <- rbind(invitro_SALVEonly, invitro_both)
-splicers <- infected %>%
-  filter(SS > 0 | MS > 0)
-nonsplicers <- anti_join(infected, splicers, by = "cellID") #setdiff also works
-pattern_matrix <- getSampleFactors(cogapsresult)
-splicers_cellids <- splicers$cellID
-nonsplicers_cellids <- nonsplicers$cellID
-splicers_patterns <- pattern_matrix[rownames(pattern_matrix) %in% splicers_cellids, ]
-nonsplicers_patterns <- pattern_matrix[rownames(pattern_matrix) %in% nonsplicers_cellids, ]
-
-# Compare pattern usage between subsets
-splicers_means <- colMeans(splicers_patterns)
-nonsplicers_means <- colMeans(nonsplicers_patterns)
-
-comparison_df <- data.frame(
-  pattern = colnames(pattern_matrix),
-  splicers_mean = splicers_means,
-  nonsplicers_mean = nonsplicers_means,
-  log2_fold_change = log2(splicers_means / nonsplicers_means)
-)
-#print(comparison_df)
-
-stat_results <- lapply(colnames(pattern_matrix), function(pat) {
-  test <- wilcox.test(
-    splicers_patterns[, pat],
-    nonsplicers_patterns[, pat]
-  )
-  data.frame(
-    pattern = pat,
-    p_value = test$p.value,
-    splicers_median = median(splicers_patterns[, pat]),
-    nonsplicers_median = median(nonsplicers_patterns[, pat])
-  )
-})
-stat_df <- do.call(rbind, stat_results)
-stat_df$p_adj <- p.adjust(stat_df$p_value, method = "BH")
-#print(stat_df)
-
-
-
-# plot pattern weight
-plot_data <- rbind(
-  data.frame(
-    cellID = rownames(splicers_patterns),
-    group = "splicers",
-    as.data.frame(splicers_patterns)
-  ),
-  data.frame(
-    cellID = rownames(nonsplicers_patterns),
-    group = "nonsplicers",
-    as.data.frame(nonsplicers_patterns)
-  )
-)
-plot_long <- pivot_longer(
-  plot_data,
-  cols = -c(cellID, group),
-  names_to = "pattern",
-  values_to = "weight"
-)
-max_weights <- plot_long %>%
-  group_by(pattern) %>%
-  summarise(ymax = max(weight), .groups = "drop")
-sig_data <- merge(stat_df, max_weights, by = "pattern")
-sig_data$y_pos <- sig_data$ymax * 1.05
-sig_data$label <- case_when(
-  sig_data$p_adj < 0.001 ~ "***",
-  sig_data$p_adj < 0.01 ~ "**",
-  sig_data$p_adj < 0.05 ~ "*",
-  TRUE ~ "ns"
-)
-ggplot(plot_long, aes(x = pattern, y = weight, fill = group)) +
-  geom_boxplot(outlier.size = 0.5) +
-  geom_text(
-    data = sig_data,
-    aes(x = pattern, y = y_pos, label = label),
-    inherit.aes = FALSE,
-    size = 4
-  ) +
-  scale_fill_manual(values = c("splicers" = "orange", "nonsplicers" = "purple")) +
-  theme_minimal() +
-  labs(y = "Pattern Weight", x = "Pattern") +
-  theme(legend.position = "right")
-ggsave(paste0(output.dir, "invitro_spliceNonsplice_patternweight.pdf"))
-
-
-# plot log2FC
-ggplot(comparison_df, aes(x = pattern, y = log2_fold_change, fill = log2_fold_change > 0)) +
-  geom_col() +
-  geom_hline(yintercept = 0, linetype = "dashed") +
-  scale_fill_manual(
-    values = c("TRUE" = "orange", "FALSE" = "purple"),
-    labels = c("TRUE" = "Higher in splicers", "FALSE" = "Higher in nonsplicers"),
-    name = "Direction"
-  ) +
-  theme_minimal() +
-  labs(y = "Log2 Fold Change (splicers/nonsplicers)", x = "Pattern") +
-  # Add significance markers
-  geom_text(
-    data = merge(comparison_df, stat_df[, c("pattern", "p_adj")], by = "pattern"),
-    aes(label = case_when(
-      p_adj < 0.001 ~ "***",
-      p_adj < 0.01 ~ "**",
-      p_adj < 0.05 ~ "*",
-      TRUE ~ ""
-    )),
-    vjust = ifelse(comparison_df$log2_fold_change > 0, -0.5, 1.5),
-    size = 4
-  )
-ggsave(paste0(output.dir, "invitro_spliceNonsplice_log2fc.pdf"))
-```
-
-
 ### cNMF
 
-
+Pattern annotation
 ```{r}
-
-# =============================================================================
-# cNMF Pattern Annotation by Biological Program
-# =============================================================================
-# Annotates cNMF patterns using:
+# Annotate cNMF patterns using:
 #   1. Preranked GSEA on gene_spectra_score (Z-scores) -- primary method
 #   2. ORA on top 50 genes per pattern -- supplementary method
 #
@@ -4063,10 +3499,10 @@ ggsave(paste0(output.dir, "invitro_spliceNonsplice_log2fc.pdf"))
 # =============================================================================
 # Configuration
 # =============================================================================
-load_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/cNMF/"
+load_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/cNMF/subpattern/"
 rds_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/Seurat/RDS/"
-samples <- c("invitro", "D195", "Pacute")
-selected_ks <- c(7, 8, 8)
+samples <- c("invitro_pattern1.4", "D195_pattern1.4", "Pacute_pattern1.4")
+selected_ks <- c(5, 6, 6)
 
 for (i in 1:length(samples)) {
   run_name <- samples[i]
@@ -4469,33 +3905,44 @@ for (i in 1:length(samples)) {
 
 
 
+# for (i in 1:length(samples)) {
+#   run_name <- samples[i]
+#   selected_k <- selected_ks[i]
+#   cat("Loading: ",run_name, "\n")
+# 
+#   usage_file <- file.path(load_dir, paste0(run_name, "_usage_K", selected_k, ".csv"))
+#   usage <- read.csv(usage_file, row.names = 1, check.names = FALSE)
+#   
+#   # Plot cNMF pattern UMAP
+#   rds_file <- list.files(rds_dir, pattern = paste0("^", run_name, "\\.rds$"), 
+#                          ignore.case = TRUE, full.names = TRUE)
+#   seurat_obj <- readRDS(rds_file[1])
+#   seurat_obj <- add_cnmf_to_seurat(seurat_obj, usage)
+#   
+#   pattern_cols <- paste0("Pattern_", 1:selected_k)
+#   keep_patterns <- 1:4
+#   exclude_patterns <- setdiff(1:selected_k, keep_patterns)
+# 
+#   dominant_pattern <- apply(seurat_obj@meta.data[, pattern_cols], 1, which.max)
+#   seurat_sub <- subset(seurat_obj, cells = colnames(seurat_obj)[dominant_pattern %in% keep_patterns])
+# 
+#   cat("Cells before:", ncol(seurat_obj), "\n")
+#   cat("Cells after:", ncol(seurat_sub), "\n")
+# 
+#   saveRDS(seurat_sub, file = paste0(rds_dir, run_name, "_pattern1.4.rds"))
+#   sce <- SingleCellExperiment(
+#     assays = list(counts = GetAssayData(seurat_sub, layer = "counts")),
+#     colData = seurat_sub@meta.data
+#   )
+#   suppressMessages(
+#     writeH5AD(sce, file = paste0(rds_dir, run_name, "_pattern1.4.h5ad"))
+#   )
+# }
 
-for (i in 1:length(samples)) {
-  run_name <- samples[i]
-  selected_k <- selected_ks[i]
-  output_dir <- paste0("/projects/b1042/GoyalLab/egrody/extractedData/EGS016/joint/plots/cNMF/", run_name, "/")
-  if (!dir.exists(output_dir)) {
-    dir.create(output_dir, recursive = TRUE)
-  }
-  cat("Loading: ",run_name, "\n")
-
-  usage_file <- file.path(load_dir, paste0(run_name, "_usage_K", selected_k, ".csv"))
-  usage <- read.csv(usage_file, row.names = 1, check.names = FALSE)
-  
-  # Plot cNMF pattern UMAP
-  rds_file <- list.files(rds_dir, pattern = paste0("^", run_name, "\\.rds$"), 
-                         ignore.case = TRUE, full.names = TRUE)
-  seurat_obj <- readRDS(rds_file[1])
-  seurat_obj <- add_cnmf_to_seurat(seurat_obj, usage)
-  fplot <- FeaturePlot(seurat_obj, features = paste0("Pattern_", 1:selected_k), ncol = 4) &
-  scale_color_viridis_c()
-  ggsave(fplot, file = paste0(output_dir, run_name, "_umap_pattern_weight.pdf"),
-         width = 16, height = 8)
-}
 
 ```
 
-SIV+ vs SIV-
+Pattern markers for drug targets
 ```{r}
 # =============================================================================
 # Pattern Marker Identification
@@ -4525,51 +3972,113 @@ markers <- result$markers
 for (pat in names(markers)) {
   cat(sprintf("  %s: %s\n", pat, paste(head(markers[[pat]], 20), collapse = ", ")))
 }
+```
 
-# =============================================================================
-# 3. Infected vs Uninfected Comparison
-# =============================================================================
 
+SIV+ vs SIV-
+```{r}
+# whole sample
+load_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/cNMF/"
 joint_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/joint/dataframes/"
-invitro_both <- read.csv(paste0(joint_dir, "Invitro_both.csv"))
-invitro_GEXonly <- read.csv(paste0(joint_dir, "Invitro_onlySingleCell.csv"))
-invitro_SALVEonly <- read.csv(paste0(joint_dir, "Invitro_onlySALVE.csv"))
-invitro_all <- read.csv(paste0(joint_dir, "Invitro_all.csv"))
+samples <- c("invitro", "D195", "Pacute")
+dfs <- c("Invitro", "D195", "Pacute")
+selected_ks <- c(7, 8, 8)
+# subpatterns
+load_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/cNMF/subpattern/"
+joint_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/joint/dataframes/"
+samples <- c("invitro_pattern1.4", "D195_pattern1.4", "Pacute_pattern1.4")
+dfs <- c("Invitro", "D195", "Pacute")
+selected_ks <- c(5, 6, 6)
 
-infected <- rbind(invitro_SALVEonly, invitro_both)
-infected_cellids <- infected$cellID
-comparison <- compare_pattern_usage(usage, infected_cellids)
-
-# =============================================================================
-# Example Complete Analysis
-# =============================================================================
-# Uncomment and run with your data:
-
-# # Load Seurat object
-invitro <- readRDS("/projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/Seurat/RDS/Invitro.rds")
-seurat_obj <- invitro
-
-# Add cNMF patterns to Seurat
-seurat_obj <- add_cnmf_to_seurat(seurat_obj, usage)
-
-# # Define infected cells
-# infected <- rbind(invitro_SALVEonly, invitro_both)
-# infected_cellids <- infected$cellID
-#
-# # Run comparison
-# comparison <- compare_pattern_usage(usage, infected_cellids)
-#
-# # Generate plots
-# plot_pattern_violins(comparison, file.path(output_dir, "cnmf_pattern_violins.pdf"))
-# plot_log2fc(comparison, file.path(output_dir, "cnmf_log2fc.pdf"))
-# plot_marker_heatmap(spectra, markers, n_genes = 20, file.path(output_dir, "cnmf_marker_heatmap.pdf"))
-
-# Feature plots in Seurat
-FeaturePlot(seurat_obj, features = paste0("Pattern_", 1:selected_k), ncol = 3)
+for (i in 1:length(samples)) {
+  run_name <- samples[i]
+  df_name <- dfs[i]
+  selected_k <- selected_ks[i]
+  output_dir <- paste0("/projects/b1042/GoyalLab/egrody/extractedData/EGS016/joint/plots/cNMF/", 
+                       run_name, "/")
+  if (!dir.exists(output_dir)) {
+    dir.create(output_dir, recursive = TRUE)
+  }
+  cat("Loading: ", run_name, "\n")
+  
+  usage_file <- file.path(load_dir, paste0(run_name, "_usage_K", selected_k, ".csv"))
+  usage <- read.csv(usage_file, row.names = 1, check.names = FALSE)
+  
+  both <- read.csv(paste0(joint_dir, df_name, "_both.csv"))
+  GEXonly <- read.csv(paste0(joint_dir, df_name, "_onlySingleCell.csv"))
+  SALVEonly <- read.csv(paste0(joint_dir, df_name, "_onlySALVE.csv"))
+  all <- read.csv(paste0(joint_dir, df_name, "_all.csv"))
+  
+  infected <- rbind(SALVEonly, both)
+  infected_cellids <- infected$cellID
+  comparison <- compare_pattern_usage(usage, infected_cellids)
+  
+  plot_pattern_violins(comparison, file.path(output_dir, "cnmf_infected_violins.pdf"))
+  plot_log2fc(comparison, file.path(output_dir, "cnmf_infected_log2fc.pdf"))
+  #plot_marker_heatmap(spectra, markers, n_genes = 20, file.path(output_dir, "cnmf_marker_heatmap.pdf"))
+}
 
 
 ```
 
+splice+ vs splice-
+```{r}
+# whole sample
+load_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/cNMF/"
+joint_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/joint/dataframes/"
+samples <- c("invitro", "D195", "Pacute")
+dfs <- c("Invitro", "D195", "Pacute")
+selected_ks <- c(7, 8, 8)
+# subpatterns
+load_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/cNMF/subpattern/"
+joint_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/joint/dataframes/"
+samples <- c("invitro_pattern1.4", "D195_pattern1.4", "Pacute_pattern1.4")
+dfs <- c("Invitro", "D195", "Pacute")
+selected_ks <- c(5, 6, 6)
+
+for (i in 1:length(samples)) {
+  run_name <- samples[i]
+  df_name <- dfs[i]
+  selected_k <- selected_ks[i]
+  output_dir <- paste0("/projects/b1042/GoyalLab/egrody/extractedData/EGS016/joint/plots/cNMF/", 
+                       run_name, "/")
+  if (!dir.exists(output_dir)) {
+    dir.create(output_dir, recursive = TRUE)
+  }
+  cat("Loading: ", run_name, "\n")
+  
+  usage_file <- file.path(load_dir, paste0(run_name, "_usage_K", selected_k, ".csv"))
+  usage <- read.csv(usage_file, row.names = 1, check.names = FALSE)
+  
+  both <- read.csv(paste0(joint_dir, df_name, "_both.csv"))
+  GEXonly <- read.csv(paste0(joint_dir, df_name, "_onlySingleCell.csv"))
+  SALVEonly <- read.csv(paste0(joint_dir, df_name, "_onlySALVE.csv"))
+  all <- read.csv(paste0(joint_dir, df_name, "_all.csv"))
+  
+  infected <- rbind(SALVEonly, both)
+  infected_cellids <- infected$cellID
+  splicers <- infected %>%
+    filter(SS > 0 | MS > 0)
+  splicers_cellids <- splicers$cellID
+  nonsplicers_cellids <- setdiff(infected_cellids, splicers_cellids)
+  
+  if (length(splicers_cellids) == 0) {
+    cat("Skipping", run_name, "-- no cells SIV+splice+\n")
+    next
+  }
+  
+  comparison <- compare_pattern_usage(usage, splicers_cellids, nonsplicers_cellids, 
+                                      group_labels = c("splicers", "nonsplicers"))
+  
+  plot_pattern_violins(comparison, file.path(output_dir, "cnmf_splicing_violins.pdf"), 
+                       group_names = c("splicers", "nonsplicers"))
+  plot_log2fc(comparison, file.path(output_dir, "cnmf_splicing_log2fc.pdf"),
+              group_names = c("splicers", "nonsplicers"))
+  #plot_marker_heatmap(spectra, markers, n_genes = 20, file.path(output_dir, "cnmf_marker_heatmap.pdf"))
+}
+
+
+```
 
 
 ## Saturation analysis

@@ -1,0 +1,77 @@
+========================================
+Paired Read Analysis for 10X scRNA-seq
+========================================
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGS004/300cy/counts/polyA/JK85_D13_STAR_Aligned.sortedByCoord.out.bam
+Output prefix: D13_polyA
+
+Checking BAM index...
+BAM index is up to date.
+
+Starting paired read analysis...
+Analyzing polyA structure in: /projects/b1042/GoyalLab/egrody/extractedData/EGS004/300cy/counts/polyA/JK85_D13_STAR_Aligned.sortedByCoord.out.bam
+Looking for: genomic sequence + polyA + UMI (12bp) + Cell ID (16bp) in Read 1
+Terminal sequence: TTAAAGCCCTCTTCAATAAAGCTGCCATTTT
+
+Completed BAM processing. Total reads: 103,678
+Analyzing Read 1 structure...
+Analysis complete: 46,091 pairs analyzed
+PolyA stretches found: 40,138 (87.1%)
+Terminal sequences: 84 (0.2%)
+Undetermined sequences: 46,007 (99.8%)
+Saving 46007 undetermined sequences...
+Undetermined sequences saved to: D13_polyA_undetermined_sequences.txt
+
+============================================================
+POLYA STRUCTURE ANALYSIS
+============================================================
+Total read pairs analyzed: 46,091
+Pairs with polyA found: 40,138 (87.1%)
+Pairs without polyA: 5,953 (12.9%)
+Terminal sequences: 84 (0.2%)
+Undetermined sequences: 46,007 (99.8%)
+
+PolyA Statistics:
+  Mean polyA length: 6.0 bp
+  Median polyA length: 6.0 bp
+  Min polyA length: 6.0 bp
+  Max polyA length: 42.0 bp
+  Mean A fraction: 0.988
+
+Genomic Sequence Before PolyA:
+  Mean genomic sequence length: 127.0 bp
+  Pairs with genomic sequence >10bp: 40,138
+  Pairs with genomic sequence >20bp: 40,138
+
+Barcode/UMI Diversity:
+  Unique cell barcodes: 4,093
+  Unique UMIs: 23,831
+  Mean reads per cell barcode: 11.3
+
+Genomic Sequence Classification:
+  Terminal sequences (contain target): 84 (0.2%)
+  Undetermined sequences: 46,007 (99.8%)
+
+Detailed results saved to: D13_polyA_polya_structure_analysis.csv
+PolyA analysis plots saved to: D13_polyA_polya_analysis.png
+
+============================================================
+SUMMARY INSIGHTS
+============================================================
+✓ Analyzed 46,091 read pairs
+✓ PolyA detection rate: 87.1%
+✓ Average polyA length: 6.0 bp
+✓ Terminal sequences: 0.2%
+✓ Undetermined sequences: 99.8%
+✓ Unique cell barcodes: 4,093
+✓ Unique UMIs: 23,831
+✓ Undetermined sequences saved: 46007 sequences
+
+========================================
+Analysis completed successfully!
+========================================
+Output files:
+  - D13_polyA.csv (detailed results)
+  - D13_polyA_summary.txt (summary statistics)
+  - D13_polyA_summary_plots.png (visualization)
+  - D13_polyA_example_sequences.txt (example sequences from mapped/paired reads)
+

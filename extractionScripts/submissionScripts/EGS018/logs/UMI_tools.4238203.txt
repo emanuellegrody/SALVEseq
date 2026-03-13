@@ -1,0 +1,76 @@
+========================================
+UMI-TOOLS RNA-SEQ PROCESSING PIPELINE
+========================================
+Samples CSV: /projects/b1042/GoyalLab/egrody/extractionScripts/submissionScripts/mkcounts_EGS.csv
+Found 6 samples to process
+STAR Index: /projects/b1042/GoyalLab/egrody/genomes/STAR_Mmul_10_mac239/
+GTF File: /projects/b1042/GoyalLab/egrody/genomes/STAR_Mmul_10_mac239//inputs/genes.gtf
+FASTQ Directory: /projects/b1042/GoyalLab/egrody/rawData/EGS018/Sequencing/
+Output Root: /projects/b1042/GoyalLab/egrody/extractedData/EGS018/SALVE/UMI_tools/
+Whitelist: /home/egy2296/packages/cellranger-7.2.0/lib/python/cellranger/barcodes/3M-february-2018.txt.gz
+Barcode Pattern: CCCCCCCCCCCCCCCCNNNNNNNNNNNN
+
+========================================
+PROCESSING SAMPLE: tat_Pacute
+========================================
+Step 1: Locating input files...
+R1 file: /projects/b1042/GoyalLab/egrody/rawData/EGS018/Sequencing/*tat_Pacute*R1_001.fastq.gz
+R2 file: /projects/b1042/GoyalLab/egrody/rawData/EGS018/Sequencing/*tat_Pacute*R2_001.fastq.gz
+
+Step 2: Extracting barcodes and UMIs with UMI-tools...
+UMI-tools extraction failed for sample: tat_Pacute
+========================================
+PROCESSING SAMPLE: tat_W2
+========================================
+Step 1: Locating input files...
+R1 file: /projects/b1042/GoyalLab/egrody/rawData/EGS018/Sequencing/*tat_W2*R1_001.fastq.gz
+R2 file: /projects/b1042/GoyalLab/egrody/rawData/EGS018/Sequencing/*tat_W2*R2_001.fastq.gz
+
+Step 2: Extracting barcodes and UMIs with UMI-tools...
+UMI-tools extraction failed for sample: tat_W2
+========================================
+PROCESSING SAMPLE: tat_D0
+========================================
+Step 1: Locating input files...
+R1 file: /projects/b1042/GoyalLab/egrody/rawData/EGS018/Sequencing/*tat_D0*R1_001.fastq.gz
+R2 file: /projects/b1042/GoyalLab/egrody/rawData/EGS018/Sequencing/*tat_D0*R2_001.fastq.gz
+
+Step 2: Extracting barcodes and UMIs with UMI-tools...
+UMI-tools extraction failed for sample: tat_D0
+========================================
+PROCESSING SAMPLE: tat_Invitro
+========================================
+Step 1: Locating input files...
+R1 file: /projects/b1042/GoyalLab/egrody/rawData/EGS018/Sequencing/*tat_Invitro*R1_001.fastq.gz
+R2 file: /projects/b1042/GoyalLab/egrody/rawData/EGS018/Sequencing/*tat_Invitro*R2_001.fastq.gz
+
+Step 2: Extracting barcodes and UMIs with UMI-tools...
+UMI-tools extraction failed for sample: tat_Invitro
+========================================
+PROCESSING SAMPLE: tat_W0
+========================================
+Step 1: Locating input files...
+R1 file: /projects/b1042/GoyalLab/egrody/rawData/EGS018/Sequencing/*tat_W0*R1_001.fastq.gz
+R2 file: /projects/b1042/GoyalLab/egrody/rawData/EGS018/Sequencing/*tat_W0*R2_001.fastq.gz
+
+Step 2: Extracting barcodes and UMIs with UMI-tools...
+UMI-tools extraction failed for sample: tat_W0
+========================================
+PROCESSING SAMPLE: tat_D195
+========================================
+Step 1: Locating input files...
+R1 file: /projects/b1042/GoyalLab/egrody/rawData/EGS018/Sequencing/*tat_D195*R1_001.fastq.gz
+R2 file: /projects/b1042/GoyalLab/egrody/rawData/EGS018/Sequencing/*tat_D195*R2_001.fastq.gz
+
+Step 2: Extracting barcodes and UMIs with UMI-tools...
+UMI-tools extraction failed for sample: tat_D195
+========================================
+PIPELINE COMPLETE
+========================================
+Total samples: 6
+Successfully processed: 0
+Failed: 6
+
+Summary written to: /projects/b1042/GoyalLab/egrody/extractedData/EGS018/SALVE/UMI_tools//pipeline_summary.txt
+
+6 samples failed processing.

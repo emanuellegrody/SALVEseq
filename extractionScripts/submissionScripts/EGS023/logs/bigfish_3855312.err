@@ -1,0 +1,60 @@
+Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 662, in run_pipeline
+    result = process_fov(fov, path_input, path_output_base, channels, pipeline_params)
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 453, in process_fov
+    small_object_size=seg_params['nuc_small_object_size']
+TypeError: 'module' object is not callable
+Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 662, in run_pipeline
+    result = process_fov(fov, path_input, path_output_base, channels, pipeline_params)
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 453, in process_fov
+    small_object_size=seg_params['nuc_small_object_size']
+TypeError: 'module' object is not callable
+Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 662, in run_pipeline
+    result = process_fov(fov, path_input, path_output_base, channels, pipeline_params)
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 453, in process_fov
+    small_object_size=seg_params['nuc_small_object_size']
+TypeError: 'module' object is not callable
+Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 662, in run_pipeline
+    result = process_fov(fov, path_input, path_output_base, channels, pipeline_params)
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 453, in process_fov
+    small_object_size=seg_params['nuc_small_object_size']
+TypeError: 'module' object is not callable
+Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 662, in run_pipeline
+    result = process_fov(fov, path_input, path_output_base, channels, pipeline_params)
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 453, in process_fov
+    small_object_size=seg_params['nuc_small_object_size']
+TypeError: 'module' object is not callable
+Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 662, in run_pipeline
+    result = process_fov(fov, path_input, path_output_base, channels, pipeline_params)
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 453, in process_fov
+    small_object_size=seg_params['nuc_small_object_size']
+TypeError: 'module' object is not callable
+Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 662, in run_pipeline
+    result = process_fov(fov, path_input, path_output_base, channels, pipeline_params)
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 453, in process_fov
+    small_object_size=seg_params['nuc_small_object_size']
+TypeError: 'module' object is not callable
+Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 662, in run_pipeline
+    result = process_fov(fov, path_input, path_output_base, channels, pipeline_params)
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 453, in process_fov
+    small_object_size=seg_params['nuc_small_object_size']
+TypeError: 'module' object is not callable
+Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 662, in run_pipeline
+    result = process_fov(fov, path_input, path_output_base, channels, pipeline_params)
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 453, in process_fov
+    small_object_size=seg_params['nuc_small_object_size']
+TypeError: 'module' object is not callable
+Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 662, in run_pipeline
+    result = process_fov(fov, path_input, path_output_base, channels, pipeline_params)
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 453, in process_fov
+    small_object_size=seg_params['nuc_small_object_size']
+TypeError: 'module' object is not callable

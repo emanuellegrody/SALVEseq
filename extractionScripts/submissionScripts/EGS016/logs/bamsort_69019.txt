@@ -1,0 +1,6 @@
+Found 2 hardcoded samples
+Error: BAM file does not exist: /projects/b1042/GoyalLab/egrody/extractedData/EGS002/singleCell/counts/Mmul_10_only/run_count_W2/outs/possorted_genome_bam.bam
+Error: BAM file does not exist: /projects/b1042/GoyalLab/egrody/extractedData/EGS002/singleCell/counts/Mmul_10_only/run_count_W0/outs/possorted_genome_bam.bam
+=============================
+All samples and alignments processed!
+Summary written to: /projects/b1042/GoyalLab/egrody/extractedData/EGS016/SALVE/bamsort/alignment/all_samples_alignment_summary.txt

@@ -1,0 +1,1255 @@
+=== Job starting at Mon Jan  5 10:43:26 CST 2026 ===
+=== Environment ready ===
+Python: /home/egy2296/.conda/envs/bigfish_env/bin/python
+=== Starting Python script ===
+
+======================================================================
+big-FISH Multi-FOV Pipeline
+======================================================================
+Input directory: /projects/b1042/GoyalLab/egrody/rawData/EGS023/20251119/TIFF/
+Output directory: /projects/b1042/GoyalLab/egrody/extractedData/EGS023/big-FISH/
+Channels: ['Blue', 'Red', 'Gold70', 'FarRed']
+DAPI present: True
+Found 10 FOVs to process
+======================================================================
+
+
+Processing FOV 1/10
+
+======================================================================
+Processing FOV: 20251119_EGS023_bingo_slide6_001_XY1
+======================================================================
+Found 7 z-slices: ['Z06', 'Z07', 'Z08', 'Z09', 'Z10', 'Z11', 'Z12']
+Loading images...
+Image stack shape: (4, 7, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+  Nuclear threshold (Otsu): 16731
+  Stage 1 (bright cells): median=0.0, MAD_sigma=0.0, threshold=0.1 (20-sigma)
+  Stage 1: 1 extremely bright region(s) detected
+  Stage 2 (local contrast): background_sigma=50, threshold=0.0 (p97)
+  Hybrid segmentation: 3 cells, 2 nuclei
+Segmented 2 nuclei and 3 cells
+Detecting spots...
+pol: 146 spots (threshold: 39.0)
+env: 331 spots (threshold: 103.0)
+nef: 221 spots (threshold: 94.0)
+Decomposing dense regions and clustering foci...
+pol: 7 clusters
+env: 6 clusters
+nef: 4 clusters
+Removing transcription sites...
+After TS removal: pol=126, env=1068, nef=406
+Performing colocalization analysis...
+Colocalization: pol-env=68, pol-nef=56, env-nef=324
+Classifying splicing patterns...
+Classification: US=51, SS=18, MS=50
+
+
+Processing FOV 2/10
+
+======================================================================
+Processing FOV: 20251119_EGS023_bingo_slide6_002_XY1
+======================================================================
+Found 7 z-slices: ['Z06', 'Z07', 'Z08', 'Z09', 'Z10', 'Z11', 'Z12']
+Loading images...
+Image stack shape: (4, 7, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+  Nuclear threshold (Otsu): 18421
+  Stage 1 (bright cells): median=0.0, MAD_sigma=0.0, threshold=0.1 (20-sigma)
+  Stage 1: 1 extremely bright region(s) detected
+  Stage 2 (local contrast): background_sigma=50, threshold=0.0 (p97)
+  Hybrid segmentation: 4 cells, 4 nuclei
+Segmented 4 nuclei and 4 cells
+Detecting spots...
+pol: 99 spots (threshold: 25.0)
+env: 137 spots (threshold: 89.0)
+nef: 114 spots (threshold: 47.0)
+Decomposing dense regions and clustering foci...
+pol: 2 clusters
+env: 8 clusters
+nef: 4 clusters
+Removing transcription sites...
+After TS removal: pol=101, env=116, nef=115
+Performing colocalization analysis...
+Colocalization: pol-env=81, pol-nef=83, env-nef=88
+Classifying splicing patterns...
+Classification: US=8, SS=10, MS=71
+
+
+Processing FOV 3/10
+
+======================================================================
+Processing FOV: 20251119_EGS023_bingo_slide6_003_XY1
+======================================================================
+Found 7 z-slices: ['Z06', 'Z07', 'Z08', 'Z09', 'Z10', 'Z11', 'Z12']
+Loading images...
+Image stack shape: (4, 7, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+  Nuclear threshold (Otsu): 15150
+  Stage 1 (bright cells): median=0.0, MAD_sigma=0.0, threshold=0.2 (20-sigma)
+  Stage 1: 1 extremely bright region(s) detected
+  Stage 2 (local contrast): background_sigma=50, threshold=0.0 (p97)
+  Hybrid segmentation: 2 cells, 2 nuclei
+Segmented 2 nuclei and 2 cells
+Detecting spots...
+pol: 70 spots (threshold: 24.0)
+env: 102 spots (threshold: 70.0)
+nef: 102 spots (threshold: 48.0)
+Decomposing dense regions and clustering foci...
+pol: 3 clusters
+env: 2 clusters
+nef: 4 clusters
+Removing transcription sites...
+After TS removal: pol=42, env=66, nef=72
+Performing colocalization analysis...
+Colocalization: pol-env=7, pol-nef=29, env-nef=48
+Classifying splicing patterns...
+Classification: US=13, SS=0, MS=7
+
+
+Processing FOV 4/10
+
+======================================================================
+Processing FOV: 20251119_EGS023_bingo_slide6_004_XY1
+======================================================================
+Found 6 z-slices: ['Z06', 'Z07', 'Z08', 'Z09', 'Z10', 'Z11']
+Loading images...
+Image stack shape: (4, 6, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+  Nuclear threshold (Otsu): 16337
+  Stage 1 (bright cells): median=0.0, MAD_sigma=0.0, threshold=0.1 (20-sigma)
+  Stage 1: 1 extremely bright region(s) detected
+  Stage 2 (local contrast): background_sigma=50, threshold=0.0 (p97)
+  Hybrid segmentation: 1 cells, 1 nuclei
+Segmented 1 nuclei and 1 cells
+Detecting spots...
+pol: 65 spots (threshold: 26.0)
+env: 86 spots (threshold: 87.0)
+nef: 81 spots (threshold: 65.0)
+Decomposing dense regions and clustering foci...
+pol: 3 clusters
+env: 6 clusters
+nef: 4 clusters
+Removing transcription sites...
+After TS removal: pol=42, env=48, nef=59
+Performing colocalization analysis...
+Colocalization: pol-env=29, pol-nef=13, env-nef=31
+Classifying splicing patterns...
+Classification: US=9, SS=20, MS=9
+
+
+Processing FOV 5/10
+
+======================================================================
+Processing FOV: 20251119_EGS023_bingo_slide6_005_XY1
+======================================================================
+Found 6 z-slices: ['Z06', 'Z07', 'Z08', 'Z09', 'Z10', 'Z11']
+Loading images...
+Image stack shape: (4, 6, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+  Nuclear threshold (Otsu): 12825
+  Stage 1 (bright cells): median=0.0, MAD_sigma=0.0, threshold=0.2 (20-sigma)
+  Stage 1: 1 extremely bright region(s) detected
+  Stage 2 (local contrast): background_sigma=50, threshold=0.0 (p97)
+  Hybrid segmentation: 6 cells, 6 nuclei
+Segmented 6 nuclei and 6 cells
+Detecting spots...
+pol: 102 spots (threshold: 25.0)
+env: 157 spots (threshold: 84.0)
+nef: 128 spots (threshold: 50.0)
+Decomposing dense regions and clustering foci...
+pol: 5 clusters
+env: 5 clusters
+nef: 4 clusters
+Removing transcription sites...
+After TS removal: pol=97, env=140, nef=135
+Performing colocalization analysis...
+Colocalization: pol-env=86, pol-nef=84, env-nef=112
+Classifying splicing patterns...
+Classification: US=3, SS=10, MS=76
+
+
+Processing FOV 6/10
+
+======================================================================
+Processing FOV: 20251119_EGS023_bingo_slide6_006_XY1
+======================================================================
+Found 6 z-slices: ['Z06', 'Z07', 'Z08', 'Z09', 'Z10', 'Z11']
+Loading images...
+Image stack shape: (4, 6, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+  Nuclear threshold (Otsu): 18250
+  Stage 1 (bright cells): median=0.0, MAD_sigma=0.0, threshold=0.2 (20-sigma)
+  Stage 1: 1 extremely bright region(s) detected
+  Stage 2 (local contrast): background_sigma=50, threshold=0.0 (p97)
+  Hybrid segmentation: 2 cells, 2 nuclei
+Segmented 2 nuclei and 2 cells
+Detecting spots...
+pol: 94 spots (threshold: 24.0)
+env: 140 spots (threshold: 63.0)
+nef: 113 spots (threshold: 38.0)
+Decomposing dense regions and clustering foci...
+pol: 6 clusters
+env: 9 clusters
+nef: 8 clusters
+Removing transcription sites...
+After TS removal: pol=87, env=107, nef=86
+Performing colocalization analysis...
+Colocalization: pol-env=72, pol-nef=74, env-nef=73
+Classifying splicing patterns...
+Classification: US=6, SS=6, MS=66
+
+
+Processing FOV 7/10
+
+======================================================================
+Processing FOV: 20251119_EGS023_bingo_slide6_007_XY1
+======================================================================
+Found 6 z-slices: ['Z06', 'Z07', 'Z08', 'Z09', 'Z10', 'Z11']
+Loading images...
+Image stack shape: (4, 6, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+  Nuclear threshold (Otsu): 19409
+  Stage 1 (bright cells): median=0.0, MAD_sigma=0.0, threshold=0.1 (20-sigma)
+  Stage 1: 1 extremely bright region(s) detected
+  Stage 2 (local contrast): background_sigma=50, threshold=0.0 (p97)
+  Hybrid segmentation: 1 cells, 1 nuclei
+Segmented 1 nuclei and 1 cells
+Detecting spots...
+pol: 85 spots (threshold: 25.0)
+env: 161 spots (threshold: 75.0)
+nef: 114 spots (threshold: 57.0)
+Decomposing dense regions and clustering foci...
+pol: 4 clusters
+env: 7 clusters
+nef: 8 clusters
+Removing transcription sites...
+After TS removal: pol=72, env=93, nef=78
+Performing colocalization analysis...
+Colocalization: pol-env=37, pol-nef=52, env-nef=40
+Classifying splicing patterns...
+Classification: US=11, SS=9, MS=28
+
+
+Processing FOV 8/10
+
+======================================================================
+Processing FOV: 20251119_EGS023_bingo_slide6_008_XY1
+======================================================================
+Found 6 z-slices: ['Z06', 'Z07', 'Z08', 'Z09', 'Z10', 'Z11']
+Loading images...
+Image stack shape: (4, 6, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+  Nuclear threshold (Otsu): 12567
+  Stage 1 (bright cells): median=0.1, MAD_sigma=0.0, threshold=0.5 (20-sigma)
+  Stage 1: 1 extremely bright region(s) detected
+  Stage 2 (local contrast): background_sigma=50, threshold=0.0 (p97)
+  Hybrid segmentation: 4 cells, 4 nuclei
+Segmented 4 nuclei and 4 cells
+Detecting spots...
+pol: 89 spots (threshold: 22.0)
+env: 149 spots (threshold: 66.0)
+nef: 115 spots (threshold: 38.0)
+Decomposing dense regions and clustering foci...
+pol: 2 clusters
+env: 7 clusters
+nef: 6 clusters
+Removing transcription sites...
+After TS removal: pol=80, env=84, nef=114
+Performing colocalization analysis...
+Colocalization: pol-env=36, pol-nef=50, env-nef=41
+Classifying splicing patterns...
+Classification: US=16, SS=13, MS=23
+
+
+Processing FOV 9/10
+
+======================================================================
+Processing FOV: 20251119_EGS023_bingo_slide6_009_XY1
+======================================================================
+Found 6 z-slices: ['Z06', 'Z07', 'Z08', 'Z09', 'Z10', 'Z11']
+Loading images...
+Image stack shape: (4, 6, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+  Nuclear threshold (Otsu): 15668
+  Stage 1 (bright cells): median=0.1, MAD_sigma=0.0, threshold=0.5 (20-sigma)
+  Stage 1: 1 extremely bright region(s) detected
+  Stage 2 (local contrast): background_sigma=50, threshold=0.0 (p97)
+  Hybrid segmentation: 1 cells, 1 nuclei
+Segmented 1 nuclei and 1 cells
+Detecting spots...
+pol: 114 spots (threshold: 24.0)
+env: 156 spots (threshold: 95.0)
+nef: 161 spots (threshold: 42.0)
+Decomposing dense regions and clustering foci...
+pol: 2 clusters
+env: 7 clusters
+nef: 8 clusters
+Removing transcription sites...
+After TS removal: pol=130, env=133, nef=185
+Performing colocalization analysis...
+Colocalization: pol-env=106, pol-nef=94, env-nef=106
+Classifying splicing patterns...
+Classification: US=4, SS=31, MS=75
+
+
+Processing FOV 10/10
+
+======================================================================
+Processing FOV: 20251119_EGS023_bingo_slide6_011_XY1
+======================================================================
+Found 6 z-slices: ['Z06', 'Z07', 'Z08', 'Z09', 'Z10', 'Z11']
+Loading images...
+Image stack shape: (4, 6, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+  Nuclear threshold (Otsu): 17029
+  Stage 1 (bright cells): median=0.1, MAD_sigma=0.0, threshold=0.4 (20-sigma)
+  Stage 1: 1 extremely bright region(s) detected
+  Stage 2 (local contrast): background_sigma=50, threshold=0.0 (p97)
+  Hybrid segmentation: 5 cells, 5 nuclei
+Segmented 5 nuclei and 5 cells
+Detecting spots...
+pol: 91 spots (threshold: 26.0)
+env: 148 spots (threshold: 83.0)
+nef: 99 spots (threshold: 49.0)
+Decomposing dense regions and clustering foci...
+pol: 3 clusters
+env: 4 clusters
+nef: 5 clusters
+Removing transcription sites...
+After TS removal: pol=67, env=107, nef=65
+Performing colocalization analysis...
+Colocalization: pol-env=51, pol-nef=42, env-nef=50
+Classifying splicing patterns...
+Classification: US=12, SS=12, MS=40
+
+======================================================================
+PIPELINE SUMMARY
+======================================================================
+Total FOVs found: 10
+Successfully processed: 10
+Skipped (missing channels): 0
+Errors: 0
+
+Created combined cell statistics: /projects/b1042/GoyalLab/egrody/extractedData/EGS023/big-FISH/all_cells_stats.csv
+
+----------------------------------------------------------------------
+PER-CELL RESULTS
+----------------------------------------------------------------------
+FOV / Cell                                   US     SS     MS  Total     Area
+----------------------------------------------------------------------
+20251119_EGS023_bingo_slide6_001_XY1/cel     11      4      0     15    29745
+20251119_EGS023_bingo_slide6_001_XY1/cel     39     12     50    101    21831
+20251119_EGS023_bingo_slide6_001_XY1/cel      1      2      0      3    29036
+20251119_EGS023_bingo_slide6_002_XY1/cel      0      0      0      0    12770
+20251119_EGS023_bingo_slide6_002_XY1/cel      8      9     70     87    11932
+20251119_EGS023_bingo_slide6_002_XY1/cel      0      1      0      1    15362
+20251119_EGS023_bingo_slide6_002_XY1/cel      0      0      1      1    12199
+20251119_EGS023_bingo_slide6_003_XY1/cel      1      0      0      1    15804
+20251119_EGS023_bingo_slide6_003_XY1/cel     12      0      7     19    10809
+20251119_EGS023_bingo_slide6_004_XY1/cel      9     20      9     38    12107
+20251119_EGS023_bingo_slide6_005_XY1/cel      1      8     73     82    13382
+20251119_EGS023_bingo_slide6_005_XY1/cel      0      0      1      1    12261
+20251119_EGS023_bingo_slide6_005_XY1/cel      0      1      1      2    14297
+20251119_EGS023_bingo_slide6_005_XY1/cel      2      0      0      2    10714
+20251119_EGS023_bingo_slide6_005_XY1/cel      0      1      0      1    10493
+20251119_EGS023_bingo_slide6_005_XY1/cel      0      0      1      1    11671
+20251119_EGS023_bingo_slide6_006_XY1/cel      0      0      1      1    14812
+20251119_EGS023_bingo_slide6_006_XY1/cel      6      6     65     77    12232
+20251119_EGS023_bingo_slide6_007_XY1/cel     11      8     28     47    11626
+20251119_EGS023_bingo_slide6_008_XY1/cel      0      1      0      1    12933
+20251119_EGS023_bingo_slide6_008_XY1/cel     15     10     23     48    11956
+20251119_EGS023_bingo_slide6_008_XY1/cel      1      2      0      3    19704
+20251119_EGS023_bingo_slide6_008_XY1/cel      0      0      0      0    12849
+20251119_EGS023_bingo_slide6_009_XY1/cel      4     30     74    108    16909
+20251119_EGS023_bingo_slide6_011_XY1/cel      7     10     38     55    11373
+20251119_EGS023_bingo_slide6_011_XY1/cel      0      1      0      1    14900
+20251119_EGS023_bingo_slide6_011_XY1/cel      0      0      1      1    38423
+20251119_EGS023_bingo_slide6_011_XY1/cel      0      1      0      1    14062
+20251119_EGS023_bingo_slide6_011_XY1/cel      0      0      1      1    13031
+
+----------------------------------------------------------------------
+FOV SUMMARY
+----------------------------------------------------------------------
+Total cells across all FOVs: 29
+Total spots - US: 133, SS: 129, MS: 445
+
+20251119_EGS023_bingo_slide6_001_XY1:
+  Cells: 3, Nuclei: 2
+  FOV totals - US: 51, SS: 18, MS: 50
+
+20251119_EGS023_bingo_slide6_002_XY1:
+  Cells: 4, Nuclei: 4
+  FOV totals - US: 8, SS: 10, MS: 71
+
+20251119_EGS023_bingo_slide6_003_XY1:
+  Cells: 2, Nuclei: 2
+  FOV totals - US: 13, SS: 0, MS: 7
+
+20251119_EGS023_bingo_slide6_004_XY1:
+  Cells: 1, Nuclei: 1
+  FOV totals - US: 9, SS: 20, MS: 9
+
+20251119_EGS023_bingo_slide6_005_XY1:
+  Cells: 6, Nuclei: 6
+  FOV totals - US: 3, SS: 10, MS: 76
+
+20251119_EGS023_bingo_slide6_006_XY1:
+  Cells: 2, Nuclei: 2
+  FOV totals - US: 6, SS: 6, MS: 66
+
+20251119_EGS023_bingo_slide6_007_XY1:
+  Cells: 1, Nuclei: 1
+  FOV totals - US: 11, SS: 9, MS: 28
+
+20251119_EGS023_bingo_slide6_008_XY1:
+  Cells: 4, Nuclei: 4
+  FOV totals - US: 16, SS: 13, MS: 23
+
+20251119_EGS023_bingo_slide6_009_XY1:
+  Cells: 1, Nuclei: 1
+  FOV totals - US: 4, SS: 31, MS: 75
+
+20251119_EGS023_bingo_slide6_011_XY1:
+  Cells: 5, Nuclei: 5
+  FOV totals - US: 12, SS: 12, MS: 40
+======================================================================
+
+======================================================================
+big-FISH Multi-FOV Pipeline
+======================================================================
+Input directory: /projects/b1042/GoyalLab/egrody/rawData/EGS023/20251119/TIFF/
+Output directory: /projects/b1042/GoyalLab/egrody/extractedData/EGS023/big-FISH/
+Channels: ['Red', 'Gold70', 'FarRed']
+DAPI present: False
+Found 18 FOVs to process
+======================================================================
+
+
+Processing FOV 1/18
+
+======================================================================
+Processing FOV: 20251119_EGS023_plate_002_XY1
+======================================================================
+Found 6 z-slices: ['Z05', 'Z06', 'Z07', 'Z08', 'Z09', 'Z10']
+Loading images...
+Image stack shape: (3, 6, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+No DAPI channel - using cell-only segmentation
+  Stage 1 (bright cells): median=0.6, MAD_sigma=0.2, threshold=4.1 (20-sigma)
+  Stage 1: 0 extremely bright region(s) detected
+  Stage 2 (local contrast): background_sigma=50, threshold=0.2 (p97)
+  Hybrid segmentation: 2 cells detected
+Segmented 0 nuclei and 2 cells
+Detecting spots...
+pol: 23 spots (threshold: 53.0)
+env: 71 spots (threshold: 229.0)
+nef: 61 spots (threshold: 75.0)
+Decomposing dense regions and clustering foci...
+pol: 0 clusters
+env: 1 clusters
+nef: 0 clusters
+Removing transcription sites...
+  Note: Nuclear segmentation failed, using intensity-based TS detection
+  Note: Nuclear segmentation failed, using intensity-based TS detection
+  Intensity-based TS removal: TS center at (298, 1117), radius=15, 1 clusters in TS, 82 spots removed
+  Note: Nuclear segmentation failed, using intensity-based TS detection
+After TS removal: pol=0, env=93, nef=79
+Performing colocalization analysis...
+Colocalization: pol-env=0, pol-nef=0, env-nef=29
+Classifying splicing patterns...
+Classification: US=0, SS=0, MS=0
+
+
+Processing FOV 2/18
+
+======================================================================
+Processing FOV: 20251119_EGS023_plate_003_XY1
+======================================================================
+Found 7 z-slices: ['Z05', 'Z06', 'Z07', 'Z08', 'Z09', 'Z10', 'Z11']
+Loading images...
+Image stack shape: (3, 7, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+No DAPI channel - using cell-only segmentation
+  Stage 1 (bright cells): median=0.3, MAD_sigma=0.0, threshold=0.6 (20-sigma)
+  Stage 1: 1 extremely bright region(s) detected
+  Stage 2 (local contrast): background_sigma=50, threshold=0.0 (p97)
+  Rejected region: area=51288 > max_cell_area=50000
+  Hybrid segmentation: 3 cells detected
+Segmented 0 nuclei and 3 cells
+Detecting spots...
+pol: 106 spots (threshold: 53.0)
+env: 172 spots (threshold: 248.0)
+nef: 131 spots (threshold: 85.0)
+Decomposing dense regions and clustering foci...
+pol: 4 clusters
+env: 6 clusters
+nef: 5 clusters
+Removing transcription sites...
+  Note: Nuclear segmentation failed, using intensity-based TS detection
+  Intensity-based TS removal: TS center at (1184, 1240), radius=15, 1 clusters in TS, 127 spots removed
+  Note: Nuclear segmentation failed, using intensity-based TS detection
+  Intensity-based TS removal: TS center at (1182, 1242), radius=15, 1 clusters in TS, 102 spots removed
+  Note: Nuclear segmentation failed, using intensity-based TS detection
+  Intensity-based TS removal: TS center at (1185, 1241), radius=15, 1 clusters in TS, 120 spots removed
+After TS removal: pol=110, env=268, nef=148
+Performing colocalization analysis...
+Colocalization: pol-env=90, pol-nef=85, env-nef=111
+Classifying splicing patterns...
+Classification: US=16, SS=9, MS=81
+
+
+Processing FOV 3/18
+
+======================================================================
+Processing FOV: 20251119_EGS023_plate_004_XY1
+======================================================================
+Found 6 z-slices: ['Z01', 'Z02', 'Z03', 'Z04', 'Z05', 'Z06']
+Loading images...
+Image stack shape: (3, 6, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+No DAPI channel - using cell-only segmentation
+  Stage 1 (bright cells): median=0.3, MAD_sigma=0.0, threshold=0.9 (20-sigma)
+  Stage 1: 1 extremely bright region(s) detected
+  Stage 2 (local contrast): background_sigma=50, threshold=0.0 (p97)
+  Hybrid segmentation: 5 cells detected
+Segmented 0 nuclei and 5 cells
+Detecting spots...
+pol: 100 spots (threshold: 50.0)
+env: 104 spots (threshold: 295.0)
+nef: 79 spots (threshold: 83.0)
+Decomposing dense regions and clustering foci...
+pol: 2 clusters
+env: 5 clusters
+nef: 4 clusters
+Removing transcription sites...
+  Note: Nuclear segmentation failed, using intensity-based TS detection
+  Intensity-based TS removal: TS center at (1309, 1277), radius=15, 1 clusters in TS, 155 spots removed
+  Note: Nuclear segmentation failed, using intensity-based TS detection
+  Intensity-based TS removal: TS center at (1302, 1279), radius=15, 1 clusters in TS, 19 spots removed
+  Note: Nuclear segmentation failed, using intensity-based TS detection
+  Intensity-based TS removal: TS center at (1302, 1288), radius=15, 3 clusters in TS, 54 spots removed
+After TS removal: pol=72, env=137, nef=85
+Performing colocalization analysis...
+Colocalization: pol-env=63, pol-nef=69, env-nef=73
+Classifying splicing patterns...
+Classification: US=2, SS=1, MS=62
+
+
+Processing FOV 4/18
+
+======================================================================
+Processing FOV: 20251119_EGS023_plate_005_XY1
+======================================================================
+Found 6 z-slices: ['Z05', 'Z06', 'Z07', 'Z08', 'Z09', 'Z10']
+Loading images...
+Image stack shape: (3, 6, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+No DAPI channel - using cell-only segmentation
+  Stage 1 (bright cells): median=0.1, MAD_sigma=0.0, threshold=0.9 (20-sigma)
+  Stage 1: 0 extremely bright region(s) detected
+  Stage 2 (local contrast): background_sigma=50, threshold=0.0 (p97)
+  Hybrid segmentation: 4 cells detected
+Segmented 0 nuclei and 4 cells
+Detecting spots...
+pol: 129 spots (threshold: 50.0)
+env: 240 spots (threshold: 254.0)
+nef: 198 spots (threshold: 73.0)
+Decomposing dense regions and clustering foci...
+pol: 7 clusters
+env: 14 clusters
+nef: 8 clusters
+Removing transcription sites...
+  Note: Nuclear segmentation failed, using intensity-based TS detection
+  Intensity-based TS removal: TS center at (883, 2130), radius=15, 1 clusters in TS, 61 spots removed
+  Note: Nuclear segmentation failed, using intensity-based TS detection
+  Intensity-based TS removal: TS center at (884, 2130), radius=15, 1 clusters in TS, 71 spots removed
+  Note: Nuclear segmentation failed, using intensity-based TS detection
+  Intensity-based TS removal: TS center at (884, 2128), radius=15, 1 clusters in TS, 55 spots removed
+After TS removal: pol=171, env=344, nef=268
+Performing colocalization analysis...
+Colocalization: pol-env=169, pol-nef=164, env-nef=227
+Classifying splicing patterns...
+Classification: US=1, SS=6, MS=163
+
+
+Processing FOV 5/18
+
+======================================================================
+Processing FOV: 20251119_EGS023_plate_006_XY1
+======================================================================
+Found 11 z-slices: ['Z01', 'Z02', 'Z03', 'Z04', 'Z05', 'Z06', 'Z07', 'Z08', 'Z09', 'Z10', 'Z11']
+Loading images...
+Image stack shape: (3, 11, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+No DAPI channel - using cell-only segmentation
+  Stage 1 (bright cells): median=0.1, MAD_sigma=0.0, threshold=0.9 (20-sigma)
+  Stage 1: 0 extremely bright region(s) detected
+  Stage 2 (local contrast): background_sigma=50, threshold=0.0 (p97)
+  Hybrid segmentation: 2 cells detected
+Segmented 0 nuclei and 2 cells
+Detecting spots...
+pol: 230 spots (threshold: 46.0)
+env: 362 spots (threshold: 257.0)
+nef: 431 spots (threshold: 71.0)
+Decomposing dense regions and clustering foci...
+pol: 13 clusters
+env: 13 clusters
+nef: 18 clusters
+Removing transcription sites...
+  Note: Nuclear segmentation failed, using intensity-based TS detection
+  Intensity-based TS removal: TS center at (1712, 2024), radius=15, 1 clusters in TS, 93 spots removed
+  Note: Nuclear segmentation failed, using intensity-based TS detection
+  Intensity-based TS removal: TS center at (1712, 2024), radius=15, 1 clusters in TS, 99 spots removed
+  Note: Nuclear segmentation failed, using intensity-based TS detection
+  Intensity-based TS removal: TS center at (1710, 2022), radius=15, 1 clusters in TS, 155 spots removed
+After TS removal: pol=423, env=600, nef=768
+Performing colocalization analysis...
+Colocalization: pol-env=348, pol-nef=361, env-nef=413
+Classifying splicing patterns...
+Classification: US=38, SS=19, MS=335
+
+
+Processing FOV 6/18
+
+======================================================================
+Processing FOV: 20251119_EGS023_plate_009_XY1
+======================================================================
+Found 8 z-slices: ['Z01', 'Z02', 'Z03', 'Z04', 'Z05', 'Z06', 'Z07', 'Z08']
+Loading images...
+Image stack shape: (3, 8, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+No DAPI channel - using cell-only segmentation
+  Stage 1 (bright cells): median=0.1, MAD_sigma=0.0, threshold=0.9 (20-sigma)
+  Stage 1: 1 extremely bright region(s) detected
+  Stage 2 (local contrast): background_sigma=50, threshold=0.0 (p97)
+  Hybrid segmentation: 8 cells detected
+Segmented 0 nuclei and 8 cells
+Detecting spots...
+pol: 176 spots (threshold: 50.0)
+env: 207 spots (threshold: 290.0)
+nef: 253 spots (threshold: 75.0)
+Decomposing dense regions and clustering foci...
+pol: 12 clusters
+env: 12 clusters
+nef: 12 clusters
+Removing transcription sites...
+  Note: Nuclear segmentation failed, using intensity-based TS detection
+  Intensity-based TS removal: TS center at (1919, 1154), radius=15, 1 clusters in TS, 65 spots removed
+  Note: Nuclear segmentation failed, using intensity-based TS detection
+  Intensity-based TS removal: TS center at (1920, 1153), radius=15, 1 clusters in TS, 94 spots removed
+  Note: Nuclear segmentation failed, using intensity-based TS detection
+  Intensity-based TS removal: TS center at (1919, 1153), radius=15, 1 clusters in TS, 96 spots removed
+After TS removal: pol=242, env=285, nef=330
+Performing colocalization analysis...
+Colocalization: pol-env=205, pol-nef=216, env-nef=249
+Classifying splicing patterns...
+Classification: US=23, SS=3, MS=202
+
+
+Processing FOV 7/18
+
+======================================================================
+Processing FOV: 20251119_EGS023_plate_010_XY1
+======================================================================
+Found 6 z-slices: ['Z06', 'Z07', 'Z08', 'Z09', 'Z10', 'Z11']
+Loading images...
+Image stack shape: (3, 6, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+No DAPI channel - using cell-only segmentation
+  Stage 1 (bright cells): median=0.2, MAD_sigma=0.0, threshold=1.0 (20-sigma)
+  Stage 1: 0 extremely bright region(s) detected
+  Stage 2 (local contrast): background_sigma=50, threshold=0.0 (p97)
+  Hybrid segmentation: 1 cells detected
+Segmented 0 nuclei and 1 cells
+Detecting spots...
+pol: 76 spots (threshold: 48.0)
+env: 167 spots (threshold: 216.0)
+nef: 129 spots (threshold: 71.0)
+Decomposing dense regions and clustering foci...
+pol: 2 clusters
+env: 4 clusters
+nef: 8 clusters
+Removing transcription sites...
+  Note: Nuclear segmentation failed, using intensity-based TS detection
+  Intensity-based TS removal: TS center at (1209, 1286), radius=15, 1 clusters in TS, 54 spots removed
+  Note: Nuclear segmentation failed, using intensity-based TS detection
+  Intensity-based TS removal: TS center at (1207, 1287), radius=15, 1 clusters in TS, 116 spots removed
+  Note: Nuclear segmentation failed, using intensity-based TS detection
+  Intensity-based TS removal: TS center at (1209, 1286), radius=15, 2 clusters in TS, 90 spots removed
+After TS removal: pol=64, env=202, nef=161
+Performing colocalization analysis...
+Colocalization: pol-env=46, pol-nef=62, env-nef=113
+Classifying splicing patterns...
+Classification: US=0, SS=2, MS=44
+
+
+Processing FOV 8/18
+
+======================================================================
+Processing FOV: 20251119_EGS023_plate_011_XY1
+======================================================================
+Found 7 z-slices: ['Z05', 'Z06', 'Z07', 'Z08', 'Z09', 'Z10', 'Z11']
+Loading images...
+Image stack shape: (3, 7, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+No DAPI channel - using cell-only segmentation
+  Stage 1 (bright cells): median=0.1, MAD_sigma=0.0, threshold=0.5 (20-sigma)
+  Stage 1: 1 extremely bright region(s) detected
+  Stage 2 (local contrast): background_sigma=50, threshold=0.0 (p97)
+  Hybrid segmentation: 2 cells detected
+Segmented 0 nuclei and 2 cells
+Detecting spots...
+pol: 108 spots (threshold: 49.0)
+env: 181 spots (threshold: 227.0)
+nef: 160 spots (threshold: 78.0)
+Decomposing dense regions and clustering foci...
+pol: 7 clusters
+env: 5 clusters
+nef: 7 clusters
+Removing transcription sites...
+  Note: Nuclear segmentation failed, using intensity-based TS detection
+  Intensity-based TS removal: TS center at (948, 1065), radius=15, 1 clusters in TS, 84 spots removed
+  Note: Nuclear segmentation failed, using intensity-based TS detection
+  Intensity-based TS removal: TS center at (949, 1067), radius=15, 1 clusters in TS, 64 spots removed
+  Note: Nuclear segmentation failed, using intensity-based TS detection
+  Intensity-based TS removal: TS center at (949, 1065), radius=15, 2 clusters in TS, 99 spots removed
+After TS removal: pol=117, env=270, nef=316
+Performing colocalization analysis...
+Colocalization: pol-env=100, pol-nef=75, env-nef=185
+Classifying splicing patterns...
+Classification: US=10, SS=31, MS=72
+
+
+Processing FOV 9/18
+
+======================================================================
+Processing FOV: 20251119_EGS023_plate_013_XY1
+======================================================================
+Found 7 z-slices: ['Z02', 'Z03', 'Z04', 'Z05', 'Z06', 'Z07', 'Z08']
+Loading images...
+Image stack shape: (3, 7, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+No DAPI channel - using cell-only segmentation
+  Stage 1 (bright cells): median=0.1, MAD_sigma=0.0, threshold=0.6 (20-sigma)
+  Stage 1: 1 extremely bright region(s) detected
+  Stage 2 (local contrast): background_sigma=50, threshold=0.0 (p97)
+  Hybrid segmentation: 1 cells detected
+Segmented 0 nuclei and 1 cells
+Detecting spots...
+pol: 101 spots (threshold: 43.0)
+env: 174 spots (threshold: 235.0)
+nef: 128 spots (threshold: 68.0)
+Decomposing dense regions and clustering foci...
+pol: 3 clusters
+env: 6 clusters
+nef: 5 clusters
+Removing transcription sites...
+  Note: Nuclear segmentation failed, using intensity-based TS detection
+  Intensity-based TS removal: TS center at (971, 1706), radius=15, 1 clusters in TS, 64 spots removed
+  Note: Nuclear segmentation failed, using intensity-based TS detection
+  Intensity-based TS removal: TS center at (976, 1705), radius=15, 1 clusters in TS, 265 spots removed
+  Note: Nuclear segmentation failed, using intensity-based TS detection
+  Intensity-based TS removal: TS center at (974, 1704), radius=15, 1 clusters in TS, 85 spots removed
+After TS removal: pol=90, env=177, nef=159
+Performing colocalization analysis...
+Colocalization: pol-env=67, pol-nef=76, env-nef=77
+Classifying splicing patterns...
+Classification: US=6, SS=7, MS=60
+
+
+Processing FOV 10/18
+
+======================================================================
+Processing FOV: 20251119_EGS023_plate_014_XY1
+======================================================================
+Found 6 z-slices: ['Z07', 'Z08', 'Z09', 'Z10', 'Z11', 'Z12']
+Loading images...
+Image stack shape: (3, 6, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+No DAPI channel - using cell-only segmentation
+  Stage 1 (bright cells): median=0.2, MAD_sigma=0.0, threshold=1.1 (20-sigma)
+  Stage 1: 0 extremely bright region(s) detected
+  Stage 2 (local contrast): background_sigma=50, threshold=0.0 (p97)
+  Hybrid segmentation: 2 cells detected
+Segmented 0 nuclei and 2 cells
+Detecting spots...
+pol: 89 spots (threshold: 43.0)
+env: 190 spots (threshold: 203.0)
+nef: 138 spots (threshold: 60.0)
+Decomposing dense regions and clustering foci...
+pol: 3 clusters
+env: 10 clusters
+nef: 7 clusters
+Removing transcription sites...
+  Note: Nuclear segmentation failed, using intensity-based TS detection
+  Intensity-based TS removal: TS center at (1027, 1559), radius=15, 1 clusters in TS, 60 spots removed
+  Note: Nuclear segmentation failed, using intensity-based TS detection
+  Intensity-based TS removal: TS center at (1013, 1595), radius=15, 2 clusters in TS, 56 spots removed
+  Note: Nuclear segmentation failed, using intensity-based TS detection
+  Intensity-based TS removal: TS center at (1010, 1591), radius=15, 1 clusters in TS, 43 spots removed
+After TS removal: pol=91, env=291, nef=188
+Performing colocalization analysis...
+Colocalization: pol-env=84, pol-nef=87, env-nef=124
+Classifying splicing patterns...
+Classification: US=4, SS=0, MS=84
+
+
+Processing FOV 11/18
+
+======================================================================
+Processing FOV: 20251119_EGS023_plate_015_XY1
+======================================================================
+Found 6 z-slices: ['Z06', 'Z07', 'Z08', 'Z09', 'Z10', 'Z11']
+Loading images...
+Image stack shape: (3, 6, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+No DAPI channel - using cell-only segmentation
+  Stage 1 (bright cells): median=0.2, MAD_sigma=0.1, threshold=1.5 (20-sigma)
+  Stage 1: 0 extremely bright region(s) detected
+  Stage 2 (local contrast): background_sigma=50, threshold=0.0 (p97)
+  Hybrid segmentation: 3 cells detected
+Segmented 0 nuclei and 3 cells
+Detecting spots...
+pol: 103 spots (threshold: 41.0)
+env: 212 spots (threshold: 199.0)
+nef: 146 spots (threshold: 58.0)
+Decomposing dense regions and clustering foci...
+pol: 1 clusters
+env: 12 clusters
+nef: 7 clusters
+Removing transcription sites...
+  Note: Nuclear segmentation failed, using intensity-based TS detection
+  Intensity-based TS removal: TS center at (1234, 2285), radius=15, 1 clusters in TS, 25 spots removed
+  Note: Nuclear segmentation failed, using intensity-based TS detection
+  Intensity-based TS removal: TS center at (964, 1428), radius=15, 1 clusters in TS, 9 spots removed
+  Note: Nuclear segmentation failed, using intensity-based TS detection
+  Intensity-based TS removal: TS center at (972, 1425), radius=15, 1 clusters in TS, 11 spots removed
+After TS removal: pol=94, env=306, nef=191
+Performing colocalization analysis...
+Colocalization: pol-env=88, pol-nef=89, env-nef=154
+Classifying splicing patterns...
+Classification: US=4, SS=1, MS=87
+
+
+Processing FOV 12/18
+
+======================================================================
+Processing FOV: 20251119_EGS023_plate_016_XY1
+======================================================================
+Found 6 z-slices: ['Z04', 'Z05', 'Z06', 'Z07', 'Z08', 'Z09']
+Loading images...
+Image stack shape: (3, 6, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+No DAPI channel - using cell-only segmentation
+  Stage 1 (bright cells): median=0.1, MAD_sigma=0.0, threshold=0.4 (20-sigma)
+  Stage 1: 1 extremely bright region(s) detected
+  Stage 2 (local contrast): background_sigma=50, threshold=0.0 (p97)
+  Hybrid segmentation: 13 cells detected
+Segmented 0 nuclei and 13 cells
+Detecting spots...
+pol: 103 spots (threshold: 42.0)
+env: 149 spots (threshold: 191.0)
+nef: 100 spots (threshold: 62.0)
+Decomposing dense regions and clustering foci...
+pol: 5 clusters
+env: 4 clusters
+nef: 5 clusters
+Removing transcription sites...
+  Note: Nuclear segmentation failed, using intensity-based TS detection
+  Intensity-based TS removal: TS center at (372, 1415), radius=15, 1 clusters in TS, 46 spots removed
+  Note: Nuclear segmentation failed, using intensity-based TS detection
+  Intensity-based TS removal: TS center at (363, 1417), radius=15, 1 clusters in TS, 109 spots removed
+  Note: Nuclear segmentation failed, using intensity-based TS detection
+  Intensity-based TS removal: TS center at (372, 1416), radius=15, 1 clusters in TS, 51 spots removed
+After TS removal: pol=130, env=170, nef=146
+Performing colocalization analysis...
+Colocalization: pol-env=103, pol-nef=118, env-nef=101
+Classifying splicing patterns...
+Classification: US=7, SS=5, MS=99
+
+
+Processing FOV 13/18
+
+======================================================================
+Processing FOV: 20251119_EGS023_plate_017_XY1
+======================================================================
+Found 6 z-slices: ['Z07', 'Z08', 'Z09', 'Z10', 'Z11', 'Z12']
+Loading images...
+Image stack shape: (3, 6, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+No DAPI channel - using cell-only segmentation
+  Stage 1 (bright cells): median=0.1, MAD_sigma=0.0, threshold=0.5 (20-sigma)
+  Stage 1: 1 extremely bright region(s) detected
+  Stage 2 (local contrast): background_sigma=50, threshold=0.0 (p97)
+  Hybrid segmentation: 2 cells detected
+Segmented 0 nuclei and 2 cells
+Detecting spots...
+pol: 160 spots (threshold: 41.0)
+env: 271 spots (threshold: 179.0)
+nef: 174 spots (threshold: 62.0)
+Decomposing dense regions and clustering foci...
+pol: 6 clusters
+env: 9 clusters
+nef: 6 clusters
+Removing transcription sites...
+  Note: Nuclear segmentation failed, using intensity-based TS detection
+  Intensity-based TS removal: TS center at (389, 1492), radius=15, 1 clusters in TS, 77 spots removed
+  Note: Nuclear segmentation failed, using intensity-based TS detection
+  Intensity-based TS removal: TS center at (374, 1485), radius=15, 1 clusters in TS, 493 spots removed
+  Note: Nuclear segmentation failed, using intensity-based TS detection
+  Intensity-based TS removal: TS center at (393, 1489), radius=15, 1 clusters in TS, 193 spots removed
+After TS removal: pol=157, env=288, nef=184
+Performing colocalization analysis...
+Colocalization: pol-env=115, pol-nef=149, env-nef=131
+Classifying splicing patterns...
+Classification: US=5, SS=3, MS=113
+
+
+Processing FOV 14/18
+
+======================================================================
+Processing FOV: 20251119_EGS023_plate_018_XY1
+======================================================================
+Found 6 z-slices: ['Z07', 'Z08', 'Z09', 'Z10', 'Z11', 'Z12']
+Loading images...
+Image stack shape: (3, 6, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+No DAPI channel - using cell-only segmentation
+  Stage 1 (bright cells): median=0.2, MAD_sigma=0.0, threshold=0.6 (20-sigma)
+  Stage 1: 1 extremely bright region(s) detected
+  Stage 2 (local contrast): background_sigma=50, threshold=0.0 (p97)
+  Hybrid segmentation: 4 cells detected
+Segmented 0 nuclei and 4 cells
+Detecting spots...
+pol: 278 spots (threshold: 44.0)
+env: 363 spots (threshold: 191.0)
+nef: 239 spots (threshold: 67.0)
+Decomposing dense regions and clustering foci...
+pol: 16 clusters
+env: 20 clusters
+nef: 8 clusters
+Removing transcription sites...
+  Note: Nuclear segmentation failed, using intensity-based TS detection
+  Intensity-based TS removal: TS center at (1136, 833), radius=15, 2 clusters in TS, 131 spots removed
+  Note: Nuclear segmentation failed, using intensity-based TS detection
+  Intensity-based TS removal: TS center at (1134, 832), radius=15, 1 clusters in TS, 168 spots removed
+  Note: Nuclear segmentation failed, using intensity-based TS detection
+  Intensity-based TS removal: TS center at (1135, 832), radius=15, 1 clusters in TS, 81 spots removed
+After TS removal: pol=397, env=565, nef=337
+Performing colocalization analysis...
+Colocalization: pol-env=209, pol-nef=308, env-nef=201
+Classifying splicing patterns...
+Classification: US=56, SS=28, MS=183
+
+
+Processing FOV 15/18
+
+======================================================================
+Processing FOV: 20251119_EGS023_plate_019_XY1
+======================================================================
+Found 6 z-slices: ['Z07', 'Z08', 'Z09', 'Z10', 'Z11', 'Z12']
+Loading images...
+Image stack shape: (3, 6, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+No DAPI channel - using cell-only segmentation
+  Stage 1 (bright cells): median=0.2, MAD_sigma=0.0, threshold=0.5 (20-sigma)
+  Stage 1: 2 extremely bright region(s) detected
+  Stage 2 (local contrast): background_sigma=50, threshold=0.0 (p97)
+  Hybrid segmentation: 3 cells detected
+Segmented 0 nuclei and 3 cells
+Detecting spots...
+pol: 238 spots (threshold: 55.0)
+env: 196540 spots (threshold: 9.0)
+nef: 266 spots (threshold: 68.0)
+Decomposing dense regions and clustering foci...
+pol: 12 clusters
+env: 8884 clusters
+nef: 10 clusters
+Removing transcription sites...
+  Note: Nuclear segmentation failed, using intensity-based TS detection
+  Intensity-based TS removal: TS center at (1087, 396), radius=15, 1 clusters in TS, 92 spots removed
+  Note: Nuclear segmentation failed, using intensity-based TS detection
+  Intensity-based TS removal: TS center at (1081, 409), radius=15, 0 clusters in TS, 0 spots removed
+  Note: Nuclear segmentation failed, using intensity-based TS detection
+  Intensity-based TS removal: TS center at (1103, 400), radius=15, 1 clusters in TS, 219 spots removed
+After TS removal: pol=480, env=297552, nef=399
+Performing colocalization analysis...
+Colocalization: pol-env=345, pol-nef=358, env-nef=342
+Classifying splicing patterns...
+Classification: US=74, SS=40, MS=310
+
+
+Processing FOV 16/18
+
+======================================================================
+Processing FOV: 20251119_EGS023_plate_020_XY1
+======================================================================
+Found 6 z-slices: ['Z06', 'Z07', 'Z08', 'Z09', 'Z10', 'Z11']
+Loading images...
+Image stack shape: (3, 6, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+No DAPI channel - using cell-only segmentation
+  Stage 1 (bright cells): median=0.2, MAD_sigma=0.0, threshold=0.7 (20-sigma)
+  Stage 1: 0 extremely bright region(s) detected
+  Stage 2 (local contrast): background_sigma=50, threshold=0.0 (p97)
+  Hybrid segmentation: 1 cells detected
+Segmented 0 nuclei and 1 cells
+Detecting spots...
+pol: 84 spots (threshold: 45.0)
+env: 151 spots (threshold: 207.0)
+nef: 89 spots (threshold: 71.0)
+Decomposing dense regions and clustering foci...
+pol: 0 clusters
+env: 3 clusters
+nef: 4 clusters
+Removing transcription sites...
+  Note: Nuclear segmentation failed, using intensity-based TS detection
+  Note: Nuclear segmentation failed, using intensity-based TS detection
+  Intensity-based TS removal: TS center at (866, 1485), radius=15, 1 clusters in TS, 176 spots removed
+  Note: Nuclear segmentation failed, using intensity-based TS detection
+  Intensity-based TS removal: TS center at (867, 1483), radius=15, 1 clusters in TS, 78 spots removed
+After TS removal: pol=0, env=181, nef=101
+Performing colocalization analysis...
+Colocalization: pol-env=0, pol-nef=0, env-nef=79
+Classifying splicing patterns...
+Classification: US=0, SS=0, MS=0
+
+
+Processing FOV 17/18
+
+======================================================================
+Processing FOV: 20251119_EGS023_plate_021_XY1
+======================================================================
+Found 6 z-slices: ['Z05', 'Z06', 'Z07', 'Z08', 'Z09', 'Z10']
+Loading images...
+Image stack shape: (3, 6, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+No DAPI channel - using cell-only segmentation
+  Stage 1 (bright cells): median=0.1, MAD_sigma=0.0, threshold=0.5 (20-sigma)
+  Stage 1: 2 extremely bright region(s) detected
+  Stage 2 (local contrast): background_sigma=50, threshold=0.0 (p97)
+  Hybrid segmentation: 5 cells detected
+Segmented 0 nuclei and 5 cells
+Detecting spots...
+pol: 274 spots (threshold: 43.0)
+env: 363 spots (threshold: 213.0)
+nef: 275 spots (threshold: 58.0)
+Decomposing dense regions and clustering foci...
+pol: 12 clusters
+env: 14 clusters
+nef: 16 clusters
+Removing transcription sites...
+  Note: Nuclear segmentation failed, using intensity-based TS detection
+  Intensity-based TS removal: TS center at (959, 541), radius=15, 1 clusters in TS, 166 spots removed
+  Note: Nuclear segmentation failed, using intensity-based TS detection
+  Intensity-based TS removal: TS center at (955, 548), radius=15, 1 clusters in TS, 109 spots removed
+  Note: Nuclear segmentation failed, using intensity-based TS detection
+  Intensity-based TS removal: TS center at (959, 542), radius=15, 1 clusters in TS, 139 spots removed
+After TS removal: pol=562, env=665, nef=488
+Performing colocalization analysis...
+Colocalization: pol-env=475, pol-nef=437, env-nef=421
+Classifying splicing patterns...
+Classification: US=26, SS=71, MS=415
+
+
+Processing FOV 18/18
+
+======================================================================
+Processing FOV: 20251119_EGS023_plate_022_XY1
+======================================================================
+Found 6 z-slices: ['Z07', 'Z08', 'Z09', 'Z10', 'Z11', 'Z12']
+Loading images...
+Image stack shape: (3, 6, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+No DAPI channel - using cell-only segmentation
+  Stage 1 (bright cells): median=0.1, MAD_sigma=0.0, threshold=0.7 (20-sigma)
+  Stage 1: 1 extremely bright region(s) detected
+  Stage 2 (local contrast): background_sigma=50, threshold=0.0 (p97)
+  Hybrid segmentation: 9 cells detected
+Segmented 0 nuclei and 9 cells
+Detecting spots...
+pol: 158 spots (threshold: 50.0)
+env: 294 spots (threshold: 174.0)
+nef: 226 spots (threshold: 63.0)
+Decomposing dense regions and clustering foci...
+pol: 7 clusters
+env: 12 clusters
+nef: 8 clusters
+Removing transcription sites...
+  Note: Nuclear segmentation failed, using intensity-based TS detection
+  Intensity-based TS removal: TS center at (1275, 1079), radius=15, 1 clusters in TS, 70 spots removed
+  Note: Nuclear segmentation failed, using intensity-based TS detection
+  Intensity-based TS removal: TS center at (1275, 1078), radius=15, 1 clusters in TS, 96 spots removed
+  Note: Nuclear segmentation failed, using intensity-based TS detection
+  Intensity-based TS removal: TS center at (140, 573), radius=15, 1 clusters in TS, 76 spots removed
+After TS removal: pol=206, env=451, nef=322
+Performing colocalization analysis...
+Colocalization: pol-env=180, pol-nef=169, env-nef=243
+Classifying splicing patterns...
+Classification: US=3, SS=34, MS=146
+
+======================================================================
+PIPELINE SUMMARY
+======================================================================
+Total FOVs found: 18
+Successfully processed: 18
+Skipped (missing channels): 0
+Errors: 0
+
+Appended 70 rows to: /projects/b1042/GoyalLab/egrody/extractedData/EGS023/big-FISH/all_cells_stats.csv
+
+----------------------------------------------------------------------
+PER-CELL RESULTS
+----------------------------------------------------------------------
+FOV / Cell                                   US     SS     MS  Total     Area
+----------------------------------------------------------------------
+20251119_EGS023_plate_002_XY1/cell_1          0      0      0      0    10300
+20251119_EGS023_plate_002_XY1/cell_2          0      0      0      0    13468
+20251119_EGS023_plate_003_XY1/cell_1          0      0      0      0    11370
+20251119_EGS023_plate_003_XY1/cell_2          2      0      0      2    18990
+20251119_EGS023_plate_003_XY1/cell_3         14      8     81    103    12062
+20251119_EGS023_plate_004_XY1/cell_1          0      0      0      0    11287
+20251119_EGS023_plate_004_XY1/cell_2          1      0      0      1    10194
+20251119_EGS023_plate_004_XY1/cell_3          0      0     58     58    11384
+20251119_EGS023_plate_004_XY1/cell_4          0      0      0      0    10057
+20251119_EGS023_plate_004_XY1/cell_5          0      0      0      0    12116
+20251119_EGS023_plate_005_XY1/cell_1          0      0      0      0    11873
+20251119_EGS023_plate_005_XY1/cell_2          0      0      0      0    11699
+20251119_EGS023_plate_005_XY1/cell_3          0      0     83     83    12566
+20251119_EGS023_plate_005_XY1/cell_4          0      0     71     71    10351
+20251119_EGS023_plate_006_XY1/cell_1          1      0    103    104     9875
+20251119_EGS023_plate_006_XY1/cell_2          0      0    162    162    10572
+20251119_EGS023_plate_009_XY1/cell_1          2      2     73     77    10227
+20251119_EGS023_plate_009_XY1/cell_2          0      0      0      0    12915
+20251119_EGS023_plate_009_XY1/cell_3          0      0      0      0    11672
+20251119_EGS023_plate_009_XY1/cell_4          0      0      0      0    11540
+20251119_EGS023_plate_009_XY1/cell_5          0      0      0      0    15637
+20251119_EGS023_plate_009_XY1/cell_6          0      0      0      0     9939
+20251119_EGS023_plate_009_XY1/cell_7          0      1    129    130    14223
+20251119_EGS023_plate_009_XY1/cell_8          0      0      0      0    12397
+20251119_EGS023_plate_010_XY1/cell_1          0      1     44     45    10852
+20251119_EGS023_plate_011_XY1/cell_1          0      0      0      0     9955
+20251119_EGS023_plate_011_XY1/cell_2         10     30     72    112    11107
+20251119_EGS023_plate_013_XY1/cell_1          5      7     60     72    12033
+20251119_EGS023_plate_014_XY1/cell_1          0      0      0      0    10061
+20251119_EGS023_plate_014_XY1/cell_2          1      0     82     83    12317
+20251119_EGS023_plate_015_XY1/cell_1          1      0      0      1     9942
+20251119_EGS023_plate_015_XY1/cell_2          0      1     87     88    13920
+20251119_EGS023_plate_015_XY1/cell_3          0      0      0      0    11822
+20251119_EGS023_plate_016_XY1/cell_1          0      0      0      0    10625
+20251119_EGS023_plate_016_XY1/cell_2          0      2      0      2    14860
+20251119_EGS023_plate_016_XY1/cell_3          7      1     98    106    13371
+20251119_EGS023_plate_016_XY1/cell_4          0      0      0      0    11673
+20251119_EGS023_plate_016_XY1/cell_5          0      0      0      0    19141
+20251119_EGS023_plate_016_XY1/cell_6          0      0      0      0    10403
+20251119_EGS023_plate_016_XY1/cell_7          0      0      1      1    19333
+20251119_EGS023_plate_016_XY1/cell_8          0      0      0      0    11305
+20251119_EGS023_plate_016_XY1/cell_9          0      2      0      2    13975
+20251119_EGS023_plate_016_XY1/cell_10         0      0      0      0    17536
+20251119_EGS023_plate_016_XY1/cell_11         0      0      0      0    14443
+20251119_EGS023_plate_016_XY1/cell_12         0      0      0      0     9965
+20251119_EGS023_plate_016_XY1/cell_13         0      0      0      0    10279
+20251119_EGS023_plate_017_XY1/cell_1          0      0    105    105    15453
+20251119_EGS023_plate_017_XY1/cell_2          0      3      5      8    15589
+20251119_EGS023_plate_018_XY1/cell_1         44      4      7     55    16666
+20251119_EGS023_plate_018_XY1/cell_2          1     11     74     86    10051
+20251119_EGS023_plate_018_XY1/cell_3          0      4     98    102    14108
+20251119_EGS023_plate_018_XY1/cell_4          8      0      2     10    19862
+20251119_EGS023_plate_019_XY1/cell_1          0      0      0      0    15731
+20251119_EGS023_plate_019_XY1/cell_2         73     35    208    316    16624
+20251119_EGS023_plate_019_XY1/cell_3          0      4    102    106    15493
+20251119_EGS023_plate_020_XY1/cell_1          0      0      0      0    21996
+20251119_EGS023_plate_021_XY1/cell_1          0      2     36     38    12965
+20251119_EGS023_plate_021_XY1/cell_2          0      0      0      0    12491
+20251119_EGS023_plate_021_XY1/cell_3          0      4     70     74    10084
+20251119_EGS023_plate_021_XY1/cell_4         25     15    181    221    14402
+20251119_EGS023_plate_021_XY1/cell_5          0     50    128    178    11895
+20251119_EGS023_plate_022_XY1/cell_1          0      0      0      0    12157
+20251119_EGS023_plate_022_XY1/cell_2          0     33     39     72    10771
+20251119_EGS023_plate_022_XY1/cell_3          0      0      0      0    20608
+20251119_EGS023_plate_022_XY1/cell_4          1      0      1      2    14273
+20251119_EGS023_plate_022_XY1/cell_5          0      0      0      0    14530
+20251119_EGS023_plate_022_XY1/cell_6          0      0      0      0    10511
+20251119_EGS023_plate_022_XY1/cell_7          0      1    103    104    11705
+20251119_EGS023_plate_022_XY1/cell_8          0      0      0      0    10228
+20251119_EGS023_plate_022_XY1/cell_9          1      0      3      4    18880
+
+----------------------------------------------------------------------
+FOV SUMMARY
+----------------------------------------------------------------------
+Total cells across all FOVs: 70
+Total spots - US: 275, SS: 260, MS: 2456
+
+20251119_EGS023_plate_002_XY1:
+  Cells: 2, Nuclei: 0
+  FOV totals - US: 0, SS: 0, MS: 0
+
+20251119_EGS023_plate_003_XY1:
+  Cells: 3, Nuclei: 0
+  FOV totals - US: 16, SS: 9, MS: 81
+
+20251119_EGS023_plate_004_XY1:
+  Cells: 5, Nuclei: 0
+  FOV totals - US: 2, SS: 1, MS: 62
+
+20251119_EGS023_plate_005_XY1:
+  Cells: 4, Nuclei: 0
+  FOV totals - US: 1, SS: 6, MS: 163
+
+20251119_EGS023_plate_006_XY1:
+  Cells: 2, Nuclei: 0
+  FOV totals - US: 38, SS: 19, MS: 335
+
+20251119_EGS023_plate_009_XY1:
+  Cells: 8, Nuclei: 0
+  FOV totals - US: 23, SS: 3, MS: 202
+
+20251119_EGS023_plate_010_XY1:
+  Cells: 1, Nuclei: 0
+  FOV totals - US: 0, SS: 2, MS: 44
+
+20251119_EGS023_plate_011_XY1:
+  Cells: 2, Nuclei: 0
+  FOV totals - US: 10, SS: 31, MS: 72
+
+20251119_EGS023_plate_013_XY1:
+  Cells: 1, Nuclei: 0
+  FOV totals - US: 6, SS: 7, MS: 60
+
+20251119_EGS023_plate_014_XY1:
+  Cells: 2, Nuclei: 0
+  FOV totals - US: 4, SS: 0, MS: 84
+
+20251119_EGS023_plate_015_XY1:
+  Cells: 3, Nuclei: 0
+  FOV totals - US: 4, SS: 1, MS: 87
+
+20251119_EGS023_plate_016_XY1:
+  Cells: 13, Nuclei: 0
+  FOV totals - US: 7, SS: 5, MS: 99
+
+20251119_EGS023_plate_017_XY1:
+  Cells: 2, Nuclei: 0
+  FOV totals - US: 5, SS: 3, MS: 113
+
+20251119_EGS023_plate_018_XY1:
+  Cells: 4, Nuclei: 0
+  FOV totals - US: 56, SS: 28, MS: 183
+
+20251119_EGS023_plate_019_XY1:
+  Cells: 3, Nuclei: 0
+  FOV totals - US: 74, SS: 40, MS: 310
+
+20251119_EGS023_plate_020_XY1:
+  Cells: 1, Nuclei: 0
+  FOV totals - US: 0, SS: 0, MS: 0
+
+20251119_EGS023_plate_021_XY1:
+  Cells: 5, Nuclei: 0
+  FOV totals - US: 26, SS: 71, MS: 415
+
+20251119_EGS023_plate_022_XY1:
+  Cells: 9, Nuclei: 0
+  FOV totals - US: 3, SS: 34, MS: 146
+======================================================================

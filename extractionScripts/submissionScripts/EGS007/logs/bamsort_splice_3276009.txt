@@ -1,0 +1,18 @@
+Processing sample: cDNA
+Input BAM: /projects/b1042/GoyalLab/egrody/extractedData/EGS007/longRead/nf-core/cDNA/bam/dedup/cDNA.dedup.sorted.bam
+Output CSV: /projects/b1042/GoyalLab/egrody/extractedData/EGS007/longRead/bamsort/splice/cDNA_splicesites.csv
+Input BAM: /projects/b1042/GoyalLab/egrody/extractedData/EGS007/longRead/nf-core/cDNA/bam/dedup/cDNA.dedup.sorted.bam
+Output CSV: /projects/b1042/GoyalLab/egrody/extractedData/EGS007/longRead/bamsort/splice/cDNA_splicesites.csv
+Reference filtering: All references
+Minimum intron size: 1000bp
+Minimum match size: 20bp
+------------------------------------------------------------
+Processing complete!
+Total reads examined: 1939
+Reads processed (mapped with CIGAR): 1939
+Reads without xf:i:25 tag: 1939
+Reads without qualifying splice pattern: 0
+Raw splice junctions found: 0
+Consolidated unique junctions: 0
+Total unique UMIs across all junctions: 0
+Total reads supporting junctions: 0

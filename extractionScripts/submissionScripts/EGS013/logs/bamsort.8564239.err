@@ -1,0 +1,36 @@
+[E::hts_open_format] Failed to open file "/projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/counts/mac239_PacuteD1_up_CI/outs/possorted_genome_bam.bam" : No such file or directory
+Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 68, in <module>
+    reads, total_reads, reads_without_cb, reads_without_umi, reads_wrong_xf = extract_reads_info(
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 9, in extract_reads_info
+    bam = pysam.AlignmentFile(bam_file, "rb")
+  File "pysam/libcalignmentfile.pyx", line 751, in pysam.libcalignmentfile.AlignmentFile.__cinit__
+  File "pysam/libcalignmentfile.pyx", line 950, in pysam.libcalignmentfile.AlignmentFile._open
+FileNotFoundError: [Errno 2] could not open alignment file `/projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/counts/mac239_PacuteD1_up_CI/outs/possorted_genome_bam.bam`: No such file or directory
+[E::hts_open_format] Failed to open file "/projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/counts/mac239_PacuteLTR_CI/outs/possorted_genome_bam.bam" : No such file or directory
+Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 68, in <module>
+    reads, total_reads, reads_without_cb, reads_without_umi, reads_wrong_xf = extract_reads_info(
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 9, in extract_reads_info
+    bam = pysam.AlignmentFile(bam_file, "rb")
+  File "pysam/libcalignmentfile.pyx", line 751, in pysam.libcalignmentfile.AlignmentFile.__cinit__
+  File "pysam/libcalignmentfile.pyx", line 950, in pysam.libcalignmentfile.AlignmentFile._open
+FileNotFoundError: [Errno 2] could not open alignment file `/projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/counts/mac239_PacuteLTR_CI/outs/possorted_genome_bam.bam`: No such file or directory
+[E::hts_open_format] Failed to open file "/projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/counts/mac239_Pacutenef_CI/outs/possorted_genome_bam.bam" : No such file or directory
+Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 68, in <module>
+    reads, total_reads, reads_without_cb, reads_without_umi, reads_wrong_xf = extract_reads_info(
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 9, in extract_reads_info
+    bam = pysam.AlignmentFile(bam_file, "rb")
+  File "pysam/libcalignmentfile.pyx", line 751, in pysam.libcalignmentfile.AlignmentFile.__cinit__
+  File "pysam/libcalignmentfile.pyx", line 950, in pysam.libcalignmentfile.AlignmentFile._open
+FileNotFoundError: [Errno 2] could not open alignment file `/projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/counts/mac239_Pacutenef_CI/outs/possorted_genome_bam.bam`: No such file or directory
+[E::hts_open_format] Failed to open file "/projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/counts/mac239_Pacutetat_up_CI/outs/possorted_genome_bam.bam" : No such file or directory
+Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 68, in <module>
+    reads, total_reads, reads_without_cb, reads_without_umi, reads_wrong_xf = extract_reads_info(
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_alignment_reads.py", line 9, in extract_reads_info
+    bam = pysam.AlignmentFile(bam_file, "rb")
+  File "pysam/libcalignmentfile.pyx", line 751, in pysam.libcalignmentfile.AlignmentFile.__cinit__
+  File "pysam/libcalignmentfile.pyx", line 950, in pysam.libcalignmentfile.AlignmentFile._open
+FileNotFoundError: [Errno 2] could not open alignment file `/projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/counts/mac239_Pacutetat_up_CI/outs/possorted_genome_bam.bam`: No such file or directory

@@ -1,0 +1,133 @@
+=== Starting FASTQ merge for CellRanger compatibility ===
+
+Processing: Invitro_combined (S1)
+  Merging: fastq_20251014/Invitro_PL_D4 + fastq_250830/tat_Invitro
+  Processing R1 (target: 28bp)
+    Trimmed: Invitro_PL_D4_S24_R1_001.fastq.gz -> 28bp
+    Trimmed: tat_Invitro_S4_R1_001.fastq.gz -> 28bp
+    Created: fastq_concat/Invitro_combined_S1_L001_R1_001.fastq.gz (from 2 files)
+  Processing R2 (target: 61bp)
+    Trimmed: Invitro_PL_D4_S24_R2_001.fastq.gz -> 61bp
+    Trimmed: tat_Invitro_S4_R2_001.fastq.gz -> 61bp
+    Created: fastq_concat/Invitro_combined_S1_L001_R2_001.fastq.gz (from 2 files)
+  Processing I1 (target: 8bp)
+    Trimmed: Invitro_PL_D4_S24_I1_001.fastq.gz -> 8bp
+    Trimmed: tat_Invitro_S4_I1_001.fastq.gz -> 8bp
+    Created: fastq_concat/Invitro_combined_S1_L001_I1_001.fastq.gz (from 2 files)
+  Processing I2 (target: 8bp)
+    Trimmed: Invitro_PL_D4_S24_I2_001.fastq.gz -> 8bp
+    Trimmed: tat_Invitro_S4_I2_001.fastq.gz -> 8bp
+    Created: fastq_concat/Invitro_combined_S1_L001_I2_001.fastq.gz (from 2 files)
+
+Processing: D0_combined (S2)
+  Merging: fastq_20251014/D0_PL_D4 + fastq_250830/tat_D0
+  Processing R1 (target: 28bp)
+    Trimmed: D0_PL_D4_S23_R1_001.fastq.gz -> 28bp
+    Trimmed: tat_D0_S3_R1_001.fastq.gz -> 28bp
+    Created: fastq_concat/D0_combined_S2_L001_R1_001.fastq.gz (from 2 files)
+  Processing R2 (target: 61bp)
+    Trimmed: D0_PL_D4_S23_R2_001.fastq.gz -> 61bp
+    Trimmed: tat_D0_S3_R2_001.fastq.gz -> 61bp
+    Created: fastq_concat/D0_combined_S2_L001_R2_001.fastq.gz (from 2 files)
+  Processing I1 (target: 8bp)
+    Trimmed: D0_PL_D4_S23_I1_001.fastq.gz -> 8bp
+    Trimmed: tat_D0_S3_I1_001.fastq.gz -> 8bp
+    Created: fastq_concat/D0_combined_S2_L001_I1_001.fastq.gz (from 2 files)
+  Processing I2 (target: 8bp)
+    Trimmed: D0_PL_D4_S23_I2_001.fastq.gz -> 8bp
+    Trimmed: tat_D0_S3_I2_001.fastq.gz -> 8bp
+    Created: fastq_concat/D0_combined_S2_L001_I2_001.fastq.gz (from 2 files)
+
+Processing: Pacute_combined (S3)
+  Merging: fastq_20251014/Pacute_PL_D4 + fastq_250830/tat_Pacute
+  Processing R1 (target: 28bp)
+    Trimmed: Pacute_PL_D4_S21_R1_001.fastq.gz -> 28bp
+    Trimmed: tat_Pacute_S1_R1_001.fastq.gz -> 28bp
+    Created: fastq_concat/Pacute_combined_S3_L001_R1_001.fastq.gz (from 2 files)
+  Processing R2 (target: 61bp)
+    Trimmed: Pacute_PL_D4_S21_R2_001.fastq.gz -> 61bp
+    Trimmed: tat_Pacute_S1_R2_001.fastq.gz -> 61bp
+    Created: fastq_concat/Pacute_combined_S3_L001_R2_001.fastq.gz (from 2 files)
+  Processing I1 (target: 8bp)
+    Trimmed: Pacute_PL_D4_S21_I1_001.fastq.gz -> 8bp
+    Trimmed: tat_Pacute_S1_I1_001.fastq.gz -> 8bp
+    Created: fastq_concat/Pacute_combined_S3_L001_I1_001.fastq.gz (from 2 files)
+  Processing I2 (target: 8bp)
+    Trimmed: Pacute_PL_D4_S21_I2_001.fastq.gz -> 8bp
+    Trimmed: tat_Pacute_S1_I2_001.fastq.gz -> 8bp
+    Created: fastq_concat/Pacute_combined_S3_L001_I2_001.fastq.gz (from 2 files)
+
+Processing: W2_combined (S4)
+  Merging: fastq_20251014/W2_PL_D4 + fastq_250830/tat_W2
+  Processing R1 (target: 28bp)
+    Trimmed: W2_PL_D4_S22_R1_001.fastq.gz -> 28bp
+    Trimmed: tat_W2_S2_R1_001.fastq.gz -> 28bp
+    Created: fastq_concat/W2_combined_S4_L001_R1_001.fastq.gz (from 2 files)
+  Processing R2 (target: 61bp)
+    Trimmed: W2_PL_D4_S22_R2_001.fastq.gz -> 61bp
+    Trimmed: tat_W2_S2_R2_001.fastq.gz -> 61bp
+    Created: fastq_concat/W2_combined_S4_L001_R2_001.fastq.gz (from 2 files)
+  Processing I1 (target: 8bp)
+    Trimmed: W2_PL_D4_S22_I1_001.fastq.gz -> 8bp
+    Trimmed: tat_W2_S2_I1_001.fastq.gz -> 8bp
+    Created: fastq_concat/W2_combined_S4_L001_I1_001.fastq.gz (from 2 files)
+  Processing I2 (target: 8bp)
+    Trimmed: W2_PL_D4_S22_I2_001.fastq.gz -> 8bp
+    Trimmed: tat_W2_S2_I2_001.fastq.gz -> 8bp
+    Created: fastq_concat/W2_combined_S4_L001_I2_001.fastq.gz (from 2 files)
+
+Processing: D195_combined (S5)
+  Merging: fastq_20251014/D195_PL_D4 + fastq_250830/tat_D195
+  Processing R1 (target: 28bp)
+    Trimmed: D195_PL_D4_S26_R1_001.fastq.gz -> 28bp
+    Trimmed: tat_D195_S6_R1_001.fastq.gz -> 28bp
+    Created: fastq_concat/D195_combined_S5_L001_R1_001.fastq.gz (from 2 files)
+  Processing R2 (target: 61bp)
+    Trimmed: D195_PL_D4_S26_R2_001.fastq.gz -> 61bp
+    Trimmed: tat_D195_S6_R2_001.fastq.gz -> 61bp
+    Created: fastq_concat/D195_combined_S5_L001_R2_001.fastq.gz (from 2 files)
+  Processing I1 (target: 8bp)
+    Trimmed: D195_PL_D4_S26_I1_001.fastq.gz -> 8bp
+    Trimmed: tat_D195_S6_I1_001.fastq.gz -> 8bp
+    Created: fastq_concat/D195_combined_S5_L001_I1_001.fastq.gz (from 2 files)
+  Processing I2 (target: 8bp)
+    Trimmed: D195_PL_D4_S26_I2_001.fastq.gz -> 8bp
+    Trimmed: tat_D195_S6_I2_001.fastq.gz -> 8bp
+    Created: fastq_concat/D195_combined_S5_L001_I2_001.fastq.gz (from 2 files)
+
+Processing: W0_combined (S6)
+  Merging: fastq_20251014/W0_PL_D4 + fastq_250830/tat_W0
+  Processing R1 (target: 28bp)
+    Trimmed: W0_PL_D4_S25_R1_001.fastq.gz -> 28bp
+    Trimmed: tat_W0_S5_R1_001.fastq.gz -> 28bp
+    Created: fastq_concat/W0_combined_S6_L001_R1_001.fastq.gz (from 2 files)
+  Processing R2 (target: 61bp)
+    Trimmed: W0_PL_D4_S25_R2_001.fastq.gz -> 61bp
+    Trimmed: tat_W0_S5_R2_001.fastq.gz -> 61bp
+    Created: fastq_concat/W0_combined_S6_L001_R2_001.fastq.gz (from 2 files)
+  Processing I1 (target: 8bp)
+    Trimmed: W0_PL_D4_S25_I1_001.fastq.gz -> 8bp
+    Trimmed: tat_W0_S5_I1_001.fastq.gz -> 8bp
+    Created: fastq_concat/W0_combined_S6_L001_I1_001.fastq.gz (from 2 files)
+  Processing I2 (target: 8bp)
+    Trimmed: W0_PL_D4_S25_I2_001.fastq.gz -> 8bp
+    Trimmed: tat_W0_S5_I2_001.fastq.gz -> 8bp
+    Created: fastq_concat/W0_combined_S6_L001_I2_001.fastq.gz (from 2 files)
+
+=== Verifying merged files ===
+
+I1: D0_combined_S2_L001_I1_001.fastq.gz - median: 8bp (expected: 8bp) [OK]
+I2: D0_combined_S2_L001_I2_001.fastq.gz - median: 8bp (expected: 8bp) [OK]
+R1: D0_combined_S2_L001_R1_001.fastq.gz - median: 28bp (expected: 28bp) [OK]
+R2: D0_combined_S2_L001_R2_001.fastq.gz - median: 61bp (expected: 61bp) [OK]
+I1: D195_combined_S5_L001_I1_001.fastq.gz - median: 8bp (expected: 8bp) [OK]
+I2: D195_combined_S5_L001_I2_001.fastq.gz - median: 8bp (expected: 8bp) [OK]
+R1: D195_combined_S5_L001_R1_001.fastq.gz - median: 28bp (expected: 28bp) [OK]
+R2: D195_combined_S5_L001_R2_001.fastq.gz - median: 61bp (expected: 61bp) [OK]
+I1: Invitro_combined_S1_L001_I1_001.fastq.gz - median: 8bp (expected: 8bp) [OK]
+I2: Invitro_combined_S1_L001_I2_001.fastq.gz - median: 8bp (expected: 8bp) [OK]
+R1: Invitro_combined_S1_L001_R1_001.fastq.gz - median: 28bp (expected: 28bp) [OK]
+R2: Invitro_combined_S1_L001_R2_001.fastq.gz - median: 61bp (expected: 61bp) [OK]
+I1: Pacute_combined_S3_L001_I1_001.fastq.gz - median: 8bp (expected: 8bp) [OK]
+I2: Pacute_combined_S3_L001_I2_001.fastq.gz - median: 8bp (expected: 8bp) [OK]
+R1: Pacute_combined_S3_L001_R1_001.fastq.gz - median: 28bp (expected: 28bp) [OK]

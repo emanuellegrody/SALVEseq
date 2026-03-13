@@ -1,0 +1,12 @@
+Processing sample: D13_D1_nef
+Input BAM: /projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/counts/Mmul_10_mac239v5/Mmul_10_mac239v5_D13_D1_nef/outs/possorted_genome_bam.bam
+Output CSV: /projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/bamsort/splice/D13_D1_nef_splicesites.csv
+Processing sample: D13_LTR_tat
+Input BAM: /projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/counts/Mmul_10_mac239v5/Mmul_10_mac239v5_D13_LTR_tat/outs/possorted_genome_bam.bam
+Output CSV: /projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/bamsort/splice/D13_LTR_tat_splicesites.csv
+Processing sample: Invitro_D1_nef
+Input BAM: /projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/counts/Mmul_10_mac239v5/Mmul_10_mac239v5_Invitro_D1_nef/outs/possorted_genome_bam.bam
+Output CSV: /projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/bamsort/splice/Invitro_D1_nef_splicesites.csv
+Processing sample: Invitro_LTR_tat
+Input BAM: /projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/counts/Mmul_10_mac239v5/Mmul_10_mac239v5_Invitro_LTR_tat/outs/possorted_genome_bam.bam
+Output CSV: /projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/bamsort/splice/Invitro_LTR_tat_splicesites.csv

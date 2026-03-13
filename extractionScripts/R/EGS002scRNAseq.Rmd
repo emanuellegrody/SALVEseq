@@ -412,3 +412,204 @@ SingleCell_invitro <- targetExpressionDF(invitro, "mac239")
 write.csv(SingleCell_invitro, paste0(output.dir, "invitro_Mmulmacenv_mac239.csv"))
 ```
 
+
+### subsampled reads
+
+```{r KLRB1}
+subsets <- c("W0_concat_150M", "W0_concat_200M", "W0_concat_300M", "W0_concat_400M")
+
+# Process
+input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS002/singleCell/bamsort/alignment/concat_subsample/"
+output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS002/singleCell/bamsort/reads/concat_subsample/"
+
+process_bamsortv6(subsets, input.dir, output.dir)
+
+# Minimums
+input_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS002/singleCell/bamsort/reads/concat_subsample/"
+output_dir <- paste0(input_dir, "minimum/")
+
+process_all_set_minimumsv6("KLRB1", subsets, input_dir, TRUE, output_dir, min_reads_cell = 2)
+```
+
+```{r joint}
+subsets <- c("W0_concat_150M", "W0_concat_200M", "W0_concat_300M", "W0_concat_400M")
+
+# Input directories
+salve_input_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/SALVE/bamsort/reads/KLRB1/minimum/"
+gex_input_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS002/singleCell/bamsort/reads/concat_subsample/minimum/"
+umap_file <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/Seurat/UMAPcoords/W0UMAP_coords.csv"
+
+# Output directories
+output_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS002/joint/dataframes/"
+plot_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS002/joint/plots/"
+
+# Create output directories if they don't exist
+dir.create(output_dir, showWarnings = FALSE, recursive = TRUE)
+dir.create(plot_dir, showWarnings = FALSE, recursive = TRUE)
+
+# Load SALVE data (reference dataset)
+W0_min <- read.csv(paste0(salve_input_dir, "SALVE_KLRB1_W0_SALVE_minreads5.csv"), row.names = "X")
+SALVE_KLRB1_W0 <- W0_min %>%
+  select(-total) %>%
+  mutate(KLRB1 = log1p(KLRB1))
+
+# Load UMAP coordinates
+cat("Loading UMAP coordinates...\n")
+GEX_KLRB1_W0_UMAP <- read.csv(umap_file, row.names = "X")
+GEX_KLRB1_W0_UMAP <- GEX_KLRB1_W0_UMAP %>% select(-sample, -V2)
+
+# Print header for comparison table
+cat("\n===========================================\n")
+cat("COMPARISON STATISTICS\n")
+cat("===========================================\n")
+cat("Sample\t\tTotal_cells\tboth\t10X_only\tSALVE_only\tPearson_r\tSpearman_rho\n")
+
+# Loop through each GEX subsample
+for (sample in subsets) {
+  
+  # Load GEX data for this subsample
+  gex_file <- paste0(gex_input_dir, sample, "_KLRB1_filtered.csv")
+  
+  if (!file.exists(gex_file)) {
+    cat("WARNING: File not found:", gex_file, "\n")
+    cat("Skipping sample", sample, "\n")
+    next
+  }
+  
+  GEX_KLRB1_W0 <- read.csv(gex_file, check.names = FALSE)
+  if (colnames(GEX_KLRB1_W0)[1] %in% c("X", "", "Unnamed: 0")) {
+    rownames(GEX_KLRB1_W0) <- GEX_KLRB1_W0[,1]
+    GEX_KLRB1_W0 <- GEX_KLRB1_W0[,-1]
+  }
+
+  # Process GEX data
+  GEX_KLRB1_W0 <- GEX_KLRB1_W0 %>%
+    select(-total) %>%
+    mutate(KLRB1 = log1p(KLRB1))
+  
+  # Merge with UMAP coordinates
+  GEX_KLRB1_W0 <- left_join(GEX_KLRB1_W0_UMAP, GEX_KLRB1_W0, by = "cellID")
+  
+  # Join GEX and SALVE data
+  W0_joint <- left_join(GEX_KLRB1_W0, SALVE_KLRB1_W0, by = "cellID") %>%
+    rename(GEX = KLRB1.x, SALVE = KLRB1.y)
+  
+  # Replace NA with 0 (cells not detected in one method)
+  W0_joint[is.na(W0_joint)] <- 0
+  
+  # Calculate comparison statistics
+  both <- W0_joint %>% filter(GEX != 0 & SALVE != 0)
+  onlySingleCell <- W0_joint %>% 
+    filter(GEX != 0) %>%
+    filter(!(cellID %in% both$cellID))
+  onlySALVE <- W0_joint %>% 
+    filter(SALVE != 0) %>%
+    filter(!(cellID %in% both$cellID))
+  
+  # Calculate Jaccard index: |intersection| / |union|
+  gex_detected <- nrow(both) + nrow(onlySingleCell)
+  salve_detected <- nrow(both) + nrow(onlySALVE)
+  intersection <- nrow(both)
+  union <- gex_detected + salve_detected - intersection  # A + B - (A ∩ B)
+  
+  if (union > 0) {
+    jaccard_index <- intersection / union
+  } else {
+    jaccard_index <- NA
+  }
+  
+  # Calculate correlations for cells detected in both methods
+  if (nrow(both) > 2) {
+    pearson_r <- cor(both$GEX, both$SALVE, method = "pearson")
+    spearman_rho <- cor(both$GEX, both$SALVE, method = "spearman")
+  } else {
+    pearson_r <- NA
+    spearman_rho <- NA
+  }
+  
+  # Print statistics
+    cat(sprintf("%s\t\t%d\t\t%d\t%d\t\t%d\t\t%.3f\t\t%.3f\t\t%.3f\n",
+              sample,
+              nrow(W0_joint),
+              nrow(both),
+              nrow(onlySingleCell),
+              nrow(onlySALVE),
+              jaccard_index,
+              pearson_r,
+              spearman_rho))
+  
+  # Generate plots
+  plotUMAP(W0_joint, colorby = GEX,
+           paste0("W0 joint KLRB1: GEX (", sample, ")"),
+           plot_dir,
+           paste0("KLRB1_W0_GEX_", sample, ".pdf"),
+           comparison = FALSE, color = "gray25")
+  
+  # Save dataframes for this subsample
+  write.csv(both, paste0(output_dir, "KLRB1_both_", sample, ".csv"), row.names = FALSE)
+  write.csv(onlySingleCell, paste0(output_dir, "KLRB1_onlySingleCell_", sample, ".csv"), row.names = FALSE)
+  write.csv(onlySALVE, paste0(output_dir, "KLRB1_onlySALVE_", sample, ".csv"), row.names = FALSE)
+  write.csv(W0_joint, paste0(output_dir, "KLRB1_all_", sample, ".csv"), row.names = FALSE)
+}
+plotUMAP(W0_joint, colorby = SALVE,
+           paste0("W0 joint KLRB1: SALVE (", sample, ")"),
+           plot_dir,
+           paste0("KLRB1_W0_SALVE.pdf"),
+           comparison = FALSE, color = "gray25")
+```
+###Correlations
+```{r}
+either <- W0_joint %>% filter(GEX != 0 | SALVE != 0)
+both <- W0_joint %>% filter(GEX != 0 & SALVE != 0)
+
+p <- ggplot(data = W0_joint, aes(x = SALVE, y = GEX)) +
+  #geom_smooth(method = "lm", se = TRUE, color = "red", alpha = 0.7) +
+  geom_jitter(alpha = 0.6, size = 1.5, width = 0.1, height = 0.1) +
+  #geom_abline(intercept = 0, slope = 1, color = "red") +
+  labs(
+    x = "SALVE",
+    y = "GEX",
+    title = paste("W0 KLRB1 Correlation: SALVE vs GEX")
+  ) +
+  theme_minimal() +
+  coord_fixed(ratio = 1) +
+  xlim(0, 3) +
+  ylim(0, 3)
+print(p)
+p_exclude_zero <- ggplot(data = subset(W0_joint, SALVE > 0 | GEX > 0), aes(x = SALVE, y = GEX)) +
+  #geom_abline(intercept = 0, slope = 1, color = "red", linewidth = 1) +
+  geom_smooth(method = "lm", se = TRUE, color = "white", alpha = 0.7) +
+  geom_bin2d(bins = 18, alpha = 0.8) +
+  labs(
+    x = "SALVE",
+    y = "GEX",
+    title = "2D Binning (Excluding 0,0 Point)"
+  ) +
+  theme_minimal() +
+  coord_cartesian(xlim = c(0, 3), ylim = c(0, 3)) +
+  scale_fill_viridis_c(name = "Count") +
+  theme(aspect.ratio = 1) +
+  guides(fill = guide_colorbar(raster = TRUE))
+print(p_exclude_zero)
+ggsave("/projects/b1042/GoyalLab/egrody/extractedData/EGS016/joint/plots/KLRB1/KLRB1_correlation_jitter.svg", 
+       plot = p)
+ggsave("/projects/b1042/GoyalLab/egrody/extractedData/EGS016/joint/plots/KLRB1/KLRB1_correlation_2Dbinning.svg", 
+       plot = p_exclude_zero)
+
+max(W0_joint$SALVE)
+
+cat("Pearson\t\tSpearman\t\tJaccard\n",
+    cor(W0_joint$SALVE, W0_joint$GEX, method = "pearson"), "\t",
+    cor(W0_joint$SALVE, W0_joint$GEX, method = "spearman"), "\t",
+    sum((W0_joint$SALVE > 0) & (W0_joint$GEX > 0)) / sum((W0_joint$SALVE > 0) | (W0_joint$GEX > 0)), "\n",
+    cor(either$SALVE, either$GEX, method = "pearson"), "\t",
+    cor(either$SALVE, either$GEX, method = "spearman"), "\t",
+    sum((either$SALVE > 0) & (either$GEX > 0)) / sum((either$SALVE > 0) | (either$GEX > 0)), "\n",
+    cor(both$SALVE, both$GEX, method = "pearson"), "\t",
+    cor(both$SALVE, both$GEX, method = "spearman"), "\t",
+    sum((both$SALVE > 0) & (both$GEX > 0)) / sum((both$SALVE > 0) | (both$GEX > 0))
+)
+
+```
+
+

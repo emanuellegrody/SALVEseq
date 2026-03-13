@@ -1,0 +1,28 @@
+Running in single sample mode for: GFP_GEX
+Processing single sample: GFP_GEX
+Found 5 coordinate ranges in /projects/b1042/GoyalLab/egrody/extractionScripts/submissionScripts/bamsort_coordinates_GEX.csv
+Processing sample: GFP_GEX
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGS024/singleCell/counts/concat/Mmul_10_mac239_GFP_GFP_GEX/outs/possorted_genome_bam.bam
+  Alignment: LTR_D1 (Position 1-422)
+  Successfully processed GFP_GEX for LTR_D1
+  Statistics: Rows=140, Total reads=210
+  -----------------------------
+  Alignment: D1_A1 (Position 432-4642)
+  Successfully processed GFP_GEX for D1_A1
+  Statistics: Rows=156, Total reads=222
+  -----------------------------
+  Alignment: A1_D4 (Position 4652-6035)
+  Successfully processed GFP_GEX for A1_D4
+  Statistics: Rows=28, Total reads=38
+  -----------------------------
+  Alignment: D4_A7 (Position 6045-8243)
+  Successfully processed GFP_GEX for D4_A7
+  Statistics: Rows=23, Total reads=32
+  -----------------------------
+  Alignment: A7_LTR (Position 8253-9578)
+  Successfully processed GFP_GEX for A7_LTR
+  Statistics: Rows=106, Total reads=150
+  -----------------------------
+=============================
+All samples and alignments processed!
+Summary written to: /projects/b1042/GoyalLab/egrody/extractedData/EGS024/GEX/bamsort/alignment/all_samples_alignment_summary.txt

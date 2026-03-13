@@ -1,0 +1,36 @@
+Combining sequence
+Combining 30
+Combining 40
+Combining 50
+Combined
+Processed data for NK2_old_1_diversity, Barcode_50 saved to NK2_old_1_diversity_final50_d8.txt
+Processed data for NK2_old_2_diversity, Barcode_50 saved to NK2_old_2_diversity_final50_d8.txt
+Processed data for NK2_old_3_diversity, Barcode_50 saved to NK2_old_3_diversity_final50_d8.txt
+Beginning to find Levenshtein distance for the partial Barcode for sample Multiple_Samples
+Done for Sampling 1
+Done for Sampling 2
+Done for Sampling 3
+PDF saved as LV_Analysis/Multiple_Samples_LV_distance_50_d2.pdf
+<_io.TextIOWrapper name='/projects/b1042/GoyalLab/egrody/extractedData/EGS024/barcode/NK2_barcodeDiversity/LVmeandistance.txt' mode='a' encoding='UTF-8'>
+Beginning to find Levenshtein distance for the partial Barcode for sample NK2_old_2_diversity
+Done for Sampling 1
+Done for Sampling 2
+Done for Sampling 3
+PDF saved as LV_Analysis/NK2_old_2_diversity_LV_distance_50_d8.pdf
+<_io.TextIOWrapper name='/projects/b1042/GoyalLab/egrody/extractedData/EGS024/barcode/NK2_barcodeDiversity/LVmeandistance.txt' mode='a' encoding='UTF-8'>
+Beginning to find Levenshtein distance for the partial Barcode for sample NK2_old_3_diversity
+Done for Sampling 1
+Done for Sampling 2
+Done for Sampling 3
+PDF saved as LV_Analysis/NK2_old_3_diversity_LV_distance_50_d8.pdf
+<_io.TextIOWrapper name='/projects/b1042/GoyalLab/egrody/extractedData/EGS024/barcode/NK2_barcodeDiversity/LVmeandistance.txt' mode='a' encoding='UTF-8'>
+['python3', '/home/egy2296/packages/updated_gDNA_barcode_analysis/Step3_Starcode/starcodeRun.py', '/projects/b1042/GoyalLab/egrody/extractedData/EGS024/barcode/NK2_barcodeDiversity/', '/home/egy2296/packages/updated_gDNA_barcode_analysis/', 'Multiple_Samples', '-d', '8', '-thread', '8', '-length', '50', '-Fraction', 'partial']
+['python3', '/home/egy2296/packages/updated_gDNA_barcode_analysis/Step3_Starcode/finalProcessing.py', '/projects/b1042/GoyalLab/egrody/extractedData/EGS024/barcode/NK2_barcodeDiversity/', 'yes', 'Multiple_Samples', '-d', '8', '-length', '50', '--f', 'partial']
+['python3', '/home/egy2296/packages/updated_gDNA_barcode_analysis/LVHistogram.py', '/projects/b1042/GoyalLab/egrody/extractedData/EGS024/barcode/NK2_barcodeDiversity/analyzed/Multiple_Samples/starcode', '/projects/b1042/GoyalLab/egrody/extractedData/EGS024/barcode/NK2_barcodeDiversity/analyzed/Multiple_Samples/starcode/Multiple_Samples_Barcode50_d8.txt', '/projects/b1042/GoyalLab/egrody/extractedData/EGS024/barcode/NK2_barcodeDiversity/LVmeandistance.txt', 'Multiple_Samples', '-inputFraction', 'partial', '-inputLength', '50']
+Processing file: /projects/b1042/GoyalLab/egrody/extractedData/EGS024/barcode/NK2_barcodeDiversity/analyzed/Multiple_Samples/separated/NK2_old_1_diversity_final50_8.txt
+['python3', '/home/egy2296/packages/updated_gDNA_barcode_analysis/LVHistogram.py', '/projects/b1042/GoyalLab/egrody/extractedData/EGS024/barcode/NK2_barcodeDiversity/analyzed/Multiple_Samples/separated', '/projects/b1042/GoyalLab/egrody/extractedData/EGS024/barcode/NK2_barcodeDiversity/analyzed/Multiple_Samples/separated/NK2_old_1_diversity_final50_8.txt', '/projects/b1042/GoyalLab/egrody/extractedData/EGS024/barcode/NK2_barcodeDiversity/LVmeandistance.txt', 'NK2_old_1_diversity', '-inputFraction', 'partial', '-inputLength', '50', '-d', '8']
+Processing file: /projects/b1042/GoyalLab/egrody/extractedData/EGS024/barcode/NK2_barcodeDiversity/analyzed/Multiple_Samples/separated/NK2_old_2_diversity_final50_8.txt
+['python3', '/home/egy2296/packages/updated_gDNA_barcode_analysis/LVHistogram.py', '/projects/b1042/GoyalLab/egrody/extractedData/EGS024/barcode/NK2_barcodeDiversity/analyzed/Multiple_Samples/separated', '/projects/b1042/GoyalLab/egrody/extractedData/EGS024/barcode/NK2_barcodeDiversity/analyzed/Multiple_Samples/separated/NK2_old_2_diversity_final50_8.txt', '/projects/b1042/GoyalLab/egrody/extractedData/EGS024/barcode/NK2_barcodeDiversity/LVmeandistance.txt', 'NK2_old_2_diversity', '-inputFraction', 'partial', '-inputLength', '50', '-d', '8']
+Processing file: /projects/b1042/GoyalLab/egrody/extractedData/EGS024/barcode/NK2_barcodeDiversity/analyzed/Multiple_Samples/separated/NK2_old_3_diversity_final50_8.txt
+['python3', '/home/egy2296/packages/updated_gDNA_barcode_analysis/LVHistogram.py', '/projects/b1042/GoyalLab/egrody/extractedData/EGS024/barcode/NK2_barcodeDiversity/analyzed/Multiple_Samples/separated', '/projects/b1042/GoyalLab/egrody/extractedData/EGS024/barcode/NK2_barcodeDiversity/analyzed/Multiple_Samples/separated/NK2_old_3_diversity_final50_8.txt', '/projects/b1042/GoyalLab/egrody/extractedData/EGS024/barcode/NK2_barcodeDiversity/LVmeandistance.txt', 'NK2_old_3_diversity', '-inputFraction', 'partial', '-inputLength', '50', '-d', '8']
+Done. Check output in: /projects/b1042/GoyalLab/egrody/extractedData/EGS024/barcode/NK2_barcodeDiversity//analyzed/Multiple_Samples/separated/

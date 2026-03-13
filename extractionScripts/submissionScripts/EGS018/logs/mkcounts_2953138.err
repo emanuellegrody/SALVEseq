@@ -1,0 +1,7 @@
+error: unexpected argument '--no-secondary-analysis' found
+
+  note: argument '--nosecondary' exists
+
+Usage: cellranger count --id <ID> --transcriptome <PATH> --nosecondary <--fastqs <PATH>|--project <TEXT>|--sample <PREFIX>|--lanes <NUMS>>
+
+For more information, try '--help'.

@@ -1,0 +1,13 @@
+Running in single sample mode for: KLRB1_W2_combined
+Processing single sample: KLRB1_W2_combined
+Found 1 coordinate ranges in /projects/b1042/GoyalLab/egrody/extractionScripts/submissionScripts/bamsort_coordinates_KLRB1.csv
+Processing sample: KLRB1_W2_combined
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGS018/SALVE/STAR/bams_final/KLRB1_W2_combined_final_new.bam
+  Alignment: KLRB1 (Chromosome: 11, Position 10090828-10103486)
+  Successfully processed KLRB1_W2_combined for KLRB1
+  Statistics: Rows=95828, Total reads=224507
+  -----------------------------
+=============================
+All samples and alignments processed!
+Summary written to: /projects/b1042/GoyalLab/egrody/extractedData/EGS018/SALVE/bamsort/all_samples_alignment_summary.txt
+Processed single sample: KLRB1_W2_combined

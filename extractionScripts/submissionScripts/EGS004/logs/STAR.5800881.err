@@ -1,0 +1,5 @@
+
+EXITING because of fatal ERROR: not enough memory for BAM sorting: 
+SOLUTION: re-run STAR with at least --limitBAMsortRAM 1001033636
+Jun 17 17:18:46 ...... FATAL ERROR, exiting
+samtools index: "/projects/b1042/GoyalLab/egrody/extractedData/EGS004/300cy/counts/polyA/JK85_D13_STAR_Aligned.sortedByCoord.out.bam" is in a format that cannot be usefully indexed

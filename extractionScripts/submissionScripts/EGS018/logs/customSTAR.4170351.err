@@ -1,0 +1,58 @@
+[E::idx_find_and_load] Could not retrieve index file for '/projects/b1042/GoyalLab/egrody/extractedData/EGS018/SALVE/STAR//STAR/KLRB1_W2_combined_Aligned.sortedByCoord.out.bam'
+
+        ==========     _____ _    _ ____  _____  ______          _____  
+        =====         / ____| |  | |  _ \|  __ \|  ____|   /\   |  __ \ 
+          =====      | (___ | |  | | |_) | |__) | |__     /  \  | |  | |
+            ====      \___ \| |  | |  _ <|  _  /|  __|   / /\ \ | |  | |
+              ====    ____) | |__| | |_) | | \ \| |____ / ____ \| |__| |
+        ==========   |_____/ \____/|____/|_|  \_\______/_/    \_\_____/
+	  v2.0.3
+
+//========================== featureCounts setting ===========================\\
+||                                                                            ||
+||             Input files : 1 BAM file                                       ||
+||                                                                            ||
+||                           KLRB1_W2_combined_tagged.bam                     ||
+||                                                                            ||
+||             Output file : KLRB1_W2_combined_featureCounts.txt              ||
+||                 Summary : KLRB1_W2_combined_featureCounts.txt.summary      ||
+||              Paired-end : no                                               ||
+||        Count read pairs : no                                               ||
+||              Annotation : genes.gtf (GTF)                                  ||
+||      Dir for temp files : ./                                               ||
+||      Assignment details : <input_file>.featureCounts.bam                   ||
+||                      (Note that files are saved to the output directory)   ||
+||                                                                            ||
+||                                                                            ||
+||                 Threads : 8                                                ||
+||                   Level : meta-feature level                               ||
+||      Multimapping reads : counted (fractional)                             ||
+|| Multi-overlapping reads : not counted                                      ||
+||   Min overlapping bases : 1                                                ||
+||                                                                            ||
+\\============================================================================//
+
+//================================= Running ==================================\\
+||                                                                            ||
+|| Load annotation file genes.gtf ...                                         ||
+||    Features : 592757                                                       ||
+||    Meta-features : 26531                                                   ||
+||    Chromosomes/contigs : 277                                               ||
+||                                                                            ||
+|| Process BAM file KLRB1_W2_combined_tagged.bam...                           ||
+||    Single-end reads are included.                                          ||
+||    Total alignments : 15867184                                             ||
+||    Successfully assigned alignments : 1743858 (11.0%)                      ||
+||    Running time : 0.19 minutes                                             ||
+||                                                                            ||
+|| Write the final count table.                                               ||
+|| Write the read assignment summary.                                         ||
+||                                                                            ||
+|| Summary of counting results can be found in file "KLRB1_W2_combined_featu  ||
+|| reCounts.txt.summary"                                                      ||
+||                                                                            ||
+\\============================================================================//
+
+[bam_sort_core] merging from 4 files and 4 in-memory blocks...
+/var/spool/slurmd/job4170351/slurm_script: line 255: [[: 63
+0: syntax error in expression (error token is "0")

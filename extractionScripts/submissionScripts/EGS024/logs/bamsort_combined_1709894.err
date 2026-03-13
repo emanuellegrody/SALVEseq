@@ -1,0 +1,3 @@
+[W::hts_idx_load3] The index file is older than the data file: /projects/b1042/GoyalLab/egrody/extractedData/EGS024/singleCell/counts/concat/Mmul_10_mac239_GFP_GFP_invitro/outs/possorted_genome_bam.bam.bai
+[W::hts_idx_load3] The index file is older than the data file: /projects/b1042/GoyalLab/egrody/extractedData/EGS024/SALVE/counts/concat/Mmul_10_mac239_SSenv/outs/possorted_genome_bam.bam.bai
+[W::hts_idx_load3] The index file is older than the data file: /projects/b1042/GoyalLab/egrody/extractedData/EGS024/SALVE/counts/concat/Mmul_10_mac239_nef/outs/possorted_genome_bam.bam.bai

@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "/home/egy2296/.conda/envs/cellranger/bin/umi_tools", line 11, in <module>
+    sys.exit(main())
+  File "/home/egy2296/.local/lib/python3.9/site-packages/umi_tools-1.1.6-py3.9-linux-x86_64.egg/umi_tools/umi_tools.py", line 61, in main
+    module.main(sys.argv)
+  File "/home/egy2296/.local/lib/python3.9/site-packages/umi_tools-1.1.6-py3.9-linux-x86_64.egg/umi_tools/extract.py", line 417, in main
+    cell_whitelist, false_to_true_map = whitelist_methods.getUserDefinedBarcodes(
+  File "/home/egy2296/.local/lib/python3.9/site-packages/umi_tools-1.1.6-py3.9-linux-x86_64.egg/umi_tools/whitelist_methods.py", line 618, in getUserDefinedBarcodes
+    for error_barcode in line[1].split(","):
+IndexError: list index out of range

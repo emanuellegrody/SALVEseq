@@ -1,0 +1,17 @@
+Martian Runtime - v4.0.11
+Serving UI at http://qnode2177:40111?auth=Ix-6D7GMdHT0WCBM3KAzCKPubX27IAp33qHh8aWxP4E
+
+Running preflight checks (please wait)...
+Checking sample info...
+Checking FASTQ folder...
+Checking reference...
+Checking reference_path (/gpfs/projects/b1042/GoyalLab/egrody/genomes/Mmul_10_mac239v4) on qnode2177...
+
+[error] Your reference doesn't appear to be indexed. Please run the mkreference tool
+
+2025-08-06 13:35:04 Shutting down.
+Saving pipestance info to "Mmul_10_mac239v4_HD88_W0/Mmul_10_mac239v4_HD88_W0.mri.tgz"
+For assistance, upload this file to 10x Genomics by running:
+
+cellranger upload <your_email> "Mmul_10_mac239v4_HD88_W0/Mmul_10_mac239v4_HD88_W0.mri.tgz"
+

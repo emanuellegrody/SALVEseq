@@ -60,7 +60,56 @@ for (i in 1:nrow(samples)) {
 }
 ```
 
+### Target expression (for BRIE2)
+
+```{r}
+samples <- data.frame(
+  datasets = c(
+    "Esrp2KO_sham24_R1",
+    "Normal_SHAM24_R2"
+  ),
+  samples = c(
+    "Esrp2KO",
+    "Normal"
+  )
+)
+
+genes <- c(
+  "Kras",
+  "Dgkd",
+  "Nf2",
+  "Slk",
+  "Lsm14b"
+)
+
+output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGL002/singleCell/Seurat/UMAPcoords/"
+if (!dir.exists(output.dir)) {
+  dir.create(output.dir, recursive = TRUE)
+}
+
+for (i in 1:nrow(samples)) {
+  sample_name <- samples$samples[i]
+  dataset <- samples$datasets[i]
+  folder <- "/projects/b1042/GoyalLab/egrody/extractedData/EGL002/singleCell/Seurat/RDS/"
+  input.dir <- paste0(folder, sample_name, ".rds")
+  
+  tryCatch({
+    seurat_obj <- readRDS(input.dir)
+    
+    # Generate expression data frame without gene expression
+    sample_df <- targetExpressionDF(seurat_obj, genes = genes)
+
+    write.csv(sample_df, paste0(output.dir, sample_name, "_targetGenes.csv"))
+    
+    cat("Processed sample:", sample_name, "\n")
+  }, error = function(e) {
+    cat("Error processing sample", sample_name, ":", conditionMessage(e), "\n\n")
+  })
+}
+```
+
 ### integrate KO and WT
+
 ```{r}
 samples <- data.frame(
   datasets = c(
@@ -78,6 +127,7 @@ if (!dir.exists(output.dir)) {
   dir.create(output.dir, recursive = TRUE)
 }
 
+
 individual <- list()
 for (i in 1:nrow(samples)) {
   sample_name <- samples$samples[i]
@@ -86,10 +136,15 @@ for (i in 1:nrow(samples)) {
   input.dir <- paste0(folder, "GRCm39_", dataset, "/outs/filtered_feature_bc_matrix/")
   
   data <- Read10X(data.dir = input.dir)
-  sample <- CreateSeuratObject(counts = data, project = sample_name, min.cells = 3, min.features = 200)
+  sample <- CreateSeuratObject(counts = data, project = sample_name, 
+                               min.cells = 3, min.features = 200)
   sample <- Add_Mito_Ribo(sample, species = "mouse")
   sample <- subset(sample, subset = nFeature_RNA > 200 & nFeature_RNA < 3500 & 
                      nCount_RNA < 20000 & percent_mito < 5)
+  
+  # Add sample suffix to barcodes before merge
+  sample <- RenameCells(sample, add.cell.id = sample_name)
+  
   individual[[sample_name]] <- sample
 }
 
@@ -103,13 +158,13 @@ obj <- IntegrateLayers(obj, method = HarmonyIntegration,
                        verbose = F)
 
 obj <- FindNeighbors(obj, reduction = "harmony", dims = 1:30)
-obj <- FindClusters(obj, resolution = 0.6)
+obj <- FindClusters(obj, resolution = 0.7, algorithm = 4)
 
 obj <- RunUMAP(obj, dims = 1:30, reduction = "harmony")
-dplot <- DimPlot(obj, reduction = "umap", group.by = "orig.ident")
-ggsave(dplot, file = paste0(output.dir, "integrated_umap_orig.ident.svg"))
+dplot <- DimPlot(obj, reduction = "umap", split.by = "orig.ident")
+ggsave(dplot, file = paste0(output.dir, "integrated_umap_orig.ident.pdf"))
 dplot <- DimPlot(obj, reduction = "umap")
-ggsave(dplot, file = paste0(output.dir, "integrated_umap.svg"))
+ggsave(dplot, file = paste0(output.dir, "integrated_umap.pdf"))
 saveRDS(obj, file = paste0(output.dir, "integrated.rds"))
 sce <- SingleCellExperiment(
   assays = list(counts = GetAssayData(obj, layer = "counts")),
@@ -119,6 +174,58 @@ suppressMessages(
   writeH5AD(sce, file = paste0(output.dir, "integrated.h5ad"))
 )
 ```
+
+Clustering detour
+```{r clustering}
+seurat_obj <- readRDS("/projects/b1042/GoyalLab/egrody/extractedData/EGL002/singleCell/Seurat/integrated/integrated.rds")
+
+library(clustree)
+
+# Run clustering at multiple resolutions
+seurat_obj <- FindClusters(seurat_obj, resolution = 0.4, algorithm = 4)
+seurat_obj <- FindClusters(seurat_obj, resolution = 0.5, algorithm = 4)
+seurat_obj <- FindClusters(seurat_obj, resolution = 0.6, algorithm = 4)
+seurat_obj <- FindClusters(seurat_obj, resolution = 0.7, algorithm = 4)
+seurat_obj <- FindClusters(seurat_obj, resolution = 0.8, algorithm = 4)
+seurat_obj <- FindClusters(seurat_obj, resolution = 1.0, algorithm = 4)
+
+# Each call stores results in meta.data as RNA_snn_res.{value}
+clustree(seurat_obj, prefix = "SCT_snn_res.")
+
+# Get PC embeddings and cluster labels for a given resolution
+library(cluster)
+resolutions <- c(0.4, 0.5, 0.6, 0.7, 0.8)
+# Replace prefix below with whatever grep() revealed
+prefix <- "SCT_snn_res."  
+
+pca_coords <- Embeddings(seurat_obj, "pca")[, 1:20]
+dist_matrix <- dist(pca_coords)
+
+sil_scores <- sapply(resolutions, function(r) {
+  col_name <- paste0(prefix, r)
+  clusters <- as.integer(seurat_obj@meta.data[[col_name]])
+  sil <- silhouette(clusters, dist_matrix)
+  summary(sil)$avg.width
+})
+
+data.frame(resolution = resolutions, silhouette = round(sil_scores, 4))
+```
+UMAP
+```{r}
+integrated <- readRDS("/projects/b1042/GoyalLab/egrody/extractedData/EGL002/singleCell/Seurat/integrated/integrated.rds")
+output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGL002/singleCell/Seurat/integrated/"
+dplot <- DimPlot(integrated, reduction = "umap", split.by = "orig.ident") +
+  theme(aspect.ratio = 1)
+ggsave(dplot, file = paste0(output.dir, "integrated_umap_orig.ident_split.pdf"))
+
+output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGL002/singleCell/Seurat/UMAPcoords/"
+integrated_UMAP <- targetExpressionDF(integrated, genes = "")
+integrated[["RNA"]] <- JoinLayers(integrated[["RNA"]])
+integrated_UMAP$size <- colSums(GetAssayData(integrated, assay = "RNA", layer = "counts"))
+integrated_UMAP$sample <- ifelse(integrated$orig.ident == "WT", "WT", "KO")
+write.csv(integrated_UMAP, paste0(output.dir, "integrated_UMAP_coords.csv"))
+```
+
 
 ### bamsort whole gene
 ```{r}
@@ -146,6 +253,9 @@ input_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGL002/singleCell/ba
 process_all_set_minimumsv6("liver", samples$samples, input_dir, 
                            TRUE, paste0(input_dir, "/minimum/"), 
                            min_reads_cell = 2)
+#testing no minimums
+process_all_set_minimumsv6("liver", samples$samples, input_dir, 
+                           TRUE, paste0(input_dir, "/minimum_none/"))
 ```
 
 
@@ -394,8 +504,8 @@ cat("Saved combined cell IDs to", combined_file, "\n")
 Run bamsort_combined (alignment_reads and splice) first.
 Making full and minimum filtered lists:
 ```{r}
-input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/bamsort/nointron/"
-output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/bamsort/nointron/reads/"
+input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/bamsort/nointron/v4/"
+output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/bamsort/nointron/v4/reads/"
 
 raw_cellIDs_df <-  read.csv("/projects/b1042/GoyalLab/egrody/extractedData/EGL002/singleCell/raw_cellIDs/all_raw_cellIDs.csv")
 raw_cellIDs <- split(raw_cellIDs_df$cellID, raw_cellIDs_df$sample)
@@ -411,74 +521,63 @@ samples <- data.frame(
   )
 )
 process_bamsort_liver(samples, input.dir, 
-                      paste0(output.dir, "v3/"), raw_cellIDs, targets = c("Slkv3", "Dgkd", "Lsm14b", "Kras"))
-process_bamsort_liver(samples, input.dir, 
-                      paste0(output.dir, "v4/"), raw_cellIDs, targets = c("Slkv4", "Nf2"))
+            output.dir, raw_cellIDs, targets = c("Slkv3", "Dgkd", "Lsm14b", "Kras", "Slkv4", "Nf2"))
 
 #minimums
-input_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/bamsort/nointron/reads/"
+input_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/bamsort/nointron/v4/reads/"
 
-process_all_set_minimumsv6("liver", samples$samples, paste0(input_dir, "v3/"), 
-                           TRUE, paste0(input_dir, "/v3/minimum/"), 
-                           min_reads = 2, min_umi = 2)
-process_all_set_minimumsv6("liver", samples$samples, paste0(input_dir, "v4/"), 
-                           TRUE, paste0(input_dir, "/v4/minimum/"), 
+process_all_set_minimumsv6("liver", samples$samples, input_dir, 
+                           TRUE, output_dir = paste0(input_dir, "minimum/"), 
                            min_reads = 2, min_umi = 2)
 ```
 
 
 
-# Joint Dataset
-## Joint
+## bulk
+### values from rMATS
 
-### Stupidity check: are there cellIDs in common?
 ```{r}
-# GEX
-output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGL002/singleCell/Seurat/UMAPcoords/"
-samples <- c(
-  "Esrp2KO",
-  "Normal"
+# --- Data ---
+df_mean <- data.frame(
+  gene = rep(c("Kras exon 5", "Nf2 exon 15"), each = 2),
+  condition = rep(c("WT", "KO"), 2),
+  mean_psi = c(0.4240, 0.0620, 0.9330, 0.0885)
 )
 
-GEX_cellids <- list()
-for (i in samples) {
-  test <- read.csv(paste0(output.dir, i, "UMAP_coords.csv"), row.names = "X")
-  GEX_cellids[i] <- test
-}
+df_dots <- data.frame(
+  gene = rep(c("Kras exon 5", "Kras exon 5", "Nf2 exon 15", "Nf2 exon 15"), each = 2),
+  condition = rep(c("WT", "KO"), 4),
+  psi = c(0.428, 0.049, 0.42, 0.075, 0.919, 0.093, 0.947, 0.084)
+)
 
-input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/bamsort/"
-all_files <- list.files(path = input.dir, 
-                        pattern = "^EGL002_(KO|WT)_.*_bamsort_alignment_.*\\.csv$",
-                        full.names = TRUE)
-Esrp2KO.S <- c()
-Normal.S <- c()
+df_mean$condition <- factor(df_mean$condition, levels = c("WT", "KO"))
+df_dots$condition <- factor(df_dots$condition, levels = c("WT", "KO"))
 
-for (file in all_files) {
-  filename <- basename(file)
-  df <- read.csv(file, stringsAsFactors = FALSE)
-  if (grepl("^EGL002_KO", filename)) {
-    Esrp2KO.S <- c(Esrp2KO.S, df$cellID)
-  } else if (grepl("^EGL002_WT", filename)) {
-    Normal.S <- c(Normal.S, df$cellID)
-  }
-}
-
-SALVE_cellids <- list("Esrp2KO" = unique(Esrp2KO.S),
-                      "Normal" = unique(Normal.S))
-
-test <- sum(SALVE_cellids$Normal %in% GEX_cellids$Normal) #none :(
-
-output_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGL002/singleCell/raw_cellIDs/"
-GEX_cellids_raw <- list()
-for (i in samples) {
-  temp <- read.csv(paste0(output_dir, i, "_raw_cellIDs.csv"))
-  GEX_cellids_raw[i] <- temp
-}
-
-test <- sum(SALVE_cellids$Esrp2KO %in% GEX_cellids_raw$Esrp2KO)
+# --- Plot ---
+p <- ggplot(df_mean, aes(x = condition, y = mean_psi, fill = condition)) +
+  geom_col(width = 0.6, color = "black", linewidth = 0.4) +
+  geom_point(
+    data = df_dots,
+    aes(x = condition, y = psi),
+    size = 2.5, shape = 21, fill = "black", color = "black"
+  ) +
+  facet_wrap(~gene) +
+  scale_fill_manual(values = c("WT" = "#4A90D9", "KO" = "#D94A4A")) +
+  scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, 0.2)) +
+  labs(x = NULL, y = "PSI") +
+  theme_classic(base_size = 14) +
+  theme(
+    legend.position = "none",
+    strip.background = element_blank(),
+    strip.text = element_text(face = "italic", size = 13)
+  )
+p
+ggsave("/projects/b1042/GoyalLab/egrody/extractedData/EGL002/psi_rMATS_barplot.pdf", 
+       p, width = 4.5, height = 3.5)
 ```
 
-
+# Joint Dataset
+## Joint - separate samples
 ### joining
 ```{r}
 samples <- c(
@@ -776,6 +875,7 @@ for (i in 1:length(samples)) {
   # Add SALVE data
   if (!is.null(salve_data)) {
     salve_processed <- salve_data %>%
+      rename(Slk = Slkv3) %>%
       rename_with(~ paste0(.x, "_SALVE"), -cellID)
     result <- left_join(result, salve_processed, by = "cellID")
   }
@@ -795,6 +895,8 @@ gex_cols <- paste0(targets, "_GEX")
 #KO[gex_cols] <- expm1(KO[gex_cols])
 #WT[gex_cols] <- expm1(WT[gex_cols])
 
+
+
 cat("GEX\nKO vs WT:\n")
 for (i in seq_along(targets)) {
   col <- gex_cols[i]
@@ -813,7 +915,6 @@ for (i in seq_along(targets)) {
 
 #now normalize SALVE by GEX
 salve_cols <- paste0(targets, "_SALVE")
-salve_cols[targets == "Slk"] <- "Slkv3_SALVE"
 #KO[salve_cols] <- expm1(KO[salve_cols])
 #WT[salve_cols] <- expm1(WT[salve_cols])
 cat("\n\nSALVE\nKO vs WT (normalized by GEX):\n")
@@ -826,6 +927,7 @@ for (i in seq_along(targets)) {
   cat(targets[i], "\t", compare, "\t", norm_KO, "vs", norm_WT, "\n")
 }
 ```
+
 ### VIE trends
 ```{r}
 plot_composition <- function(joint_data, targets, expected,
@@ -980,6 +1082,688 @@ p <- plot_composition(joint_data,
                        expected = expected,
                        labels   = c("Esrp2KO", "WT"))
 print(p)
+```
+
+
+
+## Joint - integrated
+### joining
+```{r}
+samples <- c(
+    "Esrp2KO",
+    "Normal"
+)
+
+SALVE.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGL002/SALVE/bamsort/nointron/v4/reads/"
+GEX.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGL002/singleCell/bamsort/reads/minimum_none/"
+umap.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGL002/singleCell/Seurat/UMAPcoords/"
+
+# Get cellIDs from UMAP df
+umap_file <- paste0(umap.dir, "integrated_UMAP_coords.csv")
+umap_data <- if(file.exists(umap_file)) read.csv(umap_file, row.names = "X") else NULL
+all_cells <- as.character(umap_data$cellID)
+all_cells <- unique(all_cells)
+result <- data.frame(cellID = all_cells)
+umap_processed <- umap_data %>%
+  select(-V2, -sample)
+result <- left_join(result, umap_processed, by = "cellID")
+
+salve_combined <- data.frame()
+gex_combined <- data.frame()
+
+for (i in 1:length(samples)) {
+  sample_name <- samples[i]
+  prefix <- paste0(sample_name, "_")
+  
+  # Read all data files
+  #salve_files <- paste0(SALVE.dir, c("v3", "v4"), "/minimum/", sample_name, "_liver_filtered.csv")
+  salve_files <- paste0(SALVE.dir, "/minimum/", sample_name, "_liver_filtered.csv")
+  salve_files <- salve_files[file.exists(salve_files)]
+  gex_file <- paste0(GEX.dir, sample_name, "*_liver_filtered.csv")
+  
+  salve_list <- lapply(salve_files, function(f) {
+    df <- read.csv(f)
+    df$total <- NULL
+    df
+  })
+  salve_data <- Reduce(function(x, y) merge(x, y, by = "cellID", all = TRUE), salve_list)
+  salve_data[is.na(salve_data)] <- 0
+  salve_data <- salve_data %>% select(-any_of("Slkv4"))
+  gex_matches <- Sys.glob(gex_file)
+  gex_data <- if (length(gex_matches) > 0) read.csv(gex_matches[1]) else NULL
+  
+  salve_data$cellID <- paste0(prefix, salve_data$cellID)
+  gex_data$cellID <- paste0(prefix, gex_data$cellID)
+  
+  salve_combined <- bind_rows(salve_combined, salve_data)
+  gex_combined <- bind_rows(gex_combined, gex_data)
+}
+  
+# Add GEX data
+gex_processed <- gex_combined %>%
+  mutate(cellID = as.character(cellID)) %>%
+  select(-total) %>%
+  rename_with(~ paste0(.x, "_GEX"), -cellID)
+result <- left_join(result, gex_processed, by = "cellID")
+
+# Add SALVE data
+salve_processed <- salve_combined %>%
+  rename_with(~ paste0(.x, "_SALVE"), -cellID)
+result <- left_join(result, salve_processed, by = "cellID")
+
+result[is.na(result)] <- 0
+result <- result %>%
+  #rename(Slk_SALVE = Slkv3_SALVE) %>%
+  #keep only SALVE+ cells if target detected in GEX
+  mutate(across(ends_with("_SALVE"), ~ ifelse(
+    get(sub("_SALVE$", "_GEX", cur_column())) == 0, 0, .x
+  )))
+```
+
+```{r}
+output_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGL002/joint/integrated/plots/"
+#cat("\nSample\tTotal_cells\tboth\t10X_only\tSALVE_only\n")
+
+current_df <- result %>%
+  mutate(across(-c(cellID, UMAP1, UMAP2, cluster, size), log1p))
+genes <- c("Kras", "Dgkd", "Nf2", "Slk", "Lsm14b")
+
+# both <- current_df %>% filter(GEX != 0 & SALVE != 0)
+# either <- current_df %>% filter(GEX != 0 | SALVE != 0)
+# onlySingleCell <- current_df %>% 
+#   filter(GEX != 0) %>%
+#   filter(!(cellID %in% both$cellID))
+# onlySALVE <- current_df %>% 
+#   filter(SALVE != 0) %>%
+#   filter(!(cellID %in% both$cellID))
+# 
+# cat(sample_name, "\t",
+#     nrow(current_df), "\t",
+#     nrow(both), "\t",
+#     nrow(onlySingleCell), "\t",
+#     nrow(onlySALVE), "\n")
+
+cat("Number of cells positive:\nTarget\t\tSALVE\tGEX",
+  "\nKras: \t\t", sum(current_df$Kras_SALVE > 0), "\t", sum(current_df$Kras_GEX > 0),
+  "\nDgkd: \t\t", sum(current_df$Dgkd_SALVE > 0), "\t", sum(current_df$Dgkd_GEX > 0),
+  "\nLsm14b:\t\t", sum(current_df$Lsm14b_SALVE > 0), "\t", sum(current_df$Lsm14b_GEX > 0),
+  "\nSlk: \t\t", sum(current_df$Slk_SALVE > 0), "\t", sum(current_df$Slk_GEX > 0),
+  "\nNf2: \t\t", sum(current_df$Nf2_SALVE > 0), "\t", sum(current_df$Nf2_GEX > 0), "\n\n")
+
+cat("Number of cells positive:\nTarget\t\tboth\tSALVE only\tGEX only",
+  "\nKras: \t\t", sum(current_df$Kras_SALVE > 0 & current_df$Kras_GEX > 0), 
+      "\t", sum(current_df$Kras_SALVE > 0 & current_df$Kras_GEX == 0),
+      "\t", sum(current_df$Kras_SALVE == 0 & current_df$Kras_GEX > 0),
+  "\nDgkd: \t\t", sum(current_df$Dgkd_SALVE > 0 & current_df$Dgkd_GEX > 0), 
+      "\t", sum(current_df$Dgkd_SALVE > 0 & current_df$Dgkd_GEX == 0),
+      "\t", sum(current_df$Dgkd_SALVE == 0 & current_df$Dgkd_GEX > 0),
+  "\nLsm14b:\t\t", sum(current_df$Lsm14b_SALVE > 0 & current_df$Lsm14b_GEX > 0), 
+      "\t", sum(current_df$Lsm14b_SALVE > 0 & current_df$Lsm14b_GEX == 0),
+      "\t", sum(current_df$Lsm14b_SALVE == 0 & current_df$Lsm14b_GEX > 0),
+  "\nSlk: \t\t", sum(current_df$Slk_SALVE > 0 & current_df$Slk_GEX > 0), 
+      "\t", sum(current_df$Slk_SALVE > 0 & current_df$Slk_GEX == 0),
+      "\t", sum(current_df$Slk_SALVE == 0 & current_df$Slk_GEX > 0),
+  "\nNf2: \t\t", sum(current_df$Nf2_SALVE > 0 & current_df$Nf2_GEX > 0), 
+      "\t", sum(current_df$Nf2_SALVE > 0 & current_df$Nf2_GEX == 0), 
+      "\t", sum(current_df$Nf2_SALVE == 0 & current_df$Nf2_GEX > 0), "\n")
+
+cat("Number of cells SALVE:\nTarget\t\tKO\tWT",
+  "\nKras: \t\t", sum(current_df$Kras_SALVE > 0 & grepl("^Esrp2KO_", current_df$cellID)), 
+      "\t", sum(current_df$Kras_SALVE > 0 & grepl("^Normal_", current_df$cellID)),
+  "\nDgkd: \t\t", sum(current_df$Dgkd_SALVE > 0 & grepl("^Esrp2KO_", current_df$cellID)), 
+      "\t", sum(current_df$Dgkd_SALVE > 0 &grepl("^Normal_", current_df$cellID)),
+  "\nLsm14b:\t\t", sum(current_df$Lsm14b_SALVE > 0 & grepl("^Esrp2KO_", current_df$cellID)), 
+      "\t", sum(current_df$Lsm14b_SALVE > 0 & grepl("^Normal_", current_df$cellID)),
+  "\nSlk: \t\t", sum(current_df$Slk_SALVE > 0 & grepl("^Esrp2KO_", current_df$cellID)), 
+      "\t", sum(current_df$Slk_SALVE > 0 & grepl("^Normal_", current_df$cellID)),
+  "\nNf2: \t\t", sum(current_df$Nf2_SALVE > 0 & grepl("^Esrp2KO_", current_df$cellID)), 
+      "\t", sum(current_df$Nf2_SALVE > 0 & grepl("^Normal_", current_df$cellID)), "\n")
+
+
+plotUMAP_pair <- function(data, col1, col2, gene, output_dir, color = "red") {
+  plot_single <- function(df, col_name, title) {
+    df <- df[order(df[[col_name]]), ]
+    df$size_flag <- ifelse(df[[col_name]] != 0, "nonzero", "zero")
+    
+    ggplot(df, aes(x = UMAP1, y = UMAP2)) +
+      geom_point(aes(color = .data[[col_name]], size = size_flag), shape = 16) +
+      scale_size_manual(values = c("zero" = 0.5, "nonzero" = 1.5)) +
+      scale_color_gradient(low = "gray93", high = color) +
+      theme_classic() +
+      theme(legend.position = "bottom",
+            legend.title = element_text(size = rel(0.6)),
+            legend.text = element_text(size = rel(0.6), angle = 30),
+            axis.text = element_blank(),
+            axis.ticks = element_blank(),
+            aspect.ratio = 1) +
+      labs(title = title, color = "") +
+      guides(size = "none")
+  }
+  
+  p1 <- plot_single(data, col1, paste0(gene, " SALVE"))
+  p2 <- plot_single(data, col2, paste0(gene, " GEX"))
+  
+  combined <- p1 + p2 + plot_layout(ncol = 2, guides = "collect") &
+    theme(legend.position = "bottom")
+  
+  ggsave(combined,
+         file = paste0(output_dir, gene, "_SALVE_vs_GEX.pdf"),
+         device = "pdf", width = 10, height = 5)
+  
+  return(combined)
+}
+
+for (gene in genes) {
+  plotUMAP_pair(current_df,
+                paste0(gene, "_SALVE"),
+                paste0(gene, "_GEX"),
+                gene, output_dir, color = "red")
+}
+
+cat("Maximum log1p value:\nTarget\t\tSALVE\tGEX",
+  "\nKras: \t\t", max(current_df$Kras_SALVE), "\t", max(current_df$Kras_GEX),
+  "\nDgkd: \t\t", max(current_df$Dgkd_SALVE), "\t", max(current_df$Dgkd_GEX),
+  "\nLsm14b:\t\t", max(current_df$Lsm14b_SALVE), "\t", max(current_df$Lsm14b_GEX),
+  "\nSlk: \t\t", max(current_df$Slk_SALVE), "\t", max(current_df$Slk_GEX),
+  "\nNf2: \t\t", max(current_df$Nf2_SALVE), "\t", max(current_df$Nf2_GEX), "\n")
+
+#plotting identity split for SALVE
+plotUMAP_split <- function(data, col, gene, output_dir, color = "red") {
+
+  # global color limits across both datasets
+  max_val <- max(data[[col]], na.rm = TRUE)
+  min_val <- min(data[[col]], na.rm = TRUE)
+
+  plot_single <- function(df, title) {
+    df <- df[order(df[[col]]), ]
+    df$size_flag <- ifelse(df[[col]] != 0, "nonzero", "zero")
+
+    ggplot(df, aes(x = UMAP1, y = UMAP2)) +
+      geom_point(aes(color = .data[[col]], size = size_flag), shape = 16) +
+      scale_size_manual(values = c("zero" = 0.5, "nonzero" = 1.5)) +
+      scale_color_gradient(
+        low = "gray93",
+        high = color,
+        limits = c(min_val, max_val)
+      ) +
+      coord_fixed() +
+      theme_classic() +
+      theme(
+        legend.position = "bottom",
+        legend.title = element_text(size = rel(0.6)),
+        legend.text = element_text(size = rel(0.6), angle = 30),
+        axis.text = element_blank(),
+        axis.ticks = element_blank()
+      ) +
+      labs(title = title, color = "") +
+      guides(size = "none")
+  }
+
+  normal <- data[grepl("^Normal", data$cellID), ]
+  ko     <- data[grepl("^Esrp2KO", data$cellID), ]
+
+  p1 <- plot_single(normal, paste0(gene, " SALVE - Normal"))
+  p2 <- plot_single(ko,     paste0(gene, " SALVE - Esrp2KO"))
+
+  combined <- p1 + p2 + plot_layout(ncol = 2, guides = "collect") &
+    theme(legend.position = "bottom")
+
+  ggsave(
+    combined,
+    file = paste0(output_dir, gene, "_SALVE_Normal_vs_Esrp2KO.pdf"),
+    device = "pdf",
+    width = 10,
+    height = 5
+  )
+
+  return(combined)
+}
+
+for (gene in genes) {
+  plotUMAP_split(current_df,
+                 paste0(gene, "_SALVE"),
+                 gene, output_dir, color = "red")
+}
+
+
+
+#Save CSVs
+# write.csv(both, paste0(output_dir, "integrated_both.csv"), row.names = FALSE)
+# write.csv(onlySingleCell, paste0(output_dir, "integrated_onlySingleCell.csv"), row.names = FALSE)
+# write.csv(onlySALVE, paste0(output_dir, "integrated_onlySALVE.csv"), row.names = FALSE)
+write.csv(current_df, paste0(output_dir, "integrated_all.csv"), row.names = FALSE)
+
+```
+
+### comparing to BRIE2
+```{r}
+brie <- read.csv("/projects/b1042/GoyalLab/egrody/extractedData/EGL002/singleCell/BRIE2/brie2_per_cell_target_exons.csv")
+brie <- brie %>%
+  mutate(cellID = paste0(ifelse(sample == "WT", "Normal", "Esrp2KO"), "_", cell_barcode))
+
+brie_wide <- brie %>%
+  mutate(target = sub("_.*", "", gene)) %>%
+  pivot_wider(
+    id_cols = cellID,
+    names_from = target,
+    values_from = c(isoform1, isoform2, psi),
+    names_sep = "_"
+  ) %>%
+  rename_with(~ sub("^isoform1_", "", .) %>% paste0("_in_BRIE"), starts_with("isoform1_")) %>%
+  rename_with(~ sub("^isoform2_", "", .) %>% paste0("_out_BRIE"), starts_with("isoform2_")) %>%
+  rename_with(~ sub("^psi_", "", .) %>% paste0("_psi_BRIE"), starts_with("psi_"))
+brie_wide[is.na(brie_wide)] <- 0
+
+joint_data <- left_join(result, brie_wide, by = "cellID")
+```
+
+```{r}
+#cat("\nSample\tTotal_cells\tboth\t10X_only\tSALVE_only\n")
+
+current_df <- joint_data %>%
+  select(-contains("_psi_BRIE")) %>%
+  mutate(across(ends_with("_SALVE"), ~ .x / get(sub("_SALVE$", "_GEX", cur_column())),
+                .names = "{sub('_SALVE$', '_norm_SALVE', .col)}")) %>%
+  mutate(across(ends_with("_in_BRIE"), ~ .x / get(sub("_in_BRIE$", "_GEX", cur_column())),
+                .names = "{sub('_in_BRIE$', '_norm_BRIE', .col)}")) %>%
+  mutate(across(contains("_norm_"), ~ replace(.x, !is.finite(.x), 0))) %>%
+  mutate(across(-c(cellID, UMAP1, UMAP2, cluster, size) & !contains("_norm"), log1p))
+
+
+
+
+cat("Number of cells positive:\nTarget\t\tBRIE in\tBRIE out",
+  "\nKras: \t\t", sum(current_df$Kras_in_BRIE > 0), "\t", sum(current_df$Kras_out_BRIE > 0),
+  "\nDgkd: \t\t", sum(current_df$Dgkd_in_BRIE > 0), "\t", sum(current_df$Dgkd_out_BRIE > 0),
+  "\nLsm14b:\t\t", sum(current_df$Lsm14b_in_BRIE > 0), "\t", sum(current_df$Lsm14b_out_BRIE > 0),
+  "\nSlk: \t\t", sum(current_df$Slk_in_BRIE > 0), "\t", sum(current_df$Slk_out_BRIE > 0),
+  "\nNf2: \t\t", sum(current_df$Nf2_in_BRIE > 0), "\t", sum(current_df$Nf2_out_BRIE > 0), "\n\n")
+
+targets <- c("Kras", "Dgkd", "Lsm14b", "Slk", "Nf2")
+#for cells
+for (label in c("Normal", "Esrp2KO")) {
+  df <- current_df %>% filter(startsWith(cellID, paste0(label, "_")))
+  
+  counts <- sapply(targets, function(t) {
+    salve  <- df[[paste0(t, "_SALVE")]] > 0
+    brie   <- df[[paste0(t, "_in_BRIE")]] > 0
+    gex    <- df[[paste0(t, "_GEX")]] > 0
+    c(
+      "both (SALVE & BRIE)"  = sum(salve & brie),
+      "both (GEX+)"          = sum(salve & brie & gex),
+      "SALVE only (all)"     = sum(salve & !brie),
+      "SALVE only (GEX+)"    = sum(salve & !brie & gex),
+      "BRIE only (all)"      = sum(!salve & brie),
+      "BRIE only (GEX+)"     = sum(!salve & brie & gex)
+    )
+  })
+  
+  cat("\n", label, "- Number of cells positive for VIE:\n")
+  print(counts)
+}
+# for counts
+for (label in c("Normal", "Esrp2KO")) {
+  df <- current_df %>% filter(startsWith(cellID, paste0(label, "_")))
+  
+  counts <- sapply(targets, function(t) {
+    c(
+      "SALVE norm" = sum(df[[paste0(t, "_norm_SALVE")]]),
+      "BRIE norm"     = sum(df[[paste0(t, "_norm_BRIE")]])
+    )
+  })
+  
+  cat("\n", label, "- Total counts per target:\n")
+  print(counts)
+}
+
+
+
+cat("Number of cells SALVE:\nTarget\t\tKO\tWT",
+  "\nKras: \t\t", sum(current_df$Kras_norm_SALVE > 0 & grepl("^Esrp2KO_", current_df$cellID)), 
+      "\t", sum(current_df$Kras_norm_SALVE > 0 & grepl("^Normal_", current_df$cellID)),
+  "\nDgkd: \t\t", sum(current_df$Dgkd_norm_SALVE > 0 & grepl("^Esrp2KO_", current_df$cellID)), 
+      "\t", sum(current_df$Dgkd_norm_SALVE > 0 &grepl("^Normal_", current_df$cellID)),
+  "\nLsm14b:\t\t", sum(current_df$Lsm14b_norm_SALVE > 0 & grepl("^Esrp2KO_", current_df$cellID)), 
+      "\t", sum(current_df$Lsm14b_norm_SALVE > 0 & grepl("^Normal_", current_df$cellID)),
+  "\nSlk: \t\t", sum(current_df$Slk_norm_SALVE > 0 & grepl("^Esrp2KO_", current_df$cellID)), 
+      "\t", sum(current_df$Slk_norm_SALVE > 0 & grepl("^Normal_", current_df$cellID)),
+  "\nNf2: \t\t", sum(current_df$Nf2_norm_SALVE > 0 & grepl("^Esrp2KO_", current_df$cellID)), 
+      "\t", sum(current_df$Nf2_norm_SALVE > 0 & grepl("^Normal_", current_df$cellID)), "\n")
+
+genes <- c("Kras", "Dgkd", "Nf2", "Slk", "Lsm14b")
+
+plotUMAP_pair <- function(data, col1, col2, gene, output_dir, color = "red") {
+  plot_single <- function(df, col_name, title) {
+    df <- df[order(df[[col_name]]), ]
+    df$size_flag <- ifelse(df[[col_name]] != 0, "nonzero", "zero")
+    
+    ggplot(df, aes(x = UMAP1, y = UMAP2)) +
+      geom_point(aes(color = .data[[col_name]], size = size_flag), shape = 16) +
+      scale_size_manual(values = c("zero" = 0.5, "nonzero" = 1.5)) +
+      scale_color_gradient(low = "gray93", high = color) +
+      theme_classic() +
+      theme(legend.position = "bottom",
+            legend.title = element_text(size = rel(0.6)),
+            legend.text = element_text(size = rel(0.6), angle = 30),
+            axis.text = element_blank(),
+            axis.ticks = element_blank(),
+            aspect.ratio = 1) +
+      labs(title = title, color = "") +
+      guides(size = "none")
+  }
+  
+  p1 <- plot_single(data, col1, paste0(gene, " SALVE"))
+  p2 <- plot_single(data, col2, paste0(gene, " BRIE (in)"))
+  
+  combined <- p1 + p2 + plot_layout(ncol = 2, guides = "collect") &
+    theme(legend.position = "bottom")
+  
+  ggsave(combined,
+         file = paste0(output_dir, gene, "_SALVE_vs_BRIE.pdf"),
+         device = "pdf", width = 10, height = 5)
+  
+  return(combined)
+}
+
+output_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGL002/joint/integrated/plots/"
+for (gene in genes) {
+  plotUMAP_pair(current_df,
+                paste0(gene, "_SALVE"),
+                paste0(gene, "_in_BRIE"),
+                gene, output_dir, color = "red")
+}
+
+cat("Maximum log1p value:\nTarget\t\tSALVE\tGEX",
+  "\nKras: \t\t", max(current_df$Kras_SALVE), "\t", max(current_df$Kras_in_BRIE),
+  "\nDgkd: \t\t", max(current_df$Dgkd_SALVE), "\t", max(current_df$Dgkd_in_BRIE),
+  "\nLsm14b:\t\t", max(current_df$Lsm14b_SALVE), "\t", max(current_df$Lsm14b_in_BRIE),
+  "\nSlk: \t\t", max(current_df$Slk_SALVE), "\t", max(current_df$Slk_in_BRIE),
+  "\nNf2: \t\t", max(current_df$Nf2_SALVE), "\t", max(current_df$Nf2_in_BRIE), "\n")
+
+
+# statistical test
+test <- lapply(targets, function(t) {
+  gex <- current_df[[paste0(t, "_GEX")]] > 0
+  salve <- current_df[[paste0(t, "_SALVE")]] > 0
+  group <- ifelse(startsWith(current_df$cellID, "Normal_"), "WT", "KO")
+  
+  df <- data.frame(salve = salve[gex], group = group[gex])
+  
+  tab <- table(df$group, df$salve)
+  ft <- fisher.test(tab)
+  
+  wt_frac <- sum(df$salve[df$group == "WT"]) / sum(df$group == "WT")
+  ko_frac <- sum(df$salve[df$group == "KO"]) / sum(df$group == "KO")
+  
+  data.frame(
+    gene = t,
+    n_WT_GEX = sum(df$group == "WT"),
+    n_KO_GEX = sum(df$group == "KO"),
+    frac_WT = round(wt_frac, 4),
+    frac_KO = round(ko_frac, 4),
+    delta = round(wt_frac - ko_frac, 4),
+    odds_ratio = round(ft$estimate, 3),
+    p_value = ft$p.value
+  )
+})
+
+results_df <- bind_rows(test)
+results_df$FDR <- p.adjust(results_df$p_value, method = "BH")
+results_df$significant <- results_df$FDR < 0.05
+
+print(results_df)
+
+
+
+
+#Save CSV
+write.csv(joint_data, paste0(output_dir, "integrated_all_with_BRIE.csv"), row.names = FALSE)
+
+```
+```{r scatterplot Kras}
+
+
+plots <- list()
+shared_max <- 0
+
+for (label in c("Normal", "Esrp2KO")) {
+  df <- current_df %>% filter(startsWith(cellID, paste0(label, "_")))
+  shared_max <- max(shared_max,
+                    max(df$Kras_norm_SALVE, na.rm = TRUE),
+                    max(df$Kras_norm_BRIE,  na.rm = TRUE))
+}
+axis_lim <- c(-0.01, log1p(shared_max) * 1.05)
+
+for (label in c("Normal", "Esrp2KO")) {
+  df <- current_df %>%
+    filter(startsWith(cellID, paste0(label, "_"))) %>%
+    mutate(
+      salve = log1p(Kras_norm_SALVE),
+      brie  = log1p(Kras_norm_BRIE),
+      quadrant = case_when(
+        Kras_norm_SALVE > 0 & Kras_norm_BRIE > 0 ~ "Both",
+        Kras_norm_SALVE > 0                       ~ "SALVE only",
+        Kras_norm_BRIE  > 0                       ~ "BRIE only",
+        TRUE                                      ~ "Neither"
+      ),
+      quadrant = factor(quadrant, levels = c("Neither", "SALVE only", "BRIE only", "Both"))
+    )
+
+  n_salve <- sum(df$Kras_norm_SALVE > 0)
+  n_brie  <- sum(df$Kras_norm_BRIE > 0)
+  n_both  <- sum(df$Kras_norm_SALVE > 0 & df$Kras_norm_BRIE > 0)
+  n_total <- nrow(df)
+
+  df_plot <- df %>% arrange(quadrant)
+
+  # Nonzero subsets for marginal histograms
+  df_salve_nz <- df %>% filter(Kras_norm_SALVE > 0)
+  df_brie_nz  <- df %>% filter(Kras_norm_BRIE > 0)
+
+  # Main scatter
+  p_main <- ggplot(df_plot, aes(x = salve, y = brie, color = quadrant)) +
+    geom_point(size = 1.2, alpha = 0.5) +
+    scale_color_manual(values = c(
+      "Neither"    = "grey85",
+      "SALVE only" = "#D62728",
+      "BRIE only"  = "#1F77B4",
+      "Both"       = "#2CA02C"
+    )) +
+    coord_cartesian(xlim = axis_lim, ylim = axis_lim) +
+    geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "grey50") +
+    annotate("text", x = axis_lim[2] * 0.95, y = axis_lim[2] * 0.95,
+             label = paste0("SALVE: ", n_salve, " cells"),
+             hjust = 1, size = 3, color = "#D62728") +
+    annotate("text", x = axis_lim[2] * 0.95, y = axis_lim[2] * 0.88,
+             label = paste0("BRIE: ", n_brie, " cells"),
+             hjust = 1, size = 3, color = "#1F77B4") +
+    annotate("text", x = axis_lim[2] * 0.95, y = axis_lim[2] * 0.81,
+             label = paste0("Both: ", n_both, " / ", n_total, " total"),
+             hjust = 1, size = 3, color = "#2CA02C") +
+    theme_classic() +
+    theme(legend.position = "none", aspect.ratio = 1) +
+    labs(title = label, x = "SALVE log1p(norm)", y = "BRIE log1p(norm)")
+
+  # Top marginal: SALVE distribution (x-axis)
+  p_top <- ggplot(df_salve_nz, aes(x = salve)) +
+    geom_histogram(fill = "#D62728", alpha = 0.4, bins = 30, color = NA) +
+    coord_cartesian(xlim = axis_lim) +
+    theme_void() +
+    theme(plot.margin = margin(0, 0, 0, 0))
+
+  # Right marginal: BRIE distribution (y-axis)
+  p_right <- ggplot(df_brie_nz, aes(x = brie)) +
+    geom_histogram(fill = "#1F77B4", alpha = 0.4, bins = 30, color = NA) +
+    coord_cartesian(xlim = axis_lim) +
+    coord_flip(xlim = axis_lim) +
+    theme_void() +
+    theme(plot.margin = margin(0, 0, 0, 0))
+
+  p_empty <- plot_spacer()
+
+  plots[[label]] <- p_top + p_empty + p_main + p_right +
+    plot_layout(ncol = 2, nrow = 2,
+                widths = c(4, 1), heights = c(1, 4))
+}
+
+# Shared legend
+legend_df <- data.frame(
+  x = 1:4, y = 1:4,
+  quadrant = factor(c("Neither", "SALVE only", "BRIE only", "Both"),
+                    levels = c("Neither", "SALVE only", "BRIE only", "Both"))
+)
+p_legend <- ggplot(legend_df, aes(x, y, color = quadrant)) +
+  geom_point() +
+  scale_color_manual(values = c(
+    "Neither" = "grey85", "SALVE only" = "#D62728",
+    "BRIE only" = "#1F77B4", "Both" = "#2CA02C"
+  )) +
+  theme_void() +
+  theme(legend.position = "bottom") +
+  labs(color = "")
+shared_legend <- cowplot::get_legend(p_legend)
+
+final <- (plots[["Normal"]] | plots[["Esrp2KO"]]) /
+  wrap_elements(shared_legend) +
+  plot_layout(heights = c(10, 1))
+print(final)
+```
+
+
+
+### read depth prediction
+```{r}
+# Load Seurat object
+integrated <- readRDS("/projects/b1042/GoyalLab/egrody/extractedData/EGL002/singleCell/Seurat/integrated/integrated.rds")
+
+# --- Step 1: Current GEX sequencing depth per sample ---
+meta <- integrated@meta.data %>%
+  mutate(sample = ifelse(grepl("^Normal", rownames(.)), "Normal", "Esrp2KO"))
+
+depth <- meta %>%
+  group_by(sample) %>%
+  summarise(
+    n_cells = n(),
+    mean_reads_per_cell = round(mean(nCount_RNA), 1),
+    median_reads_per_cell = round(median(nCount_RNA), 1),
+    total_reads = round(sum(nCount_RNA)),
+    .groups = "drop"
+  )
+
+cat("Current GEX sequencing depth:\n")
+print(as.data.frame(depth))
+
+# --- Step 2: Fold increase needed per gene per sample ---
+targets <- c("Kras", "Dgkd", "Lsm14b", "Slk", "Nf2")
+
+fold_results <- bind_rows(lapply(c("Normal", "Esrp2KO"), function(label) {
+  df <- current_df %>% filter(startsWith(cellID, paste0(label, "_")))
+  
+  bind_rows(lapply(targets, function(t) {
+    salve_total <- sum(expm1(df[[paste0(t, "_SALVE")]]))
+    brie_total  <- sum(expm1(df[[paste0(t, "_in_BRIE")]]))
+    
+    data.frame(
+      sample = label,
+      gene = t,
+      SALVE_total = round(salve_total),
+      BRIE_in_total = round(brie_total),
+      fold_increase = if (brie_total > 0) round(salve_total / brie_total, 1) else Inf
+    )
+  }))
+}))
+
+cat("\nFold increase in GEX depth needed to match SALVE:\n")
+print(as.data.frame(fold_results))
+
+# --- Step 3: Projected reads per cell needed ---
+projected <- fold_results %>%
+  left_join(depth %>% select(sample, mean_reads_per_cell), by = "sample") %>%
+  mutate(
+    target_reads_per_cell = round(mean_reads_per_cell * fold_increase, 0),
+    target_total_reads = round(target_reads_per_cell * depth$n_cells[match(sample, depth$sample)])
+  )
+
+cat("\nProjected sequencing requirements:\n")
+print(as.data.frame(projected))
+
+# --- Step 4: Summary across genes ---
+# Use finite values only (exclude genes with 0 BRIE counts)
+finite_folds <- fold_results %>% filter(is.finite(fold_increase))
+
+summary_stats <- finite_folds %>%
+  group_by(sample) %>%
+  summarise(
+    mean_fold = round(mean(fold_increase), 1),
+    median_fold = round(median(fold_increase), 1),
+    max_fold = round(max(fold_increase), 1),
+    genes_with_brie = n(),
+    genes_infinite = sum(targets %in% gene[fold_increase == Inf]),
+    .groups = "drop"
+  )
+
+cat("\nSummary of fold increases (genes with BRIE2 counts > 0 only):\n")
+print(as.data.frame(summary_stats))
+
+cat("\nGenes with zero BRIE2 counts (would require infinite depth increase):\n")
+print(fold_results %>% filter(!is.finite(fold_increase)) %>% select(sample, gene))
+
+# --- Step 5: Downsampling analysis ---
+# Subsample SALVE counts to find minimum enrichment for significance
+set.seed(42)
+downsample_results <- bind_rows(lapply(targets, function(t) {
+  gex <- current_df[[paste0(t, "_GEX")]] > 0
+  salve_raw <- expm1(current_df[[paste0(t, "_SALVE")]])
+  group <- ifelse(startsWith(current_df$cellID, "Normal_"), "WT", "KO")
+  
+  # Only among GEX+ cells
+  salve_gex <- salve_raw[gex]
+  group_gex <- group[gex]
+  
+  # Skip if too few positive cells
+  if (sum(salve_gex > 0) < 5) return(NULL)
+  
+  fractions <- c(1, 0.5, 0.2, 0.1, 0.05, 0.02, 0.01)
+  
+  bind_rows(lapply(fractions, function(f) {
+    # Binomial downsample each cell's SALVE count
+    downsampled <- rbinom(length(salve_gex), size = round(salve_gex), prob = f)
+    
+    tab <- table(group_gex, downsampled > 0)
+    if (ncol(tab) < 2) {
+      p <- 1
+    } else {
+      p <- fisher.test(tab)$p.value
+    }
+    
+    data.frame(
+      gene = t,
+      fraction = f,
+      n_positive_WT = sum(downsampled[group_gex == "WT"] > 0),
+      n_positive_KO = sum(downsampled[group_gex == "KO"] > 0),
+      p_value = p
+    )
+  }))
+}))
+
+if (!is.null(downsample_results) && nrow(downsample_results) > 0) {
+  downsample_results$FDR <- p.adjust(downsample_results$p_value, method = "BH")
+  downsample_results$significant <- downsample_results$FDR < 0.05
+  
+  cat("\nDownsampling analysis - minimum SALVE enrichment for significance:\n")
+  print(as.data.frame(downsample_results))
+  
+  # Find threshold per gene
+  thresholds <- downsample_results %>%
+    group_by(gene) %>%
+    summarise(
+      min_fraction_significant = min(fraction[significant], na.rm = TRUE),
+      .groups = "drop"
+    )
+  
+  cat("\nMinimum SALVE fraction retaining significance per gene:\n")
+  print(as.data.frame(thresholds))
+}
 ```
 
 
@@ -1357,8 +2141,8 @@ for (i in 1:length(samples)) {
 # =============================================================================
 # Configuration
 # =============================================================================
-load_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/Seurat/RDS/"
-output_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/joint/plots/cNMF/"
+load_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGL002/singleCell/Seurat/RDS/"
+output_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGL002/joint/integrated/plots/cNMF/"
 run_name <- "invitro"
 selected_k <- 7
 

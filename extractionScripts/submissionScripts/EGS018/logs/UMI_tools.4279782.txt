@@ -1,0 +1,32 @@
+Converting CellRanger whitelist to UMI-tools format...
+Whitelist already exists with 6794880 barcodes
+========================================
+UMI-TOOLS RNA-SEQ PROCESSING PIPELINE
+========================================
+Processing single sample: KLRB1_W2_combined
+STAR Index: /projects/b1042/GoyalLab/egrody/genomes/STAR_Mmul_10_mac239/
+GTF File: /projects/b1042/GoyalLab/egrody/genomes/STAR_Mmul_10_mac239//inputs/genes.gtf
+FASTQ Directory: /projects/b1042/GoyalLab/egrody/rawData/EGS018/Sequencing/
+Output Root: /projects/b1042/GoyalLab/egrody/extractedData/EGS018/SALVE/UMI_tools/
+Whitelist: /projects/b1042/GoyalLab/egrody/extractedData/EGS018/SALVE/UMI_tools//whitelist.txt
+Barcode Pattern: CCCCCCCCCCCCCCCCNNNNNNNNNNNN
+
+========================================
+PROCESSING SAMPLE: KLRB1_W2_combined
+========================================
+Step 1: Locating input files...
+R1 file: /projects/b1042/GoyalLab/egrody/rawData/EGS018/Sequencing/KLRB1_W2_combined_S1_R1_001.fastq.gz
+R2 file: /projects/b1042/GoyalLab/egrody/rawData/EGS018/Sequencing/KLRB1_W2_combined_S1_R2_001.fastq.gz
+
+Step 2: Extracting barcodes and UMIs with UMI-tools...
+UMI-tools extraction failed for sample: KLRB1_W2_combined
+========================================
+PIPELINE COMPLETE
+========================================
+Total samples: 1
+Successfully processed: 0
+Failed: 1
+
+Summary written to: /projects/b1042/GoyalLab/egrody/extractedData/EGS018/SALVE/UMI_tools//pipeline_summary.txt
+
+1 samples failed processing.

@@ -1,0 +1,30 @@
+
+EXITING: because of fatal INPUT file error: could not open read file: /projects/b1042/GoyalLab/egrody/rawData/EGS018/Sequencing/*tat_Pacute*R2_001.fastq.gz
+SOLUTION: check that this file exists and has read permision.
+
+Sep 17 15:14:35 ...... FATAL ERROR, exiting
+
+EXITING: because of fatal INPUT file error: could not open read file: /projects/b1042/GoyalLab/egrody/rawData/EGS018/Sequencing/*tat_W2*R2_001.fastq.gz
+SOLUTION: check that this file exists and has read permision.
+
+Sep 17 15:14:35 ...... FATAL ERROR, exiting
+
+EXITING: because of fatal INPUT file error: could not open read file: /projects/b1042/GoyalLab/egrody/rawData/EGS018/Sequencing/*tat_D0*R2_001.fastq.gz
+SOLUTION: check that this file exists and has read permision.
+
+Sep 17 15:14:35 ...... FATAL ERROR, exiting
+
+EXITING: because of fatal INPUT file error: could not open read file: /projects/b1042/GoyalLab/egrody/rawData/EGS018/Sequencing/*tat_Invitro*R2_001.fastq.gz
+SOLUTION: check that this file exists and has read permision.
+
+Sep 17 15:14:35 ...... FATAL ERROR, exiting
+
+EXITING: because of fatal INPUT file error: could not open read file: /projects/b1042/GoyalLab/egrody/rawData/EGS018/Sequencing/*tat_W0*R2_001.fastq.gz
+SOLUTION: check that this file exists and has read permision.
+
+Sep 17 15:14:35 ...... FATAL ERROR, exiting
+
+EXITING: because of fatal INPUT file error: could not open read file: /projects/b1042/GoyalLab/egrody/rawData/EGS018/Sequencing/*tat_D195*R2_001.fastq.gz
+SOLUTION: check that this file exists and has read permision.
+
+Sep 17 15:14:35 ...... FATAL ERROR, exiting

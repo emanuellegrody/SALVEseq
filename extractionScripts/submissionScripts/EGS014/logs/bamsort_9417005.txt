@@ -1,0 +1,635 @@
+Found 19 samples in /projects/b1042/GoyalLab/egrody/extractionScripts/submissionScripts/mkcounts_sampleSheet.csv
+Found 8 coordinate ranges in /projects/b1042/GoyalLab/egrody/extractionScripts/submissionScripts/bamsort_coordinates.csv
+Processing sample: Lacute_LTR_tat
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/counts/Mmul_10_mac239/Mmul_10_mac239_Lacute_LTR_tat/outs/possorted_genome_bam.bam
+  Alignment: D1_US (Position 439-3975)
+  Successfully processed Lacute_LTR_tat for D1_US
+  Statistics: Rows=182, Total reads=0
+  -----------------------------
+  Alignment: D1_S (Position 5975-8252)
+  Successfully processed Lacute_LTR_tat for D1_S
+  Statistics: Rows=641, Total reads=0
+  -----------------------------
+  Alignment: tat_US (Position 6045-8252)
+  Successfully processed Lacute_LTR_tat for tat_US
+  Statistics: Rows=264, Total reads=0
+  -----------------------------
+  Alignment: tat_S (Position 8253-8908)
+  Successfully processed Lacute_LTR_tat for tat_S
+  Statistics: Rows=699, Total reads=0
+  -----------------------------
+  Alignment: LTR_5 (Position 1-430)
+  Successfully processed Lacute_LTR_tat for LTR_5
+  Statistics: Rows=537, Total reads=0
+  -----------------------------
+  Alignment: LTR_3 (Position 8987-9578)
+  Successfully processed Lacute_LTR_tat for LTR_3
+  Statistics: Rows=357, Total reads=0
+  -----------------------------
+  Alignment: nef_5 (Position 1-117)
+  Successfully processed Lacute_LTR_tat for nef_5
+  Statistics: Rows=91, Total reads=0
+  -----------------------------
+  Alignment: nef_3 (Position 8747-9578)
+  Successfully processed Lacute_LTR_tat for nef_3
+  Statistics: Rows=628, Total reads=0
+  -----------------------------
+=============================
+Processing sample: Lacute_D1_nef
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/counts/Mmul_10_mac239/Mmul_10_mac239_Lacute_D1_nef/outs/possorted_genome_bam.bam
+  Alignment: D1_US (Position 439-3975)
+  Successfully processed Lacute_D1_nef for D1_US
+  Statistics: Rows=307, Total reads=0
+  -----------------------------
+  Alignment: D1_S (Position 5975-8252)
+  Successfully processed Lacute_D1_nef for D1_S
+  Statistics: Rows=576, Total reads=0
+  -----------------------------
+  Alignment: tat_US (Position 6045-8252)
+  Successfully processed Lacute_D1_nef for tat_US
+  Statistics: Rows=300, Total reads=0
+  -----------------------------
+  Alignment: tat_S (Position 8253-8908)
+  Successfully processed Lacute_D1_nef for tat_S
+  Statistics: Rows=979, Total reads=0
+  -----------------------------
+  Alignment: LTR_5 (Position 1-430)
+  Successfully processed Lacute_D1_nef for LTR_5
+  Statistics: Rows=2259, Total reads=0
+  -----------------------------
+  Alignment: LTR_3 (Position 8987-9578)
+  Successfully processed Lacute_D1_nef for LTR_3
+  Statistics: Rows=432, Total reads=0
+  -----------------------------
+  Alignment: nef_5 (Position 1-117)
+  Successfully processed Lacute_D1_nef for nef_5
+  Statistics: Rows=145, Total reads=0
+  -----------------------------
+  Alignment: nef_3 (Position 8747-9578)
+  Successfully processed Lacute_D1_nef for nef_3
+  Statistics: Rows=676, Total reads=0
+  -----------------------------
+=============================
+Processing sample: D13_LTR_tat
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/counts/Mmul_10_mac239/Mmul_10_mac239_D13_LTR_tat/outs/possorted_genome_bam.bam
+  Alignment: D1_US (Position 439-3975)
+  Successfully processed D13_LTR_tat for D1_US
+  Statistics: Rows=625, Total reads=0
+  -----------------------------
+  Alignment: D1_S (Position 5975-8252)
+  Successfully processed D13_LTR_tat for D1_S
+  Statistics: Rows=76721, Total reads=0
+  -----------------------------
+  Alignment: tat_US (Position 6045-8252)
+  Successfully processed D13_LTR_tat for tat_US
+  Statistics: Rows=30469, Total reads=0
+  -----------------------------
+  Alignment: tat_S (Position 8253-8908)
+  Successfully processed D13_LTR_tat for tat_S
+  Statistics: Rows=24487, Total reads=0
+  -----------------------------
+  Alignment: LTR_5 (Position 1-430)
+  Successfully processed D13_LTR_tat for LTR_5
+  Statistics: Rows=5588, Total reads=0
+  -----------------------------
+  Alignment: LTR_3 (Position 8987-9578)
+  Successfully processed D13_LTR_tat for LTR_3
+  Statistics: Rows=19275, Total reads=0
+  -----------------------------
+  Alignment: nef_5 (Position 1-117)
+  Successfully processed D13_LTR_tat for nef_5
+  Statistics: Rows=4755, Total reads=0
+  -----------------------------
+  Alignment: nef_3 (Position 8747-9578)
+  Successfully processed D13_LTR_tat for nef_3
+  Statistics: Rows=44842, Total reads=0
+  -----------------------------
+=============================
+Processing sample: D13_D1_nef
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/counts/Mmul_10_mac239/Mmul_10_mac239_D13_D1_nef/outs/possorted_genome_bam.bam
+  Alignment: D1_US (Position 439-3975)
+  Successfully processed D13_D1_nef for D1_US
+  Statistics: Rows=29192, Total reads=0
+  -----------------------------
+  Alignment: D1_S (Position 5975-8252)
+  Successfully processed D13_D1_nef for D1_S
+  Statistics: Rows=2669, Total reads=0
+  -----------------------------
+  Alignment: tat_US (Position 6045-8252)
+  Successfully processed D13_D1_nef for tat_US
+  Statistics: Rows=2232, Total reads=0
+  -----------------------------
+  Alignment: tat_S (Position 8253-8908)
+  Successfully processed D13_D1_nef for tat_S
+  Statistics: Rows=45824, Total reads=0
+  -----------------------------
+  Alignment: LTR_5 (Position 1-430)
+  Successfully processed D13_D1_nef for LTR_5
+  Statistics: Rows=61410, Total reads=0
+  -----------------------------
+  Alignment: LTR_3 (Position 8987-9578)
+  Successfully processed D13_D1_nef for LTR_3
+  Statistics: Rows=9644, Total reads=0
+  -----------------------------
+  Alignment: nef_5 (Position 1-117)
+  Successfully processed D13_D1_nef for nef_5
+  Statistics: Rows=1673, Total reads=0
+  -----------------------------
+  Alignment: nef_3 (Position 8747-9578)
+  Successfully processed D13_D1_nef for nef_3
+  Statistics: Rows=13923, Total reads=0
+  -----------------------------
+=============================
+Processing sample: Invitro_LTR_tat
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/counts/Mmul_10_mac239/Mmul_10_mac239_Invitro_LTR_tat/outs/possorted_genome_bam.bam
+  Alignment: D1_US (Position 439-3975)
+  Successfully processed Invitro_LTR_tat for D1_US
+  Statistics: Rows=727, Total reads=0
+  -----------------------------
+  Alignment: D1_S (Position 5975-8252)
+  Successfully processed Invitro_LTR_tat for D1_S
+  Statistics: Rows=44015, Total reads=0
+  -----------------------------
+  Alignment: tat_US (Position 6045-8252)
+  Successfully processed Invitro_LTR_tat for tat_US
+  Statistics: Rows=19244, Total reads=0
+  -----------------------------
+  Alignment: tat_S (Position 8253-8908)
+  Successfully processed Invitro_LTR_tat for tat_S
+  Statistics: Rows=16934, Total reads=0
+  -----------------------------
+  Alignment: LTR_5 (Position 1-430)
+  Successfully processed Invitro_LTR_tat for LTR_5
+  Statistics: Rows=4465, Total reads=0
+  -----------------------------
+  Alignment: LTR_3 (Position 8987-9578)
+  Successfully processed Invitro_LTR_tat for LTR_3
+  Statistics: Rows=16626, Total reads=0
+  -----------------------------
+  Alignment: nef_5 (Position 1-117)
+  Successfully processed Invitro_LTR_tat for nef_5
+  Statistics: Rows=3604, Total reads=0
+  -----------------------------
+  Alignment: nef_3 (Position 8747-9578)
+  Successfully processed Invitro_LTR_tat for nef_3
+  Statistics: Rows=34032, Total reads=0
+  -----------------------------
+=============================
+Processing sample: Invitro_D1_nef
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/counts/Mmul_10_mac239/Mmul_10_mac239_Invitro_D1_nef/outs/possorted_genome_bam.bam
+  Alignment: D1_US (Position 439-3975)
+  Successfully processed Invitro_D1_nef for D1_US
+  Statistics: Rows=23870, Total reads=0
+  -----------------------------
+  Alignment: D1_S (Position 5975-8252)
+  Successfully processed Invitro_D1_nef for D1_S
+  Statistics: Rows=2337, Total reads=0
+  -----------------------------
+  Alignment: tat_US (Position 6045-8252)
+  Successfully processed Invitro_D1_nef for tat_US
+  Statistics: Rows=1947, Total reads=0
+  -----------------------------
+  Alignment: tat_S (Position 8253-8908)
+  Successfully processed Invitro_D1_nef for tat_S
+  Statistics: Rows=26039, Total reads=0
+  -----------------------------
+  Alignment: LTR_5 (Position 1-430)
+  Successfully processed Invitro_D1_nef for LTR_5
+  Statistics: Rows=46487, Total reads=0
+  -----------------------------
+  Alignment: LTR_3 (Position 8987-9578)
+  Successfully processed Invitro_D1_nef for LTR_3
+  Statistics: Rows=6833, Total reads=0
+  -----------------------------
+  Alignment: nef_5 (Position 1-117)
+  Successfully processed Invitro_D1_nef for nef_5
+  Statistics: Rows=2041, Total reads=0
+  -----------------------------
+  Alignment: nef_3 (Position 8747-9578)
+  Successfully processed Invitro_D1_nef for nef_3
+  Statistics: Rows=10367, Total reads=0
+  -----------------------------
+=============================
+Processing sample: Uninfected_LTR_tat
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/counts/Mmul_10_mac239/Mmul_10_mac239_Uninfected_LTR_tat/outs/possorted_genome_bam.bam
+  Alignment: D1_US (Position 439-3975)
+  Successfully processed Uninfected_LTR_tat for D1_US
+  Statistics: Rows=8, Total reads=0
+  -----------------------------
+  Alignment: D1_S (Position 5975-8252)
+  Successfully processed Uninfected_LTR_tat for D1_S
+  Statistics: Rows=10, Total reads=0
+  -----------------------------
+  Alignment: tat_US (Position 6045-8252)
+  Successfully processed Uninfected_LTR_tat for tat_US
+  Statistics: Rows=4, Total reads=0
+  -----------------------------
+  Alignment: tat_S (Position 8253-8908)
+  Successfully processed Uninfected_LTR_tat for tat_S
+  Statistics: Rows=125, Total reads=0
+  -----------------------------
+  Alignment: LTR_5 (Position 1-430)
+  Successfully processed Uninfected_LTR_tat for LTR_5
+  Statistics: Rows=21, Total reads=0
+  -----------------------------
+  Alignment: LTR_3 (Position 8987-9578)
+  Successfully processed Uninfected_LTR_tat for LTR_3
+  Statistics: Rows=11, Total reads=0
+  -----------------------------
+  Alignment: nef_5 (Position 1-117)
+  Successfully processed Uninfected_LTR_tat for nef_5
+  Statistics: Rows=1, Total reads=0
+  -----------------------------
+  Alignment: nef_3 (Position 8747-9578)
+  Successfully processed Uninfected_LTR_tat for nef_3
+  Statistics: Rows=69, Total reads=0
+  -----------------------------
+=============================
+Processing sample: Uninfected_D1_nef
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/counts/Mmul_10_mac239/Mmul_10_mac239_Uninfected_D1_nef/outs/possorted_genome_bam.bam
+  Alignment: D1_US (Position 439-3975)
+  Successfully processed Uninfected_D1_nef for D1_US
+  Statistics: Rows=61, Total reads=0
+  -----------------------------
+  Alignment: D1_S (Position 5975-8252)
+  Successfully processed Uninfected_D1_nef for D1_S
+  Statistics: Rows=2, Total reads=0
+  -----------------------------
+  Alignment: tat_US (Position 6045-8252)
+  Successfully processed Uninfected_D1_nef for tat_US
+  Statistics: Rows=1, Total reads=0
+  -----------------------------
+  Alignment: tat_S (Position 8253-8908)
+  Successfully processed Uninfected_D1_nef for tat_S
+  Statistics: Rows=32, Total reads=0
+  -----------------------------
+  Alignment: LTR_5 (Position 1-430)
+  Successfully processed Uninfected_D1_nef for LTR_5
+  Statistics: Rows=6432, Total reads=0
+  -----------------------------
+  Alignment: LTR_3 (Position 8987-9578)
+  Successfully processed Uninfected_D1_nef for LTR_3
+  Statistics: Rows=9, Total reads=0
+  -----------------------------
+  Alignment: nef_5 (Position 1-117)
+  Successfully processed Uninfected_D1_nef for nef_5
+  Statistics: Rows=1, Total reads=0
+  -----------------------------
+  Alignment: nef_3 (Position 8747-9578)
+  Successfully processed Uninfected_D1_nef for nef_3
+  Statistics: Rows=12, Total reads=0
+  -----------------------------
+=============================
+Processing sample: D83_LTR_tat
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/counts/Mmul_10_mac239/Mmul_10_mac239_D83_LTR_tat/outs/possorted_genome_bam.bam
+  Alignment: D1_US (Position 439-3975)
+  Successfully processed D83_LTR_tat for D1_US
+  Statistics: Rows=15, Total reads=0
+  -----------------------------
+  Alignment: D1_S (Position 5975-8252)
+  Successfully processed D83_LTR_tat for D1_S
+  Statistics: Rows=1178, Total reads=0
+  -----------------------------
+  Alignment: tat_US (Position 6045-8252)
+  Successfully processed D83_LTR_tat for tat_US
+  Statistics: Rows=784, Total reads=0
+  -----------------------------
+  Alignment: tat_S (Position 8253-8908)
+  Successfully processed D83_LTR_tat for tat_S
+  Statistics: Rows=732, Total reads=0
+  -----------------------------
+  Alignment: LTR_5 (Position 1-430)
+  Successfully processed D83_LTR_tat for LTR_5
+  Statistics: Rows=356, Total reads=0
+  -----------------------------
+  Alignment: LTR_3 (Position 8987-9578)
+  Successfully processed D83_LTR_tat for LTR_3
+  Statistics: Rows=1041, Total reads=0
+  -----------------------------
+  Alignment: nef_5 (Position 1-117)
+  Successfully processed D83_LTR_tat for nef_5
+  Statistics: Rows=326, Total reads=0
+  -----------------------------
+  Alignment: nef_3 (Position 8747-9578)
+  Successfully processed D83_LTR_tat for nef_3
+  Statistics: Rows=1461, Total reads=0
+  -----------------------------
+=============================
+Processing sample: D83_D1_nef
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/counts/Mmul_10_mac239/Mmul_10_mac239_D83_D1_nef/outs/possorted_genome_bam.bam
+  Alignment: D1_US (Position 439-3975)
+  Successfully processed D83_D1_nef for D1_US
+  Statistics: Rows=979, Total reads=0
+  -----------------------------
+  Alignment: D1_S (Position 5975-8252)
+  Successfully processed D83_D1_nef for D1_S
+  Statistics: Rows=70, Total reads=0
+  -----------------------------
+  Alignment: tat_US (Position 6045-8252)
+  Successfully processed D83_D1_nef for tat_US
+  Statistics: Rows=60, Total reads=0
+  -----------------------------
+  Alignment: tat_S (Position 8253-8908)
+  Successfully processed D83_D1_nef for tat_S
+  Statistics: Rows=1802, Total reads=0
+  -----------------------------
+  Alignment: LTR_5 (Position 1-430)
+  Successfully processed D83_D1_nef for LTR_5
+  Statistics: Rows=2724, Total reads=0
+  -----------------------------
+  Alignment: LTR_3 (Position 8987-9578)
+  Successfully processed D83_D1_nef for LTR_3
+  Statistics: Rows=444, Total reads=0
+  -----------------------------
+  Alignment: nef_5 (Position 1-117)
+  Successfully processed D83_D1_nef for nef_5
+  Statistics: Rows=101, Total reads=0
+  -----------------------------
+  Alignment: nef_3 (Position 8747-9578)
+  Successfully processed D83_D1_nef for nef_3
+  Statistics: Rows=609, Total reads=0
+  -----------------------------
+=============================
+Processing sample: D195_LTR_tat
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/counts/Mmul_10_mac239/Mmul_10_mac239_D195_LTR_tat/outs/possorted_genome_bam.bam
+  Alignment: D1_US (Position 439-3975)
+  Successfully processed D195_LTR_tat for D1_US
+  Statistics: Rows=13, Total reads=0
+  -----------------------------
+  Alignment: D1_S (Position 5975-8252)
+  Successfully processed D195_LTR_tat for D1_S
+  Statistics: Rows=1318, Total reads=0
+  -----------------------------
+  Alignment: tat_US (Position 6045-8252)
+  Successfully processed D195_LTR_tat for tat_US
+  Statistics: Rows=902, Total reads=0
+  -----------------------------
+  Alignment: tat_S (Position 8253-8908)
+  Successfully processed D195_LTR_tat for tat_S
+  Statistics: Rows=774, Total reads=0
+  -----------------------------
+  Alignment: LTR_5 (Position 1-430)
+  Successfully processed D195_LTR_tat for LTR_5
+  Statistics: Rows=849, Total reads=0
+  -----------------------------
+  Alignment: LTR_3 (Position 8987-9578)
+  Successfully processed D195_LTR_tat for LTR_3
+  Statistics: Rows=2500, Total reads=0
+  -----------------------------
+  Alignment: nef_5 (Position 1-117)
+  Successfully processed D195_LTR_tat for nef_5
+  Statistics: Rows=805, Total reads=0
+  -----------------------------
+  Alignment: nef_3 (Position 8747-9578)
+  Successfully processed D195_LTR_tat for nef_3
+  Statistics: Rows=2956, Total reads=0
+  -----------------------------
+=============================
+Processing sample: D195_D1_nef
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/counts/Mmul_10_mac239/Mmul_10_mac239_D195_D1_nef/outs/possorted_genome_bam.bam
+  Alignment: D1_US (Position 439-3975)
+  Successfully processed D195_D1_nef for D1_US
+  Statistics: Rows=1773, Total reads=0
+  -----------------------------
+  Alignment: D1_S (Position 5975-8252)
+  Successfully processed D195_D1_nef for D1_S
+  Statistics: Rows=62, Total reads=0
+  -----------------------------
+  Alignment: tat_US (Position 6045-8252)
+  Successfully processed D195_D1_nef for tat_US
+  Statistics: Rows=47, Total reads=0
+  -----------------------------
+  Alignment: tat_S (Position 8253-8908)
+  Successfully processed D195_D1_nef for tat_S
+  Statistics: Rows=1291, Total reads=0
+  -----------------------------
+  Alignment: LTR_5 (Position 1-430)
+  Successfully processed D195_D1_nef for LTR_5
+  Statistics: Rows=4905, Total reads=0
+  -----------------------------
+  Alignment: LTR_3 (Position 8987-9578)
+  Successfully processed D195_D1_nef for LTR_3
+  Statistics: Rows=655, Total reads=0
+  -----------------------------
+  Alignment: nef_5 (Position 1-117)
+  Successfully processed D195_D1_nef for nef_5
+  Statistics: Rows=264, Total reads=0
+  -----------------------------
+  Alignment: nef_3 (Position 8747-9578)
+  Successfully processed D195_D1_nef for nef_3
+  Statistics: Rows=779, Total reads=0
+  -----------------------------
+=============================
+Processing sample: PART_LTR_tat
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/counts/Mmul_10_mac239/Mmul_10_mac239_PART_LTR_tat/outs/possorted_genome_bam.bam
+  Alignment: D1_US (Position 439-3975)
+  Successfully processed PART_LTR_tat for D1_US
+  Statistics: Rows=0, Total reads=0
+  -----------------------------
+  Alignment: D1_S (Position 5975-8252)
+  Successfully processed PART_LTR_tat for D1_S
+  Statistics: Rows=1, Total reads=0
+  -----------------------------
+  Alignment: tat_US (Position 6045-8252)
+  Successfully processed PART_LTR_tat for tat_US
+  Statistics: Rows=1, Total reads=0
+  -----------------------------
+  Alignment: tat_S (Position 8253-8908)
+  Successfully processed PART_LTR_tat for tat_S
+  Statistics: Rows=17, Total reads=0
+  -----------------------------
+  Alignment: LTR_5 (Position 1-430)
+  Successfully processed PART_LTR_tat for LTR_5
+  Statistics: Rows=2, Total reads=0
+  -----------------------------
+  Alignment: LTR_3 (Position 8987-9578)
+  Successfully processed PART_LTR_tat for LTR_3
+  Statistics: Rows=1, Total reads=0
+  -----------------------------
+  Alignment: nef_5 (Position 1-117)
+  Successfully processed PART_LTR_tat for nef_5
+  Statistics: Rows=0, Total reads=0
+  -----------------------------
+  Alignment: nef_3 (Position 8747-9578)
+  Successfully processed PART_LTR_tat for nef_3
+  Statistics: Rows=17, Total reads=0
+  -----------------------------
+=============================
+Processing sample: PART_D1_nef
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/counts/Mmul_10_mac239/Mmul_10_mac239_PART_D1_nef/outs/possorted_genome_bam.bam
+  Alignment: D1_US (Position 439-3975)
+  Successfully processed PART_D1_nef for D1_US
+  Statistics: Rows=9, Total reads=0
+  -----------------------------
+  Alignment: D1_S (Position 5975-8252)
+  Successfully processed PART_D1_nef for D1_S
+  Statistics: Rows=2, Total reads=0
+  -----------------------------
+  Alignment: tat_US (Position 6045-8252)
+  Successfully processed PART_D1_nef for tat_US
+  Statistics: Rows=1, Total reads=0
+  -----------------------------
+  Alignment: tat_S (Position 8253-8908)
+  Successfully processed PART_D1_nef for tat_S
+  Statistics: Rows=359, Total reads=0
+  -----------------------------
+  Alignment: LTR_5 (Position 1-430)
+  Successfully processed PART_D1_nef for LTR_5
+  Statistics: Rows=612, Total reads=0
+  -----------------------------
+  Alignment: LTR_3 (Position 8987-9578)
+  Successfully processed PART_D1_nef for LTR_3
+  Statistics: Rows=0, Total reads=0
+  -----------------------------
+  Alignment: nef_5 (Position 1-117)
+  Successfully processed PART_D1_nef for nef_5
+  Statistics: Rows=0, Total reads=0
+  -----------------------------
+  Alignment: nef_3 (Position 8747-9578)
+  Successfully processed PART_D1_nef for nef_3
+  Statistics: Rows=28, Total reads=0
+  -----------------------------
+=============================
+Processing sample: LART_LTR_tat
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/counts/Mmul_10_mac239/Mmul_10_mac239_LART_LTR_tat/outs/possorted_genome_bam.bam
+  Alignment: D1_US (Position 439-3975)
+  Successfully processed LART_LTR_tat for D1_US
+  Statistics: Rows=7, Total reads=0
+  -----------------------------
+  Alignment: D1_S (Position 5975-8252)
+  Successfully processed LART_LTR_tat for D1_S
+  Statistics: Rows=873, Total reads=0
+  -----------------------------
+  Alignment: tat_US (Position 6045-8252)
+  Successfully processed LART_LTR_tat for tat_US
+  Statistics: Rows=545, Total reads=0
+  -----------------------------
+  Alignment: tat_S (Position 8253-8908)
+  Successfully processed LART_LTR_tat for tat_S
+  Statistics: Rows=511, Total reads=0
+  -----------------------------
+  Alignment: LTR_5 (Position 1-430)
+  Successfully processed LART_LTR_tat for LTR_5
+  Statistics: Rows=225, Total reads=0
+  -----------------------------
+  Alignment: LTR_3 (Position 8987-9578)
+  Successfully processed LART_LTR_tat for LTR_3
+  Statistics: Rows=738, Total reads=0
+  -----------------------------
+  Alignment: nef_5 (Position 1-117)
+  Successfully processed LART_LTR_tat for nef_5
+  Statistics: Rows=216, Total reads=0
+  -----------------------------
+  Alignment: nef_3 (Position 8747-9578)
+  Successfully processed LART_LTR_tat for nef_3
+  Statistics: Rows=1030, Total reads=0
+  -----------------------------
+=============================
+Processing sample: LART_D1_nef
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/counts/Mmul_10_mac239/Mmul_10_mac239_LART_D1_nef/outs/possorted_genome_bam.bam
+  Alignment: D1_US (Position 439-3975)
+  Successfully processed LART_D1_nef for D1_US
+  Statistics: Rows=575, Total reads=0
+  -----------------------------
+  Alignment: D1_S (Position 5975-8252)
+  Successfully processed LART_D1_nef for D1_S
+  Statistics: Rows=36, Total reads=0
+  -----------------------------
+  Alignment: tat_US (Position 6045-8252)
+  Successfully processed LART_D1_nef for tat_US
+  Statistics: Rows=34, Total reads=0
+  -----------------------------
+  Alignment: tat_S (Position 8253-8908)
+  Successfully processed LART_D1_nef for tat_S
+  Statistics: Rows=2293, Total reads=0
+  -----------------------------
+  Alignment: LTR_5 (Position 1-430)
+  Successfully processed LART_D1_nef for LTR_5
+  Statistics: Rows=1573, Total reads=0
+  -----------------------------
+  Alignment: LTR_3 (Position 8987-9578)
+  Successfully processed LART_D1_nef for LTR_3
+  Statistics: Rows=217, Total reads=0
+  -----------------------------
+  Alignment: nef_5 (Position 1-117)
+  Successfully processed LART_D1_nef for nef_5
+  Statistics: Rows=54, Total reads=0
+  -----------------------------
+  Alignment: nef_3 (Position 8747-9578)
+  Successfully processed LART_D1_nef for nef_3
+  Statistics: Rows=321, Total reads=0
+  -----------------------------
+=============================
+Processing sample: GART_LTR_tat
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/counts/Mmul_10_mac239/Mmul_10_mac239_GART_LTR_tat/outs/possorted_genome_bam.bam
+  Alignment: D1_US (Position 439-3975)
+  Successfully processed GART_LTR_tat for D1_US
+  Statistics: Rows=9, Total reads=0
+  -----------------------------
+  Alignment: D1_S (Position 5975-8252)
+  Successfully processed GART_LTR_tat for D1_S
+  Statistics: Rows=789, Total reads=0
+  -----------------------------
+  Alignment: tat_US (Position 6045-8252)
+  Successfully processed GART_LTR_tat for tat_US
+  Statistics: Rows=471, Total reads=0
+  -----------------------------
+  Alignment: tat_S (Position 8253-8908)
+  Successfully processed GART_LTR_tat for tat_S
+  Statistics: Rows=478, Total reads=0
+  -----------------------------
+  Alignment: LTR_5 (Position 1-430)
+  Successfully processed GART_LTR_tat for LTR_5
+  Statistics: Rows=163, Total reads=0
+  -----------------------------
+  Alignment: LTR_3 (Position 8987-9578)
+  Successfully processed GART_LTR_tat for LTR_3
+  Statistics: Rows=598, Total reads=0
+  -----------------------------
+  Alignment: nef_5 (Position 1-117)
+  Successfully processed GART_LTR_tat for nef_5
+  Statistics: Rows=156, Total reads=0
+  -----------------------------
+  Alignment: nef_3 (Position 8747-9578)
+  Successfully processed GART_LTR_tat for nef_3
+  Statistics: Rows=896, Total reads=0
+  -----------------------------
+=============================
+Processing sample: GART_D1_nef
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/counts/Mmul_10_mac239/Mmul_10_mac239_GART_D1_nef/outs/possorted_genome_bam.bam
+  Alignment: D1_US (Position 439-3975)
+  Successfully processed GART_D1_nef for D1_US
+  Statistics: Rows=384, Total reads=0
+  -----------------------------
+  Alignment: D1_S (Position 5975-8252)
+  Successfully processed GART_D1_nef for D1_S
+  Statistics: Rows=30, Total reads=0
+  -----------------------------
+  Alignment: tat_US (Position 6045-8252)
+  Successfully processed GART_D1_nef for tat_US
+  Statistics: Rows=27, Total reads=0
+  -----------------------------
+  Alignment: tat_S (Position 8253-8908)
+  Successfully processed GART_D1_nef for tat_S
+  Statistics: Rows=824, Total reads=0
+  -----------------------------
+  Alignment: LTR_5 (Position 1-430)
+  Successfully processed GART_D1_nef for LTR_5
+  Statistics: Rows=1003, Total reads=0
+  -----------------------------
+  Alignment: LTR_3 (Position 8987-9578)
+  Successfully processed GART_D1_nef for LTR_3
+  Statistics: Rows=225, Total reads=0
+  -----------------------------
+  Alignment: nef_5 (Position 1-117)
+  Successfully processed GART_D1_nef for nef_5
+  Statistics: Rows=67, Total reads=0
+  -----------------------------
+  Alignment: nef_3 (Position 8747-9578)
+  Successfully processed GART_D1_nef for nef_3
+  Statistics: Rows=298, Total reads=0
+  -----------------------------
+=============================
+Error: BAM file does not exist: /projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/counts/Mmul_10_mac239/Mmul_10_mac239_Pacute/outs/possorted_genome_bam.bam
+All samples and alignments processed!
+Summary written to: /projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/bamsort/alignment/all_samples_alignment_summary.txt

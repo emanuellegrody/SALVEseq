@@ -1,0 +1,11 @@
+/var/spool/slurmd/job4156393/slurm_script: line 16: activate: No such file or directory
+2025-09-17 17:57:41,828 - INFO - Processing: /projects/b1042/GoyalLab/egrody/extractedData/EGS018/SALVE/STAR/bams_UMI/KLRB1_W2_combined_tagged.bam -> /projects/b1042/GoyalLab/egrody/extractedData/EGS018/SALVE/STAR/bams_xf/KLRB1_W2_combined_tagged.bam
+2025-09-17 17:57:41,828 - INFO - Finding UMI representatives...
+2025-09-17 17:58:19,386 - INFO - Found 0 UMI representatives
+2025-09-17 17:58:19,386 - INFO - Adding XF flags to reads...
+2025-09-17 18:03:51,845 - INFO - Processed 15,867,184 reads
+2025-09-17 18:03:51,845 - INFO - XF flag distribution:
+2025-09-17 18:03:51,845 - INFO -   XF= 0: 3,483,492 ( 22.0%) - Unmapped/low quality/missing tags
+2025-09-17 18:03:51,845 - INFO -   XF= 1: 12,383,692 ( 78.0%) - Mapped only
+2025-09-17 18:03:51,845 - INFO - Indexing output BAM...
+2025-09-17 18:04:12,898 - INFO - Complete!

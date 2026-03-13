@@ -1,0 +1,77 @@
+========================================
+RNA-SEQ PROCESSING PIPELINE
+========================================
+Processing single sample: KLRB1_W2_combined
+STAR Index: /projects/b1042/GoyalLab/egrody/genomes/STAR_Mmul_10_mac239/
+FASTQ Directory: /projects/b1042/GoyalLab/egrody/rawData/EGS018/Sequencing/
+Output Root: /projects/b1042/GoyalLab/egrody/extractedData/EGS018/SALVE/STAR/
+Cell barcode length: 16
+UMI length: 12
+Create BAM index: true
+
+Found 6 samples to process
+
+========================================
+PROCESSING SAMPLE: tat_Pacute
+========================================
+Step 1: Locating input files...
+R1 file: /projects/b1042/GoyalLab/egrody/rawData/EGS018/Sequencing/*tat_Pacute*R1_001.fastq.gz
+R2 file: /projects/b1042/GoyalLab/egrody/rawData/EGS018/Sequencing/*tat_Pacute*R2_001.fastq.gz
+
+Step 2: Running STAR alignment...
+STAR alignment failed for sample: tat_Pacute
+========================================
+PROCESSING SAMPLE: tat_W2
+========================================
+Step 1: Locating input files...
+R1 file: /projects/b1042/GoyalLab/egrody/rawData/EGS018/Sequencing/*tat_W2*R1_001.fastq.gz
+R2 file: /projects/b1042/GoyalLab/egrody/rawData/EGS018/Sequencing/*tat_W2*R2_001.fastq.gz
+
+Step 2: Running STAR alignment...
+STAR alignment failed for sample: tat_W2
+========================================
+PROCESSING SAMPLE: tat_D0
+========================================
+Step 1: Locating input files...
+R1 file: /projects/b1042/GoyalLab/egrody/rawData/EGS018/Sequencing/*tat_D0*R1_001.fastq.gz
+R2 file: /projects/b1042/GoyalLab/egrody/rawData/EGS018/Sequencing/*tat_D0*R2_001.fastq.gz
+
+Step 2: Running STAR alignment...
+STAR alignment failed for sample: tat_D0
+========================================
+PROCESSING SAMPLE: tat_Invitro
+========================================
+Step 1: Locating input files...
+R1 file: /projects/b1042/GoyalLab/egrody/rawData/EGS018/Sequencing/*tat_Invitro*R1_001.fastq.gz
+R2 file: /projects/b1042/GoyalLab/egrody/rawData/EGS018/Sequencing/*tat_Invitro*R2_001.fastq.gz
+
+Step 2: Running STAR alignment...
+STAR alignment failed for sample: tat_Invitro
+========================================
+PROCESSING SAMPLE: tat_W0
+========================================
+Step 1: Locating input files...
+R1 file: /projects/b1042/GoyalLab/egrody/rawData/EGS018/Sequencing/*tat_W0*R1_001.fastq.gz
+R2 file: /projects/b1042/GoyalLab/egrody/rawData/EGS018/Sequencing/*tat_W0*R2_001.fastq.gz
+
+Step 2: Running STAR alignment...
+STAR alignment failed for sample: tat_W0
+========================================
+PROCESSING SAMPLE: tat_D195
+========================================
+Step 1: Locating input files...
+R1 file: /projects/b1042/GoyalLab/egrody/rawData/EGS018/Sequencing/*tat_D195*R1_001.fastq.gz
+R2 file: /projects/b1042/GoyalLab/egrody/rawData/EGS018/Sequencing/*tat_D195*R2_001.fastq.gz
+
+Step 2: Running STAR alignment...
+STAR alignment failed for sample: tat_D195
+========================================
+PIPELINE COMPLETE
+========================================
+Total samples: 6
+Successfully processed: 0
+Failed: 6
+
+Summary written to: /projects/b1042/GoyalLab/egrody/extractedData/EGS018/SALVE/STAR//pipeline_summary.txt
+
+6 samples failed processing.

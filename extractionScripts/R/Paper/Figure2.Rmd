@@ -1,0 +1,641 @@
+---
+title: "Figure2"
+author: "Emanuelle Grody"
+date: "2025-11-04"
+output: html_document
+---
+
+```{r, message=FALSE, warning=FALSE}
+source("~/SALVEseq/packages.R")
+source("~/SALVEseq/functions.R")
+```
+
+## Panel G
+
+```{r}
+output_dir = "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/joint/plots/Figure2/"
+input_dir="/projects/b1042/GoyalLab/egrody/extractedData/EGS007/longRead/bamsort/isoform/"
+longread <- read.csv(paste0(input_dir, "cDNA_isoforms.csv"))
+longread <- longread %>%
+  count(cellID, isoform) %>%
+  pivot_wider(names_from = isoform, values_from = n, values_fill = 0) %>%
+  mutate(total = US + MS + SS + any) %>%
+  mutate(dataset = "longread")
+
+# Reading GEX and SALVE data
+sample_name <- "Invitro"
+SALVE.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/SALVE/bamsort/reads/v6/minimum/"
+GEX.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/bamsort/reads/v6/minimum/"
+
+salve_file <- paste0(SALVE.dir, sample_name, "_SALVE_filtered.csv")
+gex_file <- paste0(GEX.dir, sample_name, "_GEX_filtered.csv")
+umap_file <- paste0("/projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/Seurat/UMAPcoords/", 
+                    sample_name, "UMAP_coords.csv")
+cd4_file <- paste0("/projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/Seurat/expressionDF/", 
+                   sample_name, "_CD4T.csv")
+
+salve_data <- if(file.exists(salve_file)) read.csv(salve_file) else NULL
+gex_data <- if(file.exists(gex_file)) read.csv(gex_file) else NULL
+umap_data <- if(file.exists(umap_file)) read.csv(umap_file, row.names = "X") else NULL
+cd4_data <- if(file.exists(cd4_file)) read.csv(cd4_file, row.names = "X") else NULL
+
+## Cell type filtering
+cd4_data <- cd4_data %>%
+  mutate(CD3 = ifelse(CD3D > 0 | CD3E > 0 | CD3G > 0, 1, 0)) %>%
+  mutate(CD4 = ifelse(CD4 > 0 , 1, 0)) %>%
+  mutate(CD8 = ifelse(CD8A > 0 , 1, 0)) %>%
+  select(cellID, CD4, CD3, CD8)
+cellslist <- left_join(umap_data, cd4_data, by = "cellID") %>%
+  filter(CD4 > 0 & CD3 > 0) %>%
+  filter(CD4 == 0 | CD8 == 0) %>%
+  select(cellID)
+
+gex_processed <- gex_data %>%
+  mutate(cellID = as.character(cellID)) %>%
+  select(-US.SS) %>%
+  filter(cellID %in% cellslist$cellID) %>%
+  mutate(dataset = "GEX", MS = 0, SS = 0)
+
+salve_processed <- salve_data %>%
+  mutate(cellID = as.character(cellID)) %>%
+  select(-US.SS, -SS.MS) %>%
+  filter(cellID %in% cellslist$cellID) %>%
+  mutate(dataset = "SALVE")
+
+
+# Combine all three datasets
+combined_data <- bind_rows(longread, gex_processed, salve_processed)
+
+summary_data <- combined_data %>%
+  select(cellID, US, any, MS, SS, dataset) %>%
+  pivot_longer(cols = c(US, MS, SS, any), 
+               names_to = "isoform", 
+               values_to = "count") %>%
+  group_by(dataset, isoform) %>%
+  summarise(count = sum(count), .groups = "drop")
+
+summary_data <- summary_data %>%
+  group_by(dataset) %>%
+  mutate(
+    total = sum(count),
+    percentage = (count / total) * 100
+  ) %>%
+  ungroup()
+
+summary_data$isoform <- factor(summary_data$isoform, 
+                                levels = c("US", "MS", "SS", "any"))
+summary_data$dataset <- factor(summary_data$dataset,
+                               levels = c("longread", "GEX", "SALVE"))
+
+# PLOT 1: Percentage of total (normalized to 100%)
+plot1 <- ggplot(summary_data, aes(x = dataset, y = count, fill = isoform)) +
+  geom_col(position = "fill", width = 0.7) +
+  geom_text(aes(label = sprintf("%.1f%%", percentage)),
+            position = position_fill(vjust = 0.5),
+            size = 3.5,
+            color = "white",
+            fontface = "bold") +
+  scale_y_continuous(labels = scales::percent_format()) +
+  scale_fill_brewer(palette = "Set2") +
+  labs(
+    title = "Isoform Distribution (Percentage)",
+    x = "Dataset",
+    y = "Percentage",
+    fill = "Isoform"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, face = "bold", size = 14),
+    axis.text.x = element_text(size = 11, angle = 0),
+    axis.text.y = element_text(size = 11),
+    legend.position = "right"
+  )
+
+print(plot1)
+ggsave(paste0(output_dir, sample_name, "_isoforms_percent.pdf"), 
+         plot = plot1, width = 8, height = 8)
+
+# PLOT 2: Absolute counts with different heights
+plot2 <- ggplot(summary_data, aes(x = dataset, y = count, fill = isoform)) +
+  geom_col(position = "stack", width = 0.7) +
+  geom_text(aes(label = count),
+            position = position_stack(vjust = 0.5),
+            size = 3.5,
+            color = "white",
+            fontface = "bold") +
+  scale_fill_brewer(palette = "Set2") +
+  labs(
+    title = "Isoform Distribution (Absolute Counts)",
+    x = "Dataset",
+    y = "Total Count",
+    fill = "Isoform"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, face = "bold", size = 14),
+    axis.text.x = element_text(size = 11, angle = 0),
+    axis.text.y = element_text(size = 11),
+    legend.position = "right"
+  )
+
+print(plot2)
+ggsave(paste0(output_dir, sample_name, "_isoforms_count.pdf"), 
+         plot = plot2, width = 8, height = 8)
+
+
+# Display summary statistics
+cat("\nSummary Statistics:\n")
+print(summary_data)
+
+# Optional: Display per-dataset totals for verification
+cat("\nTotal counts per dataset:\n")
+summary_data %>%
+  group_by(dataset) %>%
+  summarise(total_counts = sum(count)) %>%
+  print()
+
+
+```
+
+From bars into points
+```{r}
+cell_level_data <- combined_data %>%
+  select(cellID, US, MS, SS, any, dataset) %>%
+  mutate(total_reads = US + MS + SS + any) %>%
+  filter(total_reads > 0) %>%  # Remove cells with no reads
+  mutate(
+    prop_US = US / total_reads,
+    prop_MS = MS / total_reads,
+    prop_SS = SS / total_reads,
+    prop_any = any / total_reads
+  )
+
+# Convert to long format for plotting
+cell_level_data_sorted <- cell_level_data %>%
+  arrange(dataset, desc(prop_US), desc(prop_SS), desc(prop_MS), desc(prop_any)) %>%
+  group_by(dataset) %>%
+  mutate(cell_order = row_number()) %>%
+  ungroup()
+
+# Convert to long format with reversed factor levels for stacking
+cell_long_sorted <- cell_level_data_sorted %>%
+  select(cellID, dataset, cell_order, US, MS, SS, any) %>%
+  pivot_longer(
+    cols = c(US, MS, SS, any),
+    names_to = "isoform",
+    values_to = "count"
+  ) %>%
+  mutate(
+    isoform = factor(isoform, levels = c("any", "MS", "SS", "US")),  # Reversed order
+    dataset = factor(dataset, levels = c("longread", "GEX", "SALVE"))
+  )
+
+
+# PLOT 1: Per-cell isoform proportions
+plot_stacked_sorted <- ggplot(cell_long_sorted, 
+                              aes(x = cell_order, y = count, fill = isoform)) +
+  geom_col(position = "fill", width = 1) +
+  facet_grid(~ dataset, scales = "free_x", space = "free_x") +
+  scale_y_continuous(labels = scales::percent_format()) +
+  scale_fill_brewer(palette = "Set2") +
+  labs(
+    title = "Per-Cell Isoform Composition by Dataset",
+    x = "Individual Cells (sorted by US content)",
+    y = "Proportion",
+    fill = "Isoform"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, face = "bold", size = 14),
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank(),
+    panel.spacing = unit(0.5, "lines"),
+    strip.text = element_text(face = "bold", size = 11),
+    legend.position = "right"
+  )
+
+print(plot_stacked_sorted)
+ggsave(paste0(output_dir, sample_name, "_isoforms_percell_stacked.pdf"), 
+       plot = plot_stacked_sorted, width = 12, height = 5)
+
+
+# PLOT 2: All isoforms overlaid with transparency
+# Better for comparing distributions across datasets
+plot_scatter2 <- ggplot(cell_long, aes(x = dataset, y = proportion, color = isoform)) +
+  geom_jitter(width = 0.25, alpha = 0.3, size = 1.2) +
+  scale_color_brewer(palette = "Set2") +
+  labs(
+    title = "Per-Cell Isoform Distribution Across Datasets",
+    x = "Dataset",
+    y = "Proportion of Total Reads per Cell",
+    color = "Isoform"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, face = "bold", size = 14),
+    axis.text.x = element_text(size = 11),
+    legend.position = "right"
+  )
+
+print(plot_scatter2)
+ggsave(paste0(output_dir, sample_name, "_isoforms_percell_overlay.pdf"), 
+       plot = plot_scatter2, width = 8, height = 6)
+
+
+# PLOT 3: Total reads per cell (to show sequencing depth differences)
+depth_range <- range(cell_level_data$total_reads)
+log_breaks <- 10^(floor(log10(depth_range[1])):ceiling(log10(depth_range[2])))
+
+plot_depth <- ggplot(cell_level_data, aes(x = dataset, y = total_reads, color = dataset)) +
+  geom_jitter(width = 0.2, alpha = 0.5, size = 1.5) +
+  scale_y_log10(
+    breaks = log_breaks,
+    labels = scales::comma,
+    minor_breaks = NULL
+  ) +
+  scale_color_brewer(palette = "Set1") +
+  labs(
+    title = "Sequencing Depth per Cell",
+    x = "Dataset",
+    y = "Total Reads per Cell (log10 scale)",
+    color = "Dataset"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, face = "bold", size = 14),
+    axis.text.x = element_text(size = 11),
+    axis.text.y = element_text(size = 10),
+    panel.grid.minor = element_blank(),
+    legend.position = "none"
+  )
+
+print(plot_depth)
+ggsave(paste0(output_dir, sample_name, "_sequencing_depth.pdf"), 
+       plot = plot_depth, width = 6, height = 6)
+
+
+# Summary statistics
+cat("\nPer-cell statistics by dataset:\n")
+cell_level_data %>%
+  group_by(dataset) %>%
+  summarise(
+    n_cells = n(),
+    mean_total_reads = mean(total_reads),
+    median_total_reads = median(total_reads),
+    sd_total_reads = sd(total_reads),
+    mean_prop_US = mean(prop_US),
+    mean_prop_MS = mean(prop_MS),
+    mean_prop_SS = mean(prop_SS),
+    mean_prop_any = mean(prop_any)
+  ) %>%
+  print()
+
+# Distribution of cells by primary composition
+cat("\nCells by dominant isoform (>50% of reads):\n")
+cell_level_data %>%
+  mutate(
+    dominant = case_when(
+      prop_US > 0.5 ~ "US-dominant",
+      prop_SS > 0.5 ~ "SS-dominant",
+      prop_MS > 0.5 ~ "MS-dominant",
+      prop_any > 0.5 ~ "any-dominant",
+      TRUE ~ "mixed"
+    )
+  ) %>%
+  group_by(dataset, dominant) %>%
+  summarise(n_cells = n(), .groups = "drop") %>%
+  arrange(dataset, dominant) %>%
+  print()
+
+
+
+
+p <- ggplot(data = salve, aes(x = SALVE, y = size)) +
+    geom_jitter(alpha = 0.6, size = 1.5, width = 0.1, height = 0.1) +
+    labs(
+      x = "SALVE",
+      y = "size",
+      title = paste0("Invitro SIV vs total mRNA")
+    ) +
+    theme_minimal()
+  print(p)
+```
+
+
+
+## Panel H
+Why are GEX reads much higher than SALVE?
+```{r}
+combined_data <- combined_data %>%
+  filter(dataset != "longread")
+both <- combined_data %>%
+  filter(cellID %in% salve_processed$cellID & cellID %in% gex_processed$cellID)
+either <- combined_data %>%
+  filter(!(cellID %in% both$cellID))
+test1 <- ggplot(both, aes(x = total, fill = dataset)) + 
+  geom_histogram(position = "identity", alpha = 0.5, bins = 50) + 
+  labs(title = "Cells with both GEX and SALVE counts")
+print(test1)
+test2 <- ggplot(either, aes(x = total, fill = dataset)) + 
+  geom_histogram(position = "identity", alpha = 0.5, bins = 50) + 
+  labs(title = "Cells with only GEX or SALVE counts")
+print(test2)
+
+findme <- both %>%
+  filter(dataset == "GEX", total > 400)
+
+write.csv(findme,
+          "/projects/b1042/GoyalLab/egrody/extractedData/EGS002/singleCell/bamsort/cells/Invitro_highexpressingGEX.csv")
+```
+
+```{r}
+SALVE.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/SALVE/bamsort/reads/v6/"
+GEX.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/bamsort/reads/v6/"
+
+sample_name <- "Invitro"
+
+# Read all data files
+salve_file <- paste0(SALVE.dir, sample_name, "_UMI_read_counts_full.csv")
+gex_file <- paste0(GEX.dir, sample_name, "_UMI_read_counts_full.csv")
+umap_file <- paste0("/projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/Seurat/UMAPcoords/", 
+                    sample_name, "UMAP_coords.csv")
+cd4_file <- paste0("/projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/Seurat/expressionDF/", 
+                   sample_name, "_CD4T.csv")
+salve_umi_file <- paste0(SALVE.dir, "minimum/valid_UMI/", sample_name, "_SALVE_valid_cellID_UMI.csv")
+gex_umi_file <- paste0(GEX.dir, "minimum/valid_UMI/", sample_name, "_GEX_valid_cellID_UMI.csv")
+
+salve_data <- if(file.exists(salve_file)) read.csv(salve_file) else NULL
+gex_data <- if(file.exists(gex_file)) read.csv(gex_file) else NULL
+salve_umi <- if(file.exists(salve_umi_file)) read.csv(salve_umi_file) else NULL
+gex_umi <- if(file.exists(gex_umi_file)) read.csv(gex_umi_file) else NULL
+umap_data <- if(file.exists(umap_file)) read.csv(umap_file, row.names = "X") else NULL
+cd4_data <- if(file.exists(cd4_file)) read.csv(cd4_file, row.names = "X") else NULL
+
+cd4_data <- cd4_data %>%
+  mutate(CD3 = ifelse(CD3D > 0 | CD3E > 0 | CD3G > 0, 1, 0)) %>%
+  mutate(CD4 = ifelse(CD4 > 0 , 1, 0)) %>%
+  mutate(CD8 = ifelse(CD8A > 0 , 1, 0)) %>%
+  select(cellID, CD4, CD3, CD8)
+cellslist <- left_join(umap_data, cd4_data, by = "cellID") %>%
+  filter(CD4 > 0 & CD3 > 0) %>%
+  filter(CD4 == 0 | CD8 == 0) %>%
+  select(cellID)
+
+# Join GEX and SALVE and filter by minimums-applied UMI
+gex_processed <- gex_data %>%
+  mutate(cellID = as.character(cellID)) %>%
+  semi_join(gex_umi, by = c("cellID", "UMI"))  %>%
+  filter(cellID %in% cellslist$cellID)
+
+salve_processed <- salve_data %>%
+  mutate(cellID = as.character(cellID)) %>%
+  semi_join(salve_umi, by = c("cellID", "UMI")) %>%
+  filter(cellID %in% cellslist$cellID)
+
+gex_minus_salve <- gex_processed %>%
+  anti_join(salve_processed, by = c("cellID", "UMI"))
+
+test1 <- gex_processed %>%
+  filter(cellID %in% findme$cellID)
+test2 <- salve_processed %>%
+  filter(cellID %in% findme$cellID)
+write.csv(test1, "/projects/b1042/GoyalLab/egrody/extractedData/EGS002/singleCell/bamsort/umi/Invitro_umi_GEX_highexpressing.csv")
+write.csv(test2, "/projects/b1042/GoyalLab/egrody/extractedData/EGS002/singleCell/bamsort/umi/Invitro_umi_SALVE_highexpressing.csv")
+
+```
+
+```{r}
+input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS002/singleCell/bamsort/umi/"
+gex_coord <- read.csv(paste0(input.dir, "Invitro_coords_GEX_highexpressing.csv")) %>% mutate(sample = "GEX") %>% unique()
+salve_coord <- read.csv(paste0(input.dir, "Invitro_coords_SALVE_highexpressing.csv")) %>% mutate(sample = "SALVE") %>% unique()
+gex_minus_salve <- anti_join(gex_coord, salve_coord, by = c("cellID", "UMI"))
+
+all_data <- bind_rows(gex_coord, salve_coord)
+
+p1 <- ggplot(all_data, aes(x = end, fill = sample)) +
+  geom_histogram(binwidth = 100, alpha = 0.6, position = "identity") +
+  scale_fill_manual(values = c("GEX" = "#3498db", "SALVE" = "#e74c3c")) +
+  labs(
+    title = "GEX vs SALVE: UMI Distribution Comparison",
+    subtitle = paste0("GEX: ", nrow(gex_coord), " UMI | SALVE: ", nrow(salve_coord), " UMI"),
+    x = "Genomic Position (bp)",
+    y = "Number of UMI",
+    fill = "Sample"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    plot.title = element_text(face = "bold"),
+    legend.position = "bottom"
+  )
+print(p1)
+ggsave(paste0(input.dir, "plot_coordinateoverlay.pdf"), p1)
+
+bin_width <- 100
+bins <- all_data %>%
+  mutate(bin = floor(end / bin_width) * bin_width) %>%
+  group_by(sample, bin) %>%
+  summarize(count = n(), .groups = "drop") %>%
+  pivot_wider(names_from = sample, values_from = count, values_fill = 0) %>%
+  mutate(
+    ratio = (GEX + 1) / (SALVE + 1),  # Add pseudocount to avoid division by zero
+    log2_ratio = log2(ratio),
+    total = GEX + SALVE
+  ) %>%
+  mutate(
+    bias = case_when(
+      log2_ratio > 1 ~ "GEX enriched (>2x)",
+      log2_ratio < -1 ~ "SALVE enriched (>2x)",
+      TRUE ~ "Similar"
+    )
+  )
+
+p4 <- ggplot(bins, aes(x = bin, y = log2_ratio, color = bias)) +
+  geom_hline(yintercept = c(-1, 1), linetype = "dashed", color = "gray70") +
+  geom_hline(yintercept = 0, linetype = "solid", color = "gray50") +
+  geom_point(aes(size = total), alpha = 0.7) +
+  scale_color_manual(
+    values = c("GEX enriched (>2x)" = "#3498db", 
+               "SALVE enriched (>2x)" = "#e74c3c",
+               "Similar" = "#95a5a6"),
+    name = NULL
+  ) +
+  scale_size_continuous(range = c(1, 4), name = "Total Reads") +
+  labs(
+    title = "Regions with Coordinate Bias (>2-fold)",
+    subtitle = "Bins with strong enrichment in one sample",
+    x = "Genomic Position (bp)",
+    y = "Log2(GEX/SALVE Ratio)"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    plot.title = element_text(face = "bold"),
+    legend.position = "bottom"
+  )
+print(p4)
+ggsave(paste0(input.dir, "plot_coordinatebias.pdf"), p4)
+
+
+
+## distance from SALVE primers
+salve_coord <- read.csv(paste0(input.dir, "Invitro_coords_SALVE_highexpressing.csv")) %>% mutate(sample = "SALVE") %>% unique()
+joint_umi <- semi_join(salve_coord, gex_coord, by = c("cellID", "UMI")) %>%
+  select(cellID, UMI)
+salve_coord <- semi_join(salve_coord, joint_umi, by = c("cellID", "UMI"))
+
+landmarks <- c(430, 3755, 6041, 6770, 8367)
+calculate_downstream_distance <- function(position, landmarks) {
+  # Find all landmarks upstream of this position
+  upstream_landmarks <- landmarks[landmarks <= position]
+  
+  if (length(upstream_landmarks) == 0) {
+    # Position is before first landmark - negative distance
+    return(position - landmarks[1])
+  } else {
+    # Distance from nearest upstream landmark (always positive)
+    nearest_landmark <- max(upstream_landmarks)
+    return(position - nearest_landmark)
+  }
+}
+
+all_data <- bind_rows(gex_coord, salve_coord) %>%
+  rowwise() %>%
+  mutate(
+    dist_from_landmark = calculate_downstream_distance(end, landmarks),
+    landmark_region = case_when(
+      dist_from_landmark < 0 ~ "Before first landmark",
+      dist_from_landmark <= 200 ~ "0-200bp downstream",
+      dist_from_landmark <= 500 ~ "200-500bp downstream",
+      dist_from_landmark <= 1000 ~ "500-1000bp downstream",
+      TRUE ~ ">1000bp downstream"
+    )
+  ) %>%
+  ungroup()
+
+distance_bins <- all_data %>%
+  mutate(dist_bin = floor(dist_from_landmark / 100) * 100) %>%
+  filter(dist_bin >= -500, dist_bin <= 2000) %>%  # From -500bp to +2000bp
+  group_by(sample, dist_bin) %>%
+  summarize(count = n(), .groups = "drop") %>%
+  pivot_wider(names_from = sample, values_from = count, values_fill = 0) %>%
+  mutate(
+    ratio = (GEX + 1) / (SALVE + 1),
+    log2_ratio = log2(ratio),
+    total = GEX + SALVE
+  )
+
+p3 <- ggplot(all_data, 
+             aes(x = dist_from_landmark, fill = sample)) +
+  geom_vline(xintercept = 0, linetype = "dotted", color = "gray30", size = 0.8) +
+  geom_histogram(binwidth = 100, alpha = 0.7, position = "identity") +
+  facet_wrap(~sample, ncol = 1, scales = "free_y") +
+  scale_fill_manual(values = c("GEX" = "#3498db", "SALVE" = "#e74c3c")) +
+  labs(
+    title = "Read Distribution Relative to Primer",
+    subtitle = "Negative = before first primer (D1) | Positive = downstream",
+    x = "Distance from Nearest Primer (bp)",
+    y = "Number of UMI"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    plot.title = element_text(face = "bold"),
+    plot.subtitle = element_text(color = "gray40"),
+    legend.position = "none",
+    strip.text = element_text(face = "bold", size = 12)
+  )
+
+print(p3)
+
+gex_minus_salve <- gex_minus_salve %>%
+  rowwise() %>%
+  mutate(
+    dist_from_landmark = calculate_downstream_distance(end, landmarks),
+    landmark_region = case_when(
+      dist_from_landmark < 0 ~ "Before first landmark",
+      dist_from_landmark <= 200 ~ "0-200bp downstream",
+      dist_from_landmark <= 500 ~ "200-500bp downstream",
+      dist_from_landmark <= 1000 ~ "500-1000bp downstream",
+      TRUE ~ ">1000bp downstream"
+    )
+  ) %>%
+  ungroup()
+
+p4 <- ggplot(gex_minus_salve, 
+             aes(x = dist_from_landmark)) +
+  geom_vline(xintercept = 0, linetype = "dotted", color = "gray30", size = 0.8) +
+  geom_histogram(binwidth = 100, alpha = 0.7) +
+  labs(
+    title = "(GEX - SALVE) UMI Dist from Primers",
+    subtitle = "Negative = before first primer | Positive = downstream",
+    x = "Distance from Nearest Primer (bp)",
+    y = "Number of UMI"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    plot.title = element_text(face = "bold"),
+    plot.subtitle = element_text(color = "gray40"),
+    legend.position = "none",
+    strip.text = element_text(face = "bold", size = 12)
+  )
+
+print(p4)
+
+
+
+# Detailed breakdown by distance category
+cat("\n=== Detailed Breakdown by Distance Category ===\n")
+category_stats <- all_data %>%
+  group_by(landmark_region, sample) %>%
+  summarize(n_reads = n(), .groups = "drop") %>%
+  pivot_wider(names_from = sample, values_from = n_reads, values_fill = 0) %>%
+  mutate(
+    ratio = GEX / SALVE,
+    total = GEX + SALVE,
+    diff = GEX - SALVE
+  ) %>%
+  arrange(landmark_region)
+
+print(category_stats)
+
+# Correlation test: does distance predict ratio?
+cat("\n=== Correlation Test ===\n")
+cat("Does distance from landmark correlate with GEX:SALVE ratio?\n")
+if (nrow(distance_bins) > 2) {
+  cor_test <- cor.test(distance_bins$dist_bin, distance_bins$log2_ratio, 
+                       method = "pearson")
+  cat("Pearson correlation:", round(cor_test$estimate, 3), "\n")
+  cat("p-value:", format(cor_test$p.value, scientific = TRUE), "\n")
+  cat("Interpretation:", 
+      ifelse(cor_test$p.value < 0.05, 
+             "Significant correlation detected",
+             "No significant correlation"), "\n")
+}
+
+intervals <- data.frame(
+  interval_name = c(
+    "Before landmark 1",
+    paste0("Between ", landmarks[-length(landmarks)], "-", landmarks[-1]),
+    paste0("After ", tail(landmarks, 1))
+  ),
+  start = c(0, landmarks[-length(landmarks)], tail(landmarks, 1)),
+  end = c(landmarks[1], landmarks[-1], Inf)
+)
+
+# Count UMIs in each interval
+interval_counts <- lapply(1:nrow(intervals), function(i) {
+  int <- intervals[i, ]
+  gex_minus_salve %>%
+    filter(end > int$start, end <= int$end) %>%
+    summarize(
+      interval = int$interval_name,
+      start = int$start,
+      end = ifelse(is.infinite(int$end), max(coords$end), int$end),
+      n_reads = n(),
+      n_unique_umi = n_distinct(UMI),
+      n_unique_cells = n_distinct(cellID),
+      n_unique_umi_cell = n_distinct(paste(cellID, UMI))
+    )
+}) %>% bind_rows()
+
+print(interval_counts)
+```
+

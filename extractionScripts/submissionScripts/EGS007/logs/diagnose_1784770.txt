@@ -1,0 +1,74 @@
+======================================================================
+COMPREHENSIVE BARCODE ANALYSIS
+======================================================================
+
+1. Extracting barcodes from BAM (sampling 50000 reads)...
+   Total reads sampled: 1939
+   Unique barcodes: 339
+   Top 5 most common:
+      TTCAATCAGCTACTGT: 224 reads
+      ATCACGACATAAGATG: 43 reads
+      TCGAAGTCATTGTGCA: 39 reads
+      CCGGGTATCCATCCGT: 27 reads
+      ACAAGCTGTAGACGGT: 26 reads
+
+2. Extracting barcodes from CSV...
+   Total cell IDs: 4837
+   Unique 16bp barcodes: 4837
+   Sample:
+      GTCACGGCAGTGGCTC
+      TTTACTGGTAACTTCG
+      GTGTTAGTCCTACGAA
+      TCTGCCACAACAAGAT
+      TCATTGTCACCCTTAC
+
+3. Direct match check...
+   Exact matches: 0
+
+4. Reverse complement check...
+   Matches with reverse complement: 0
+
+5. Hamming distance analysis (sampling)...
+   Checking if barcodes are within 1-3 mismatches...
+   No barcodes within 3 mismatches found in sample
+
+6. Nucleotide composition analysis...
+   BAM barcodes composition:
+      A: 24.9%
+      T: 24.9%
+      G: 25.2%
+      C: 25.1%
+   CSV barcodes composition:
+      A: 24.6%
+      T: 25.7%
+      G: 24.4%
+      C: 25.3%
+
+7. Position-specific nucleotide frequency...
+   First 4 positions in BAM barcodes:
+      Position 0: G (26.8%)
+      Position 1: T (31.3%)
+      Position 2: G (26.0%)
+      Position 3: A (27.4%)
+   First 4 positions in CSV barcodes:
+      Position 0: T (29.9%)
+      Position 1: T (28.8%)
+      Position 2: C (27.4%)
+      Position 3: A (26.6%)
+
+======================================================================
+SUMMARY AND RECOMMENDATIONS
+======================================================================
+✗ No relationship found between BAM and CSV barcodes
+
+Possible causes:
+  1. Different barcode whitelists used during processing
+  2. Long-read vs short-read platform incompatibility
+  3. Sample identity mismatch (despite metadata)
+  4. Different preprocessing pipelines created incompatible barcodes
+
+Next steps:
+  1. Check if BAM was generated from the same library as CSV
+  2. Verify barcode whitelist used in long-read alignment
+  3. Check if there's a barcode translation file
+  4. Contact sequencing core/bioinformatics for barcode mapping

@@ -5,11 +5,12 @@ date: "2025-06-16"
 output: html_document
 ---
 
-```{r, echo = FALSE}
+```{r, message=FALSE, warning=FALSE}
 source("~/SALVEseq/packages.R")
 source("~/SALVEseq/functions.R")
 ```
 
+## QC
 ```{r}
 round_to_common_clustering <- function(values, distance = 2) {
   if (length(unique(values)) <= 1) return(values)
@@ -140,7 +141,7 @@ cat("Rows where reported length ≠ actual sequence length:", nrow(sequence_leng
 
 ```
 
-
+## My version of map
 ```{r}
 input.file <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS004/300cy/counts/polyA/bam_polyA/D13_polyA_polya_structure_analysis.csv"
 output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS004/300cy/counts/polyA/bam_polyA/"
@@ -392,7 +393,7 @@ print("Filtering Statistics:")
 print(filtering_stats[1:4])  # Don't print the full consensus_positions table
 ```
 
-### predict polyA
+## predict polyA
 There's a Python script. Reading in the output to plot
 ```{r}
 input_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS004/300cy/"
@@ -545,6 +546,304 @@ plot_height <- 2
 ggsave(paste0(input_dir, "predicted_polyA_heatmap.svg"), plot = h, 
        width = plot_width, height = plot_height, 
        dpi = 300, units = "in")
+
+```
+
+## compare predicted and actual
+```{r}
+library(gridExtra)
+input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS004/300cy/"
+predicted <- read.csv(paste0(input.dir, "predicted_polyA.csv"))
+actual <- read.csv(paste0(input.dir, "Amir/d400_class_polya_structure_analysis.csv"))
+
+actual <- actual %>%
+  filter(polya_found == "True") %>%
+  rename(read1_start = read1_pos) %>%
+  mutate(read1_end = read1_start + genomic_sequence_length)
+genome_length <- 9601
+
+predicted$length_category <- ifelse(predicted$length >= 10, 
+                                   "Long (>= 10 bp)", 
+                                   "Short (< 10 bp)")
+predicted$length_category <- factor(predicted$length_category, 
+                                   levels = c("Long (>= 10 bp)", "Short (< 10 bp)"))
+
+p_hist <- ggplot() +
+  # LAYER 1: Histogram of actual reads (dark gray)
+  geom_histogram(data = actual,
+                 aes(x = read1_start),
+                 binwidth = genome_length / 1000,  # ~10 bp bins
+                 fill = "gray20",
+                 color = "gray40",
+                 alpha = 0.8) +
+  
+  # LAYER 2: Predicted regions overlaid as vertical spans
+  geom_rect(data = predicted,
+            aes(xmin = start_position, xmax = end_position,
+                ymin = 0, ymax = Inf,
+                fill = length_category),
+            alpha = 0.3,           # High transparency for overlay
+            color = NA) +
+  
+  # Color scheme for predicted regions
+  scale_fill_manual(values = c("Long (>= 10 bp)" = "#1a7a1a",
+                                "Short (< 10 bp)" = "#90ee90"),
+                    name = "Predicted Region Length") +
+  
+  # Log scale y-axis
+  scale_y_log10(breaks = c(1, 10, 100, 1000, 10000),
+                labels = c("1", "10", "100", "1K", "10K")) +
+  
+  labs(title = "Actual PolyA Read Distribution with Predicted Regions (Log Scale)",
+       subtitle = sprintf("%d reads | %d predicted regions | %d bp genome", 
+                        nrow(actual), nrow(predicted), genome_length),
+       x = "",
+       y = "Read Count (log10)") +
+  
+  xlim(0, genome_length) +
+  
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 14, face = "bold"),
+    plot.subtitle = element_text(size = 10),
+    axis.title.y = element_text(size = 10),
+    panel.border = element_rect(fill = NA, color = "gray70"),
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank(),
+    legend.position = "bottom",
+    panel.grid.minor = element_blank()  # Remove minor gridlines for clarity
+  )
+print(p_hist)
+plot_width <- min(max(8, genome_length / 100000), 20)
+plot_height <- 2
+
+ggsave(paste0(input.dir, "actual_vs_predicted_polyA_plot.pdf"), plot = p_hist, 
+       width = plot_width, height = plot_height, 
+       dpi = 300, units = "in")
+
+```
+
+```{r}
+# Calculate distance matrix: actual read1_end - predicted start_position
+# Positive values = predicted is upstream (before) the actual read end
+# Negative values = predicted is downstream (after) the actual read end
+distance_matrix <- outer(actual$read1_end, predicted$start_position, FUN = "-")
+
+# For each actual read, find the nearest UPSTREAM predicted region
+# Filter to only consider positive distances (predicted must be upstream)
+actual$nearest_predicted_distance <- apply(distance_matrix, 1, function(x) {
+  upstream_distances <- x[x > 0]  # Keep only positive distances (upstream)
+  
+  if (length(upstream_distances) == 0) {
+    return(NA)  # No upstream predictions found for this read
+  }
+  
+  min(upstream_distances)  # Find minimum positive distance (nearest upstream)
+})
+
+# Remove rows with no upstream predictions
+n_total <- nrow(actual)
+n_with_upstream <- sum(!is.na(actual$nearest_predicted_distance))
+actual_upstream <- actual %>% filter(!is.na(nearest_predicted_distance))
+
+cat(sprintf("\nUpstream Prediction Coverage:\n"))
+cat(sprintf("  Total reads: %d\n", n_total))
+cat(sprintf("  Reads with upstream predictions: %d (%.1f%%)\n", 
+            n_with_upstream, 100 * n_with_upstream / n_total))
+cat(sprintf("  Reads without upstream predictions: %d (%.1f%%)\n\n", 
+            n_total - n_with_upstream, 100 * (n_total - n_with_upstream) / n_total))
+
+# Summary statistics for upstream distances only
+summary_stats <- actual_upstream %>%
+  summarise(
+    mean_dist = mean(nearest_predicted_distance),
+    median_dist = median(nearest_predicted_distance),
+    min_dist = min(nearest_predicted_distance),
+    max_dist = max(nearest_predicted_distance),
+    within_10bp = sum(nearest_predicted_distance <= 10),
+    within_50bp = sum(nearest_predicted_distance <= 50),
+    total = n()
+  )
+
+print("Upstream Distance Statistics:")
+print(summary_stats)
+
+# HISTOGRAM: Distribution of upstream distances
+# Technical rationale:
+# - Only positive distances plotted (predicted regions upstream of actual reads)
+# - Log10 scale option useful if distribution is right-skewed
+# - Binwidth of 10 bp provides base-pair resolution for short distances
+p_distance <- ggplot(actual_upstream, aes(x = nearest_predicted_distance)) +
+  geom_histogram(binwidth = 10,
+                 fill = "gray40",
+                 color = "gray60",
+                 alpha = 0.8) +
+  
+  # Reference lines for key distance thresholds
+  geom_vline(xintercept = 10, 
+             color = "darkgreen", 
+             linetype = "dashed", 
+             linewidth = 0.7,
+             alpha = 0.7) +
+  geom_vline(xintercept = 50, 
+             color = "orange", 
+             linetype = "dashed", 
+             linewidth = 0.7,
+             alpha = 0.7) +
+  
+  annotate("text", 
+           x = 10, 
+           y = Inf, 
+           label = "10 bp", 
+           vjust = 1.5, 
+           hjust = -0.1,
+           color = "darkgreen", 
+           size = 3) +
+  annotate("text", 
+           x = 50, 
+           y = Inf, 
+           label = "50 bp", 
+           vjust = 1.5, 
+           hjust = -0.1,
+           color = "orange", 
+           size = 3) +
+  
+  labs(title = "Distance from Actual Read End to Nearest Upstream Predicted Region",
+       subtitle = sprintf("%d reads | Median: %.1f bp | Within 10bp: %d (%.1f%%)",
+                         nrow(actual_upstream),
+                         summary_stats$median_dist,
+                         summary_stats$within_10bp,
+                         100 * summary_stats$within_10bp / summary_stats$total),
+       x = "Distance (bp) - Predicted region is upstream of actual read end",
+       y = "Count") +
+  
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 12, face = "bold"),
+    plot.subtitle = element_text(size = 10),
+    axis.title = element_text(size = 10),
+    panel.border = element_rect(fill = NA, color = "gray70"),
+    panel.grid.minor = element_blank()
+  ) +
+  
+  # Restrict x-axis to start at 0 (only upstream distances)
+  scale_x_continuous(limits = c(0, NA))
+
+print(p_distance)
+
+# Optional: Log scale version if distances span multiple orders of magnitude
+# Uncomment if distribution is highly right-skewed
+# p_distance_log <- p_distance + 
+#   scale_x_log10(labels = scales::comma) +
+#   labs(x = "Distance (bp, log10 scale) - Predicted region is upstream of actual read end")
+# print(p_distance_log)
+```
+
+
+
+## compare actual and rawcellIDs
+making D13 raw cellIDs
+```{r}
+#from regular 90cy
+sample_name <- "JK85_D13"
+sample_folder <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS004/singleCell/counts/Mmul_10_mac239/"
+output_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS004/singleCell/Seurat/"
+rawDataFolder <- paste0(sample_folder, "Mmul_10_mac239_", sample_name, "/outs/raw_feature_bc_matrix/")
+  
+rawdata <- Read10X(rawDataFolder)
+umi_counts <- colSums(rawdata)
+cell_ids <- names(umi_counts[umi_counts > 100]) # keep only cells with transcriptomes
+
+sample_file <- file.path(output_dir, paste0(sample_name, "_raw_cellIDs.csv"))
+write.csv(data.frame(cellID = cell_ids), sample_file, row.names = FALSE)
+
+#from 300cycle
+sample_name <- "JK85_D13"
+sample_folder <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS004/300cy/counts/"
+output_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS004/300cy/Seurat/"
+rawDataFolder <- paste0(sample_folder, "Mmul_10_mac239annot_", sample_name, "/outs/raw_feature_bc_matrix/")
+  
+rawdata <- Read10X(rawDataFolder)
+umi_counts <- colSums(rawdata)
+cell_ids <- names(umi_counts[umi_counts > 100]) # keep only cells with transcriptomes
+
+sample_file <- file.path(output_dir, paste0("D13_300cy_raw_cellIDs.csv"))
+write.csv(data.frame(cellID = cell_ids), sample_file, row.names = FALSE)
+
+library(Biostrings)
+rawcellID <- rawcellID %>%
+  mutate(
+    cellID_clean = sub("-.*$", "", cellID),
+    cellID_rc = as.character(reverseComplement(DNAStringSet(cellID_clean))),
+    cellID = sub("-.*$", "", cellID_rc)
+  ) %>%
+  select(-cellID_clean, -cellID_rc)
+
+sample_file <- file.path(output_dir, paste0("D13_300cy_revcomp_raw_cellIDs.csv"))
+write.csv(rawcellID, sample_file, row.names = FALSE)
+```
+
+
+```{r}
+input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS004/300cy/"
+actual <- read.csv(paste0(input.dir, "Amir/d400_class_polya_structure_analysis.csv"))
+rawcellID <- read.csv("/projects/b1042/GoyalLab/egrody/extractedData/EGS004/300cy/Seurat/D13_300cy_revcomp_raw_cellIDs.csv")
+
+nrow(actual)
+unique <- actual %>%
+  select(cell_barcode) %>%
+  unique()
+filtered <- actual %>%
+  #mutate(cell_barcode = paste0(cell_barcode, "-1")) %>%
+  filter(cell_barcode %in% rawcellID$cellID) #names(umi_counts)
+nrow(filtered)
+```
+
+looking in long read
+```{r}
+longread <- read.csv("/projects/b1042/GoyalLab/egrody/extractedData/EGS007/longRead/bamsort/isoform/cDNA_isoforms.csv") #this has umis
+longread <- read.csv("/projects/b1042/GoyalLab/egrody/extractedData/EGS007/longRead/bamsort/splice/cDNA_splicesites.csv")
+#rawcellID <- read.csv("/projects/b1042/GoyalLab/egrody/extractedData/EGS004/300cy/Seurat/D13_300cy_raw_cellIDs.csv")
+#rawcellID <- read.csv("/projects/b1042/GoyalLab/egrody/extractedData/EGS004/300cy/Seurat/D13_300cy_revcomp_raw_cellIDs.csv")
+
+rawcellID <- read.csv("/projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/raw_cellIDs/all_raw_cellIDs.csv")
+
+rawcellID <- rawcellID %>%
+  mutate(cellID = sub("-.*$", "", cellID)) %>%
+  filter(sample == "Invitro")
+filtered <- longread %>%
+  filter(cellID %in% rawcellID$cellID) #CB for splice, cellID for isoform
+nrow(filtered)
+
+
+
+#any reads?
+longread <- read.csv("/projects/b1042/GoyalLab/egrody/extractedData/EGS007/longRead/bamsort/all/cDNA_cellID.csv", header = FALSE) 
+colnames(longread) <- c("cellID")
+filtered <- longread %>%
+  filter(cellID %in% rawcellID$cellID)
+
+SALVE <- read.csv("/projects/b1042/GoyalLab/egrody/extractedData/EGS018/SALVE/bamsort/reads/v6/minimum/Invitro_SALVE_filtered.csv")
+SALVE_umi <- read.csv("/projects/b1042/GoyalLab/egrody/extractedData/EGS018/SALVE/bamsort/reads/v6/minimum/valid_UMI/Invitro_SALVE_valid_cellID_UMI.csv")
+SALVE <- SALVE %>%
+  mutate(cellID = sub("-.*$", "", cellID)) %>%
+  filter(cellID %in% rawcellID$cellID)
+df <- df %>%
+  mutate(cellID = sub("-.*$", "", cellID))
+test <- df %>%
+  filter(cellID %in% filtered$cellID) %>%
+  select(cellID, SALVE, GEX)
+cat("Long read in df:\t", nrow(test),
+    "\n... with GEX+:\t", sum(test$GEX > 0), 
+    "\n... with SALVE+:\t", sum(test$SALVE > 0))
+
+#umis
+SALVE_umi <- SALVE_umi %>%
+  mutate(cellID = sub("-.*$", "", cellID)) %>%
+  filter(cellID %in% rawcellID$cellID)
+test <- longread %>%
+  unique() %>%
+  semi_join(SALVE_umi, by = c("cellID", "UMI"))
 
 ```
 

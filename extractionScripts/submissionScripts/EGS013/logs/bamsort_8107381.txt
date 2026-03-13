@@ -1,0 +1,73 @@
+Processing alignment: D1_US (Position 439-4650)
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGS013/counts/mac239_Pacute_D1_up_CI/outs/possorted_genome_bam.bam
+Successfully processed D1_US
+Output: Results written to /projects/b1042/GoyalLab/egrody/extractedData/EGS013/bamsort/Pacute_bamsort_D1_US.csv
+Total reads processed: 461273
+Reads without CB tag: 245710
+Reads with valid cell barcodes: 215563
+
+-----------------------------
+Processing alignment: D1_S (Position 4655-8252)
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGS013/counts/mac239_Pacute_D1_up_CI/outs/possorted_genome_bam.bam
+Successfully processed D1_S
+Output: Results written to /projects/b1042/GoyalLab/egrody/extractedData/EGS013/bamsort/Pacute_bamsort_D1_S.csv
+Total reads processed: 56986
+Reads without CB tag: 32062
+Reads with valid cell barcodes: 24924
+
+-----------------------------
+Processing alignment: tat_US (Position 6045-8252)
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGS013/counts/mac239_Pacute_tat_up_CI/outs/possorted_genome_bam.bam
+Successfully processed tat_US
+Output: Results written to /projects/b1042/GoyalLab/egrody/extractedData/EGS013/bamsort/Pacute_bamsort_tat_US.csv
+Total reads processed: 495113
+Reads without CB tag: 261660
+Reads with valid cell barcodes: 233453
+
+-----------------------------
+Processing alignment: tat_S (Position 8253-8908)
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGS013/counts/mac239_Pacute_tat_up_CI/outs/possorted_genome_bam.bam
+Successfully processed tat_S
+Output: Results written to /projects/b1042/GoyalLab/egrody/extractedData/EGS013/bamsort/Pacute_bamsort_tat_S.csv
+Total reads processed: 330313
+Reads without CB tag: 213851
+Reads with valid cell barcodes: 116462
+
+-----------------------------
+Processing alignment: LTR_5 (Position 1-430)
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGS013/counts/mac239_Pacute_LTR_CI/outs/possorted_genome_bam.bam
+Successfully processed LTR_5
+Output: Results written to /projects/b1042/GoyalLab/egrody/extractedData/EGS013/bamsort/Pacute_bamsort_LTR_5.csv
+Total reads processed: 181404
+Reads without CB tag: 110296
+Reads with valid cell barcodes: 71108
+
+-----------------------------
+Processing alignment: LTR_3 (Position 8987-9578)
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGS013/counts/mac239_Pacute_LTR_CI/outs/possorted_genome_bam.bam
+Successfully processed LTR_3
+Output: Results written to /projects/b1042/GoyalLab/egrody/extractedData/EGS013/bamsort/Pacute_bamsort_LTR_3.csv
+Total reads processed: 906472
+Reads without CB tag: 659263
+Reads with valid cell barcodes: 247209
+
+-----------------------------
+Processing alignment: nef_5 (Position 1-117)
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGS013/counts/mac239_Pacute_nef_CI/outs/possorted_genome_bam.bam
+Successfully processed nef_5
+Output: Results written to /projects/b1042/GoyalLab/egrody/extractedData/EGS013/bamsort/Pacute_bamsort_nef_5.csv
+Total reads processed: 43811
+Reads without CB tag: 24149
+Reads with valid cell barcodes: 19662
+
+-----------------------------
+Processing alignment: nef_3 (Position 8747-9578)
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGS013/counts/mac239_Pacute_nef_CI/outs/possorted_genome_bam.bam
+Successfully processed nef_3
+Output: Results written to /projects/b1042/GoyalLab/egrody/extractedData/EGS013/bamsort/Pacute_bamsort_nef_3.csv
+Total reads processed: 224699
+Reads without CB tag: 147707
+Reads with valid cell barcodes: 76992
+
+-----------------------------
+All alignments processed!

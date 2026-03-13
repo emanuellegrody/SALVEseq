@@ -1,0 +1,5 @@
+/var/spool/slurmd/job6399281/slurm_script: line 13: activate: No such file or directory
+gzip: GoyalLab_invitro_CIe_env.fastq.gz: No such file or directory
+gzip: GoyalLab_invitro_CIe_gag.fastq.gz: No such file or directory
+gzip: GoyalLab_invitro_CIe_tat1.fastq.gz: No such file or directory
+gzip: GoyalLab_invitro_CIe_vif.fastq.gz: No such file or directory

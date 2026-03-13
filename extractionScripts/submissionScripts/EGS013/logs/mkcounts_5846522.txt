@@ -1,0 +1,9 @@
+ERROR: Requested sample(s) not found in fastq directory "/gpfs/projects/b1042/GoyalLab/egrody/rawData/EGS013/Sequencing/fastq_concat"
+Available samples:
+Pacute_D1_up_PL
+Pacute_LTR_PL
+Pacute_nef_PL
+Pacute_pool_D1_nef_PL
+Pacute_tat_up_PL
+Undetermined
+W2_nef_PL

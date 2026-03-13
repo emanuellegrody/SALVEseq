@@ -1,0 +1,2 @@
+Input BAM: /projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/counts/Mmul_10_mac239v5/Mmul_10_mac239v5_D13_D1_nef/outs/possorted_genome_bam.bam
+Output CSV: /projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/bamsort/splice/D13_D1_nef_splicesites.csv

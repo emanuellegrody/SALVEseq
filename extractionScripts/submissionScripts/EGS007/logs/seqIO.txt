@@ -1,0 +1,3 @@
+Processing sample: CIe_gag
+Completed processing: CIe_gag
+All samples processed!

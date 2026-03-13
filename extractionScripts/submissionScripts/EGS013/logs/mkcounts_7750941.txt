@@ -1,0 +1,41 @@
+Martian Runtime - v4.0.11
+2025-10-17 13:53:24 [runtime] Reattaching in local mode.
+Serving UI at http://qnode0169:39227?auth=LGi0AsjHY0f4zUt2zV_ja7BlBqtQcynK6Z0hG7nAxsk
+
+2025-10-17 13:53:24 [runtime] (reset-partial)   ID.Mmul_10_mac239_Pacute_nef_PL.SC_RNA_COUNTER_CS.SC_MULTI_CORE.MULTI_CHEMISTRY_DETECTOR.DETECT_COUNT_CHEMISTRY.fork0.chnk0
+2025-10-17 13:53:24 [runtime] Found orphaned local stage: ID.Mmul_10_mac239_Pacute_nef_PL.SC_RNA_COUNTER_CS.SC_MULTI_CORE.MULTI_CHEMISTRY_DETECTOR.DETECT_COUNT_CHEMISTRY
+2025-10-17 13:53:25 [runtime] (split_complete)  ID.Mmul_10_mac239_Pacute_nef_PL.SC_RNA_COUNTER_CS.SC_MULTI_CORE.MULTI_CHEMISTRY_DETECTOR.DETECT_COUNT_CHEMISTRY
+2025-10-17 13:53:25 [runtime] (run:local)       ID.Mmul_10_mac239_Pacute_nef_PL.SC_RNA_COUNTER_CS.SC_MULTI_CORE.MULTI_CHEMISTRY_DETECTOR.DETECT_COUNT_CHEMISTRY.fork0.chnk0.main
+2025-10-17 13:53:26 [runtime] (failed)          ID.Mmul_10_mac239_Pacute_nef_PL.SC_RNA_COUNTER_CS.SC_MULTI_CORE.MULTI_CHEMISTRY_DETECTOR.DETECT_COUNT_CHEMISTRY
+
+[error] Pipestance failed. Error log at:
+Mmul_10_mac239_Pacute_nef_PL/SC_RNA_COUNTER_CS/SC_MULTI_CORE/MULTI_CHEMISTRY_DETECTOR/DETECT_COUNT_CHEMISTRY/fork0/chnk0-u676ef290a4/_errors
+
+Log message:
+The read lengths are incompatible with all the chemistries for Sample Pacute_nef_PL in "/gpfs/projects/b1042/GoyalLab/egrody/rawData/EGS013/Sequencing/fastq_concat".
+ - read1 median length = 0
+ - read2 median length = 61
+ - index1 median length = 8
+
+The minimum read length for different chemistries are:
+SFRP     - read1: 26, read2: 30, index1: 0
+SC5P-R2  - read1: 26, read2: 25, index1: 0
+SC5P-PE  - read1: 81, read2: 25, index1: 0
+SC3Pv1   - read1: 25, read2: 10, index1: 14
+SC3Pv2   - read1: 26, read2: 25, index1: 0
+SC3Pv3   - read1: 26, read2: 25, index1: 0
+SC3Pv3LT - read1: 26, read2: 25, index1: 0
+SC3Pv3HT - read1: 26, read2: 25, index1: 0
+
+We expect that at least 50% of the reads exceed the minimum length.
+
+
+Waiting 6 seconds for UI to do final refresh.
+Pipestance failed. Use --noexit option to keep UI running after failure.
+
+2025-10-17 13:53:32 Shutting down.
+Saving pipestance info to "Mmul_10_mac239_Pacute_nef_PL/Mmul_10_mac239_Pacute_nef_PL.mri.tgz"
+For assistance, upload this file to 10x Genomics by running:
+
+cellranger upload <your_email> "Mmul_10_mac239_Pacute_nef_PL/Mmul_10_mac239_Pacute_nef_PL.mri.tgz"
+

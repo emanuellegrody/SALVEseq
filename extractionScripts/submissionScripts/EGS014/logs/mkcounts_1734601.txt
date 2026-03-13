@@ -1,0 +1,3 @@
+ERROR: Requested sample(s) not found in fastq directory "/gpfs/projects/b1042/GoyalLab/egrody/rawData/EGS009/Sequencing/fastq"
+Available samples:
+P_acute_GEX

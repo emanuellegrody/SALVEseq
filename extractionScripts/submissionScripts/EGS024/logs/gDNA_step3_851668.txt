@@ -1,0 +1,6 @@
+Combining sequence
+Combining 30
+['python3', '/home/egy2296/packages/updated_gDNA_barcode_analysis/Step3_Starcode/starcodeRun.py', '/projects/b1042/GoyalLab/egrody/extractedData/EGS024/barcode/NK2_barcodeDiversity/', '/home/egy2296/packages/updated_gDNA_barcode_analysis/', 'Multiple_Samples', '-d', '8', '-thread', '8', '-length', '50', '-Fraction', 'partial']
+['python3', '/home/egy2296/packages/updated_gDNA_barcode_analysis/Step3_Starcode/finalProcessing.py', '/projects/b1042/GoyalLab/egrody/extractedData/EGS024/barcode/NK2_barcodeDiversity/', 'yes', 'Multiple_Samples', '-d', '8', '-length', '50', '--f', 'partial']
+['python3', '/home/egy2296/packages/updated_gDNA_barcode_analysis/LVHistogram.py', '/projects/b1042/GoyalLab/egrody/extractedData/EGS024/barcode/NK2_barcodeDiversity/analyzed/Multiple_Samples/starcode', '/projects/b1042/GoyalLab/egrody/extractedData/EGS024/barcode/NK2_barcodeDiversity/analyzed/Multiple_Samples/starcode/Multiple_Samples_Barcode50_d8.txt', '/projects/b1042/GoyalLab/egrody/extractedData/EGS024/barcode/NK2_barcodeDiversity/LVmeandistance.txt', 'Multiple_Samples', '-inputFraction', 'partial', '-inputLength', '50']
+Done. Check output in: /projects/b1042/GoyalLab/egrody/extractedData/EGS024/barcode/NK2_barcodeDiversity//analyzed/Multiple_Samples/separated/

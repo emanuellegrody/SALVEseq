@@ -1,0 +1,18 @@
+Processing sample: P_acute_combined
+Input BAM: /projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/counts/Mmul_10_mac239/Mmul_10_mac239_P_acute_combined/outs/possorted_genome_bam.bam
+Output CSV: /projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/bamsort/splice/P_acute_combined_splicesites.csv
+Input BAM: /projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/counts/Mmul_10_mac239/Mmul_10_mac239_P_acute_combined/outs/possorted_genome_bam.bam
+Output CSV: /projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/bamsort/splice/P_acute_combined_splicesites.csv
+Reference filtering: mac239 only
+Minimum intron size: 1000bp
+Minimum match size: 20bp
+------------------------------------------------------------
+Processing complete!
+Total reads examined: 483156093
+Reads processed (mapped with CIGAR): 468072246
+Reads from non-mac239 references: 468033720
+Reads without xf:i:25 tag: 32813
+Reads without qualifying splice pattern: 5708
+Splice junctions found: 5
+Parameters: min_intron=1000bp, min_match=20bp
+Output file: /projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/bamsort/splice/P_acute_combined_splicesites.csv

@@ -1,0 +1,2 @@
+ERROR: Reading FASTQ directory
+	Caused by: Some files in the fastq path /gpfs/projects/b1042/GoyalLab/egrody/rawData/EGS014/Sequencing/fastq are split by lane, while some are not. This is not supported.

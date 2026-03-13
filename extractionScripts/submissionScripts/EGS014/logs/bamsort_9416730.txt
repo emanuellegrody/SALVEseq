@@ -1,0 +1,3 @@
+Error: 'sample_id'
+All samples and alignments processed!
+Summary written to: /projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/bamsort/alignment/all_samples_alignment_summary.txt

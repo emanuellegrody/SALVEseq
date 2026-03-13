@@ -1,0 +1,10 @@
+Martian Runtime - v4.0.11
+
+RuntimeError: pipestance 'Mmul_10_mac239_P_acute_combined' already exists and is locked by another Martian instance. If you are sure no other Martian instance is running, delete the _lock file in /projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/counts/Mmul_10_mac239_P_acute_combined and start Martian again.
+
+2025-09-03 18:06:08 Shutting down.
+Saving pipestance info to "Mmul_10_mac239_P_acute_combined/Mmul_10_mac239_P_acute_combined.mri.tgz"
+For assistance, upload this file to 10x Genomics by running:
+
+cellranger upload <your_email> "Mmul_10_mac239_P_acute_combined/Mmul_10_mac239_P_acute_combined.mri.tgz"
+

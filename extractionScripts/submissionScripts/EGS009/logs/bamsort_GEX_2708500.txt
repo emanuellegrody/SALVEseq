@@ -1,0 +1,95 @@
+Found 5 coordinate ranges in /projects/b1042/GoyalLab/egrody/extractionScripts/submissionScripts/bamsort_coordinates_GEX.csv
+Processing sample: P_acute_150M
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/counts/subsample/Mmul_10_mac239_P_acute_150M/outs/possorted_genome_bam.bam
+  Alignment: LTR_D1 (Position 1-422)
+  Successfully processed P_acute_150M for LTR_D1
+  Statistics: Rows=1719, Total reads=4112
+  -----------------------------
+  Alignment: D1_A1 (Position 432-4642)
+  Successfully processed P_acute_150M for D1_A1
+  Statistics: Rows=2109, Total reads=5475
+  -----------------------------
+  Alignment: A1_D4 (Position 4652-6035)
+  Successfully processed P_acute_150M for A1_D4
+  Statistics: Rows=174, Total reads=437
+  -----------------------------
+  Alignment: D4_A7 (Position 6045-8243)
+  Successfully processed P_acute_150M for D4_A7
+  Statistics: Rows=158, Total reads=442
+  -----------------------------
+  Alignment: A7_LTR (Position 8253-9578)
+  Successfully processed P_acute_150M for A7_LTR
+  Statistics: Rows=674, Total reads=1628
+  -----------------------------
+=============================
+Processing sample: P_acute_200M
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/counts/subsample/Mmul_10_mac239_P_acute_200M/outs/possorted_genome_bam.bam
+  Alignment: LTR_D1 (Position 1-422)
+  Successfully processed P_acute_200M for LTR_D1
+  Statistics: Rows=1930, Total reads=5525
+  -----------------------------
+  Alignment: D1_A1 (Position 432-4642)
+  Successfully processed P_acute_200M for D1_A1
+  Statistics: Rows=2329, Total reads=7368
+  -----------------------------
+  Alignment: A1_D4 (Position 4652-6035)
+  Successfully processed P_acute_200M for A1_D4
+  Statistics: Rows=193, Total reads=634
+  -----------------------------
+  Alignment: D4_A7 (Position 6045-8243)
+  Successfully processed P_acute_200M for D4_A7
+  Statistics: Rows=165, Total reads=565
+  -----------------------------
+  Alignment: A7_LTR (Position 8253-9578)
+  Successfully processed P_acute_200M for A7_LTR
+  Statistics: Rows=759, Total reads=2141
+  -----------------------------
+=============================
+Processing sample: P_acute_300M
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/counts/subsample/Mmul_10_mac239_P_acute_300M/outs/possorted_genome_bam.bam
+  Alignment: LTR_D1 (Position 1-422)
+  Successfully processed P_acute_300M for LTR_D1
+  Statistics: Rows=2171, Total reads=8287
+  -----------------------------
+  Alignment: D1_A1 (Position 432-4642)
+  Successfully processed P_acute_300M for D1_A1
+  Statistics: Rows=2629, Total reads=11048
+  -----------------------------
+  Alignment: A1_D4 (Position 4652-6035)
+  Successfully processed P_acute_300M for A1_D4
+  Statistics: Rows=225, Total reads=959
+  -----------------------------
+  Alignment: D4_A7 (Position 6045-8243)
+  Successfully processed P_acute_300M for D4_A7
+  Statistics: Rows=189, Total reads=886
+  -----------------------------
+  Alignment: A7_LTR (Position 8253-9578)
+  Successfully processed P_acute_300M for A7_LTR
+  Statistics: Rows=842, Total reads=3149
+  -----------------------------
+=============================
+Processing sample: P_acute_400M
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/counts/subsample/Mmul_10_mac239_P_acute_400M/outs/possorted_genome_bam.bam
+  Alignment: LTR_D1 (Position 1-422)
+  Successfully processed P_acute_400M for LTR_D1
+  Statistics: Rows=2271, Total reads=11046
+  -----------------------------
+  Alignment: D1_A1 (Position 432-4642)
+  Successfully processed P_acute_400M for D1_A1
+  Statistics: Rows=2761, Total reads=14732
+  -----------------------------
+  Alignment: A1_D4 (Position 4652-6035)
+  Successfully processed P_acute_400M for A1_D4
+  Statistics: Rows=233, Total reads=1257
+  -----------------------------
+  Alignment: D4_A7 (Position 6045-8243)
+  Successfully processed P_acute_400M for D4_A7
+  Statistics: Rows=195, Total reads=1142
+  -----------------------------
+  Alignment: A7_LTR (Position 8253-9578)
+  Successfully processed P_acute_400M for A7_LTR
+  Statistics: Rows=917, Total reads=4274
+  -----------------------------
+=============================
+All samples and alignments processed!
+Summary written to: /projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/bamsort/alignment/subsample/all_samples_alignment_summary.txt

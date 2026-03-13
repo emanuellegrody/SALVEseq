@@ -1,0 +1,18 @@
+Processing sample: W2
+Input BAM: /projects/b1042/GoyalLab/egrody/extractedData/EGS002/singleCell/counts/Mmul_10_mac239/Mmul_10_mac239_W2/outs/possorted_genome_bam.bam
+Output CSV: /projects/b1042/GoyalLab/egrody/extractedData/EGS002/singleCell/bamsort/splice/W2_splicesites.csv
+Input BAM: /projects/b1042/GoyalLab/egrody/extractedData/EGS002/singleCell/counts/Mmul_10_mac239/Mmul_10_mac239_W2/outs/possorted_genome_bam.bam
+Output CSV: /projects/b1042/GoyalLab/egrody/extractedData/EGS002/singleCell/bamsort/splice/W2_splicesites.csv
+Reference filtering: mac239 only
+Minimum intron size: 1000bp
+Minimum match size: 20bp
+------------------------------------------------------------
+Processing complete!
+Total reads examined: 130429885
+Reads processed (mapped with CIGAR): 125868601
+Reads from non-mac239 references: 125753674
+Reads without xf:i:25 tag: 75239
+Reads without qualifying splice pattern: 39600
+Splice junctions found: 89
+Parameters: min_intron=1000bp, min_match=20bp
+Output file: /projects/b1042/GoyalLab/egrody/extractedData/EGS002/singleCell/bamsort/splice/W2_splicesites.csv

@@ -1,0 +1,18 @@
+Loading of the libraries.... ... done ! 1 Fastq files are going to be processed ! 
+Mapping Uninfected_D1_nef_S8_R2_001.fastq file 
+Jun 26 17:30:37 ..... started STAR run
+Jun 26 17:30:37 ..... loading genome
+Jun 26 17:30:46 ..... started 1st pass mapping
+Jun 26 17:31:56 ..... finished 1st pass mapping
+Jun 26 17:31:56 ..... inserting junctions into the genome indices
+Jun 26 17:33:19 ..... started mapping
+Jun 26 17:34:35 ..... finished mapping
+Jun 26 17:34:35 ..... started sorting BAM
+Jun 26 17:34:43 ..... finished successfully
+Mapping ofUninfected_D1_nef_S8_R2_001.fastq done ! 
+All fastq files have been mapped successfully 
+Starting the BAM file analysis 
+Indexing of the bam file for Uninfected_D1_nef_S8_R2_001 is done 
+Computing stat file for the bam file for Uninfected_D1_nef_S8_R2_001 is done 
+Checking the mapping quality of each virus... 
+Export of the viral SAM file done for Uninfected_D1_nef_S8_R2_001 

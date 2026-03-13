@@ -1,0 +1,65 @@
+========================================
+Paired Read Analysis for 10X scRNA-seq
+========================================
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGS004/300cy/counts/polyA/JK85_D13_STAR_Aligned.sortedByCoord.out.bam
+Output prefix: D13_polyA
+
+Checking BAM index...
+BAM index is up to date.
+
+Starting paired read analysis...
+Processing BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGS004/300cy/counts/polyA/JK85_D13_STAR_Aligned.sortedByCoord.out.bam
+Completed processing. Total reads: 103,678, Complete pairs: 46,096
+
+==================================================
+ALIGNMENT SUMMARY
+==================================================
+Total paired reads: 46,096
+Proper pairs: 46,096 (100.0%)
+Same chromosome pairs: 46,096 (100.0%)
+Mean distance (same chr): 171.7 bp
+Median distance (same chr): 109.0 bp
+Min distance: 0 bp
+Max distance: 8444 bp
+
+Mapping Quality Summary:
+Read 1 - Mean MAPQ: 229.4
+Read 2 - Mean MAPQ: 229.4
+
+Top 10 Chromosomes (Read 1):
+  mac239: 46,096 (100.0%)
+
+10X-specific Analysis:
+Sample read names (first 5):
+  1: VH01990:14:AACL52THV:1:1405:59984:22109
+  2: VH01990:14:AACL52THV:2:2507:49134:1833
+  3: VH01990:14:AACL52THV:1:2109:50441:44676
+  4: VH01990:14:AACL52THV:2:1111:33967:36005
+  5: VH01990:14:AACL52THV:1:2602:27188:35702
+
+Read name characteristics:
+  Average length: 38.8
+  Min length: 38
+  Max length: 39
+
+Detailed results saved to: D13_polyA.csv
+Summary saved to: D13_polyA_summary.txt
+Summary plots saved to: D13_polyA_summary_plots.png
+
+========================================
+Analysis completed successfully!
+========================================
+Output files:
+  - D13_polyA.csv (detailed results)
+  - D13_polyA_summary.txt (summary statistics)
+  - D13_polyA_summary_plots.png (visualization)
+
+
+========================================
+Analysis completed successfully!
+========================================
+Output files:
+  - D13_polyA.csv (detailed results)
+  - D13_polyA_summary.txt (summary statistics)
+  - D13_polyA_summary_plots.png (visualization)
+

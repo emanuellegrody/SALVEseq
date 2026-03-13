@@ -1,0 +1,234 @@
+All imports OK
+==========================================
+Targeted Saturation Analysis
+Started: Thu Mar  5 15:47:21 CST 2026
+Samples: D1 pol tat SSenv nef
+Coordinates: /projects/b1042/GoyalLab/egrody/extractionScripts/submissionScripts/bamsort_coordinates_GEX.csv
+Reference: mac239
+Filters: min_reads_per_umi=2, min_umi_per_cell=2
+==========================================
+
+=== Processing: D1 ===
+Loaded 5217 filtered barcodes.
+Loaded 5 regions from /projects/b1042/GoyalLab/egrody/extractionScripts/submissionScripts/bamsort_coordinates_GEX.csv:
+  LTR_D1: mac239:1-422
+  D1_A1: mac239:432-4642
+  A1_D4: mac239:4652-6035
+  D4_A7: mac239:6045-8243
+  A7_LTR: mac239:8253-9578
+
+=== Extracting reads from BAM ===
+Filters: min_reads_per_umi=2, min_umi_per_cell=2
+  LTR_D1 (mac239:1-422): raw=10975 reads, 3566 UMIs, 1590 barcodes -> filtered=7989 reads, 30 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+  D1_A1 (mac239:432-4642): raw=15398 reads, 4555 UMIs, 1874 barcodes -> filtered=11694 reads, 41 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+  A1_D4 (mac239:4652-6035): raw=3127 reads, 943 UMIs, 508 barcodes -> filtered=2333 reads, 7 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+  D4_A7 (mac239:6045-8243): raw=444 reads, 179 UMIs, 70 barcodes -> filtered=315 reads, 5 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+  A7_LTR (mac239:8253-9578): raw=2607 reads, 749 UMIs, 294 barcodes -> filtered=2076 reads, 6 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+
+=== Per-region summary ===
+  LTR_D1: 7989 reads, 30 barcodes
+  D1_A1: 11694 reads, 41 barcodes
+  A1_D4: 2333 reads, 7 barcodes
+  D4_A7: 315 reads, 5 barcodes
+  A7_LTR: 2076 reads, 6 barcodes
+
+=== Rarefaction analysis ===
+  LTR_D1: 7989 reads, 30 barcodes, 266.3 reads/barcode, saturation=0.996, marginal gain from 2nd half=5.3%
+  D1_A1: 11694 reads, 41 barcodes, 285.2 reads/barcode, saturation=0.996, marginal gain from 2nd half=4.3%
+  A1_D4: 2333 reads, 7 barcodes, 333.3 reads/barcode, saturation=0.997, marginal gain from 2nd half=0.0%
+  D4_A7: 315 reads, 5 barcodes, 63.0 reads/barcode, saturation=0.984, marginal gain from 2nd half=0.0%
+  A7_LTR: 2076 reads, 6 barcodes, 346.0 reads/barcode, saturation=0.997, marginal gain from 2nd half=1.7%
+
+=== Generating plots ===
+Saved: /projects/b1042/GoyalLab/egrody/extractedData/EGS024/SALVE/saturation//D1_rarefaction.png
+Saved: /projects/b1042/GoyalLab/egrody/extractedData/EGS024/SALVE/saturation//D1_per_region.png
+
+=== Interpretation ===
+  LTR_D1: 266.3 reads/barcode, marginal gain=5.3% -- SATURATED -- more reads unlikely to find new positive cells.
+  D1_A1: 285.2 reads/barcode, marginal gain=4.3% -- SATURATED -- more reads unlikely to find new positive cells.
+  A1_D4: 333.3 reads/barcode, marginal gain=0.0% -- SATURATED -- more reads unlikely to find new positive cells.
+  D4_A7: 63.0 reads/barcode, marginal gain=0.0% -- SATURATED -- more reads unlikely to find new positive cells.
+  A7_LTR: 346.0 reads/barcode, marginal gain=1.7% -- SATURATED -- more reads unlikely to find new positive cells.
+
+All outputs saved with prefix: /projects/b1042/GoyalLab/egrody/extractedData/EGS024/SALVE/saturation//D1
+
+=== Processing: pol ===
+Loaded 970 filtered barcodes.
+Loaded 5 regions from /projects/b1042/GoyalLab/egrody/extractionScripts/submissionScripts/bamsort_coordinates_GEX.csv:
+  LTR_D1: mac239:1-422
+  D1_A1: mac239:432-4642
+  A1_D4: mac239:4652-6035
+  D4_A7: mac239:6045-8243
+  A7_LTR: mac239:8253-9578
+
+=== Extracting reads from BAM ===
+Filters: min_reads_per_umi=2, min_umi_per_cell=2
+  LTR_D1 (mac239:1-422): raw=0 reads, 0 UMIs, 0 barcodes -> filtered=0 reads, 0 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+  D1_A1 (mac239:432-4642): raw=51 reads, 30 UMIs, 26 barcodes -> filtered=0 reads, 0 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+  A1_D4 (mac239:4652-6035): raw=1 reads, 1 UMIs, 1 barcodes -> filtered=0 reads, 0 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+  D4_A7 (mac239:6045-8243): raw=0 reads, 0 UMIs, 0 barcodes -> filtered=0 reads, 0 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+  A7_LTR (mac239:8253-9578): raw=0 reads, 0 UMIs, 0 barcodes -> filtered=0 reads, 0 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+
+=== Per-region summary ===
+  LTR_D1: 0 reads, 0 barcodes
+  D1_A1: 0 reads, 0 barcodes
+  A1_D4: 0 reads, 0 barcodes
+  D4_A7: 0 reads, 0 barcodes
+  A7_LTR: 0 reads, 0 barcodes
+
+=== Rarefaction analysis ===
+  LTR_D1: 0 reads, skipping rarefaction.
+  D1_A1: 0 reads, skipping rarefaction.
+  A1_D4: 0 reads, skipping rarefaction.
+  D4_A7: 0 reads, skipping rarefaction.
+  A7_LTR: 0 reads, skipping rarefaction.
+
+=== Generating plots ===
+No regions with data to plot.
+
+=== Interpretation ===
+  LTR_D1: no reads detected.
+  D1_A1: no reads detected.
+  A1_D4: no reads detected.
+  D4_A7: no reads detected.
+  A7_LTR: no reads detected.
+
+All outputs saved with prefix: /projects/b1042/GoyalLab/egrody/extractedData/EGS024/SALVE/saturation//pol
+
+=== Processing: tat ===
+Loaded 741 filtered barcodes.
+Loaded 5 regions from /projects/b1042/GoyalLab/egrody/extractionScripts/submissionScripts/bamsort_coordinates_GEX.csv:
+  LTR_D1: mac239:1-422
+  D1_A1: mac239:432-4642
+  A1_D4: mac239:4652-6035
+  D4_A7: mac239:6045-8243
+  A7_LTR: mac239:8253-9578
+
+=== Extracting reads from BAM ===
+Filters: min_reads_per_umi=2, min_umi_per_cell=2
+  LTR_D1 (mac239:1-422): raw=20 reads, 13 UMIs, 3 barcodes -> filtered=8 reads, 1 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+  D1_A1 (mac239:432-4642): raw=1 reads, 1 UMIs, 1 barcodes -> filtered=0 reads, 0 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+  A1_D4 (mac239:4652-6035): raw=298 reads, 91 UMIs, 44 barcodes -> filtered=222 reads, 4 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+  D4_A7 (mac239:6045-8243): raw=1434 reads, 345 UMIs, 156 barcodes -> filtered=1178 reads, 4 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+  A7_LTR (mac239:8253-9578): raw=3559 reads, 633 UMIs, 221 barcodes -> filtered=3166 reads, 4 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+
+=== Per-region summary ===
+  LTR_D1: 8 reads, 1 barcodes
+  D1_A1: 0 reads, 0 barcodes
+  A1_D4: 222 reads, 4 barcodes
+  D4_A7: 1178 reads, 4 barcodes
+  A7_LTR: 3166 reads, 4 barcodes
+
+=== Rarefaction analysis ===
+  LTR_D1: 8 reads, 1 barcodes, 8.0 reads/barcode, saturation=0.875, marginal gain from 2nd half=0.0%
+  D1_A1: 0 reads, skipping rarefaction.
+  A1_D4: 222 reads, 4 barcodes, 55.5 reads/barcode, saturation=0.982, marginal gain from 2nd half=0.0%
+  D4_A7: 1178 reads, 4 barcodes, 294.5 reads/barcode, saturation=0.997, marginal gain from 2nd half=0.0%
+  A7_LTR: 3166 reads, 4 barcodes, 791.5 reads/barcode, saturation=0.999, marginal gain from 2nd half=0.0%
+
+=== Generating plots ===
+Saved: /projects/b1042/GoyalLab/egrody/extractedData/EGS024/SALVE/saturation//tat_rarefaction.png
+Saved: /projects/b1042/GoyalLab/egrody/extractedData/EGS024/SALVE/saturation//tat_per_region.png
+
+=== Interpretation ===
+  LTR_D1: 8.0 reads/barcode, marginal gain=0.0% -- SATURATED -- more reads unlikely to find new positive cells.
+  D1_A1: no reads detected.
+  A1_D4: 55.5 reads/barcode, marginal gain=0.0% -- SATURATED -- more reads unlikely to find new positive cells.
+  D4_A7: 294.5 reads/barcode, marginal gain=0.0% -- SATURATED -- more reads unlikely to find new positive cells.
+  A7_LTR: 791.5 reads/barcode, marginal gain=0.0% -- SATURATED -- more reads unlikely to find new positive cells.
+
+All outputs saved with prefix: /projects/b1042/GoyalLab/egrody/extractedData/EGS024/SALVE/saturation//tat
+
+=== Processing: SSenv ===
+Loaded 813 filtered barcodes.
+Loaded 5 regions from /projects/b1042/GoyalLab/egrody/extractionScripts/submissionScripts/bamsort_coordinates_GEX.csv:
+  LTR_D1: mac239:1-422
+  D1_A1: mac239:432-4642
+  A1_D4: mac239:4652-6035
+  D4_A7: mac239:6045-8243
+  A7_LTR: mac239:8253-9578
+
+=== Extracting reads from BAM ===
+Filters: min_reads_per_umi=2, min_umi_per_cell=2
+  LTR_D1 (mac239:1-422): raw=3 reads, 1 UMIs, 1 barcodes -> filtered=0 reads, 0 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+  D1_A1 (mac239:432-4642): raw=0 reads, 0 UMIs, 0 barcodes -> filtered=0 reads, 0 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+  A1_D4 (mac239:4652-6035): raw=0 reads, 0 UMIs, 0 barcodes -> filtered=0 reads, 0 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+  D4_A7 (mac239:6045-8243): raw=427 reads, 139 UMIs, 90 barcodes -> filtered=307 reads, 1 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+  A7_LTR (mac239:8253-9578): raw=12 reads, 6 UMIs, 3 barcodes -> filtered=7 reads, 1 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+
+=== Per-region summary ===
+  LTR_D1: 0 reads, 0 barcodes
+  D1_A1: 0 reads, 0 barcodes
+  A1_D4: 0 reads, 0 barcodes
+  D4_A7: 307 reads, 1 barcodes
+  A7_LTR: 7 reads, 1 barcodes
+
+=== Rarefaction analysis ===
+  LTR_D1: 0 reads, skipping rarefaction.
+  D1_A1: 0 reads, skipping rarefaction.
+  A1_D4: 0 reads, skipping rarefaction.
+  D4_A7: 307 reads, 1 barcodes, 307.0 reads/barcode, saturation=0.997, marginal gain from 2nd half=0.0%
+  A7_LTR: 7 reads, 1 barcodes, 7.0 reads/barcode, saturation=0.857, marginal gain from 2nd half=0.0%
+
+=== Generating plots ===
+Saved: /projects/b1042/GoyalLab/egrody/extractedData/EGS024/SALVE/saturation//SSenv_rarefaction.png
+Saved: /projects/b1042/GoyalLab/egrody/extractedData/EGS024/SALVE/saturation//SSenv_per_region.png
+
+=== Interpretation ===
+  LTR_D1: no reads detected.
+  D1_A1: no reads detected.
+  A1_D4: no reads detected.
+  D4_A7: 307.0 reads/barcode, marginal gain=0.0% -- SATURATED -- more reads unlikely to find new positive cells.
+  A7_LTR: 7.0 reads/barcode, marginal gain=0.0% -- SATURATED -- more reads unlikely to find new positive cells.
+
+All outputs saved with prefix: /projects/b1042/GoyalLab/egrody/extractedData/EGS024/SALVE/saturation//SSenv
+
+=== Processing: nef ===
+Loaded 3749 filtered barcodes.
+Loaded 5 regions from /projects/b1042/GoyalLab/egrody/extractionScripts/submissionScripts/bamsort_coordinates_GEX.csv:
+  LTR_D1: mac239:1-422
+  D1_A1: mac239:432-4642
+  A1_D4: mac239:4652-6035
+  D4_A7: mac239:6045-8243
+  A7_LTR: mac239:8253-9578
+
+=== Extracting reads from BAM ===
+Filters: min_reads_per_umi=2, min_umi_per_cell=2
+  LTR_D1 (mac239:1-422): raw=200 reads, 137 UMIs, 34 barcodes -> filtered=89 reads, 3 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+  D1_A1 (mac239:432-4642): raw=4 reads, 3 UMIs, 2 barcodes -> filtered=0 reads, 0 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+  A1_D4 (mac239:4652-6035): raw=0 reads, 0 UMIs, 0 barcodes -> filtered=0 reads, 0 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+  D4_A7 (mac239:6045-8243): raw=0 reads, 0 UMIs, 0 barcodes -> filtered=0 reads, 0 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+  A7_LTR (mac239:8253-9578): raw=3771 reads, 1087 UMIs, 489 barcodes -> filtered=2972 reads, 6 barcodes (min_reads_per_umi=2, min_umi_per_cell=2)
+
+=== Per-region summary ===
+  LTR_D1: 89 reads, 3 barcodes
+  D1_A1: 0 reads, 0 barcodes
+  A1_D4: 0 reads, 0 barcodes
+  D4_A7: 0 reads, 0 barcodes
+  A7_LTR: 2972 reads, 6 barcodes
+
+=== Rarefaction analysis ===
+  LTR_D1: 89 reads, 3 barcodes, 29.7 reads/barcode, saturation=0.966, marginal gain from 2nd half=0.0%
+  D1_A1: 0 reads, skipping rarefaction.
+  A1_D4: 0 reads, skipping rarefaction.
+  D4_A7: 0 reads, skipping rarefaction.
+  A7_LTR: 2972 reads, 6 barcodes, 495.3 reads/barcode, saturation=0.998, marginal gain from 2nd half=0.0%
+
+=== Generating plots ===
+Saved: /projects/b1042/GoyalLab/egrody/extractedData/EGS024/SALVE/saturation//nef_rarefaction.png
+Saved: /projects/b1042/GoyalLab/egrody/extractedData/EGS024/SALVE/saturation//nef_per_region.png
+
+=== Interpretation ===
+  LTR_D1: 29.7 reads/barcode, marginal gain=0.0% -- SATURATED -- more reads unlikely to find new positive cells.
+  D1_A1: no reads detected.
+  A1_D4: no reads detected.
+  D4_A7: no reads detected.
+  A7_LTR: 495.3 reads/barcode, marginal gain=0.0% -- SATURATED -- more reads unlikely to find new positive cells.
+
+All outputs saved with prefix: /projects/b1042/GoyalLab/egrody/extractedData/EGS024/SALVE/saturation//nef
+
+==========================================
+COMPLETE: 5 succeeded, 0 failed
+Output: /projects/b1042/GoyalLab/egrody/extractedData/EGS024/SALVE/saturation/
+Finished: Thu Mar  5 15:47:42 CST 2026
+==========================================

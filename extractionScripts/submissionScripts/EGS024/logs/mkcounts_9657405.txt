@@ -1,0 +1,21 @@
+Martian Runtime - v4.0.11
+2026-02-25 10:43:11 [runtime] Reattaching in local mode.
+Serving UI at http://qnode0139:35977?auth=fLIS_90uqv-BZvRmmUiqkZZIRLzfxeO1r-7qLKuwTrc
+
+2026-02-25 10:43:11 [runtime] (reset-partial)   ID.Mmul_10_mac239_GFP_GEX.SC_RNA_COUNTER_CS.CELLRANGER_PREFLIGHT.fork0.chnk0
+2026-02-25 10:43:11 [runtime] (reset-partial)   ID.Mmul_10_mac239_GFP_GEX.SC_RNA_COUNTER_CS.CELLRANGER_PREFLIGHT_LOCAL.fork0.chnk0
+2026-02-25 10:43:11 [runtime] Found orphaned local stage: ID.Mmul_10_mac239_GFP_GEX.SC_RNA_COUNTER_CS.CELLRANGER_PREFLIGHT_LOCAL
+2026-02-25 10:43:11 [runtime] Found orphaned local stage: ID.Mmul_10_mac239_GFP_GEX.SC_RNA_COUNTER_CS.CELLRANGER_PREFLIGHT
+Checking sample info...
+Checking FASTQ folder...
+Checking reference...
+Checking reference_path (/gpfs/projects/b1042/GoyalLab/egrody/genomes/Mmul_10_mac239) on qnode0139...
+
+[error] Your reference doesn't appear to be indexed. Please run the mkreference tool
+
+2026-02-25 10:43:25 Shutting down.
+Saving pipestance info to "Mmul_10_mac239_GFP_GEX/Mmul_10_mac239_GFP_GEX.mri.tgz"
+For assistance, upload this file to 10x Genomics by running:
+
+cellranger upload <your_email> "Mmul_10_mac239_GFP_GEX/Mmul_10_mac239_GFP_GEX.mri.tgz"
+

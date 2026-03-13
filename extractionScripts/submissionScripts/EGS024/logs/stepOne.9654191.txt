@@ -1,0 +1,13 @@
+Found 2 R1 file(s) and 2 R2 file(s) in: /projects/b1042/GoyalLab/egrody/rawData/EGS024/fastq/
+Multiple R1 lanes detected. Concatenating...
+  -> /projects/b1042/GoyalLab/egrody/extractedData/EGS024/stepOne//Undetermined_combined_R1.fastq.gz
+Multiple R2 lanes detected. Concatenating...
+  -> /projects/b1042/GoyalLab/egrody/extractedData/EGS024/stepOne//Undetermined_combined_R2.fastq.gz
+
+Running stepOne_optimized.py...
+  R1:       /projects/b1042/GoyalLab/egrody/extractedData/EGS024/stepOne//Undetermined_combined_R1.fastq.gz
+  R2:       /projects/b1042/GoyalLab/egrody/extractedData/EGS024/stepOne//Undetermined_combined_R2.fastq.gz
+  Staggers: /projects/b1042/GoyalLab/egrody/extractedData/EGS024/stepOne/staggers_GFP.txt
+  Output:   /projects/b1042/GoyalLab/egrody/extractedData/EGS024/stepOne/
+  Mode:     GFP
+

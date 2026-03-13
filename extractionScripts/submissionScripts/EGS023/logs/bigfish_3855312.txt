@@ -1,0 +1,180 @@
+
+======================================================================
+big-FISH Multi-FOV Pipeline
+======================================================================
+Input directory: /projects/b1042/GoyalLab/egrody/rawData/EGS023/20251118/TIFF/
+Output directory: /projects/b1042/GoyalLab/egrody/extractedData/EGS023/big-FISH/
+Channels: ['Blue', 'Red', 'Gold70', 'FarRed']
+Found 10 FOVs to process
+======================================================================
+
+
+Processing FOV 1/10
+
+======================================================================
+Processing FOV: 20251118_EGS023_bingo_slide4_002
+======================================================================
+Found 6 z-slices: ['Z05', 'Z06', 'Z07', 'Z08', 'Z09', 'Z10']
+Loading images...
+Image stack shape: (4, 6, 2304, 2304) [channels, z, y, x]
+Cropping to object...
+Cropped shape: (4, 6, 2304, 415), bbox: (0, 1889, 2304, 2304)
+Segmenting nuclei and cells...
+
+ERROR: Error processing FOV 20251118_EGS023_bingo_slide4_002: 'module' object is not callable
+
+
+Processing FOV 2/10
+
+======================================================================
+Processing FOV: 20251118_EGS023_bingo_slide4_003
+======================================================================
+Found 6 z-slices: ['Z05', 'Z06', 'Z07', 'Z08', 'Z09', 'Z10']
+Loading images...
+Image stack shape: (4, 6, 2304, 2304) [channels, z, y, x]
+Cropping to object...
+Cropped shape: (4, 6, 2304, 446), bbox: (0, 1858, 2304, 2304)
+Segmenting nuclei and cells...
+
+ERROR: Error processing FOV 20251118_EGS023_bingo_slide4_003: 'module' object is not callable
+
+
+Processing FOV 3/10
+
+======================================================================
+Processing FOV: 20251118_EGS023_bingo_slide4_004
+======================================================================
+Found 6 z-slices: ['Z05', 'Z06', 'Z07', 'Z08', 'Z09', 'Z10']
+Loading images...
+Image stack shape: (4, 6, 2304, 2304) [channels, z, y, x]
+Cropping to object...
+Cropped shape: (4, 6, 137, 148), bbox: (796, 1446, 933, 1594)
+Segmenting nuclei and cells...
+
+ERROR: Error processing FOV 20251118_EGS023_bingo_slide4_004: 'module' object is not callable
+
+
+Processing FOV 4/10
+
+======================================================================
+Processing FOV: 20251118_EGS023_bingo_slide4_005
+======================================================================
+Found 5 z-slices: ['Z07', 'Z08', 'Z09', 'Z10', 'Z11']
+Loading images...
+Image stack shape: (4, 5, 2304, 2304) [channels, z, y, x]
+Cropping to object...
+Cropped shape: (4, 5, 124, 125), bbox: (1143, 1618, 1267, 1743)
+Segmenting nuclei and cells...
+
+ERROR: Error processing FOV 20251118_EGS023_bingo_slide4_005: 'module' object is not callable
+
+
+Processing FOV 5/10
+
+======================================================================
+Processing FOV: 20251118_EGS023_bingo_slide4_008
+======================================================================
+Found 6 z-slices: ['Z06', 'Z07', 'Z08', 'Z09', 'Z10', 'Z11']
+Loading images...
+Image stack shape: (4, 6, 2304, 2304) [channels, z, y, x]
+Cropping to object...
+Cropped shape: (4, 6, 132, 136), bbox: (1056, 899, 1188, 1035)
+Segmenting nuclei and cells...
+
+ERROR: Error processing FOV 20251118_EGS023_bingo_slide4_008: 'module' object is not callable
+
+
+Processing FOV 6/10
+
+======================================================================
+Processing FOV: 20251118_EGS023_bingo_slide4_009_XY1
+======================================================================
+Found 5 z-slices: ['Z06', 'Z07', 'Z08', 'Z09', 'Z10']
+Loading images...
+Image stack shape: (4, 5, 2304, 2304) [channels, z, y, x]
+Cropping to object...
+Cropped shape: (4, 5, 145, 146), bbox: (421, 1515, 566, 1661)
+Segmenting nuclei and cells...
+
+ERROR: Error processing FOV 20251118_EGS023_bingo_slide4_009_XY1: 'module' object is not callable
+
+
+Processing FOV 7/10
+
+======================================================================
+Processing FOV: 20251118_EGS023_bingo_slide4_011_XY1
+======================================================================
+Found 5 z-slices: ['Z06', 'Z07', 'Z08', 'Z09', 'Z10']
+Loading images...
+Image stack shape: (4, 5, 2304, 2304) [channels, z, y, x]
+Cropping to object...
+Cropped shape: (4, 5, 1779, 2304), bbox: (0, 0, 1779, 2304)
+Segmenting nuclei and cells...
+
+ERROR: Error processing FOV 20251118_EGS023_bingo_slide4_011_XY1: 'module' object is not callable
+
+
+Processing FOV 8/10
+
+======================================================================
+Processing FOV: 20251118_EGS023_bingo_slide5_003_XY1
+======================================================================
+Found 5 z-slices: ['Z08', 'Z09', 'Z10', 'Z11', 'Z12']
+Loading images...
+Image stack shape: (4, 5, 2304, 2304) [channels, z, y, x]
+Cropping to object...
+Cropped shape: (4, 5, 146, 155), bbox: (766, 1399, 912, 1554)
+Segmenting nuclei and cells...
+
+ERROR: Error processing FOV 20251118_EGS023_bingo_slide5_003_XY1: 'module' object is not callable
+
+
+Processing FOV 9/10
+
+======================================================================
+Processing FOV: 20251118_EGS023_bingo_slide5_004_XY1
+======================================================================
+Found 5 z-slices: ['Z08', 'Z09', 'Z10', 'Z11', 'Z12']
+Loading images...
+Image stack shape: (4, 5, 2304, 2304) [channels, z, y, x]
+Cropping to object...
+Cropped shape: (4, 5, 143, 145), bbox: (988, 1063, 1131, 1208)
+Segmenting nuclei and cells...
+
+ERROR: Error processing FOV 20251118_EGS023_bingo_slide5_004_XY1: 'module' object is not callable
+
+
+Processing FOV 10/10
+
+======================================================================
+Processing FOV: 20251118_EGS023_bingo_slide5_005_XY1
+======================================================================
+Found 5 z-slices: ['Z06', 'Z07', 'Z08', 'Z09', 'Z10']
+Loading images...
+Image stack shape: (4, 5, 2304, 2304) [channels, z, y, x]
+Cropping to object...
+Cropped shape: (4, 5, 133, 132), bbox: (754, 1320, 887, 1452)
+Segmenting nuclei and cells...
+
+ERROR: Error processing FOV 20251118_EGS023_bingo_slide5_005_XY1: 'module' object is not callable
+
+======================================================================
+PIPELINE SUMMARY
+======================================================================
+Total FOVs found: 10
+Successfully processed: 0
+Skipped (missing channels): 0
+Errors: 10
+
+Errors encountered (10):
+  20251118_EGS023_bingo_slide4_002: 'module' object is not callable
+  20251118_EGS023_bingo_slide4_003: 'module' object is not callable
+  20251118_EGS023_bingo_slide4_004: 'module' object is not callable
+  20251118_EGS023_bingo_slide4_005: 'module' object is not callable
+  20251118_EGS023_bingo_slide4_008: 'module' object is not callable
+  20251118_EGS023_bingo_slide4_009_XY1: 'module' object is not callable
+  20251118_EGS023_bingo_slide4_011_XY1: 'module' object is not callable
+  20251118_EGS023_bingo_slide5_003_XY1: 'module' object is not callable
+  20251118_EGS023_bingo_slide5_004_XY1: 'module' object is not callable
+  20251118_EGS023_bingo_slide5_005_XY1: 'module' object is not callable
+======================================================================

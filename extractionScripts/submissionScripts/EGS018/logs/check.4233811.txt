@@ -1,0 +1,39 @@
+=== Checking Pipeline Status ===
+1. Checking for sorted featureCounts BAM:
+✓ Found: /projects/b1042/GoyalLab/egrody/extractedData/EGS018/SALVE/STAR/bams_UMI/KLRB1_W2_combined_tagged_sorted.bam
+-rw-rw-r-- 1 egy2296 b1042 840M Sep 18 15:59 /projects/b1042/GoyalLab/egrody/extractedData/EGS018/SALVE/STAR/bams_UMI/KLRB1_W2_combined_tagged_sorted.bam
+
+2. Checking for final BAM:
+✓ Found: /projects/b1042/GoyalLab/egrody/extractedData/EGS018/SALVE/STAR/bams_final/KLRB1_W2_combined_final.bam
+-rw-rw-r-- 1 egy2296 b1042 843M Sep 17 21:25 /projects/b1042/GoyalLab/egrody/extractedData/EGS018/SALVE/STAR/bams_final/KLRB1_W2_combined_final.bam
+
+3. Checking featureCounts summary:
+✓ Found summary:
+Status	/projects/b1042/GoyalLab/egrody/extractedData/EGS018/SALVE/STAR//bams_UMI/KLRB1_W2_combined_tagged.bam
+Assigned	12888886
+Unassigned_Unmapped	0
+Unassigned_Read_Type	0
+Unassigned_Singleton	0
+Unassigned_MappingQuality	0
+Unassigned_Chimera	0
+Unassigned_FragmentLength	0
+Unassigned_Duplicate	0
+Unassigned_MultiMapping	0
+Unassigned_Secondary	0
+Unassigned_NonSplit	0
+Unassigned_NoFeatures	2978298
+Unassigned_Overlapping_Length	0
+Unassigned_Ambiguity	0
+
+4. Testing GX tags in available BAM:
+Checking GX tags in sorted featureCounts BAM:
+Found 308 reads with GX:Z tags in first 1000 reads
+Sample GX tags:
+Gene: ENSMMUG00000023296
+Gene: ENSMMUG00000023296
+Gene: ENSMMUG00000023296
+
+5. Quick XF flag check if final BAM exists:
+XF flag distribution in final BAM:
+    446 0
+    554 1

@@ -1,0 +1,14 @@
+Starting STAR alignment...
+Jun 17 16:14:49 ..... started STAR run
+Jun 17 16:14:49 ..... loading genome
+Jun 17 16:14:49 ..... started 1st pass mapping
+Jun 17 16:43:09 ..... finished 1st pass mapping
+Jun 17 16:43:09 ..... inserting junctions into the genome indices
+Jun 17 16:43:09 ..... started mapping
+Jun 17 17:18:45 ..... finished mapping
+Jun 17 17:18:46 ..... started sorting BAM
+STAR alignment completed. Indexing BAM file...
+Analysis complete! Output files:
+  BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGS004/300cy/counts/polyA/JK85_D13_STAR_Aligned.sortedByCoord.out.bam
+  BAM index: /projects/b1042/GoyalLab/egrody/extractedData/EGS004/300cy/counts/polyA/JK85_D13_STAR_Aligned.sortedByCoord.out.bam.bai
+  Log files: /projects/b1042/GoyalLab/egrody/extractedData/EGS004/300cy/counts/polyA/JK85_D13_STAR_Log.final.out

@@ -1,0 +1,14 @@
+Found 2 hardcoded samples
+Processing sample: W2_KLRB1_PL
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGS016/SALVE/counts/Mmul_10_mac239v4_W2_KLRB1_PL/outs/possorted_genome_bam.bam
+  Successfully processed W2_KLRB1_PL for KLRB1
+  Statistics: Rows=10007, Total reads=113057
+  -----------------------------
+Processing sample: W0_KLRB1_PL
+BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGS016/SALVE/counts/Mmul_10_mac239v4_W0_KLRB1_PL/outs/possorted_genome_bam.bam
+  Successfully processed W0_KLRB1_PL for KLRB1
+  Statistics: Rows=4738, Total reads=46771
+  -----------------------------
+=============================
+All samples and alignments processed!
+Summary written to: /projects/b1042/GoyalLab/egrody/extractedData/EGS016/SALVE/bamsort/alignment/all_samples_alignment_summary.txt

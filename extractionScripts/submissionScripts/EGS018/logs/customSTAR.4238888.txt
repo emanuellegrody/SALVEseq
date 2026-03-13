@@ -1,0 +1,13 @@
+Converting CellRanger whitelist to UMI-tools format...
+Created whitelist with 6794880 barcodes
+========================================
+UMI-TOOLS RNA-SEQ PROCESSING PIPELINE
+========================================
+Processing single sample: KLRB1_W2_combined
+STAR Index: /projects/b1042/GoyalLab/egrody/genomes/STAR_Mmul_10_mac239/
+GTF File: /projects/b1042/GoyalLab/egrody/genomes/STAR_Mmul_10_mac239//inputs/genes.gtf
+FASTQ Directory: /projects/b1042/GoyalLab/egrody/rawData/EGS018/Sequencing/
+Output Root: /projects/b1042/GoyalLab/egrody/extractedData/EGS018/SALVE/UMI_tools/
+Whitelist: /projects/b1042/GoyalLab/egrody/extractedData/EGS018/SALVE/UMI_tools//whitelist.txt
+Barcode Pattern: CCCCCCCCCCCCCCCCNNNNNNNNNNNN
+

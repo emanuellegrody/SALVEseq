@@ -1,0 +1,62 @@
+Reading target combinations from /projects/b1042/GoyalLab/egrody/extractedData/EGS002/singleCell/bamsort/umi/Invitro_umi_GEX_highexpressing.csv...
+Loaded 5760 unique UMI-cell combinations
+
+Searching BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGS002/singleCell/counts/Mmul_10_mac239/Mmul_10_mac239_invitro/outs/possorted_genome_bam.bam
+Filtering to chromosome: mac239
+Searching chromosome 'mac239' for 5760 unique UMI-cell combinations...
+Match #1: GCCGTGATCTACCAGA-1:TAGTTATTGTGA -> mac239:0-90 (+)
+Match #2: TCACGGGCATCGAACT-1:TGCAGTTACTGC -> mac239:2-92 (+)
+Match #3: TCAAGCACACCTGATA-1:CCGTAGCACTGC -> mac239:2-92 (+)
+Match #4: GGGTTTAAGACCAAGC-1:AATTGCCTCATA -> mac239:3-93 (+)
+Match #5: TCACGGGCATCGAACT-1:AGGTTGTCCATC -> mac239:3-63 (+)
+Match #6: TCAAGTGCACAGCTGC-1:CATGCCGAGCCC -> mac239:3-63 (+)
+Match #7: TCAAGCACACCTGATA-1:CGGTTAGATGAA -> mac239:3-63 (+)
+Match #8: TCAGTGAAGTGTTGTC-1:CTTCCGTTCCGC -> mac239:3-63 (+)
+Match #9: GGGTTTAAGACCAAGC-1:CGCTCCTAGCGG -> mac239:3-63 (+)
+Match #10: TCACGGGCATCGAACT-1:AGGTTGTCCATC -> mac239:3-63 (+)
+
+Writing results to /projects/b1042/GoyalLab/egrody/extractedData/EGS002/singleCell/bamsort/umi//Invitro_umi_GEX_highexpressing.csv...
+Wrote 16410 coordinate records to /projects/b1042/GoyalLab/egrody/extractedData/EGS002/singleCell/bamsort/umi//Invitro_umi_GEX_highexpressing.csv
+Statistics log written to: /projects/b1042/GoyalLab/egrody/extractedData/EGS002/singleCell/bamsort/umi/stats_Invitro_umi_GEX_highexpressing.txt
+
+=== SUMMARY ===
+Processed 174,925 total reads
+Found 5749 of 5760 target combinations (99.8%)
+Total matching reads: 16410
+
+Warning: 11 combinations not found in BAM file
+Check the statistics log for details
+
+Note: Some UMI-cell combinations have multiple reads
+Average reads per combination: 2.9
+Reading target combinations from /projects/b1042/GoyalLab/egrody/extractedData/EGS002/singleCell/bamsort/umi/Invitro_umi_SALVE_highexpressing.csv...
+Loaded 2749 unique UMI-cell combinations
+
+Searching BAM file: /projects/b1042/GoyalLab/egrody/extractedData/EGS002/singleCell/counts/Mmul_10_mac239/Mmul_10_mac239_invitro/outs/possorted_genome_bam.bam
+Filtering to chromosome: mac239
+Searching chromosome 'mac239' for 2749 unique UMI-cell combinations...
+Match #1: TCAAGCACACCTGATA-1:CGGTTAGATGAA -> mac239:3-63 (+)
+Match #2: CACGTTCAGGGTAGCT-1:CTAAGTCAAGGG -> mac239:4-238 (+)
+Match #3: TCACGGGCATCGAACT-1:ACTGCCGGATTT -> mac239:4-94 (+)
+Match #4: TCAAGCACACCTGATA-1:CATGTTAGACTT -> mac239:12-246 (+)
+Match #5: TCAAGCACACCTGATA-1:CATGTTAGACTT -> mac239:12-246 (+)
+Match #6: TCAAGTGCACAGCTGC-1:ATCCACCGTTGG -> mac239:13-103 (+)
+Match #7: TCAAGTGCACAGCTGC-1:ATCCACCGTTGG -> mac239:13-103 (+)
+Match #8: TCACGGGCATCGAACT-1:CTCGTGCTAACA -> mac239:15-105 (+)
+Match #9: TCAAGCACACCTGATA-1:GCTCCCTCGCCC -> mac239:30-120 (+)
+Match #10: CACGTTCAGGGTAGCT-1:TCCTTCGTTTTG -> mac239:41-131 (+)
+
+Writing results to /projects/b1042/GoyalLab/egrody/extractedData/EGS002/singleCell/bamsort/umi//Invitro_umi_SALVE_highexpressing.csv...
+Wrote 6763 coordinate records to /projects/b1042/GoyalLab/egrody/extractedData/EGS002/singleCell/bamsort/umi//Invitro_umi_SALVE_highexpressing.csv
+Statistics log written to: /projects/b1042/GoyalLab/egrody/extractedData/EGS002/singleCell/bamsort/umi/stats_Invitro_umi_SALVE_highexpressing.txt
+
+=== SUMMARY ===
+Processed 174,925 total reads
+Found 2238 of 2749 target combinations (81.4%)
+Total matching reads: 6763
+
+Warning: 511 combinations not found in BAM file
+Check the statistics log for details
+
+Note: Some UMI-cell combinations have multiple reads
+Average reads per combination: 3.0

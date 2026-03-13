@@ -1,0 +1,24 @@
+Martian Runtime - v4.0.11
+Serving UI at http://qnode0126:33145?auth=eKmioka9WvQLIn19of4In-u_YHDIVT8leJVGeVYbcxA
+
+Running preflight checks (please wait)...
+2025-06-11 18:04:21 [runtime] (ready)           ID.mkref_Mmul_10_mac239v4.MAKE_REFERENCE._MAKE_REFERENCE
+2025-06-11 18:04:21 [runtime] (run:local)       ID.mkref_Mmul_10_mac239v4.MAKE_REFERENCE._MAKE_REFERENCE.fork0.split
+2025-06-11 18:04:21 [runtime] (split_complete)  ID.mkref_Mmul_10_mac239v4.MAKE_REFERENCE._MAKE_REFERENCE
+2025-06-11 18:04:21 [runtime] (run:local)       ID.mkref_Mmul_10_mac239v4.MAKE_REFERENCE._MAKE_REFERENCE.fork0.join
+2025-06-11 18:04:21 [runtime] (failed)          ID.mkref_Mmul_10_mac239v4.MAKE_REFERENCE._MAKE_REFERENCE
+
+[error] mkref has failed: error building reference package
+Error while parsing GTF file /gpfs/projects/b1042/GoyalLab/egrody/genomes/inputs/v4_genes.gtf
+Invalid GTF annotation on line 1189:
+['1', 'ensembl', 'gene', '16652940', '16655555', '.', '+', '.', 'gene_id "ENSMMUG00000050866"; gene_version "1"; gene_source "ensembl"; gene_biotype "lncRNA";']
+End position of feature = 16655555 > contig 1 length = 8251022
+
+Please fix your GTF and start again.
+
+2025-06-11 18:04:21 Shutting down.
+Saving pipestance info to "mkref_Mmul_10_mac239v4/mkref_Mmul_10_mac239v4.mri.tgz"
+For assistance, upload this file to 10x Genomics by running:
+
+cellranger upload <your_email> "mkref_Mmul_10_mac239v4/mkref_Mmul_10_mac239v4.mri.tgz"
+

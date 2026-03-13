@@ -1,0 +1,427 @@
+
+======================================================================
+big-FISH Multi-FOV Pipeline
+======================================================================
+Input directory: /projects/b1042/GoyalLab/egrody/rawData/EGS023/20251118/TIFF/
+Output directory: /projects/b1042/GoyalLab/egrody/extractedData/EGS023/big-FISH/
+Channels: ['Blue', 'Red', 'Gold70', 'FarRed']
+Found 10 FOVs to process
+======================================================================
+
+
+Processing FOV 1/10
+
+======================================================================
+Processing FOV: 20251118_EGS023_bingo_slide4_002
+======================================================================
+Found 6 z-slices: ['Z05', 'Z06', 'Z07', 'Z08', 'Z09', 'Z10']
+Loading images...
+Image stack shape: (4, 6, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+Segmented 2 nuclei and 2 cells
+Detecting spots...
+pol: 125 spots (threshold: 28.0)
+env: 15 spots (threshold: 8.0)
+nef: 139 spots (threshold: 65.0)
+Decomposing dense regions and clustering foci...
+After decomposition - pol: 303, env: 37, nef: 234
+Clusters - pol: 5, env: 1, nef: 6
+Removing transcription sites...
+After TS removal - pol: 109, env: 37, nef: 129
+Diagnostic image saved to: /projects/b1042/GoyalLab/egrody/extractedData/EGS023/big-FISH/20251118_EGS023_bingo_slide4_002/spot_detection_diagnostic.png
+Classifying splicing patterns...
+  US+SS spots: 3
+  US spots: 2
+  SS spots: 1
+  MS spots: 126
+Saving FOV-level results...
+Extracting per-cell statistics...
+  Extracted 2 cells
+  Cell statistics saved to: /projects/b1042/GoyalLab/egrody/extractedData/EGS023/big-FISH/20251118_EGS023_bingo_slide4_002/cell_stats.csv
+Results saved to: /projects/b1042/GoyalLab/egrody/extractedData/EGS023/big-FISH/20251118_EGS023_bingo_slide4_002
+
+
+Processing FOV 2/10
+
+======================================================================
+Processing FOV: 20251118_EGS023_bingo_slide4_003
+======================================================================
+Found 6 z-slices: ['Z05', 'Z06', 'Z07', 'Z08', 'Z09', 'Z10']
+Loading images...
+Image stack shape: (4, 6, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+Segmented 1 nuclei and 0 cells
+Detecting spots...
+pol: 10 spots (threshold: 25.333333333333336)
+env: 31 spots (threshold: 7.777777777777778)
+nef: 23 spots (threshold: 44.0)
+Decomposing dense regions and clustering foci...
+After decomposition - pol: 15, env: 31, nef: 53
+Clusters - pol: 0, env: 0, nef: 2
+Removing transcription sites...
+After TS removal - pol: 15, env: 31, nef: 36
+Diagnostic image saved to: /projects/b1042/GoyalLab/egrody/extractedData/EGS023/big-FISH/20251118_EGS023_bingo_slide4_003/spot_detection_diagnostic.png
+Classifying splicing patterns...
+  US+SS spots: 2
+  Warning: Too few spots for colocalization (2 vs 15), returning empty
+  US spots: 0
+  SS spots: 2
+  MS spots: 34
+Saving FOV-level results...
+Extracting per-cell statistics...
+  Extracted 1 cells
+  Cell statistics saved to: /projects/b1042/GoyalLab/egrody/extractedData/EGS023/big-FISH/20251118_EGS023_bingo_slide4_003/cell_stats.csv
+Results saved to: /projects/b1042/GoyalLab/egrody/extractedData/EGS023/big-FISH/20251118_EGS023_bingo_slide4_003
+
+
+Processing FOV 3/10
+
+======================================================================
+Processing FOV: 20251118_EGS023_bingo_slide4_004
+======================================================================
+Found 6 z-slices: ['Z05', 'Z06', 'Z07', 'Z08', 'Z09', 'Z10']
+Loading images...
+Image stack shape: (4, 6, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+Segmented 1 nuclei and 0 cells
+Detecting spots...
+pol: 95 spots (threshold: 26.0)
+env: 113 spots (threshold: 70.0)
+nef: 108 spots (threshold: 45.0)
+Decomposing dense regions and clustering foci...
+After decomposition - pol: 336, env: 355, nef: 221
+Clusters - pol: 5, env: 5, nef: 6
+Removing transcription sites...
+After TS removal - pol: 84, env: 70, nef: 103
+Diagnostic image saved to: /projects/b1042/GoyalLab/egrody/extractedData/EGS023/big-FISH/20251118_EGS023_bingo_slide4_004/spot_detection_diagnostic.png
+Classifying splicing patterns...
+  US+SS spots: 62
+  US spots: 4
+  SS spots: 58
+  MS spots: 41
+Saving FOV-level results...
+Extracting per-cell statistics...
+  Extracted 1 cells
+  Cell statistics saved to: /projects/b1042/GoyalLab/egrody/extractedData/EGS023/big-FISH/20251118_EGS023_bingo_slide4_004/cell_stats.csv
+Results saved to: /projects/b1042/GoyalLab/egrody/extractedData/EGS023/big-FISH/20251118_EGS023_bingo_slide4_004
+
+
+Processing FOV 4/10
+
+======================================================================
+Processing FOV: 20251118_EGS023_bingo_slide4_005
+======================================================================
+Found 5 z-slices: ['Z07', 'Z08', 'Z09', 'Z10', 'Z11']
+Loading images...
+Image stack shape: (4, 5, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+Segmented 0 nuclei and 0 cells
+Detecting spots...
+pol: 39 spots (threshold: 26.0)
+env: 83 spots (threshold: 73.0)
+nef: 78 spots (threshold: 45.0)
+Decomposing dense regions and clustering foci...
+After decomposition - pol: 157, env: 237, nef: 182
+Clusters - pol: 1, env: 3, nef: 3
+Removing transcription sites...
+  Note: Nuclear segmentation failed, using intensity-based TS detection
+  Intensity-based TS removal: TS center at (1197, 1669), radius=15, 1 clusters in TS, 114 spots removed
+  Note: Nuclear segmentation failed, using intensity-based TS detection
+  Intensity-based TS removal: TS center at (1198, 1670), radius=15, 1 clusters in TS, 129 spots removed
+  Note: Nuclear segmentation failed, using intensity-based TS detection
+  Intensity-based TS removal: TS center at (1198, 1670), radius=15, 1 clusters in TS, 77 spots removed
+After TS removal - pol: 43, env: 108, nef: 105
+Diagnostic image saved to: /projects/b1042/GoyalLab/egrody/extractedData/EGS023/big-FISH/20251118_EGS023_bingo_slide4_005/spot_detection_diagnostic.png
+Classifying splicing patterns...
+  US+SS spots: 100
+  US spots: 40
+  SS spots: 60
+  MS spots: 5
+Saving FOV-level results...
+Extracting per-cell statistics...
+  No cells detected in FOV
+Results saved to: /projects/b1042/GoyalLab/egrody/extractedData/EGS023/big-FISH/20251118_EGS023_bingo_slide4_005
+
+
+Processing FOV 5/10
+
+======================================================================
+Processing FOV: 20251118_EGS023_bingo_slide4_008
+======================================================================
+Found 6 z-slices: ['Z06', 'Z07', 'Z08', 'Z09', 'Z10', 'Z11']
+Loading images...
+Image stack shape: (4, 6, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+Segmented 3 nuclei and 3 cells
+Detecting spots...
+pol: 60 spots (threshold: 26.0)
+env: 93 spots (threshold: 84.0)
+nef: 92 spots (threshold: 59.0)
+Decomposing dense regions and clustering foci...
+After decomposition - pol: 152, env: 170, nef: 180
+Clusters - pol: 2, env: 4, nef: 7
+Removing transcription sites...
+After TS removal - pol: 53, env: 67, nef: 72
+Diagnostic image saved to: /projects/b1042/GoyalLab/egrody/extractedData/EGS023/big-FISH/20251118_EGS023_bingo_slide4_008/spot_detection_diagnostic.png
+Classifying splicing patterns...
+  US+SS spots: 60
+  US spots: 51
+  SS spots: 8
+  MS spots: 12
+Saving FOV-level results...
+Extracting per-cell statistics...
+  Extracted 3 cells
+  Cell statistics saved to: /projects/b1042/GoyalLab/egrody/extractedData/EGS023/big-FISH/20251118_EGS023_bingo_slide4_008/cell_stats.csv
+Results saved to: /projects/b1042/GoyalLab/egrody/extractedData/EGS023/big-FISH/20251118_EGS023_bingo_slide4_008
+
+
+Processing FOV 6/10
+
+======================================================================
+Processing FOV: 20251118_EGS023_bingo_slide4_009_XY1
+======================================================================
+Found 5 z-slices: ['Z06', 'Z07', 'Z08', 'Z09', 'Z10']
+Loading images...
+Image stack shape: (4, 5, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+Segmented 2 nuclei and 2 cells
+Detecting spots...
+pol: 92 spots (threshold: 29.0)
+env: 143 spots (threshold: 90.0)
+nef: 93 spots (threshold: 49.0)
+Decomposing dense regions and clustering foci...
+After decomposition - pol: 215, env: 271, nef: 122
+Clusters - pol: 9, env: 8, nef: 4
+Removing transcription sites...
+After TS removal - pol: 132, env: 155, nef: 103
+Diagnostic image saved to: /projects/b1042/GoyalLab/egrody/extractedData/EGS023/big-FISH/20251118_EGS023_bingo_slide4_009_XY1/spot_detection_diagnostic.png
+Classifying splicing patterns...
+  US+SS spots: 87
+  US spots: 71
+  SS spots: 15
+  MS spots: 16
+Saving FOV-level results...
+Extracting per-cell statistics...
+  Extracted 2 cells
+  Cell statistics saved to: /projects/b1042/GoyalLab/egrody/extractedData/EGS023/big-FISH/20251118_EGS023_bingo_slide4_009_XY1/cell_stats.csv
+Results saved to: /projects/b1042/GoyalLab/egrody/extractedData/EGS023/big-FISH/20251118_EGS023_bingo_slide4_009_XY1
+
+
+Processing FOV 7/10
+
+======================================================================
+Processing FOV: 20251118_EGS023_bingo_slide4_011_XY1
+======================================================================
+Found 5 z-slices: ['Z06', 'Z07', 'Z08', 'Z09', 'Z10']
+Loading images...
+Image stack shape: (4, 5, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+Segmented 1 nuclei and 0 cells
+Detecting spots...
+pol: 56 spots (threshold: 28.0)
+env: 105 spots (threshold: 77.0)
+nef: 83 spots (threshold: 44.0)
+Decomposing dense regions and clustering foci...
+After decomposition - pol: 126, env: 212, nef: 165
+Clusters - pol: 2, env: 2, nef: 4
+Removing transcription sites...
+After TS removal - pol: 126, env: 212, nef: 165
+Diagnostic image saved to: /projects/b1042/GoyalLab/egrody/extractedData/EGS023/big-FISH/20251118_EGS023_bingo_slide4_011_XY1/spot_detection_diagnostic.png
+Classifying splicing patterns...
+  US+SS spots: 142
+  US spots: 119
+  SS spots: 22
+  MS spots: 22
+Saving FOV-level results...
+Extracting per-cell statistics...
+  Extracted 1 cells
+  Cell statistics saved to: /projects/b1042/GoyalLab/egrody/extractedData/EGS023/big-FISH/20251118_EGS023_bingo_slide4_011_XY1/cell_stats.csv
+Results saved to: /projects/b1042/GoyalLab/egrody/extractedData/EGS023/big-FISH/20251118_EGS023_bingo_slide4_011_XY1
+
+
+Processing FOV 8/10
+
+======================================================================
+Processing FOV: 20251118_EGS023_bingo_slide5_003_XY1
+======================================================================
+Found 5 z-slices: ['Z08', 'Z09', 'Z10', 'Z11', 'Z12']
+Loading images...
+Image stack shape: (4, 5, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+Segmented 5 nuclei and 5 cells
+Detecting spots...
+pol: 100 spots (threshold: 25.0)
+env: 145 spots (threshold: 75.0)
+nef: 147 spots (threshold: 43.0)
+Decomposing dense regions and clustering foci...
+After decomposition - pol: 210, env: 274, nef: 264
+Clusters - pol: 4, env: 6, nef: 7
+Removing transcription sites...
+After TS removal - pol: 115, env: 159, nef: 159
+Diagnostic image saved to: /projects/b1042/GoyalLab/egrody/extractedData/EGS023/big-FISH/20251118_EGS023_bingo_slide5_003_XY1/spot_detection_diagnostic.png
+Classifying splicing patterns...
+  US+SS spots: 119
+  US spots: 100
+  SS spots: 18
+  MS spots: 40
+Saving FOV-level results...
+Extracting per-cell statistics...
+  Extracted 5 cells
+  Cell statistics saved to: /projects/b1042/GoyalLab/egrody/extractedData/EGS023/big-FISH/20251118_EGS023_bingo_slide5_003_XY1/cell_stats.csv
+Results saved to: /projects/b1042/GoyalLab/egrody/extractedData/EGS023/big-FISH/20251118_EGS023_bingo_slide5_003_XY1
+
+
+Processing FOV 9/10
+
+======================================================================
+Processing FOV: 20251118_EGS023_bingo_slide5_004_XY1
+======================================================================
+Found 5 z-slices: ['Z08', 'Z09', 'Z10', 'Z11', 'Z12']
+Loading images...
+Image stack shape: (4, 5, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+Segmented 9 nuclei and 9 cells
+Detecting spots...
+pol: 122 spots (threshold: 26.0)
+env: 167 spots (threshold: 97.0)
+nef: 140 spots (threshold: 49.0)
+Decomposing dense regions and clustering foci...
+After decomposition - pol: 246, env: 500, nef: 381
+Clusters - pol: 8, env: 7, nef: 10
+Removing transcription sites...
+After TS removal - pol: 107, env: 123, nef: 118
+Diagnostic image saved to: /projects/b1042/GoyalLab/egrody/extractedData/EGS023/big-FISH/20251118_EGS023_bingo_slide5_004_XY1/spot_detection_diagnostic.png
+Classifying splicing patterns...
+  US+SS spots: 91
+  US spots: 84
+  SS spots: 7
+  MS spots: 27
+Saving FOV-level results...
+Extracting per-cell statistics...
+  Extracted 9 cells
+  Cell statistics saved to: /projects/b1042/GoyalLab/egrody/extractedData/EGS023/big-FISH/20251118_EGS023_bingo_slide5_004_XY1/cell_stats.csv
+Results saved to: /projects/b1042/GoyalLab/egrody/extractedData/EGS023/big-FISH/20251118_EGS023_bingo_slide5_004_XY1
+
+
+Processing FOV 10/10
+
+======================================================================
+Processing FOV: 20251118_EGS023_bingo_slide5_005_XY1
+======================================================================
+Found 5 z-slices: ['Z06', 'Z07', 'Z08', 'Z09', 'Z10']
+Loading images...
+Image stack shape: (4, 5, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+Segmented 4 nuclei and 4 cells
+Detecting spots...
+pol: 52 spots (threshold: 26.0)
+env: 107 spots (threshold: 92.0)
+nef: 95 spots (threshold: 50.0)
+Decomposing dense regions and clustering foci...
+After decomposition - pol: 138, env: 302, nef: 193
+Clusters - pol: 5, env: 1, nef: 3
+Removing transcription sites...
+After TS removal - pol: 34, env: 65, nef: 85
+Diagnostic image saved to: /projects/b1042/GoyalLab/egrody/extractedData/EGS023/big-FISH/20251118_EGS023_bingo_slide5_005_XY1/spot_detection_diagnostic.png
+Classifying splicing patterns...
+  US+SS spots: 47
+  US spots: 30
+  SS spots: 17
+  MS spots: 37
+Saving FOV-level results...
+Extracting per-cell statistics...
+  Extracted 4 cells
+  Cell statistics saved to: /projects/b1042/GoyalLab/egrody/extractedData/EGS023/big-FISH/20251118_EGS023_bingo_slide5_005_XY1/cell_stats.csv
+Results saved to: /projects/b1042/GoyalLab/egrody/extractedData/EGS023/big-FISH/20251118_EGS023_bingo_slide5_005_XY1
+
+======================================================================
+PIPELINE SUMMARY
+======================================================================
+Total FOVs found: 10
+Successfully processed: 10
+Skipped (missing channels): 0
+Errors: 0
+
+Combined cell statistics saved to: /projects/b1042/GoyalLab/egrody/extractedData/EGS023/big-FISH/all_cells_stats.csv
+
+----------------------------------------------------------------------
+PER-CELL RESULTS
+----------------------------------------------------------------------
+FOV / Cell                                   US     SS     MS  Total     Area
+----------------------------------------------------------------------
+20251118_EGS023_bingo_slide4_002/cell_1       2      1    121    124  2127322
+20251118_EGS023_bingo_slide4_002/cell_2       0      0      5      5  3176150
+20251118_EGS023_bingo_slide4_003/cell_1       0      2     34     36  5308416
+20251118_EGS023_bingo_slide4_004/cell_1       4     58     41    103  5308416
+20251118_EGS023_bingo_slide4_005         no cells
+20251118_EGS023_bingo_slide4_008/cell_1       0      0      0      0  1237973
+20251118_EGS023_bingo_slide4_008/cell_2      48      6      9     63  1988745
+20251118_EGS023_bingo_slide4_008/cell_3       3      2      3      8  2073892
+20251118_EGS023_bingo_slide4_009_XY1/cel     71     14     15    100  2777608
+20251118_EGS023_bingo_slide4_009_XY1/cel      0      1      1      2  2525614
+20251118_EGS023_bingo_slide4_011_XY1/cel    119     22     22    163  5308416
+20251118_EGS023_bingo_slide5_003_XY1/cel      0      0      2      2   731215
+20251118_EGS023_bingo_slide5_003_XY1/cel      0      0      4      4   793778
+20251118_EGS023_bingo_slide5_003_XY1/cel      0      2      2      4    48690
+20251118_EGS023_bingo_slide5_003_XY1/cel    100     14     23    137   857156
+20251118_EGS023_bingo_slide5_003_XY1/cel      0      2      8     10  1803771
+20251118_EGS023_bingo_slide5_004_XY1/cel      0      0      4      4   203571
+20251118_EGS023_bingo_slide5_004_XY1/cel      0      0      1      1    56946
+20251118_EGS023_bingo_slide5_004_XY1/cel      0      0      0      0   765504
+20251118_EGS023_bingo_slide5_004_XY1/cel      1      0      2      3  1088109
+20251118_EGS023_bingo_slide5_004_XY1/cel     75      3      2     80   299786
+20251118_EGS023_bingo_slide5_004_XY1/cel      3      2      0      5    29951
+20251118_EGS023_bingo_slide5_004_XY1/cel      0      0      4      4   990113
+20251118_EGS023_bingo_slide5_004_XY1/cel      2      1      8     11   723185
+20251118_EGS023_bingo_slide5_004_XY1/cel      3      1      5      9   742197
+20251118_EGS023_bingo_slide5_005_XY1/cel      2     12      4     18  1641484
+20251118_EGS023_bingo_slide5_005_XY1/cel     28      5     26     59   437730
+20251118_EGS023_bingo_slide5_005_XY1/cel      0      0      4      4  1774923
+20251118_EGS023_bingo_slide5_005_XY1/cel      0      0      3      3   821734
+
+----------------------------------------------------------------------
+FOV SUMMARY
+----------------------------------------------------------------------
+Total cells across all FOVs: 28
+Total spots - US: 501, SS: 208, MS: 360
+
+20251118_EGS023_bingo_slide4_002:
+  Cells: 2, Nuclei: 2
+  FOV totals - US: 2, SS: 1, MS: 126
+
+20251118_EGS023_bingo_slide4_003:
+  Cells: 1, Nuclei: 1
+  FOV totals - US: 0, SS: 2, MS: 34
+
+20251118_EGS023_bingo_slide4_004:
+  Cells: 1, Nuclei: 1
+  FOV totals - US: 4, SS: 58, MS: 41
+
+20251118_EGS023_bingo_slide4_005:
+  Cells: 0, Nuclei: 0
+  FOV totals - US: 40, SS: 60, MS: 5
+
+20251118_EGS023_bingo_slide4_008:
+  Cells: 3, Nuclei: 3
+  FOV totals - US: 51, SS: 8, MS: 12
+
+20251118_EGS023_bingo_slide4_009_XY1:
+  Cells: 2, Nuclei: 2
+  FOV totals - US: 71, SS: 15, MS: 16
+
+20251118_EGS023_bingo_slide4_011_XY1:
+  Cells: 1, Nuclei: 1
+  FOV totals - US: 119, SS: 22, MS: 22
+
+20251118_EGS023_bingo_slide5_003_XY1:
+  Cells: 5, Nuclei: 5
+  FOV totals - US: 100, SS: 18, MS: 40
+
+20251118_EGS023_bingo_slide5_004_XY1:
+  Cells: 9, Nuclei: 9
+  FOV totals - US: 84, SS: 7, MS: 27
+
+20251118_EGS023_bingo_slide5_005_XY1:
+  Cells: 4, Nuclei: 4
+  FOV totals - US: 30, SS: 17, MS: 37
+======================================================================

@@ -1,0 +1,160 @@
+Processing Pacute_tat_up_PL_R2: Read type=R2, Target length=61 bp
+  Trimmed: Pacute_tat_up_PL_S3_R2_001.fastq.gz -> length=61 bp
+  Trimmed: Pacute_tat_up_PL_S3_R2_001.fastq.gz -> length=61 bp
+  Trimmed: Pacute_PL_tat_S3_R2_001.fastq.gz -> length=61 bp
+Created fastq_concat/Pacute_tat_up_PL_S3_L001_R2_001.fastq.gz from 3 files
+Processing Pacute_tat_up_PL_R1: Read type=R1, Target length=28 bp
+  Note: fastq_20250310/Pacute_tat_up_PL_S3_R1_001.fastq.gz already at target length, copying
+  Trimmed: Pacute_tat_up_PL_S3_R1_001.fastq.gz -> length=28 bp
+  Note: fastq_20250312/Pacute_tat_up_PL_S3_R1_001.fastq.gz already at target length, copying
+  Trimmed: Pacute_tat_up_PL_S3_R1_001.fastq.gz -> length=28 bp
+  Trimmed: Pacute_PL_tat_S3_R1_001.fastq.gz -> length=28 bp
+Created fastq_concat/Pacute_tat_up_PL_S3_L001_R1_001.fastq.gz from 3 files
+Processing Pacute_D1_up_PL_I2: Read type=I2, Target length=8 bp
+  Trimmed: Pacute_D1_up_PL_S2_I2_001.fastq.gz -> length=8 bp
+  Trimmed: Pacute_D1_up_PL_S2_I2_001.fastq.gz -> length=8 bp
+  Trimmed: Pacute_PL_D1_S2_I2_001.fastq.gz -> length=8 bp
+Created fastq_concat/Pacute_D1_up_PL_S2_L001_I2_001.fastq.gz from 3 files
+Processing Pacute_D1_up_PL_I1: Read type=I1, Target length=8 bp
+  Trimmed: Pacute_D1_up_PL_S2_I1_001.fastq.gz -> length=8 bp
+  Trimmed: Pacute_D1_up_PL_S2_I1_001.fastq.gz -> length=8 bp
+  Trimmed: Pacute_PL_D1_S2_I1_001.fastq.gz -> length=8 bp
+Created fastq_concat/Pacute_D1_up_PL_S2_L001_I1_001.fastq.gz from 3 files
+Processing Pacute_D1_up_CI_I2: Read type=I2, Target length=8 bp
+  Trimmed: Pacute_D1_up_CI_S6_I2_001.fastq.gz -> length=8 bp
+Created fastq_concat/Pacute_D1_up_CI_S6_L001_I2_001.fastq.gz from 1 files
+Processing Pacute_D1_up_CI_I1: Read type=I1, Target length=8 bp
+  Trimmed: Pacute_D1_up_CI_S6_I1_001.fastq.gz -> length=8 bp
+Created fastq_concat/Pacute_D1_up_CI_S6_L001_I1_001.fastq.gz from 1 files
+Processing Pacute_LTR_CI_I2: Read type=I2, Target length=8 bp
+  Trimmed: Pacute_LTR_CI_S5_I2_001.fastq.gz -> length=8 bp
+  Trimmed: Pacute_CI_LTR_S5_I2_001.fastq.gz -> length=8 bp
+Created fastq_concat/Pacute_LTR_CI_S5_L001_I2_001.fastq.gz from 2 files
+Processing Pacute_LTR_CI_I1: Read type=I1, Target length=8 bp
+  Trimmed: Pacute_LTR_CI_S5_I1_001.fastq.gz -> length=8 bp
+  Trimmed: Pacute_CI_LTR_S5_I1_001.fastq.gz -> length=8 bp
+Created fastq_concat/Pacute_LTR_CI_S5_L001_I1_001.fastq.gz from 2 files
+Processing Pacute_D1_up_PL_R2: Read type=R2, Target length=61 bp
+  Trimmed: Pacute_D1_up_PL_S2_R2_001.fastq.gz -> length=61 bp
+  Trimmed: Pacute_D1_up_PL_S2_R2_001.fastq.gz -> length=61 bp
+  Trimmed: Pacute_PL_D1_S2_R2_001.fastq.gz -> length=61 bp
+Created fastq_concat/Pacute_D1_up_PL_S2_L001_R2_001.fastq.gz from 3 files
+Processing Pacute_nef_CI_I2: Read type=I2, Target length=8 bp
+  Trimmed: Pacute_nef_CI_S8_I2_001.fastq.gz -> length=8 bp
+  Trimmed: Pacute_CI_nef_S8_I2_001.fastq.gz -> length=8 bp
+Created fastq_concat/Pacute_nef_CI_S8_L001_I2_001.fastq.gz from 2 files
+Processing Pacute_nef_CI_I1: Read type=I1, Target length=8 bp
+  Trimmed: Pacute_nef_CI_S8_I1_001.fastq.gz -> length=8 bp
+  Trimmed: Pacute_CI_nef_S8_I1_001.fastq.gz -> length=8 bp
+Created fastq_concat/Pacute_nef_CI_S8_L001_I1_001.fastq.gz from 2 files
+Processing Pacute_D1_up_PL_R1: Read type=R1, Target length=28 bp
+  Note: fastq_20250310/Pacute_D1_up_PL_S2_R1_001.fastq.gz already at target length, copying
+  Trimmed: Pacute_D1_up_PL_S2_R1_001.fastq.gz -> length=28 bp
+  Note: fastq_20250312/Pacute_D1_up_PL_S2_R1_001.fastq.gz already at target length, copying
+  Trimmed: Pacute_D1_up_PL_S2_R1_001.fastq.gz -> length=28 bp
+  Trimmed: Pacute_PL_D1_S2_R1_001.fastq.gz -> length=28 bp
+Created fastq_concat/Pacute_D1_up_PL_S2_L001_R1_001.fastq.gz from 3 files
+Processing Pacute_nef_PL_R2: Read type=R2, Target length=61 bp
+  Trimmed: Pacute_nef_PL_S4_R2_001.fastq.gz -> length=61 bp
+  Trimmed: Pacute_nef_PL_S4_R2_001.fastq.gz -> length=61 bp
+  Trimmed: Pacute_PL_nef_S4_R2_001.fastq.gz -> length=61 bp
+Created fastq_concat/Pacute_nef_PL_S4_L001_R2_001.fastq.gz from 3 files
+Processing Pacute_nef_PL_R1: Read type=R1, Target length=28 bp
+  Note: fastq_20250310/Pacute_nef_PL_S4_R1_001.fastq.gz already at target length, copying
+  Trimmed: Pacute_nef_PL_S4_R1_001.fastq.gz -> length=28 bp
+  Note: fastq_20250312/Pacute_nef_PL_S4_R1_001.fastq.gz already at target length, copying
+  Trimmed: Pacute_nef_PL_S4_R1_001.fastq.gz -> length=28 bp
+  Trimmed: Pacute_PL_nef_S4_R1_001.fastq.gz -> length=28 bp
+Created fastq_concat/Pacute_nef_PL_S4_L001_R1_001.fastq.gz from 3 files
+Processing Pacute_nef_PL_I2: Read type=I2, Target length=8 bp
+  Trimmed: Pacute_nef_PL_S4_I2_001.fastq.gz -> length=8 bp
+  Trimmed: Pacute_nef_PL_S4_I2_001.fastq.gz -> length=8 bp
+  Trimmed: Pacute_PL_nef_S4_I2_001.fastq.gz -> length=8 bp
+Created fastq_concat/Pacute_nef_PL_S4_L001_I2_001.fastq.gz from 3 files
+Processing Pacute_nef_PL_I1: Read type=I1, Target length=8 bp
+  Trimmed: Pacute_nef_PL_S4_I1_001.fastq.gz -> length=8 bp
+  Trimmed: Pacute_nef_PL_S4_I1_001.fastq.gz -> length=8 bp
+  Trimmed: Pacute_PL_nef_S4_I1_001.fastq.gz -> length=8 bp
+Created fastq_concat/Pacute_nef_PL_S4_L001_I1_001.fastq.gz from 3 files
+Processing Pacute_LTR_PL_R2: Read type=R2, Target length=61 bp
+  Trimmed: Pacute_LTR_PL_S1_R2_001.fastq.gz -> length=61 bp
+  Trimmed: Pacute_LTR_PL_S1_R2_001.fastq.gz -> length=61 bp
+  Trimmed: Pacute_PL_LTR_S1_R2_001.fastq.gz -> length=61 bp
+Created fastq_concat/Pacute_LTR_PL_S1_L001_R2_001.fastq.gz from 3 files
+Processing Pacute_LTR_PL_R1: Read type=R1, Target length=28 bp
+  Note: fastq_20250310/Pacute_LTR_PL_S1_R1_001.fastq.gz already at target length, copying
+  Trimmed: Pacute_LTR_PL_S1_R1_001.fastq.gz -> length=28 bp
+  Note: fastq_20250312/Pacute_LTR_PL_S1_R1_001.fastq.gz already at target length, copying
+  Trimmed: Pacute_LTR_PL_S1_R1_001.fastq.gz -> length=28 bp
+  Trimmed: Pacute_PL_LTR_S1_R1_001.fastq.gz -> length=28 bp
+Created fastq_concat/Pacute_LTR_PL_S1_L001_R1_001.fastq.gz from 3 files
+Processing Pacute_tat_up_CI_R2: Read type=R2, Target length=61 bp
+  Trimmed: Pacute_tat_up_CI_S7_R2_001.fastq.gz -> length=61 bp
+  Trimmed: Pacute_CI_tat_S7_R2_001.fastq.gz -> length=61 bp
+Created fastq_concat/Pacute_tat_up_CI_S7_L001_R2_001.fastq.gz from 2 files
+Processing Pacute_tat_up_CI_R1: Read type=R1, Target length=28 bp
+  Note: fastq_20250312/Pacute_tat_up_CI_S7_R1_001.fastq.gz already at target length, copying
+  Trimmed: Pacute_tat_up_CI_S7_R1_001.fastq.gz -> length=28 bp
+  Trimmed: Pacute_CI_tat_S7_R1_001.fastq.gz -> length=28 bp
+Created fastq_concat/Pacute_tat_up_CI_S7_L001_R1_001.fastq.gz from 2 files
+Processing Pacute_nef_CI_R2: Read type=R2, Target length=61 bp
+  Trimmed: Pacute_nef_CI_S8_R2_001.fastq.gz -> length=61 bp
+  Trimmed: Pacute_CI_nef_S8_R2_001.fastq.gz -> length=61 bp
+Created fastq_concat/Pacute_nef_CI_S8_L001_R2_001.fastq.gz from 2 files
+Processing Pacute_nef_CI_R1: Read type=R1, Target length=28 bp
+  Note: fastq_20250312/Pacute_nef_CI_S8_R1_001.fastq.gz already at target length, copying
+  Trimmed: Pacute_nef_CI_S8_R1_001.fastq.gz -> length=28 bp
+  Trimmed: Pacute_CI_nef_S8_R1_001.fastq.gz -> length=28 bp
+Created fastq_concat/Pacute_nef_CI_S8_L001_R1_001.fastq.gz from 2 files
+Processing Pacute_LTR_CI_R2: Read type=R2, Target length=61 bp
+  Trimmed: Pacute_LTR_CI_S5_R2_001.fastq.gz -> length=61 bp
+  Trimmed: Pacute_CI_LTR_S5_R2_001.fastq.gz -> length=61 bp
+Created fastq_concat/Pacute_LTR_CI_S5_L001_R2_001.fastq.gz from 2 files
+Processing Pacute_LTR_CI_R1: Read type=R1, Target length=28 bp
+  Note: fastq_20250312/Pacute_LTR_CI_S5_R1_001.fastq.gz already at target length, copying
+  Trimmed: Pacute_LTR_CI_S5_R1_001.fastq.gz -> length=28 bp
+  Trimmed: Pacute_CI_LTR_S5_R1_001.fastq.gz -> length=28 bp
+Created fastq_concat/Pacute_LTR_CI_S5_L001_R1_001.fastq.gz from 2 files
+Processing Pacute_D1_up_CI_R2: Read type=R2, Target length=61 bp
+  Trimmed: Pacute_D1_up_CI_S6_R2_001.fastq.gz -> length=61 bp
+Created fastq_concat/Pacute_D1_up_CI_S6_L001_R2_001.fastq.gz from 1 files
+Processing Pacute_D1_up_CI_R1: Read type=R1, Target length=28 bp
+  Note: fastq_20250312/Pacute_D1_up_CI_S6_R1_001.fastq.gz already at target length, copying
+  Trimmed: Pacute_D1_up_CI_S6_R1_001.fastq.gz -> length=28 bp
+Created fastq_concat/Pacute_D1_up_CI_S6_L001_R1_001.fastq.gz from 1 files
+Processing Pacute_tat_up_PL_I2: Read type=I2, Target length=8 bp
+  Trimmed: Pacute_tat_up_PL_S3_I2_001.fastq.gz -> length=8 bp
+  Trimmed: Pacute_tat_up_PL_S3_I2_001.fastq.gz -> length=8 bp
+  Trimmed: Pacute_PL_tat_S3_I2_001.fastq.gz -> length=8 bp
+Created fastq_concat/Pacute_tat_up_PL_S3_L001_I2_001.fastq.gz from 3 files
+Processing Pacute_tat_up_PL_I1: Read type=I1, Target length=8 bp
+  Trimmed: Pacute_tat_up_PL_S3_I1_001.fastq.gz -> length=8 bp
+  Trimmed: Pacute_tat_up_PL_S3_I1_001.fastq.gz -> length=8 bp
+  Trimmed: Pacute_PL_tat_S3_I1_001.fastq.gz -> length=8 bp
+Created fastq_concat/Pacute_tat_up_PL_S3_L001_I1_001.fastq.gz from 3 files
+Processing Pacute_tat_up_CI_I2: Read type=I2, Target length=8 bp
+  Trimmed: Pacute_tat_up_CI_S7_I2_001.fastq.gz -> length=8 bp
+  Trimmed: Pacute_CI_tat_S7_I2_001.fastq.gz -> length=8 bp
+Created fastq_concat/Pacute_tat_up_CI_S7_L001_I2_001.fastq.gz from 2 files
+Processing Pacute_tat_up_CI_I1: Read type=I1, Target length=8 bp
+  Trimmed: Pacute_tat_up_CI_S7_I1_001.fastq.gz -> length=8 bp
+  Trimmed: Pacute_CI_tat_S7_I1_001.fastq.gz -> length=8 bp
+Created fastq_concat/Pacute_tat_up_CI_S7_L001_I1_001.fastq.gz from 2 files
+Processing Pacute_LTR_PL_I2: Read type=I2, Target length=8 bp
+  Trimmed: Pacute_LTR_PL_S1_I2_001.fastq.gz -> length=8 bp
+  Trimmed: Pacute_LTR_PL_S1_I2_001.fastq.gz -> length=8 bp
+  Trimmed: Pacute_PL_LTR_S1_I2_001.fastq.gz -> length=8 bp
+Created fastq_concat/Pacute_LTR_PL_S1_L001_I2_001.fastq.gz from 3 files
+Processing Pacute_LTR_PL_I1: Read type=I1, Target length=8 bp
+  Trimmed: Pacute_LTR_PL_S1_I1_001.fastq.gz -> length=8 bp
+  Trimmed: Pacute_LTR_PL_S1_I1_001.fastq.gz -> length=8 bp
+  Trimmed: Pacute_PL_LTR_S1_I1_001.fastq.gz -> length=8 bp
+Created fastq_concat/Pacute_LTR_PL_S1_L001_I1_001.fastq.gz from 3 files
+Complete!
+
+=== Verifying output file lengths ===
+
+
+=== Summary ===
+
+Verification complete!

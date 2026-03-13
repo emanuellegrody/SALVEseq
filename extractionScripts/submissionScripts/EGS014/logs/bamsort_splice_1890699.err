@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_splice.py", line 110, in <module>
+    main(bam_file, output_csv)
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bamsort_splice.py", line 76, in main
+    with open(output_csv, "w", newline="") as csvfile:
+FileNotFoundError: [Errno 2] No such file or directory: '/projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/bamsort/splice/D13_D1_nef_splicesites.csv'

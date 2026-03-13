@@ -1,0 +1,4 @@
+/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py:452: UserWarning: No contour levels were found within the data range.
+  ax.contour(cell_mask, colors='lime', linewidths=0.5, alpha=0.5)
+/home/egy2296/.conda/envs/bigfish_env/lib/python3.6/site-packages/bigfish/detection/utils.py:433: UserWarning: Problem occurs during the computation of a reference spot. Not enough (uncropped) spots have been detected.
+  UserWarning)

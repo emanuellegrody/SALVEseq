@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/joinBAM.py", line 7, in <module>
+    import pysam
+ModuleNotFoundError: No module named 'pysam'

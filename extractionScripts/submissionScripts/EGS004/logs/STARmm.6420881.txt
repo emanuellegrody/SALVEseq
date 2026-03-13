@@ -1,0 +1,4 @@
+Starting STAR alignment...
+Jun 22 20:15:53 ..... started STAR run
+Jun 22 20:15:53 ..... loading genome
+Jun 22 20:16:02 ..... started 1st pass mapping

@@ -1,0 +1,24 @@
+Processing sample: cDNA
+Input BAM: /projects/b1042/GoyalLab/egrody/extractedData/EGS007/longRead/nf-core/cDNA/bam/dedup/cDNA.dedup.sorted.bam
+Output CSV: /projects/b1042/GoyalLab/egrody/extractedData/EGS007/longRead/bamsort/isoform/cDNA_isoforms.csv
+Input BAM: /projects/b1042/GoyalLab/egrody/extractedData/EGS007/longRead/nf-core/cDNA/bam/dedup/cDNA.dedup.sorted.bam
+Output CSV: /projects/b1042/GoyalLab/egrody/extractedData/EGS007/longRead/bamsort/isoform/cDNA_isoforms.csv
+Coordinate tolerance: +/- 5bp
+------------------------------------------------------------
+Processing complete!
+------------------------------------------------------------
+Total reads examined: 1939
+Unmapped reads: 0
+Reads without cell barcode (skipped): 0
+Reads without UMI (still classified): 0
+Successfully classified reads: 1939
+Success rate: 100.0%
+------------------------------------------------------------
+Isoform distribution:
+  US: 1230 (63.4%)
+  MS: 37 (1.9%)
+  SS: 5 (0.3%)
+  any: 667 (34.4%)
+------------------------------------------------------------
+Tolerance used: +/- 5bp
+Results written to: /projects/b1042/GoyalLab/egrody/extractedData/EGS007/longRead/bamsort/isoform/cDNA_isoforms.csv

@@ -1,0 +1,67 @@
+All imports OK
+Loaded 10753 filtered barcodes.
+
+=== Loading molecule_info.h5 ===
+Raw molecules in h5: 32,061,876
+After barcode filter: 29,633,565 molecules (92.4% of raw)
+Loaded 29,633,565 unique molecules from 10,753 barcodes.
+
+=== Read-per-UMI saturation ===
+Global read-per-UMI saturation: 0.3374
+Total reads: 44,724,280  |  Unique UMIs: 29,633,565
+Per-cell saturation: median=0.3382, mean=0.3375
+
+=== Downsampling rarefaction ===
+Rarefaction: 11 fractions x 3 iterations = 33 tasks on 8 workers
+  fraction=0.05 complete (3/33 tasks)
+  fraction=0.10 complete (6/33 tasks)
+  fraction=0.20 complete (9/33 tasks)
+  fraction=0.30 complete (12/33 tasks)
+  fraction=0.40 complete (15/33 tasks)
+  fraction=0.50 complete (18/33 tasks)
+  fraction=0.70 complete (21/33 tasks)
+  fraction=0.70 complete (24/33 tasks)
+  fraction=0.80 complete (27/33 tasks)
+  fraction=0.90 complete (30/33 tasks)
+  fraction=1.00 complete (33/33 tasks)
+  fraction=0.05  reads=   2,236,214  median_genes=133  saturation=0.0490
+  fraction=0.10  reads=   4,472,428  median_genes=233  saturation=0.0939
+  fraction=0.20  reads=   8,944,856  median_genes=383  saturation=0.1723
+  fraction=0.30  reads=  13,417,284  median_genes=495  saturation=0.2393
+  fraction=0.40  reads=  17,889,712  median_genes=582  saturation=0.2967
+  fraction=0.50  reads=  22,362,140  median_genes=655  saturation=0.3468
+  fraction=0.60  reads=  26,834,568  median_genes=714  saturation=0.3908
+  fraction=0.70  reads=  31,306,995  median_genes=762  saturation=0.4296
+  fraction=0.80  reads=  35,779,424  median_genes=805  saturation=0.4643
+  fraction=0.90  reads=  40,251,852  median_genes=841  saturation=0.4954
+  fraction=1.00  reads=  44,724,280  median_genes=873  saturation=0.5234
+
+=== Building count matrix from molecule data ===
+
+=== Per-gene dropout analysis for: ['CD4', 'GFP', 'mac239'] ===
+--- Poisson model (conservative lower bound on dropout) ---
+  CD4: frac_expressing=0.003, p_g=1.01e-06, median_P(dropout)=0.9978 -- High dropout expected even under Poisson -- likely undersequenced for this gene or gene is genuinely very lowly expressed.
+  GFP: frac_expressing=0.039, p_g=1.49e-05, median_P(dropout)=0.9683 -- High dropout expected even under Poisson -- likely undersequenced for this gene or gene is genuinely very lowly expressed.
+  mac239: frac_expressing=0.002, p_g=1.08e-05, median_P(dropout)=0.9769 -- High dropout expected even under Poisson -- likely undersequenced for this gene or gene is genuinely very lowly expressed.
+
+--- Negative binomial model (accounts for overdispersion) ---
+  CD4: mu=0.003, var=0.003, r=0.02, NB_P(0)=0.9974, Poisson_P(0)=0.9972
+  GFP: mu=0.041, var=0.044, r=0.65, NB_P(0)=0.9609, Poisson_P(0)=0.9597
+  mac239: mu=0.030, var=2.857, r=0.00, NB_P(0)=0.9986, Poisson_P(0)=0.9706
+
+=== Generating plots ===
+Saved: /projects/b1042/GoyalLab/egrody/extractedData/EGS024/singleCell/saturation/saturation_report.png and /projects/b1042/GoyalLab/egrody/extractedData/EGS024/singleCell/saturation/saturation_report.pdf
+Saved: /projects/b1042/GoyalLab/egrody/extractedData/EGS024/singleCell/saturation/saturation_report_dropout.png
+
+=== Summary ===
+Global saturation: 0.3374
+Genes at 50% depth: 655  |  at 100%: 873  |  marginal gain from 2nd half of reads: 33.2%
+Interpretation: library is undersaturated. Substantially more genes would be detected with deeper sequencing.
+
+Per-gene dropout summary:
+  CD4: High dropout expected even under Poisson -- likely undersequenced for this gene or gene is genuinely very lowly expressed. Deeper sequencing or enrichment may help.
+  GFP: High dropout expected even under Poisson -- likely undersequenced for this gene or gene is genuinely very lowly expressed. Deeper sequencing or enrichment may help.
+  mac239: High dropout expected even under Poisson -- likely undersequenced for this gene or gene is genuinely very lowly expressed. Deeper sequencing or enrichment may help.
+
+All output files saved with prefix: /projects/b1042/GoyalLab/egrody/extractedData/EGS024/singleCell/saturation/saturation_report
+Done. Output in: /projects/b1042/GoyalLab/egrody/extractedData/EGS024/singleCell/saturation

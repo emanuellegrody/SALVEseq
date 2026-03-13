@@ -1,0 +1,403 @@
+
+======================================================================
+big-FISH Multi-FOV Pipeline
+======================================================================
+Input directory: /projects/b1042/GoyalLab/egrody/rawData/EGS023/20251118/TIFF/
+Output directory: /projects/b1042/GoyalLab/egrody/extractedData/EGS023/big-FISH/
+Channels: ['Blue', 'Red', 'Gold70', 'FarRed']
+DAPI present: True
+Found 10 FOVs to process
+======================================================================
+
+
+Processing FOV 1/10
+
+======================================================================
+Processing FOV: 20251118_EGS023_bingo_slide4_002
+======================================================================
+Found 6 z-slices: ['Z05', 'Z06', 'Z07', 'Z08', 'Z09', 'Z10']
+Loading images...
+Image stack shape: (4, 6, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+  Nuclear threshold (Otsu): 17364
+  Otsu threshold (on clipped image): 0
+  (Image clipped to p10=0, p99=0 to reduce TS influence)
+  Removed object 1 with area 5306850 (exceeds max 41547)
+  Intensity-based segmentation: 0 cells, 2 nuclei
+Segmented 2 nuclei and 0 cells
+Detecting spots...
+pol: 125 spots (threshold: 28.0)
+env: 15 spots (threshold: 8.0)
+nef: 139 spots (threshold: 65.0)
+Decomposing dense regions and clustering foci...
+pol: 5 clusters
+env: 1 clusters
+nef: 6 clusters
+Removing transcription sites...
+After TS removal: pol=109, env=37, nef=129
+Performing colocalization analysis...
+Colocalization: pol-env=3, pol-nef=96, env-nef=3
+Classifying splicing patterns...
+Classification: US=11, SS=2, MS=1
+
+
+Processing FOV 2/10
+
+======================================================================
+Processing FOV: 20251118_EGS023_bingo_slide4_003
+======================================================================
+Found 6 z-slices: ['Z05', 'Z06', 'Z07', 'Z08', 'Z09', 'Z10']
+Loading images...
+Image stack shape: (4, 6, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+  Nuclear threshold (Otsu): 20586
+  Otsu threshold (on clipped image): 0
+  (Image clipped to p10=0, p99=0 to reduce TS influence)
+  Removed object 1 with area 4777988 (exceeds max 41547)
+  Intensity-based segmentation: 3 cells, 0 nuclei
+Segmented 0 nuclei and 3 cells
+Detecting spots...
+pol: 10 spots (threshold: 25.333333333333336)
+env: 31 spots (threshold: 7.777777777777778)
+nef: 23 spots (threshold: 44.0)
+Decomposing dense regions and clustering foci...
+pol: 0 clusters
+env: 0 clusters
+nef: 2 clusters
+Removing transcription sites...
+  Note: Nuclear segmentation failed, using intensity-based TS detection
+  Note: Nuclear segmentation failed, using intensity-based TS detection
+  Note: Nuclear segmentation failed, using intensity-based TS detection
+  Intensity-based TS removal: TS center at (822, 1112), radius=15, 1 clusters in TS, 17 spots removed
+After TS removal: pol=0, env=31, nef=36
+Performing colocalization analysis...
+Colocalization: pol-env=0, pol-nef=0, env-nef=2
+Classifying splicing patterns...
+Classification: US=0, SS=0, MS=0
+
+
+Processing FOV 3/10
+
+======================================================================
+Processing FOV: 20251118_EGS023_bingo_slide4_004
+======================================================================
+Found 6 z-slices: ['Z05', 'Z06', 'Z07', 'Z08', 'Z09', 'Z10']
+Loading images...
+Image stack shape: (4, 6, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+  Nuclear threshold (Otsu): 19428
+  Otsu threshold (on clipped image): 0
+  (Image clipped to p10=0, p99=0 to reduce TS influence)
+  Removed object 1 with area 4218935 (exceeds max 41547)
+  Intensity-based segmentation: 0 cells, 1 nuclei
+Segmented 1 nuclei and 0 cells
+Detecting spots...
+pol: 95 spots (threshold: 26.0)
+env: 113 spots (threshold: 70.0)
+nef: 108 spots (threshold: 45.0)
+Decomposing dense regions and clustering foci...
+pol: 5 clusters
+env: 5 clusters
+nef: 6 clusters
+Removing transcription sites...
+After TS removal: pol=75, env=70, nef=97
+Performing colocalization analysis...
+Colocalization: pol-env=65, pol-nef=71, env-nef=62
+Classifying splicing patterns...
+Classification: US=4, SS=0, MS=66
+
+
+Processing FOV 4/10
+
+======================================================================
+Processing FOV: 20251118_EGS023_bingo_slide4_005
+======================================================================
+Found 5 z-slices: ['Z07', 'Z08', 'Z09', 'Z10', 'Z11']
+Loading images...
+Image stack shape: (4, 5, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+  Nuclear threshold (Otsu): 12810
+  Otsu threshold (on clipped image): 0
+  (Image clipped to p10=0, p99=0 to reduce TS influence)
+  Removed object 1 with area 4292192 (exceeds max 41547)
+  Intensity-based segmentation: 0 cells, 2 nuclei
+Segmented 2 nuclei and 0 cells
+Detecting spots...
+pol: 39 spots (threshold: 26.0)
+env: 83 spots (threshold: 73.0)
+nef: 78 spots (threshold: 45.0)
+Decomposing dense regions and clustering foci...
+pol: 1 clusters
+env: 3 clusters
+nef: 3 clusters
+Removing transcription sites...
+After TS removal: pol=43, env=73, nef=73
+Performing colocalization analysis...
+Colocalization: pol-env=40, pol-nef=2, env-nef=67
+Classifying splicing patterns...
+Classification: US=2, SS=39, MS=1
+
+
+Processing FOV 5/10
+
+======================================================================
+Processing FOV: 20251118_EGS023_bingo_slide4_008
+======================================================================
+Found 6 z-slices: ['Z06', 'Z07', 'Z08', 'Z09', 'Z10', 'Z11']
+Loading images...
+Image stack shape: (4, 6, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+  Nuclear threshold (Otsu): 20111
+  Otsu threshold (on clipped image): 0
+  (Image clipped to p10=0, p99=0 to reduce TS influence)
+  Removed object 1 with area 4281874 (exceeds max 41547)
+  Intensity-based segmentation: 0 cells, 3 nuclei
+Segmented 3 nuclei and 0 cells
+Detecting spots...
+pol: 60 spots (threshold: 26.0)
+env: 93 spots (threshold: 84.0)
+nef: 92 spots (threshold: 59.0)
+Decomposing dense regions and clustering foci...
+pol: 2 clusters
+env: 4 clusters
+nef: 7 clusters
+Removing transcription sites...
+After TS removal: pol=53, env=67, nef=61
+Performing colocalization analysis...
+Colocalization: pol-env=49, pol-nef=50, env-nef=54
+Classifying splicing patterns...
+Classification: US=2, SS=1, MS=48
+
+
+Processing FOV 6/10
+
+======================================================================
+Processing FOV: 20251118_EGS023_bingo_slide4_009_XY1
+======================================================================
+Found 5 z-slices: ['Z06', 'Z07', 'Z08', 'Z09', 'Z10']
+Loading images...
+Image stack shape: (4, 5, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+  Nuclear threshold (Otsu): 16880
+  Otsu threshold (on clipped image): 0
+  (Image clipped to p10=0, p99=0 to reduce TS influence)
+  Removed object 1 with area 4120844 (exceeds max 41547)
+  Intensity-based segmentation: 0 cells, 3 nuclei
+Segmented 3 nuclei and 0 cells
+Detecting spots...
+pol: 92 spots (threshold: 29.0)
+env: 143 spots (threshold: 90.0)
+nef: 93 spots (threshold: 49.0)
+Decomposing dense regions and clustering foci...
+pol: 9 clusters
+env: 8 clusters
+nef: 4 clusters
+Removing transcription sites...
+After TS removal: pol=73, env=128, nef=90
+Performing colocalization analysis...
+Colocalization: pol-env=61, pol-nef=51, env-nef=60
+Classifying splicing patterns...
+Classification: US=7, SS=15, MS=46
+
+
+Processing FOV 7/10
+
+======================================================================
+Processing FOV: 20251118_EGS023_bingo_slide4_011_XY1
+======================================================================
+Found 5 z-slices: ['Z06', 'Z07', 'Z08', 'Z09', 'Z10']
+Loading images...
+Image stack shape: (4, 5, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+  Nuclear threshold (Otsu): 13678
+  Otsu threshold (on clipped image): 0
+  (Image clipped to p10=0, p99=0 to reduce TS influence)
+  Removed object 1 with area 4211227 (exceeds max 41547)
+  Intensity-based segmentation: 0 cells, 3 nuclei
+Segmented 3 nuclei and 0 cells
+Detecting spots...
+pol: 56 spots (threshold: 28.0)
+env: 105 spots (threshold: 77.0)
+nef: 83 spots (threshold: 44.0)
+Decomposing dense regions and clustering foci...
+pol: 2 clusters
+env: 2 clusters
+nef: 4 clusters
+Removing transcription sites...
+After TS removal: pol=46, env=95, nef=81
+Performing colocalization analysis...
+Colocalization: pol-env=40, pol-nef=40, env-nef=61
+Classifying splicing patterns...
+Classification: US=3, SS=3, MS=37
+
+
+Processing FOV 8/10
+
+======================================================================
+Processing FOV: 20251118_EGS023_bingo_slide5_003_XY1
+======================================================================
+Found 5 z-slices: ['Z08', 'Z09', 'Z10', 'Z11', 'Z12']
+Loading images...
+Image stack shape: (4, 5, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+  Nuclear threshold (Otsu): 17369
+  Otsu threshold (on clipped image): 0
+  (Image clipped to p10=0, p99=0 to reduce TS influence)
+  Removed object 1 with area 4228409 (exceeds max 41547)
+  Intensity-based segmentation: 0 cells, 2 nuclei
+Segmented 2 nuclei and 0 cells
+Detecting spots...
+pol: 100 spots (threshold: 25.0)
+env: 145 spots (threshold: 75.0)
+nef: 147 spots (threshold: 43.0)
+Decomposing dense regions and clustering foci...
+pol: 4 clusters
+env: 6 clusters
+nef: 7 clusters
+Removing transcription sites...
+After TS removal: pol=117, env=146, nef=145
+Performing colocalization analysis...
+Colocalization: pol-env=103, pol-nef=103, env-nef=98
+Classifying splicing patterns...
+Classification: US=13, SS=1, MS=102
+
+
+Processing FOV 9/10
+
+======================================================================
+Processing FOV: 20251118_EGS023_bingo_slide5_004_XY1
+======================================================================
+Found 5 z-slices: ['Z08', 'Z09', 'Z10', 'Z11', 'Z12']
+Loading images...
+Image stack shape: (4, 5, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+  Nuclear threshold (Otsu): 17534
+  Otsu threshold (on clipped image): 0
+  (Image clipped to p10=0, p99=0 to reduce TS influence)
+  Removed object 1 with area 4177600 (exceeds max 41547)
+  Intensity-based segmentation: 4 cells, 4 nuclei
+Segmented 4 nuclei and 4 cells
+Detecting spots...
+pol: 122 spots (threshold: 26.0)
+env: 167 spots (threshold: 97.0)
+nef: 140 spots (threshold: 49.0)
+Decomposing dense regions and clustering foci...
+pol: 3 clusters
+env: 7 clusters
+nef: 10 clusters
+Removing transcription sites...
+After TS removal: pol=92, env=500, nef=381
+Performing colocalization analysis...
+Colocalization: pol-env=88, pol-nef=82, env-nef=352
+Classifying splicing patterns...
+Classification: US=1, SS=9, MS=79
+
+
+Processing FOV 10/10
+
+======================================================================
+Processing FOV: 20251118_EGS023_bingo_slide5_005_XY1
+======================================================================
+Found 5 z-slices: ['Z06', 'Z07', 'Z08', 'Z09', 'Z10']
+Loading images...
+Image stack shape: (4, 5, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+  Nuclear threshold (Otsu): 18165
+  Otsu threshold (on clipped image): 0
+  (Image clipped to p10=0, p99=0 to reduce TS influence)
+  Removed object 1 with area 4154271 (exceeds max 41547)
+  Intensity-based segmentation: 2 cells, 1 nuclei
+Segmented 1 nuclei and 2 cells
+Detecting spots...
+pol: 52 spots (threshold: 26.0)
+env: 107 spots (threshold: 92.0)
+nef: 95 spots (threshold: 50.0)
+Decomposing dense regions and clustering foci...
+pol: 0 clusters
+env: 1 clusters
+nef: 3 clusters
+Removing transcription sites...
+After TS removal: pol=0, env=302, nef=193
+Performing colocalization analysis...
+Colocalization: pol-env=0, pol-nef=0, env-nef=164
+Classifying splicing patterns...
+Classification: US=0, SS=0, MS=0
+
+======================================================================
+PIPELINE SUMMARY
+======================================================================
+Total FOVs found: 10
+Successfully processed: 10
+Skipped (missing channels): 0
+Errors: 0
+
+Created combined cell statistics: /projects/b1042/GoyalLab/egrody/extractedData/EGS023/big-FISH/all_cells_stats.csv
+
+----------------------------------------------------------------------
+PER-CELL RESULTS
+----------------------------------------------------------------------
+FOV / Cell                                   US     SS     MS  Total     Area
+----------------------------------------------------------------------
+20251118_EGS023_bingo_slide4_002         no cells
+20251118_EGS023_bingo_slide4_003/cell_1       0      0      0      0     2670
+20251118_EGS023_bingo_slide4_003/cell_2       0      0      0      0     2357
+20251118_EGS023_bingo_slide4_003/cell_3       0      0      0      0     4591
+20251118_EGS023_bingo_slide4_004         no cells
+20251118_EGS023_bingo_slide4_005         no cells
+20251118_EGS023_bingo_slide4_008         no cells
+20251118_EGS023_bingo_slide4_009_XY1     no cells
+20251118_EGS023_bingo_slide4_011_XY1     no cells
+20251118_EGS023_bingo_slide5_003_XY1     no cells
+20251118_EGS023_bingo_slide5_004_XY1/cel      1      0      1      2    33552
+20251118_EGS023_bingo_slide5_004_XY1/cel      0      0      0      0     4445
+20251118_EGS023_bingo_slide5_004_XY1/cel      0      0      0      0     2659
+20251118_EGS023_bingo_slide5_004_XY1/cel      0      0      0      0     2265
+20251118_EGS023_bingo_slide5_005_XY1/cel      0      0      0      0    10424
+20251118_EGS023_bingo_slide5_005_XY1/cel      0      0      0      0     1981
+
+----------------------------------------------------------------------
+FOV SUMMARY
+----------------------------------------------------------------------
+Total cells across all FOVs: 9
+Total spots - US: 43, SS: 70, MS: 380
+
+20251118_EGS023_bingo_slide4_002:
+  Cells: 0, Nuclei: 2
+  FOV totals - US: 11, SS: 2, MS: 1
+
+20251118_EGS023_bingo_slide4_003:
+  Cells: 3, Nuclei: 0
+  FOV totals - US: 0, SS: 0, MS: 0
+
+20251118_EGS023_bingo_slide4_004:
+  Cells: 0, Nuclei: 1
+  FOV totals - US: 4, SS: 0, MS: 66
+
+20251118_EGS023_bingo_slide4_005:
+  Cells: 0, Nuclei: 2
+  FOV totals - US: 2, SS: 39, MS: 1
+
+20251118_EGS023_bingo_slide4_008:
+  Cells: 0, Nuclei: 3
+  FOV totals - US: 2, SS: 1, MS: 48
+
+20251118_EGS023_bingo_slide4_009_XY1:
+  Cells: 0, Nuclei: 3
+  FOV totals - US: 7, SS: 15, MS: 46
+
+20251118_EGS023_bingo_slide4_011_XY1:
+  Cells: 0, Nuclei: 3
+  FOV totals - US: 3, SS: 3, MS: 37
+
+20251118_EGS023_bingo_slide5_003_XY1:
+  Cells: 0, Nuclei: 2
+  FOV totals - US: 13, SS: 1, MS: 102
+
+20251118_EGS023_bingo_slide5_004_XY1:
+  Cells: 4, Nuclei: 4
+  FOV totals - US: 1, SS: 9, MS: 79
+
+20251118_EGS023_bingo_slide5_005_XY1:
+  Cells: 2, Nuclei: 1
+  FOV totals - US: 0, SS: 0, MS: 0
+======================================================================

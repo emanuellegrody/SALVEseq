@@ -1,0 +1,115 @@
+Running in single sample mode for: GFP_GEX
+==========================================
+BAM Analysis Combined Pipeline
+Started: Thu Mar  5 11:22:54 CST 2026
+==========================================
+
+All validation checks passed
+
+Processing single sample: GFP_GEX
+
+==========================================
+PHASE 1: ALIGNMENT READ EXTRACTION
+==========================================
+Started: Thu Mar  5 11:22:54 CST 2026
+
+Processing 1 targets for alignment analysis
+
+Found 5 coordinate ranges
+
+Processing sample: GFP_GEX
+  Region: LTR_D1 (1-422)
+    Success: 88 unique barcodes, 140 total reads
+  Region: D1_A1 (432-4642)
+    Success: 105 unique barcodes, 162 total reads
+  Region: A1_D4 (4652-6035)
+    Success: 19 unique barcodes, 28 total reads
+  Region: D4_A7 (6045-8243)
+    Success: 14 unique barcodes, 22 total reads
+  Region: A7_LTR (8253-9578)
+    Success: 76 unique barcodes, 117 total reads
+  Sample complete: 5 success, 0 failed
+
+==================================================
+PHASE 1 COMPLETE
+Total successful analyses: 5
+Total failed analyses: 0
+Summary: /projects/b1042/GoyalLab/egrody/extractedData/EGS024/singleCell/bamsort/alignment/all_samples_alignment_summary.txt
+==================================================
+
+Phase 1 completed: Thu Mar  5 11:22:58 CST 2026
+
+==========================================
+PHASE 2: SPLICE SITE DETECTION
+==========================================
+Started: Thu Mar  5 11:22:58 CST 2026
+
+Processing: GFP_GEX
+  Input: /projects/b1042/GoyalLab/egrody/extractedData/EGS024/singleCell/counts/Mmul_10_mac239_GFP_GFP_GEX/outs/possorted_genome_bam.bam
+Input BAM: /projects/b1042/GoyalLab/egrody/extractedData/EGS024/singleCell/counts/Mmul_10_mac239_GFP_GFP_GEX/outs/possorted_genome_bam.bam
+Output CSV: /projects/b1042/GoyalLab/egrody/extractedData/EGS024/singleCell/bamsort/splice/GFP_invitro_GFP_GEX_splicesites.csv
+Reference filtering: mac239 only
+Minimum intron size: 1000bp
+Minimum match size: 20bp
+------------------------------------------------------------
+Processing complete!
+Total reads examined: 45650725
+Reads processed (mapped with CIGAR): 44512997
+Reads from non-mac239 references: 44512522
+Reads without xf:i:25 tag: 187
+Reads without qualifying splice pattern: 286
+Splice junctions found: 2
+Parameters: min_intron=1000bp, min_match=20bp
+Output file: /projects/b1042/GoyalLab/egrody/extractedData/EGS024/singleCell/bamsort/splice/GFP_invitro_GFP_GEX_splicesites.csv
+  Success: 3 lines written
+
+==================================================
+PHASE 2 COMPLETE
+Successful splice analyses: 1
+Failed splice analyses: 0
+==================================================
+
+==========================================
+PHASE 3: SPLICE SITE CLASSIFICATION
+==========================================
+Started: Thu Mar  5 11:24:29 CST 2026
+
+Input directory: /projects/b1042/GoyalLab/egrody/extractedData/EGS024/singleCell/bamsort/splice
+Output directory: /projects/b1042/GoyalLab/egrody/extractedData/EGS024/singleCell/bamsort/splice/combined
+Samples to process: GFP_invitro_
+Targets to process: GFP_GEX
+Donor site filter: D4
+Classification: ≤3bp=canonical, 4-12bp=mnc, >12bp=nc
+------------------------------------------------------------
+
+Processing: GFP_invitro_GFP_GEX
+  Wrote 0 records to GFP_invitro_GFP_GEX_splicesites_filtered.csv
+
+============================================================
+Processing Summary:
+Total sample/target combinations: 1
+Successfully processed: 1
+Failed/skipped: 0
+Total filtered records written: 0
+Output directory: /projects/b1042/GoyalLab/egrody/extractedData/EGS024/singleCell/bamsort/splice/combined
+
+==================================================
+PHASE 3 COMPLETE
+Filtered results: /projects/b1042/GoyalLab/egrody/extractedData/EGS024/singleCell/bamsort/splice/combined
+==================================================
+
+==========================================
+PIPELINE COMPLETE
+==========================================
+Completed: Thu Mar  5 11:24:38 CST 2026
+
+Results:
+  Alignment analysis: /projects/b1042/GoyalLab/egrody/extractedData/EGS024/singleCell/bamsort/alignment/
+  Alignment summary: /projects/b1042/GoyalLab/egrody/extractedData/EGS024/singleCell/bamsort/alignment/all_samples_alignment_summary.txt
+  Raw splice sites: /projects/b1042/GoyalLab/egrody/extractedData/EGS024/singleCell/bamsort/splice
+  Filtered splice sites: /projects/b1042/GoyalLab/egrody/extractedData/EGS024/singleCell/bamsort/splice/combined
+
+Statistics:
+  Alignment analyses: Check /projects/b1042/GoyalLab/egrody/extractedData/EGS024/singleCell/bamsort/alignment/all_samples_alignment_summary.txt
+  Splice detections: 1 successful, 0 failed
+==========================================

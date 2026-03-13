@@ -1,0 +1,49 @@
+Processing sample: D1_up_CI
+Input: /projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/counts/mac239_Pacute_D1_up_CI/outs/possorted_genome_bam.bam
+Output: /projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/saturation/bamsort/D1_up_CI_bamsort_reads.csv
+Results written to /projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/saturation/bamsort/D1_up_CI_bamsort_reads.csv
+Total reads processed: 1336443
+Reads without xf:i:25 tag: 1290215
+Reads without CB tag: 0
+Reads without UMI tag: 0
+Unique UMI-cell barcode combinations: 46228
+Total reads with valid cell barcodes, UMIs, and xf:i:25: 46228
+Successfully processed D1_up_CI
+----------------------------------------
+Processing sample: LTR_CI
+Input: /projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/counts/mac239_Pacute_LTR_CI/outs/possorted_genome_bam.bam
+Output: /projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/saturation/bamsort/LTR_CI_bamsort_reads.csv
+Results written to /projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/saturation/bamsort/LTR_CI_bamsort_reads.csv
+Total reads processed: 1197983
+Reads without xf:i:25 tag: 1186570
+Reads without CB tag: 0
+Reads without UMI tag: 0
+Unique UMI-cell barcode combinations: 11413
+Total reads with valid cell barcodes, UMIs, and xf:i:25: 11413
+Successfully processed LTR_CI
+----------------------------------------
+Processing sample: nef_CI
+Input: /projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/counts/mac239_Pacute_nef_CI/outs/possorted_genome_bam.bam
+Output: /projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/saturation/bamsort/nef_CI_bamsort_reads.csv
+Results written to /projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/saturation/bamsort/nef_CI_bamsort_reads.csv
+Total reads processed: 602863
+Reads without xf:i:25 tag: 587410
+Reads without CB tag: 0
+Reads without UMI tag: 0
+Unique UMI-cell barcode combinations: 15453
+Total reads with valid cell barcodes, UMIs, and xf:i:25: 15453
+Successfully processed nef_CI
+----------------------------------------
+Processing sample: tat_up_CI
+Input: /projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/counts/mac239_Pacute_tat_up_CI/outs/possorted_genome_bam.bam
+Output: /projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/saturation/bamsort/tat_up_CI_bamsort_reads.csv
+Results written to /projects/b1042/GoyalLab/egrody/extractedData/EGS013/SALVE/saturation/bamsort/tat_up_CI_bamsort_reads.csv
+Total reads processed: 1091866
+Reads without xf:i:25 tag: 1078770
+Reads without CB tag: 0
+Reads without UMI tag: 0
+Unique UMI-cell barcode combinations: 13096
+Total reads with valid cell barcodes, UMIs, and xf:i:25: 13096
+Successfully processed tat_up_CI
+----------------------------------------
+All samples processed

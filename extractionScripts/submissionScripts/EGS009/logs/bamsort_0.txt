@@ -1,0 +1,7 @@
+Region: LTR_5p
+Start position: 612
+End position: 983
+Results written to /projects/b1042/GoyalLab/egrody/20241127_EGS009/analysis/bam_sort/invitro_bamsort_LTR_5p.csv
+Total reads processed: 749
+Reads without CB tag: 257
+Reads with valid cell barcodes: 492

@@ -1,0 +1,344 @@
+
+======================================================================
+big-FISH Multi-FOV Pipeline
+======================================================================
+Input directory: /projects/b1042/GoyalLab/egrody/rawData/EGS023/20251117/TIFF/
+Output directory: /projects/b1042/GoyalLab/egrody/extractedData/EGS023/big-FISH/
+Channels: ['Blue', 'Red', 'Gold70', 'FarRed']
+DAPI present: True
+Found 19 FOVs to process
+======================================================================
+
+
+Processing FOV 1/19
+
+======================================================================
+Processing FOV: 20251117_EGS023_bingo_slide2_006
+======================================================================
+Found 17 z-slices: ['Z01', 'Z02', 'Z03', 'Z04', 'Z05', 'Z06', 'Z07', 'Z08', 'Z09', 'Z10', 'Z11', 'Z12', 'Z13', 'Z14', 'Z15', 'Z16', 'Z17']
+Loading images...
+Image stack shape: (4, 17, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+  Nuclear threshold (Otsu): 16997
+  Otsu threshold (on clipped image): 0
+  (Image clipped to p10=0, p99=0 to reduce TS influence)
+
+ERROR: Error processing FOV 20251117_EGS023_bingo_slide2_006: name 'closing' is not defined
+
+
+Processing FOV 2/19
+
+======================================================================
+Processing FOV: 20251117_EGS023_bingo_slide2_008
+======================================================================
+Found 17 z-slices: ['Z01', 'Z02', 'Z03', 'Z04', 'Z05', 'Z06', 'Z07', 'Z08', 'Z09', 'Z10', 'Z11', 'Z12', 'Z13', 'Z14', 'Z15', 'Z16', 'Z17']
+Loading images...
+Image stack shape: (4, 17, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+  Nuclear threshold (Otsu): 15987
+  Otsu threshold (on clipped image): 0
+  (Image clipped to p10=0, p99=0 to reduce TS influence)
+
+ERROR: Error processing FOV 20251117_EGS023_bingo_slide2_008: name 'closing' is not defined
+
+
+Processing FOV 3/19
+
+======================================================================
+Processing FOV: 20251117_EGS023_bingo_slide3_001
+======================================================================
+Found 17 z-slices: ['Z01', 'Z02', 'Z03', 'Z04', 'Z05', 'Z06', 'Z07', 'Z08', 'Z09', 'Z10', 'Z11', 'Z12', 'Z13', 'Z14', 'Z15', 'Z16', 'Z17']
+Loading images...
+Image stack shape: (4, 17, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+  Nuclear threshold (Otsu): 13570
+  Otsu threshold (on clipped image): 0
+  (Image clipped to p10=0, p99=0 to reduce TS influence)
+
+ERROR: Error processing FOV 20251117_EGS023_bingo_slide3_001: name 'closing' is not defined
+
+
+Processing FOV 4/19
+
+======================================================================
+Processing FOV: 20251117_EGS023_bingo_slide3_002
+======================================================================
+Found 17 z-slices: ['Z01', 'Z02', 'Z03', 'Z04', 'Z05', 'Z06', 'Z07', 'Z08', 'Z09', 'Z10', 'Z11', 'Z12', 'Z13', 'Z14', 'Z15', 'Z16', 'Z17']
+Loading images...
+Image stack shape: (4, 17, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+  Nuclear threshold (Otsu): 13082
+  Otsu threshold (on clipped image): 0
+  (Image clipped to p10=0, p99=0 to reduce TS influence)
+
+ERROR: Error processing FOV 20251117_EGS023_bingo_slide3_002: name 'closing' is not defined
+
+
+Processing FOV 5/19
+
+======================================================================
+Processing FOV: 20251117_EGS023_bingo_slide3_003
+======================================================================
+Found 17 z-slices: ['Z01', 'Z02', 'Z03', 'Z04', 'Z05', 'Z06', 'Z07', 'Z08', 'Z09', 'Z10', 'Z11', 'Z12', 'Z13', 'Z14', 'Z15', 'Z16', 'Z17']
+Loading images...
+Image stack shape: (4, 17, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+  Nuclear threshold (Otsu): 13489
+  Otsu threshold (on clipped image): 0
+  (Image clipped to p10=0, p99=0 to reduce TS influence)
+
+ERROR: Error processing FOV 20251117_EGS023_bingo_slide3_003: name 'closing' is not defined
+
+
+Processing FOV 6/19
+
+======================================================================
+Processing FOV: 20251117_EGS023_bingo_slide3_004
+======================================================================
+Found 17 z-slices: ['Z01', 'Z02', 'Z03', 'Z04', 'Z05', 'Z06', 'Z07', 'Z08', 'Z09', 'Z10', 'Z11', 'Z12', 'Z13', 'Z14', 'Z15', 'Z16', 'Z17']
+Loading images...
+Image stack shape: (4, 17, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+  Nuclear threshold (Otsu): 13418
+  Otsu threshold (on clipped image): 0
+  (Image clipped to p10=0, p99=0 to reduce TS influence)
+
+ERROR: Error processing FOV 20251117_EGS023_bingo_slide3_004: name 'closing' is not defined
+
+
+Processing FOV 7/19
+
+======================================================================
+Processing FOV: 20251117_EGS023_bingo_slide3_005
+======================================================================
+Found 17 z-slices: ['Z01', 'Z02', 'Z03', 'Z04', 'Z05', 'Z06', 'Z07', 'Z08', 'Z09', 'Z10', 'Z11', 'Z12', 'Z13', 'Z14', 'Z15', 'Z16', 'Z17']
+Loading images...
+Image stack shape: (4, 17, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+  Nuclear threshold (Otsu): 15964
+  Otsu threshold (on clipped image): 0
+  (Image clipped to p10=0, p99=0 to reduce TS influence)
+
+ERROR: Error processing FOV 20251117_EGS023_bingo_slide3_005: name 'closing' is not defined
+
+
+Processing FOV 8/19
+
+======================================================================
+Processing FOV: 20251117_EGS023_bingo_slide3_006
+======================================================================
+Found 17 z-slices: ['Z01', 'Z02', 'Z03', 'Z04', 'Z05', 'Z06', 'Z07', 'Z08', 'Z09', 'Z10', 'Z11', 'Z12', 'Z13', 'Z14', 'Z15', 'Z16', 'Z17']
+Loading images...
+Image stack shape: (4, 17, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+  Nuclear threshold (Otsu): 14641
+  Otsu threshold (on clipped image): 0
+  (Image clipped to p10=0, p99=0 to reduce TS influence)
+
+ERROR: Error processing FOV 20251117_EGS023_bingo_slide3_006: name 'closing' is not defined
+
+
+Processing FOV 9/19
+
+======================================================================
+Processing FOV: 20251117_EGS023_bingo_slide3_007
+======================================================================
+Found 17 z-slices: ['Z01', 'Z02', 'Z03', 'Z04', 'Z05', 'Z06', 'Z07', 'Z08', 'Z09', 'Z10', 'Z11', 'Z12', 'Z13', 'Z14', 'Z15', 'Z16', 'Z17']
+Loading images...
+Image stack shape: (4, 17, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+  Nuclear threshold (Otsu): 17745
+  Otsu threshold (on clipped image): 0
+  (Image clipped to p10=0, p99=0 to reduce TS influence)
+
+ERROR: Error processing FOV 20251117_EGS023_bingo_slide3_007: name 'closing' is not defined
+
+
+Processing FOV 10/19
+
+======================================================================
+Processing FOV: 20251117_EGS023_bingo_slide3_008
+======================================================================
+Found 17 z-slices: ['Z01', 'Z02', 'Z03', 'Z04', 'Z05', 'Z06', 'Z07', 'Z08', 'Z09', 'Z10', 'Z11', 'Z12', 'Z13', 'Z14', 'Z15', 'Z16', 'Z17']
+Loading images...
+Image stack shape: (4, 17, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+  Nuclear threshold (Otsu): 16507
+  Otsu threshold (on clipped image): 0
+  (Image clipped to p10=0, p99=0 to reduce TS influence)
+
+ERROR: Error processing FOV 20251117_EGS023_bingo_slide3_008: name 'closing' is not defined
+
+
+Processing FOV 11/19
+
+======================================================================
+Processing FOV: 20251117_EGS023_bingo_slide3_009
+======================================================================
+Found 17 z-slices: ['Z01', 'Z02', 'Z03', 'Z04', 'Z05', 'Z06', 'Z07', 'Z08', 'Z09', 'Z10', 'Z11', 'Z12', 'Z13', 'Z14', 'Z15', 'Z16', 'Z17']
+Loading images...
+Image stack shape: (4, 17, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+  Nuclear threshold (Otsu): 18328
+  Otsu threshold (on clipped image): 0
+  (Image clipped to p10=0, p99=0 to reduce TS influence)
+
+ERROR: Error processing FOV 20251117_EGS023_bingo_slide3_009: name 'closing' is not defined
+
+
+Processing FOV 12/19
+
+======================================================================
+Processing FOV: 20251117_EGS023_bingo_slide3_010
+======================================================================
+Found 17 z-slices: ['Z01', 'Z02', 'Z03', 'Z04', 'Z05', 'Z06', 'Z07', 'Z08', 'Z09', 'Z10', 'Z11', 'Z12', 'Z13', 'Z14', 'Z15', 'Z16', 'Z17']
+Loading images...
+Image stack shape: (4, 17, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+  Nuclear threshold (Otsu): 15192
+  Otsu threshold (on clipped image): 0
+  (Image clipped to p10=0, p99=0 to reduce TS influence)
+
+ERROR: Error processing FOV 20251117_EGS023_bingo_slide3_010: name 'closing' is not defined
+
+
+Processing FOV 13/19
+
+======================================================================
+Processing FOV: 20251117_EGS023_bingo_slide3_011
+======================================================================
+Found 17 z-slices: ['Z01', 'Z02', 'Z03', 'Z04', 'Z05', 'Z06', 'Z07', 'Z08', 'Z09', 'Z10', 'Z11', 'Z12', 'Z13', 'Z14', 'Z15', 'Z16', 'Z17']
+Loading images...
+Image stack shape: (4, 17, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+  Nuclear threshold (Otsu): 16216
+  Otsu threshold (on clipped image): 0
+  (Image clipped to p10=0, p99=0 to reduce TS influence)
+
+ERROR: Error processing FOV 20251117_EGS023_bingo_slide3_011: name 'closing' is not defined
+
+
+Processing FOV 14/19
+
+======================================================================
+Processing FOV: 20251117_EGS023_bingo_slide3_012
+======================================================================
+Found 17 z-slices: ['Z01', 'Z02', 'Z03', 'Z04', 'Z05', 'Z06', 'Z07', 'Z08', 'Z09', 'Z10', 'Z11', 'Z12', 'Z13', 'Z14', 'Z15', 'Z16', 'Z17']
+Loading images...
+Image stack shape: (4, 17, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+  Nuclear threshold (Otsu): 17038
+  Otsu threshold (on clipped image): 0
+  (Image clipped to p10=0, p99=0 to reduce TS influence)
+
+ERROR: Error processing FOV 20251117_EGS023_bingo_slide3_012: name 'closing' is not defined
+
+
+Processing FOV 15/19
+
+======================================================================
+Processing FOV: 20251117_EGS023_bingo_slide3_015
+======================================================================
+Found 17 z-slices: ['Z01', 'Z02', 'Z03', 'Z04', 'Z05', 'Z06', 'Z07', 'Z08', 'Z09', 'Z10', 'Z11', 'Z12', 'Z13', 'Z14', 'Z15', 'Z16', 'Z17']
+Loading images...
+Image stack shape: (4, 17, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+  Nuclear threshold (Otsu): 13676
+  Otsu threshold (on clipped image): 0
+  (Image clipped to p10=0, p99=0 to reduce TS influence)
+
+ERROR: Error processing FOV 20251117_EGS023_bingo_slide3_015: name 'closing' is not defined
+
+
+Processing FOV 16/19
+
+======================================================================
+Processing FOV: 20251117_EGS023_bingo_slide3_017
+======================================================================
+Found 17 z-slices: ['Z01', 'Z02', 'Z03', 'Z04', 'Z05', 'Z06', 'Z07', 'Z08', 'Z09', 'Z10', 'Z11', 'Z12', 'Z13', 'Z14', 'Z15', 'Z16', 'Z17']
+Loading images...
+Image stack shape: (4, 17, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+  Nuclear threshold (Otsu): 17228
+  Otsu threshold (on clipped image): 0
+  (Image clipped to p10=0, p99=0 to reduce TS influence)
+
+ERROR: Error processing FOV 20251117_EGS023_bingo_slide3_017: name 'closing' is not defined
+
+
+Processing FOV 17/19
+
+======================================================================
+Processing FOV: 20251117_EGS023_bingo_slide3_018
+======================================================================
+Found 17 z-slices: ['Z01', 'Z02', 'Z03', 'Z04', 'Z05', 'Z06', 'Z07', 'Z08', 'Z09', 'Z10', 'Z11', 'Z12', 'Z13', 'Z14', 'Z15', 'Z16', 'Z17']
+Loading images...
+Image stack shape: (4, 17, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+  Nuclear threshold (Otsu): 16195
+  Otsu threshold (on clipped image): 0
+  (Image clipped to p10=0, p99=0 to reduce TS influence)
+
+ERROR: Error processing FOV 20251117_EGS023_bingo_slide3_018: name 'closing' is not defined
+
+
+Processing FOV 18/19
+
+======================================================================
+Processing FOV: 20251117_EGS023_bingo_slide3_019
+======================================================================
+Found 17 z-slices: ['Z01', 'Z02', 'Z03', 'Z04', 'Z05', 'Z06', 'Z07', 'Z08', 'Z09', 'Z10', 'Z11', 'Z12', 'Z13', 'Z14', 'Z15', 'Z16', 'Z17']
+Loading images...
+Image stack shape: (4, 17, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+  Nuclear threshold (Otsu): 17712
+  Otsu threshold (on clipped image): 0
+  (Image clipped to p10=0, p99=0 to reduce TS influence)
+
+ERROR: Error processing FOV 20251117_EGS023_bingo_slide3_019: name 'closing' is not defined
+
+
+Processing FOV 19/19
+
+======================================================================
+Processing FOV: 20251117_EGS023_bingo_slide3_020
+======================================================================
+Found 17 z-slices: ['Z01', 'Z02', 'Z03', 'Z04', 'Z05', 'Z06', 'Z07', 'Z08', 'Z09', 'Z10', 'Z11', 'Z12', 'Z13', 'Z14', 'Z15', 'Z16', 'Z17']
+Loading images...
+Image stack shape: (4, 17, 2304, 2304) [channels, z, y, x]
+Segmenting nuclei and cells...
+  Nuclear threshold (Otsu): 19923
+  Otsu threshold (on clipped image): 0
+  (Image clipped to p10=0, p99=0 to reduce TS influence)
+
+ERROR: Error processing FOV 20251117_EGS023_bingo_slide3_020: name 'closing' is not defined
+
+======================================================================
+PIPELINE SUMMARY
+======================================================================
+Total FOVs found: 19
+Successfully processed: 0
+Skipped (missing channels): 0
+Errors: 19
+
+Errors encountered (19):
+  20251117_EGS023_bingo_slide2_006: name 'closing' is not defined
+  20251117_EGS023_bingo_slide2_008: name 'closing' is not defined
+  20251117_EGS023_bingo_slide3_001: name 'closing' is not defined
+  20251117_EGS023_bingo_slide3_002: name 'closing' is not defined
+  20251117_EGS023_bingo_slide3_003: name 'closing' is not defined
+  20251117_EGS023_bingo_slide3_004: name 'closing' is not defined
+  20251117_EGS023_bingo_slide3_005: name 'closing' is not defined
+  20251117_EGS023_bingo_slide3_006: name 'closing' is not defined
+  20251117_EGS023_bingo_slide3_007: name 'closing' is not defined
+  20251117_EGS023_bingo_slide3_008: name 'closing' is not defined
+  20251117_EGS023_bingo_slide3_009: name 'closing' is not defined
+  20251117_EGS023_bingo_slide3_010: name 'closing' is not defined
+  20251117_EGS023_bingo_slide3_011: name 'closing' is not defined
+  20251117_EGS023_bingo_slide3_012: name 'closing' is not defined
+  20251117_EGS023_bingo_slide3_015: name 'closing' is not defined
+  20251117_EGS023_bingo_slide3_017: name 'closing' is not defined
+  20251117_EGS023_bingo_slide3_018: name 'closing' is not defined
+  20251117_EGS023_bingo_slide3_019: name 'closing' is not defined
+  20251117_EGS023_bingo_slide3_020: name 'closing' is not defined
+======================================================================

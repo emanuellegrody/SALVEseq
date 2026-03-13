@@ -1,0 +1,214 @@
+---
+title: "Figure2"
+author: "Emanuelle Grody"
+date: "2025-11-04"
+output: html_document
+---
+
+```{r, message=FALSE, warning=FALSE}
+source("~/SALVEseq/packages.R")
+source("~/SALVEseq/functions.R")
+```
+
+## Panel E
+
+```{r}
+output_dir = "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/joint/plots/Figure2/"
+input_dir="/projects/b1042/GoyalLab/egrody/extractedData/EGS007/longRead/bamsort/isoform/"
+longread <- read.csv(paste0(input_dir, "cDNA_isoforms.csv"))
+longread <- longread %>%
+  count(cellID, isoform) %>%
+  pivot_wider(names_from = isoform, values_from = n, values_fill = 0) %>%
+  mutate(total = US + MS + SS + any) %>%
+  mutate(dataset = "longread")
+
+# Reading GEX and SALVE data
+sample_name <- "Invitro"
+SALVE.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/SALVE/bamsort/reads/v6/minimum/"
+GEX.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/bamsort/reads/v6/minimum/"
+
+salve_file <- paste0(SALVE.dir, sample_name, "_SALVE_filtered.csv")
+gex_file <- paste0(GEX.dir, sample_name, "_GEX_filtered.csv")
+umap_file <- paste0("/projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/Seurat/UMAPcoords/", 
+                    sample_name, "UMAP_coords.csv")
+cd4_file <- paste0("/projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/Seurat/expressionDF/", 
+                   sample_name, "_CD4T.csv")
+
+salve_data <- if(file.exists(salve_file)) read.csv(salve_file) else NULL
+gex_data <- if(file.exists(gex_file)) read.csv(gex_file) else NULL
+umap_data <- if(file.exists(umap_file)) read.csv(umap_file, row.names = "X") else NULL
+cd4_data <- if(file.exists(cd4_file)) read.csv(cd4_file, row.names = "X") else NULL
+
+## Cell type filtering
+cd4_data <- cd4_data %>%
+  mutate(CD3 = ifelse(CD3D > 0 | CD3E > 0 | CD3G > 0, 1, 0)) %>%
+  mutate(CD4 = ifelse(CD4 > 0 , 1, 0)) %>%
+  mutate(CD8 = ifelse(CD8A > 0 , 1, 0)) %>%
+  select(cellID, CD4, CD3, CD8)
+cellslist <- left_join(umap_data, cd4_data, by = "cellID") %>%
+  filter(CD4 > 0 & CD3 > 0) %>%
+  filter(CD4 == 0 | CD8 == 0) %>%
+  select(cellID)
+
+gex_processed <- gex_data %>%
+  mutate(cellID = as.character(cellID)) %>%
+  select(-US.SS) %>%
+  filter(cellID %in% cellslist$cellID) %>%
+  mutate(dataset = "GEX", MS = 0, SS = 0)
+
+salve_processed <- salve_data %>%
+  mutate(cellID = as.character(cellID)) %>%
+  select(-US.SS, -SS.MS) %>%
+  filter(cellID %in% cellslist$cellID) %>%
+  mutate(dataset = "SALVE")
+
+
+# Combine all three datasets
+combined_data <- bind_rows(longread, gex_processed, salve_processed)
+
+summary_data <- combined_data %>%
+  select(cellID, US, any, MS, SS, dataset) %>%
+  pivot_longer(cols = c(US, MS, SS, any), 
+               names_to = "isoform", 
+               values_to = "count") %>%
+  group_by(dataset, isoform) %>%
+  summarise(count = sum(count), .groups = "drop")
+
+summary_data <- summary_data %>%
+  group_by(dataset) %>%
+  mutate(
+    total = sum(count),
+    percentage = (count / total) * 100
+  ) %>%
+  ungroup()
+
+summary_data$isoform <- factor(summary_data$isoform, 
+                                levels = c("US", "MS", "SS", "any"))
+summary_data$dataset <- factor(summary_data$dataset,
+                               levels = c("longread", "GEX", "SALVE"))
+
+# PLOT 1: Percentage of total (normalized to 100%)
+plot1 <- ggplot(summary_data, aes(x = dataset, y = count, fill = isoform)) +
+  geom_col(position = "fill", width = 0.7) +
+  geom_text(aes(label = sprintf("%.1f%%", percentage)),
+            position = position_fill(vjust = 0.5),
+            size = 3.5,
+            color = "white",
+            fontface = "bold") +
+  scale_y_continuous(labels = scales::percent_format()) +
+  scale_fill_brewer(palette = "Set2") +
+  labs(
+    title = "Isoform Distribution (Percentage)",
+    x = "Dataset",
+    y = "Percentage",
+    fill = "Isoform"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, face = "bold", size = 14),
+    axis.text.x = element_text(size = 11, angle = 0),
+    axis.text.y = element_text(size = 11),
+    legend.position = "right"
+  )
+
+print(plot1)
+ggsave(paste0(output_dir, sample_name, "_isoforms_percent.pdf"), 
+         plot = plot1, width = 8, height = 8)
+
+# PLOT 2: Absolute counts with different heights
+plot2 <- ggplot(summary_data, aes(x = dataset, y = count, fill = isoform)) +
+  geom_col(position = "stack", width = 0.7) +
+  geom_text(aes(label = count),
+            position = position_stack(vjust = 0.5),
+            size = 3.5,
+            color = "white",
+            fontface = "bold") +
+  scale_fill_brewer(palette = "Set2") +
+  labs(
+    title = "Isoform Distribution (Absolute Counts)",
+    x = "Dataset",
+    y = "Total Count",
+    fill = "Isoform"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, face = "bold", size = 14),
+    axis.text.x = element_text(size = 11, angle = 0),
+    axis.text.y = element_text(size = 11),
+    legend.position = "right"
+  )
+
+print(plot2)
+ggsave(paste0(output_dir, sample_name, "_isoforms_count.pdf"), 
+         plot = plot2, width = 8, height = 8)
+
+
+# Display summary statistics
+cat("\nSummary Statistics:\n")
+print(summary_data)
+
+# Optional: Display per-dataset totals for verification
+cat("\nTotal counts per dataset:\n")
+summary_data %>%
+  group_by(dataset) %>%
+  summarise(total_counts = sum(count)) %>%
+  print()
+
+
+```
+
+```{r}
+# Get cellIDs from Mmul_10 only df
+  all_cells <- as.character(umap_data$cellID)
+  all_cells <- unique(all_cells)
+  
+  # Create base dataframe
+  result <- data.frame(cellID = all_cells)
+  
+  # Add UMAP data
+  if (!is.null(umap_data)) {
+    umap_processed <- umap_data %>%
+      select(-V2, -sample)
+    result <- left_join(result, umap_processed, by = "cellID")
+  }
+  
+  # Add GEX data
+  if (!is.null(gex_data)) {
+    gex_processed <- gex_data %>%
+      mutate(cellID = as.character(cellID), MS = 0, SS = 0) %>%
+      select(-US.SS)
+    result <- left_join(result, gex_processed, by = "cellID")
+  } else {
+    result$GEX <- 0
+  }
+  
+  # Add SALVE data
+  if (!is.null(salve_data)) {
+    salve_processed <- salve_data %>%
+      mutate(cellID = as.character(cellID)) %>%
+      select(-US.SS, -SS.MS)
+    result <- left_join(result, salve_processed, by = "cellID")
+  } else {
+    result$SALVE <- 0
+  }
+  
+  # Replace NAs with 0
+  result[is.na(result)] <- 0
+  
+  # Cell type filtering
+  cd4_data <- cd4_data %>%
+    mutate(CD3 = ifelse(CD3D > 0 | CD3E > 0 | CD3G > 0, 1, 0)) %>%
+    mutate(CD4 = ifelse(CD4 > 0 , 1, 0)) %>%
+    mutate(CD8 = ifelse(CD8A > 0 , 1, 0)) %>%
+    select(cellID, CD4, CD3, CD8)
+  result <- left_join(result, cd4_data, by = "cellID")
+  result <- result %>%
+    mutate(across(any_of(c("any.x", "US.x", "total.x")), 
+              ~ ifelse(CD4 > 0 & CD3 > 0, .x, 0))) %>% 
+    mutate(across(any_of(c("any.y", "US.y", "MS.y", "SS.y", "total.y")), 
+              ~ ifelse(CD4 > 0 & CD3 > 0, .x, 0))) %>%
+    filter(CD4 == 0 | CD8 == 0) %>% # exclude cells CD4+ and CD8+
+    select(-CD8, -CD3, -CD4)
+```
+
+

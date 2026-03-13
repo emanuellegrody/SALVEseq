@@ -17,6 +17,7 @@ if [ ! -f "$csv_file" ]; then
     echo "Error: CSV file '$csv_file' not found."
     exit 1
 fi
+dos2unix "$csv_file" 2>/dev/null
 
 # Find the column indices for "Sample_ID" and "Sample_Name" headers
 sample_id_index=$(awk -F ',' 'NR==1 {for (i=1; i<=NF; i++) if ($i == "Sample_ID") print i; exit}' "$csv_file")
@@ -29,7 +30,7 @@ if [ -z "$sample_id_index" ] || [ -z "$sample_name_index" ]; then
 fi
 
 # Skip the header line and process each row
-tail -n +2 "$csv_file" | while IFS=',' read -r -a fields; do
+while IFS=',' read -r -a fields; do
     # Extract Sample_ID and Sample_Name
     # Subtract 1 from indices because arrays are 0-based
     sample_id="${fields[sample_id_index-1]}"
@@ -48,4 +49,4 @@ tail -n +2 "$csv_file" | while IFS=',' read -r -a fields; do
         sbatch mkcounts.sh "$sample_name" "$fastq_path" "$transcriptomepath" "$outputpath"
     fi
 
-done
+done < <(tail -n +2 "$csv_file")

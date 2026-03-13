@@ -1,0 +1,9 @@
+Sample_ID,Sample_Name,index,index2
+Pacute_PL_LTR,Pacute_PL_LTR,TTATTCGA,AGCAGGAC
+Pacute_PL_D1,Pacute_PL_D1,ATGGAGGG,AATGGGTT
+Pacute_PL_tat,Pacute_PL_tat,ACCAGACA,CCTAGTTC
+Pacute_PL_nef,Pacute_PL_nef,AACCACGC,TAACCTGA
+Pacute_CI_LTR,Pacute_CI_LTR,CGCATGTT,GTAGAGAC
+Pacute_CI_D1,Pacute_CI_D1,CGCATGTT,ACTATCTG
+Pacute_CI_tat,Pacute_CI_tat,CGCATGTT,ACACTCTT
+Pacute_CI_nef,Pacute_CI_nef,CGCATGTT,ATGGCGTG

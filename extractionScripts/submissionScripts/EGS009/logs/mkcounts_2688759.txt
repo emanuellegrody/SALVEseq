@@ -1,0 +1,6 @@
+ERROR: Requested sample(s) not found in fastq directory "/gpfs/projects/b1042/GoyalLab/egrody/rawData/EGS009/Sequencing/fastq/subsample"
+Available samples:
+P_acute_150M
+P_acute_200M
+P_acute_300M
+P_acute_400M

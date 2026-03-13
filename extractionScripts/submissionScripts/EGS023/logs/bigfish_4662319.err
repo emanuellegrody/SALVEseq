@@ -1,0 +1,224 @@
+Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 1036, in run_pipeline
+    result = process_fov(fov, path_input, path_output_base, channels, pipeline_params, has_dapi=has_dapi)
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 719, in process_fov
+    dilation_radius=seg_params.get('cell_dilation_radius', 10)
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 447, in segment_cells_by_intensity
+    cell_mask = closing(cell_mask, disk(5))
+NameError: name 'closing' is not defined
+Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 1036, in run_pipeline
+    result = process_fov(fov, path_input, path_output_base, channels, pipeline_params, has_dapi=has_dapi)
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 719, in process_fov
+    dilation_radius=seg_params.get('cell_dilation_radius', 10)
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 447, in segment_cells_by_intensity
+    cell_mask = closing(cell_mask, disk(5))
+NameError: name 'closing' is not defined
+Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 1036, in run_pipeline
+    result = process_fov(fov, path_input, path_output_base, channels, pipeline_params, has_dapi=has_dapi)
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 719, in process_fov
+    dilation_radius=seg_params.get('cell_dilation_radius', 10)
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 447, in segment_cells_by_intensity
+    cell_mask = closing(cell_mask, disk(5))
+NameError: name 'closing' is not defined
+Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 1036, in run_pipeline
+    result = process_fov(fov, path_input, path_output_base, channels, pipeline_params, has_dapi=has_dapi)
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 719, in process_fov
+    dilation_radius=seg_params.get('cell_dilation_radius', 10)
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 447, in segment_cells_by_intensity
+    cell_mask = closing(cell_mask, disk(5))
+NameError: name 'closing' is not defined
+Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 1036, in run_pipeline
+    result = process_fov(fov, path_input, path_output_base, channels, pipeline_params, has_dapi=has_dapi)
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 719, in process_fov
+    dilation_radius=seg_params.get('cell_dilation_radius', 10)
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 447, in segment_cells_by_intensity
+    cell_mask = closing(cell_mask, disk(5))
+NameError: name 'closing' is not defined
+Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 1036, in run_pipeline
+    result = process_fov(fov, path_input, path_output_base, channels, pipeline_params, has_dapi=has_dapi)
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 719, in process_fov
+    dilation_radius=seg_params.get('cell_dilation_radius', 10)
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 447, in segment_cells_by_intensity
+    cell_mask = closing(cell_mask, disk(5))
+NameError: name 'closing' is not defined
+Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 1036, in run_pipeline
+    result = process_fov(fov, path_input, path_output_base, channels, pipeline_params, has_dapi=has_dapi)
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 719, in process_fov
+    dilation_radius=seg_params.get('cell_dilation_radius', 10)
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 447, in segment_cells_by_intensity
+    cell_mask = closing(cell_mask, disk(5))
+NameError: name 'closing' is not defined
+Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 1036, in run_pipeline
+    result = process_fov(fov, path_input, path_output_base, channels, pipeline_params, has_dapi=has_dapi)
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 719, in process_fov
+    dilation_radius=seg_params.get('cell_dilation_radius', 10)
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 447, in segment_cells_by_intensity
+    cell_mask = closing(cell_mask, disk(5))
+NameError: name 'closing' is not defined
+Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 1036, in run_pipeline
+    result = process_fov(fov, path_input, path_output_base, channels, pipeline_params, has_dapi=has_dapi)
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 719, in process_fov
+    dilation_radius=seg_params.get('cell_dilation_radius', 10)
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 447, in segment_cells_by_intensity
+    cell_mask = closing(cell_mask, disk(5))
+NameError: name 'closing' is not defined
+Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 1036, in run_pipeline
+    result = process_fov(fov, path_input, path_output_base, channels, pipeline_params, has_dapi=has_dapi)
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 719, in process_fov
+    dilation_radius=seg_params.get('cell_dilation_radius', 10)
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 447, in segment_cells_by_intensity
+    cell_mask = closing(cell_mask, disk(5))
+NameError: name 'closing' is not defined
+Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 1036, in run_pipeline
+    result = process_fov(fov, path_input, path_output_base, channels, pipeline_params, has_dapi=has_dapi)
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 730, in process_fov
+    dilation_radius=seg_params.get('cell_dilation_radius', 10)
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 447, in segment_cells_by_intensity
+    cell_mask = closing(cell_mask, disk(5))
+NameError: name 'closing' is not defined
+Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 1036, in run_pipeline
+    result = process_fov(fov, path_input, path_output_base, channels, pipeline_params, has_dapi=has_dapi)
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 730, in process_fov
+    dilation_radius=seg_params.get('cell_dilation_radius', 10)
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 447, in segment_cells_by_intensity
+    cell_mask = closing(cell_mask, disk(5))
+NameError: name 'closing' is not defined
+Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 1036, in run_pipeline
+    result = process_fov(fov, path_input, path_output_base, channels, pipeline_params, has_dapi=has_dapi)
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 730, in process_fov
+    dilation_radius=seg_params.get('cell_dilation_radius', 10)
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 447, in segment_cells_by_intensity
+    cell_mask = closing(cell_mask, disk(5))
+NameError: name 'closing' is not defined
+Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 1036, in run_pipeline
+    result = process_fov(fov, path_input, path_output_base, channels, pipeline_params, has_dapi=has_dapi)
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 730, in process_fov
+    dilation_radius=seg_params.get('cell_dilation_radius', 10)
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 447, in segment_cells_by_intensity
+    cell_mask = closing(cell_mask, disk(5))
+NameError: name 'closing' is not defined
+Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 1036, in run_pipeline
+    result = process_fov(fov, path_input, path_output_base, channels, pipeline_params, has_dapi=has_dapi)
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 730, in process_fov
+    dilation_radius=seg_params.get('cell_dilation_radius', 10)
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 447, in segment_cells_by_intensity
+    cell_mask = closing(cell_mask, disk(5))
+NameError: name 'closing' is not defined
+Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 1036, in run_pipeline
+    result = process_fov(fov, path_input, path_output_base, channels, pipeline_params, has_dapi=has_dapi)
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 730, in process_fov
+    dilation_radius=seg_params.get('cell_dilation_radius', 10)
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 447, in segment_cells_by_intensity
+    cell_mask = closing(cell_mask, disk(5))
+NameError: name 'closing' is not defined
+Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 1036, in run_pipeline
+    result = process_fov(fov, path_input, path_output_base, channels, pipeline_params, has_dapi=has_dapi)
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 730, in process_fov
+    dilation_radius=seg_params.get('cell_dilation_radius', 10)
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 447, in segment_cells_by_intensity
+    cell_mask = closing(cell_mask, disk(5))
+NameError: name 'closing' is not defined
+Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 1036, in run_pipeline
+    result = process_fov(fov, path_input, path_output_base, channels, pipeline_params, has_dapi=has_dapi)
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 730, in process_fov
+    dilation_radius=seg_params.get('cell_dilation_radius', 10)
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 447, in segment_cells_by_intensity
+    cell_mask = closing(cell_mask, disk(5))
+NameError: name 'closing' is not defined
+Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 1036, in run_pipeline
+    result = process_fov(fov, path_input, path_output_base, channels, pipeline_params, has_dapi=has_dapi)
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 730, in process_fov
+    dilation_radius=seg_params.get('cell_dilation_radius', 10)
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 447, in segment_cells_by_intensity
+    cell_mask = closing(cell_mask, disk(5))
+NameError: name 'closing' is not defined
+Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 1036, in run_pipeline
+    result = process_fov(fov, path_input, path_output_base, channels, pipeline_params, has_dapi=has_dapi)
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 730, in process_fov
+    dilation_radius=seg_params.get('cell_dilation_radius', 10)
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 447, in segment_cells_by_intensity
+    cell_mask = closing(cell_mask, disk(5))
+NameError: name 'closing' is not defined
+Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 1036, in run_pipeline
+    result = process_fov(fov, path_input, path_output_base, channels, pipeline_params, has_dapi=has_dapi)
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 730, in process_fov
+    dilation_radius=seg_params.get('cell_dilation_radius', 10)
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 447, in segment_cells_by_intensity
+    cell_mask = closing(cell_mask, disk(5))
+NameError: name 'closing' is not defined
+Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 1036, in run_pipeline
+    result = process_fov(fov, path_input, path_output_base, channels, pipeline_params, has_dapi=has_dapi)
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 730, in process_fov
+    dilation_radius=seg_params.get('cell_dilation_radius', 10)
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 447, in segment_cells_by_intensity
+    cell_mask = closing(cell_mask, disk(5))
+NameError: name 'closing' is not defined
+Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 1036, in run_pipeline
+    result = process_fov(fov, path_input, path_output_base, channels, pipeline_params, has_dapi=has_dapi)
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 730, in process_fov
+    dilation_radius=seg_params.get('cell_dilation_radius', 10)
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 447, in segment_cells_by_intensity
+    cell_mask = closing(cell_mask, disk(5))
+NameError: name 'closing' is not defined
+Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 1036, in run_pipeline
+    result = process_fov(fov, path_input, path_output_base, channels, pipeline_params, has_dapi=has_dapi)
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 730, in process_fov
+    dilation_radius=seg_params.get('cell_dilation_radius', 10)
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 447, in segment_cells_by_intensity
+    cell_mask = closing(cell_mask, disk(5))
+NameError: name 'closing' is not defined
+Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 1036, in run_pipeline
+    result = process_fov(fov, path_input, path_output_base, channels, pipeline_params, has_dapi=has_dapi)
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 730, in process_fov
+    dilation_radius=seg_params.get('cell_dilation_radius', 10)
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 447, in segment_cells_by_intensity
+    cell_mask = closing(cell_mask, disk(5))
+NameError: name 'closing' is not defined
+Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 1036, in run_pipeline
+    result = process_fov(fov, path_input, path_output_base, channels, pipeline_params, has_dapi=has_dapi)
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 730, in process_fov
+    dilation_radius=seg_params.get('cell_dilation_radius', 10)
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 447, in segment_cells_by_intensity
+    cell_mask = closing(cell_mask, disk(5))
+NameError: name 'closing' is not defined
+Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 1036, in run_pipeline
+    result = process_fov(fov, path_input, path_output_base, channels, pipeline_params, has_dapi=has_dapi)
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 730, in process_fov
+    dilation_radius=seg_params.get('cell_dilation_radius', 10)
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 447, in segment_cells_by_intensity
+    cell_mask = closing(cell_mask, disk(5))
+NameError: name 'closing' is not defined
+Traceback (most recent call last):
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 1036, in run_pipeline
+    result = process_fov(fov, path_input, path_output_base, channels, pipeline_params, has_dapi=has_dapi)
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 730, in process_fov
+    dilation_radius=seg_params.get('cell_dilation_radius', 10)
+  File "/projects/b1042/GoyalLab/egrody/extractionScripts/Python/bigfish_pipeline.py", line 447, in segment_cells_by_intensity
+    cell_mask = closing(cell_mask, disk(5))
+NameError: name 'closing' is not defined

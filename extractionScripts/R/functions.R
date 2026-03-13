@@ -1,6 +1,8 @@
 # functions.R
 
-# Loading and Processing
+# =============================================================================
+# SALVE and GEX
+# =============================================================================
 ## SALVE and GEX: extract category from filename
 extract_categoryv6 <- function(filename) {
   # Split the filename into parts
@@ -240,8 +242,7 @@ resolve_multimapv6 <- function(df) {
 process_bamsortv6 <- function(samples_list, input.dir, output.dir, raw_cellIDs, 
                               correction_dir = NULL) {
   #
-  # optional to read in paste0(sample, "_D1_splicesites_filtered.csv")
-  # which is output from bamsort_splice_sites to update MS
+  # optional to read in output from bamsort_splice_sites to update MS
   #
   if (class(samples_list) != "character") {
     stop("samples_list input must be a list of sample names")
@@ -363,7 +364,7 @@ process_bamsortv6 <- function(samples_list, input.dir, output.dir, raw_cellIDs,
           
           # Look for splice correction file
           if (!is.null(correction_dir)) {
-            correction_file <- file.path(correction_dir, paste0(sample, "_D1_splicesites_filtered.csv"))
+            correction_file <- file.path(correction_dir, paste0(sample, "_splicesites_filtered.csv"))
             valid_umi_read_counts <- apply_umi_corrections(
               valid_umi_read_counts, 
               correction_file, 
@@ -448,15 +449,30 @@ process_bamsortv6 <- function(samples_list, input.dir, output.dir, raw_cellIDs,
 ## SALVE and GEX: filtering data for minimums
 set_minimumsv6 <- function(mode, umi_file, min_reads = 1, min_region_count = 1, 
                            min_umi = 1, min_cells = 0, min_reads_cell = 1,
-                           save_valid_umi = TRUE, valid_umi_output_file = NULL) {
+                           save_valid_umi = TRUE, valid_umi_output_file = NULL,
+                           categories = NULL) {
   
-  # Define categories based on mode
-  categories <- switch(mode,
-                       "SALVE" = c("US", "US-SS", "SS-MS", "SS", "MS", "any"),
-                       "GEX" = c("US", "US-SS", "any"),
-                       "KLRB1" = c("KLRB1"),
-                       stop("Invalid mode. Must be 'SALVE', 'GEX', or 'KLRB1'")
-  )
+  # Define categories based on mode (if not provided explicitly)
+  if (is.null(categories)) {
+    categories <- switch(mode,
+                         "SALVE" = c("US", "US-SS", "SS-MS", "SS", "MS", "any"),
+                         "GEX" = c("US", "US-SS", "any"),
+                         "KLRB1" = c("KLRB1"),
+                         "liver" = NULL,
+                         stop("Invalid mode. Must be 'SALVE', 'GEX', 'KLRB1', or 'liver'")
+    )
+  }
+  
+  umi_data <- read.csv(umi_file, stringsAsFactors = FALSE)
+  if (nrow(umi_data) == 0) {
+    return(return_empty("No UMI data found in file"))
+  }
+  
+  # For liver mode (or any mode with NULL categories), infer from data
+  if (is.null(categories)) {
+    categories <- sort(unique(umi_data$category))
+    cat("Inferred categories from data:", paste(categories, collapse = ", "), "\n")
+  }
   
   # Helper function to return empty result
   return_empty <- function(message = "", umi_entries = 0) {
@@ -468,11 +484,6 @@ set_minimumsv6 <- function(mode, umi_file, min_reads = 1, min_region_count = 1,
     return(empty_data)
   }
   
-  # Read and validate data
-  umi_data <- read.csv(umi_file, stringsAsFactors = FALSE)
-  if (nrow(umi_data) == 0) {
-    return(return_empty("No UMI data found in file"))
-  }
   
   original_entries <- nrow(umi_data)
   
@@ -484,7 +495,7 @@ set_minimumsv6 <- function(mode, umi_file, min_reads = 1, min_region_count = 1,
     }
   }
   
-  # Calculate cell-level metrics using dplyr for efficiency
+  # Calculate cell-level metrics
   cell_stats <- umi_data %>%
     group_by(cellID) %>%
     summarize(
@@ -492,7 +503,7 @@ set_minimumsv6 <- function(mode, umi_file, min_reads = 1, min_region_count = 1,
       .groups = 'drop'
     )
   
-  # Apply reads per cell filter early
+  # Apply reads per cell filter
   if (min_reads_cell > 0) {
     valid_cells <- cell_stats$cellID[cell_stats$total_reads >= min_reads_cell]
     umi_data <- umi_data[umi_data$cellID %in% valid_cells, ]
@@ -501,7 +512,7 @@ set_minimumsv6 <- function(mode, umi_file, min_reads = 1, min_region_count = 1,
     }
   }
   
-  # Create UMI count matrix more efficiently
+  # Create UMI count matrix
   umi_counts <- umi_data %>%
     count(cellID, category, name = "umi_count") %>%
     pivot_wider(names_from = category, values_from = umi_count, values_fill = 0)
@@ -510,14 +521,12 @@ set_minimumsv6 <- function(mode, umi_file, min_reads = 1, min_region_count = 1,
   result <- umi_counts %>%
     select(cellID, any_of(categories)) %>%
     mutate(across(-cellID, ~replace_na(.x, 0)))
-  
-  # Add missing categories as zero columns
+
   missing_cats <- setdiff(categories, colnames(result))
   if (length(missing_cats) > 0) {
     result[missing_cats] <- 0
   }
   
-  # Reorder columns to match expected order
   result <- result[c("cellID", categories)]
   
   # Apply minimum cells per region filter
@@ -542,7 +551,7 @@ set_minimumsv6 <- function(mode, umi_file, min_reads = 1, min_region_count = 1,
       region_count >= min_region_count,
       total >= min_umi
     ) %>%
-    select(-region_count)  # Remove helper column
+    select(-region_count)
   
   # Check for empty result
   if (nrow(result) == 0) {
@@ -551,15 +560,10 @@ set_minimumsv6 <- function(mode, umi_file, min_reads = 1, min_region_count = 1,
   
   # Save valid cellID-UMI pairs if requested
   if (save_valid_umi && !is.null(valid_umi_output_file) && nrow(result) > 0) {
-    # Extract valid cellIDs after all filtering
     valid_cellIDs <- result$cellID
-    
-    # Filter original UMI data to keep only valid cell-UMI combinations
     valid_umi_data <- umi_data %>%
       filter(cellID %in% valid_cellIDs) %>%
       select(cellID, UMI)
-    
-    # Write to CSV without row names for cleaner output
     write.csv(valid_umi_data, file = valid_umi_output_file, row.names = FALSE)
     cat("Saved", nrow(valid_umi_data), "valid cellID-UMI pairs\n")
   }
@@ -712,9 +716,17 @@ classify_site <- function(value, reference_values, reference_sites) {
     return("nc")
   }
 }
-
 ## Combined GEX and SALVE
 resolve_multimap_gs <- function(df) {
+  # If no merge conflict occurred, category columns won't have .x/.y suffixes
+  if (!"category.x" %in% names(df)) {
+    if ("category" %in% names(df)) {
+      cat("No multi-mapping detected (single source). Returning as-is.\n")
+      return(df[, c("cellID", "UMI", "category"), drop = FALSE])
+    } else {
+      stop("No 'category' or 'category.x'/'category.y' columns found in input.")
+    }
+  }
   # Priority categories that override others
   priority_cats <- c("US", "SS", "MS")
   
@@ -836,17 +848,255 @@ resolve_multimap_gs <- function(df) {
   
   return(result)
 }
-
-
-# Loading
-## standard processing of counts matrices with Seurat
-SeuratPipeline <- function(file_location, sample_name, output_dir = "/projects/b1042/GoyalLab/egrody/", 
-                           plots = FALSE, rds = FALSE, species = "macaque", remove_mac = TRUE) {
-  #if you would like to output plots from this pipeline, pass entries for the plots and output_dir variables
+## Liver
+extract_category_liver <- function(filename, targets = NULL) {
+  basename_file <- basename(filename)
+  parts <- strsplit(basename_file, "_alignment_")[[1]]
   
-  if (!dir.exists(output_dir)) {
-    dir.create(output_dir, recursive = TRUE)
+  if (length(parts) != 2) {
+    cat("  Warning: Filename does not match expected format:", basename_file, "\n")
+    return(NA)
   }
+  alignment_part <- sub("\\.csv$", "", parts[2])
+  
+  # Extract target_part from the prefix
+  # Format: [experiment_name]_[sample_name]_[target_part]
+  prefix_parts <- strsplit(parts[1], "_")[[1]]
+  
+  # test if GEX
+  if (!any(c("EGL", "SALVE") %in% prefix_parts)) {
+    # process for GEX
+    return(alignment_part)
+  } else {
+    # process for SALVE
+    if (length(prefix_parts) < 3) {
+      cat("  Warning: Cannot extract target_part from:", parts[1], "\n")
+      return(NA)
+    }
+    
+    # target_part is the last element in the prefix
+    target_part <- prefix_parts[length(prefix_parts)]
+    
+    # Filter by allowed targets list (if provided)
+    if (!is.null(targets) && !(target_part %in% targets)) {
+      return(NA)
+    }
+    
+    # Filter criterion: target_part must match alignment_part
+    if (grepl(target_part, alignment_part, fixed = TRUE)) {
+      return(target_part)
+    }
+    
+    # remove version tail
+    target_base <- sub("v[0-9]+$", "", target_part)
+    
+    if (target_base != target_part && grepl(target_base, alignment_part, fixed = TRUE)) {
+      return(target_part)
+    }
+    return(NA)
+  }
+}
+process_bamsort_liver <- function(samples_df, input.dir, output.dir, raw_cellIDs, targets = NULL) {
+  
+  if (!is.data.frame(samples_df) || !all(c("samples", "nicknames") %in% colnames(samples_df))) {
+    stop("samples_df must be a data frame with 'samples' and 'nicknames' columns")
+  }
+  if (!dir.exists(output.dir)) {
+    dir.create(output.dir, recursive = TRUE)
+  }
+  
+  if (!is.null(targets)) {
+    cat("Processing only targets:", paste(targets, collapse = ", "), "\n")
+  }
+  
+  for (i in seq_len(nrow(samples_df))) {
+    sample <- samples_df$samples[i]
+    nickname <- samples_df$nicknames[i]
+    cat("\nProcessing sample:", sample, "(nickname:", nickname,")\n")
+    
+    # Collect files from all input directories using nickname for pattern matching
+    sample_files <- unlist(lapply(input.dir, function(dir) {
+      list.files(dir, 
+                 pattern = paste0(".*", nickname, ".*_alignment_.*\\.csv$"),
+                 full.names = TRUE)
+    }))
+    # Try using full name instead
+    if (length(sample_files) == 0) {
+      sample_files <- unlist(lapply(input.dir, function(dir) {
+        list.files(dir, 
+                   pattern = paste0(".*", sample, ".*_alignment_.*\\.csv$"),
+                   full.names = TRUE)
+      }))
+    }
+    
+    if (length(sample_files) == 0) {
+      cat("No files found for sample:", sample, "(nickname:", nickname,")\n")
+      next
+    }
+    
+    cat("Found", length(sample_files), "alignment files\n")
+    
+    # Extract categories - NA for files where target_part not in alignment_part
+    # or target not in allowed targets list
+    categories <- sapply(sample_files, extract_category_liver, targets = targets)
+    
+    # Filter to only files with valid categories (target in alignment and in allowed list)
+    valid_idx <- !is.na(categories)
+    n_filtered <- sum(!valid_idx)
+    
+    sample_files <- sample_files[valid_idx]
+    categories <- categories[valid_idx]
+    
+    if (length(sample_files) == 0) {
+      cat("No files remaining after target-alignment filtering for sample:", sample, 
+          "(nickname:", nickname, ")\n")
+      next
+    }
+    
+    cat("Processing", length(sample_files), "files with matching target-alignment\n")
+    
+    # Aggregate data from all valid files
+    all_data <- data.frame()
+    filenames <- basename(sample_files)
+    
+    for (j in seq_along(sample_files)) {
+      extracted_data <- NULL
+      
+      tryCatch({
+        file_data <- fread(sample_files[j], data.table = FALSE)
+        
+        if (nrow(file_data) == 0) {
+          cat("Warning: File is empty:", filenames[j], "\n")
+          next
+        }
+        
+        required_cols <- c("cellID", "UMI", "count")
+        missing_cols <- setdiff(required_cols, colnames(file_data))
+        
+        if (length(missing_cols) > 0) {
+          cat("Warning: Missing required columns:", paste(missing_cols, collapse = ", "), 
+              "in", filenames[j], "\n")
+          cat("Available columns:", paste(colnames(file_data), collapse = ", "), "\n")
+          next
+        }
+        
+        extracted_data <- file_data %>%
+          select(cellID, UMI, count) %>%
+          rename(read = count) %>%
+          mutate(category = categories[j])
+        
+      }, error = function(e) {
+        cat("Error reading file:", filenames[j], "\n")
+        cat("Error message:", conditionMessage(e), "\n")
+      })
+      
+      if (!is.null(extracted_data) && nrow(extracted_data) > 0) {
+        all_data <- rbind(all_data, extracted_data)
+      }
+    }
+    
+    # Process aggregated data
+    if (nrow(all_data) > 0) {
+      all_data <- all_data %>%
+        filter(!is.na(cellID) & !is.na(UMI) & !is.na(read)) %>%
+        unique()
+      
+      tryCatch({
+        # Aggregate UMI read counts (no multimap resolution)
+        umi_read_counts <- all_data %>%
+          group_by(cellID, UMI, category) %>%
+          summarize(
+            read_count = sum(as.numeric(read)),
+            .groups = 'drop'
+          )
+        
+        cat("Gathered read counts for", nrow(umi_read_counts), "UMIs from", 
+            n_distinct(umi_read_counts$cellID), "cells\n")
+        
+        # Filter to valid 10X cell barcodes
+        if (sample %in% names(raw_cellIDs) && !is.null(raw_cellIDs[[sample]])) {
+          valid_cells <- raw_cellIDs[[sample]]
+          cat("Filtering to", length(valid_cells), "valid cells from 10X data\n")
+          
+          filtered_umi_read_counts <- umi_read_counts %>%
+            filter(cellID %in% valid_cells)
+          
+          cat("After filtering: kept", nrow(filtered_umi_read_counts), "UMIs from", 
+              n_distinct(filtered_umi_read_counts$cellID), "valid cells\n")
+        } else {
+          cat("Warning: No 10X data found for sample", sample, "- using unfiltered cell list\n")
+          filtered_umi_read_counts <- umi_read_counts
+        }
+        
+        # Convert to clean data frame for output
+        umi_read_counts_clean <- data.frame(
+          cellID = as.character(umi_read_counts$cellID),
+          UMI = as.character(umi_read_counts$UMI),
+          category = as.character(umi_read_counts$category),
+          read_count = as.numeric(umi_read_counts$read_count),
+          stringsAsFactors = FALSE
+        )
+        
+        filtered_umi_read_counts_clean <- data.frame(
+          cellID = as.character(filtered_umi_read_counts$cellID),
+          UMI = as.character(filtered_umi_read_counts$UMI),
+          category = as.character(filtered_umi_read_counts$category),
+          read_count = as.numeric(filtered_umi_read_counts$read_count),
+          stringsAsFactors = FALSE
+        )
+        
+        # Save outputs
+        umi_level_file <- file.path(output.dir, paste0(sample, "_UMI_read_counts_raw.csv"))
+        write.csv(umi_read_counts_clean, file = umi_level_file, row.names = FALSE)
+        cat("Saved raw UMI counts\n")
+        
+        filtered_umi_level_file <- file.path(output.dir, paste0(sample, "_UMI_read_counts_full.csv"))
+        write.csv(filtered_umi_read_counts_clean, file = filtered_umi_level_file, row.names = FALSE)
+        cat("Saved filtered UMI counts\n")
+        
+        cat("Successfully processed sample:", sample, "\n")
+        
+        rm(umi_read_counts)
+        
+      }, error = function(e) {
+        cat("Error processing data for sample", sample, ":", conditionMessage(e), "\n")
+        
+        # Attempt to save raw data for debugging
+        tryCatch({
+          all_data_clean <- data.frame(
+            cellID = as.character(all_data$cellID),
+            UMI = as.character(all_data$UMI),
+            read = as.numeric(all_data$read),
+            category = as.character(all_data$category),
+            stringsAsFactors = FALSE
+          )
+          
+          raw_file <- file.path(output.dir, paste0(sample, "_raw_data.csv"))
+          write.csv(all_data_clean, file = raw_file, row.names = FALSE)
+          cat("Saved raw data to:", raw_file, "\n")
+        }, error = function(e2) {
+          cat("Could not save raw data:", conditionMessage(e2), "\n")
+        })
+      })
+    } else {
+      cat("No data extracted for sample:", sample, "(nickname:", nickname, ")\n")
+    }
+  }
+  
+  invisible(NULL)
+}
+
+# =============================================================================
+# Seurat
+# =============================================================================
+## standard processing of counts matrices with Seurat
+SeuratPipeline <- function(file_location, sample_name, 
+                           output_dir = "/projects/b1042/GoyalLab/egrody/extractedData/", 
+                           plots = FALSE, rds = TRUE, species = "macaque", remove_mac = TRUE) {
+  
+  plots_dir <- file.path(output_dir, "plots/")
+  rds_dir <- file.path(output_dir, "RDS/")
+  sapply(c(plots_dir, rds_dir), dir.create, recursive = TRUE, showWarnings = FALSE)
   # Reading in feature matrices
   data <- Read10X(data.dir = file_location)
   # Initialize the Seurat object with the raw (non-normalized data)
@@ -855,12 +1105,12 @@ SeuratPipeline <- function(file_location, sample_name, output_dir = "/projects/b
   sample <- Add_Mito_Ribo(sample, species = species)
   if (plots) {
     vplot <- VlnPlot(sample, features = c("nFeature_RNA", "nCount_RNA", "percent_mito"), ncol = 3)
-    ggsave(vplot, file = paste0(output_dir, sample_name, "_preQC_violinplot.svg"))
+    ggsave(vplot, file = paste0(plots_dir, sample_name, "_preQC_violinplot.svg"))
   }
   sample <- subset(sample, subset = nFeature_RNA > 200 & nFeature_RNA < 3500 & nCount_RNA < 20000 & percent_mito < 5)
   if (plots) {
     vplot <- VlnPlot(sample, features = c("nFeature_RNA", "nCount_RNA", "percent_mito"), ncol = 3)
-    ggsave(vplot, file = paste0(output_dir, sample_name, "_postQC_violinplot.svg"))
+    ggsave(vplot, file = paste0(plots_dir, sample_name, "_postQC_violinplot.svg"))
   }
   # Remove CD4/CD8 doublets
   if ("CD4" %in% rownames(sample) && ("CD8A" %in% rownames(sample) || "CD8B" %in% rownames(sample))) {
@@ -891,27 +1141,31 @@ SeuratPipeline <- function(file_location, sample_name, output_dir = "/projects/b
   sample <- RunPCA(sample, features = VariableFeatures(object = sample), verbose = FALSE)
   if (plots) {
     eplot <- ElbowPlot(sample, ndims = 50)
-    ggsave(eplot, file = paste0(output_dir, sample_name, "_elbow.svg"))
+    ggsave(eplot, file = paste0(plots_dir, sample_name, "_elbow.svg"))
   }
   # Clustering
   sample <- FindNeighbors(sample, dims = 1:30, verbose = FALSE)
-  sample <- FindClusters(sample, resolution = 0.3, verbose = FALSE)
+  sample <- FindClusters(sample, resolution = 0.3, algorithm = 4, verbose = FALSE)
   # Dimension reduction
   sample <- RunUMAP(sample, dims = 1:30, verbose = FALSE)#, umap.method = "umap-learn", metric = "correlation")
   if (plots) {
     dplot <- DimPlot(sample, reduction = "umap")
-    ggsave(dplot, file = paste0(output_dir, sample_name, "_umap.svg"))
+    ggsave(dplot, file = paste0(plots_dir, sample_name, "_umap.pdf"))
   }
   if (rds) {
-    saveRDS(sample, file = paste0(output_dir, sample_name, ".rds"))
+    saveRDS(sample, file = paste0(rds_dir, sample_name, ".rds"))
+    sce <- SingleCellExperiment(
+      assays = list(counts = GetAssayData(sample, layer = "counts")),
+      colData = sample@meta.data
+    )
+    suppressMessages(
+      writeH5AD(sce, file = paste0(rds_dir, sample_name, ".h5ad"))
+    )
   }
   
   # Return the variable
   return(sample)
 }
-
-
-# Output Dataframes
 ## isolate specific gene(s) expression from a Seurat object
 targetExpressionDF <- function(seurat_obj, genes, count_type = "normalized") {
   # Ensure genes is a vector
@@ -963,7 +1217,9 @@ targetExpressionDF <- function(seurat_obj, genes, count_type = "normalized") {
   return(expression_df)
 }
 
+# =============================================================================
 # Joint Analyses
+# =============================================================================
 ## joining and printing numbers
 read_sample_files <- function(samples, directory, filtered = TRUE) {
   # Create an empty list to store data frames
@@ -1252,30 +1508,39 @@ host_virus_correlation <- function(joint_salve_data, joint_rds, genes_list, vira
   }
 }
 
+# =============================================================================
 # Plotting
+# =============================================================================
 ## plot a UMAP
 plotUMAP <- function(data, colorby, title, output_dir, saveas, comparison = FALSE, color = "darkblue") {
-  # Convert unquoted column name to string
-  colorby_str <- deparse(substitute(colorby))
+  colorby_str <- if (is.character(substitute(colorby))) {
+    colorby
+  } else {
+    deparse(substitute(colorby))
+  }
   
-  # Create a copy of the data and arrange it by the color column (low to high)
+  # Non-zero points render on top and larger
   data_ordered <- data[order(data[[colorby_str]]), ]
+  data_ordered$size_flag <- ifelse(data_ordered[[colorby_str]] != 0, "nonzero", "zero")
   
   umap <- ggplot(data_ordered, aes(x = UMAP1, y = UMAP2)) +
-    geom_point(aes(color = .data[[colorby_str]]), size = 1, shape = 16) +
+    geom_point(aes(color = .data[[colorby_str]], size = size_flag), shape = 16) +
+    scale_size_manual(values = c("zero" = 1, "nonzero" = 2)) +
     theme_classic() +
     theme(legend.position = "bottom",
           legend.title = element_text(size = rel(0.6)),
           legend.text = element_text(size = rel(0.6), angle = 30),
           axis.text = element_blank(),
-          axis.ticks = element_blank()) +
-    labs(title = title, color = "")
+          axis.ticks = element_blank(),
+          aspect.ratio = 1) +
+    labs(title = title, color = "") +
+    guides(size = "none")
   
   if (comparison) {
-    mid <- median(paint_umap$ratioSingleVISER)
+    mid <- median(data[[colorby_str]])
     umap <- umap + scale_color_gradient2(midpoint = mid, low = "blue", mid = "gray93", high = "red")
   } else {
-    umap <- umap + scale_color_gradient(low = "lightgrey", high = color)
+    umap <- umap + scale_color_gradient(low = "gray93", high = color)
   }
   ggsave(umap, file = paste0(output_dir, saveas),
          device = "pdf")
@@ -1283,49 +1548,47 @@ plotUMAP <- function(data, colorby, title, output_dir, saveas, comparison = FALS
   return(umap)
 }
 ## joint UMAP plot function
-create_identity_umap <- function(data, title, output_file_name, output_dir = "/projects/b1042/GoyalLab/egrody/") {
-  if ("log2ViserCount" %in% colnames(data)) {
-    data <- rename(data, log1pSALVE = log2ViserCount)
-  }
-  # Check data is correct format
-  required_columns <- c("log1pSALVE", "log1pSingleCell", "UMAP1", "UMAP2")
+create_identity_umap <- function(data, col1, col2, title, output_file_name, 
+                                 output_dir = "/projects/b1042/GoyalLab/egrody/") {
+  required_columns <- c(col1, col2, "UMAP1", "UMAP2")
   missing_columns <- required_columns[!required_columns %in% colnames(data)]
   
   if (length(missing_columns) > 0) {
     stop(sprintf("Missing required columns: %s", paste(missing_columns, collapse = ", ")))
   }
   
-  # Create identity column
-  paint_identities_umap <- data %>% 
+  paint_identities_umap <- data %>%
     mutate(identity = case_when(
-      log1pSALVE > 0 & log1pSingleCell > 0 ~ "both",
-      log1pSALVE > 0 ~ "SALVE",
-      log1pSingleCell > 0 ~ "SingleCell",
-      log1pSALVE == 0 & log1pSingleCell == 0 ~ "neither"
+      .data[[col1]] > 0 & .data[[col2]] > 0 ~ "both",
+      .data[[col1]] > 0 ~ col1,
+      .data[[col2]] > 0 ~ col2,
+      .data[[col1]] == 0 & .data[[col2]] == 0 ~ "neither"
     )) %>%
-    mutate(identity = factor(identity))
+    mutate(identity = factor(identity, levels = c("neither", col1, col2, "both")))
   
-  # Split data by identity
   neither_points <- paint_identities_umap %>% filter(identity == "neither")
-  SALVE_points <- paint_identities_umap %>% filter(identity == "SALVE")
+  col1_points <- paint_identities_umap %>% filter(identity == col1)
+  col2_points <- paint_identities_umap %>% filter(identity == col2)
   both_points <- paint_identities_umap %>% filter(identity == "both")
-  SingleCell_points <- paint_identities_umap %>% filter(identity == "SingleCell")
+  
+  color_vals <- c("both" = "purple", "neither" = "gray93")
+  color_vals[col1] <- "red"
+  color_vals[col2] <- "blue"
   
   identity_umap <- ggplot() +
-    # Plot points in layers by identity
-    geom_point(data = neither_points, 
+    geom_point(data = neither_points,
                aes(x = UMAP1, y = UMAP2, color = identity),
                size = 1, shape = 16) +
-    geom_point(data = SALVE_points, 
+    geom_point(data = col1_points,
                aes(x = UMAP1, y = UMAP2, color = identity),
-               size = 1, shape = 16) +
-    geom_point(data = both_points, 
+               size = 2, shape = 16) +
+    geom_point(data = both_points,
                aes(x = UMAP1, y = UMAP2, color = identity),
-               size = 1, shape = 16) +
-    geom_point(data = SingleCell_points, 
+               size = 2, shape = 16) +
+    geom_point(data = col2_points,
                aes(x = UMAP1, y = UMAP2, color = identity),
-               size = 1, shape = 16) +
-    scale_color_manual(values = c("both" = "purple", "neither" = "gray93", "SALVE" = "blue", "SingleCell" = "red")) +
+               size = 2, shape = 16) +
+    scale_color_manual(values = color_vals) +
     theme_classic() +
     theme(legend.position = "bottom",
           legend.title = element_text(size = rel(0.6)),
@@ -1334,13 +1597,14 @@ create_identity_umap <- function(data, title, output_file_name, output_dir = "/p
           axis.ticks = element_blank()) +
     labs(title = title, color = "Identity")
   
-  ggsave(identity_umap, file = file.path(output_dir, output_file_name), width = 7, height = 7)
+  ggsave(identity_umap, file = file.path(output_dir, output_file_name), 
+         device = "pdf")
   
   return(identity_umap)
 }
 ## barcode rank plot
 barcodeRankPlot <- function(rawDataFolder, jointFullJoin, plotTitle = "Barcode Rank Plot", 
-                            output_dir = "/projects/b1042/GoyalLab/egrody/", saveas = "barcodeRankPlot.svg") {
+                            output_dir = "/projects/b1042/GoyalLab/egrody/", saveas = "barcodeRankPlot.pdf") {
   # Check for either log1pSALVE or total_lessLTR columns
   has_log1p <- "log1pSALVE" %in% colnames(jointFullJoin)
   has_total <- "total_lessLTR" %in% colnames(jointFullJoin)
@@ -1419,8 +1683,52 @@ barcodeRankPlot <- function(rawDataFolder, jointFullJoin, plotTitle = "Barcode R
   
   return(umi_rank_plot)
 }
-
+## plot FM barcode on UMAP
+plotBarcodeUMAP <- function(data, title, min_count = 1, max_count = Inf,
+                            output_dir = "/projects/b1042/GoyalLab/egrody/extractedData/EGS024/",
+                            saveas = paste0("UMAP_", title, ".pdf")) {
+  # Count cells per barcode, excluding "none"
+  barcode_counts <- table(data$barcode)
+  target_barcodes <- names(barcode_counts[
+    barcode_counts >= min_count &
+      barcode_counts <= max_count &
+      names(barcode_counts) != "none"
+  ])
+  n_targets <- length(target_barcodes)
+  
+  if (n_targets == 0) {
+    cat("No barcodes found with count in [", min_count, ",", max_count, "]\n")
+    return(NULL)
+  }
+  
+  # Assign colors: unique hue per target barcode, gray93 for everything else
+  target_colors <- setNames(scales::hue_pal()(n_targets), target_barcodes)
+  target_colors["none"] <- "gray93"
+  
+  plot_data <- data
+  plot_data$barcode <- factor(plot_data$barcode, levels = c("none", target_barcodes))
+  plot_data <- arrange(plot_data, barcode)
+  
+  p <- ggplot(plot_data, aes(x = UMAP1, y = UMAP2, color = barcode)) +
+    geom_point(aes(size = barcode)) +
+    scale_color_manual(values = target_colors, na.value = "gray93") +
+    scale_size_manual(
+      values = setNames(c(0.5, rep(0.8, n_targets)), c("none", target_barcodes)),
+      na.value = 0.5
+    ) +
+    theme_classic() +
+    theme(aspect.ratio = 1) +
+    theme(legend.position = "none") +
+    ggtitle(title)
+  
+  ggsave(p, file = paste0(output_dir, saveas),
+         device = "pdf")
+  
+  return(p)
+}
+# =============================================================================
 # DEG Analysis
+# =============================================================================
 ## perform comprehensive subset analysis
 analyze_cell_subset <- function(seurat_obj, 
                                 subset_cells_1, 
@@ -2438,8 +2746,488 @@ save_subset_analysis <- function(analysis_results, output_dir) {
     cat(sep = "\n")
 }
 
+# =============================================================================
+# cNMF
+# =============================================================================
 
+run_preranked_gsea <- function(spectra_scores, gene_sets, pval_cutoff = 0.05) {
+  patterns <- colnames(spectra_scores)
+  all_results <- list()
+  
+  for (pat in patterns) {
+    ranks <- spectra_scores[[pat]]
+    names(ranks) <- rownames(spectra_scores)
+    ranks <- ranks[is.finite(ranks)]
+    ranks <- sort(ranks, decreasing = TRUE)
+    
+    res <- fgsea(
+      pathways = gene_sets,
+      stats = ranks,
+      minSize = 10,
+      maxSize = 500,
+      nPermSimple = 10000,
+      eps = 0
+    )
+    res$pattern <- pat
+    all_results[[pat]] <- res
+  }
+  
+  combined <- rbindlist(all_results)
+  combined <- combined[combined$padj < pval_cutoff, ]
+  combined <- combined[order(combined$pattern, combined$padj), ]
+  return(as.data.frame(combined))
+}
+get_top_n_genes <- function(spectra_scores, n = 50) {
+  top_list <- list()
+  for (pat in colnames(spectra_scores)) {
+    scores <- spectra_scores[[pat]]
+    names(scores) <- rownames(spectra_scores)
+    top_list[[pat]] <- names(sort(scores, decreasing = TRUE))[1:n]
+  }
+  return(top_list)
+}
+run_ora_hypergeometric <- function(query_genes, gene_sets, background_genes,
+                                   min_size = 10, max_size = 500,
+                                   pval_cutoff = 0.05) {
+  # One-sided Fisher/hypergeometric test for overrepresentation
+  bg <- unique(background_genes)
+  query <- intersect(query_genes, bg)
+  N <- length(bg)
+  n_query <- length(query)
+  
+  results <- list()
+  for (set_name in names(gene_sets)) {
+    set_genes <- intersect(gene_sets[[set_name]], bg)
+    K <- length(set_genes)
+    if (K < min_size || K > max_size) next
+    
+    overlap <- intersect(query, set_genes)
+    k <- length(overlap)
+    if (k == 0) next
+    
+    pval <- phyper(k - 1, K, N - K, n_query, lower.tail = FALSE)
+    
+    results[[length(results) + 1]] <- data.frame(
+      pathway = set_name,
+      pval = pval,
+      overlap = k,
+      set_size = K,
+      query_size = n_query,
+      background_size = N,
+      overlap_genes = paste(overlap, collapse = ";"),
+      stringsAsFactors = FALSE
+    )
+  }
+  
+  if (length(results) == 0) {
+    return(data.frame(pathway = character(), pval = numeric(), padj = numeric(),
+                      overlap = integer(), set_size = integer(),
+                      query_size = integer(), background_size = integer(),
+                      overlap_genes = character(), stringsAsFactors = FALSE))
+  }
+  
+  res_df <- do.call(rbind, results)
+  res_df$padj <- p.adjust(res_df$pval, method = "BH")
+  res_df <- res_df[res_df$padj < pval_cutoff, ]
+  res_df <- res_df[order(res_df$padj), ]
+  return(res_df)
+}
+add_cnmf_to_seurat <- function(seurat_obj, usage) {
+  # Align cell barcodes
+  common_cells <- intersect(Cells(seurat_obj), rownames(usage))
+  cat("Matching cells:", length(common_cells), "of", ncol(seurat_obj), "\n")
+  
+  # Add pattern weights to metadata
+  colnames(usage) <- paste0("Pattern_", seq_len(ncol(usage)))
+  for (pat in colnames(usage)) {
+    seurat_obj[[pat]] <- NA
+    seurat_obj[[pat]][common_cells, ] <- usage[common_cells, pat]
+  }
+  
+  return(seurat_obj)
+}
+## comparisons
+find_pattern_markers <- function(spectra_tpm,
+                                 spectra_score = NULL,
+                                 n_markers = 50,
+                                 method = "weighted_zscore",
+                                 min_score = 0,
+                                 exclude_shared = FALSE,
+                                 shared_threshold = 1.5) {
+  
+  stopifnot(is.matrix(spectra_tpm) || is.data.frame(spectra_tpm))
+  spectra_tpm <- as.matrix(spectra_tpm)
+  stopifnot(all(spectra_tpm >= 0))
+  
+  patterns <- colnames(spectra_tpm)
+  genes <- rownames(spectra_tpm)
+  n_patterns <- ncol(spectra_tpm)
+  
+  if (is.null(patterns)) patterns <- paste0("pattern_", seq_len(n_patterns))
+  if (is.null(genes)) stop("spectra_tpm must have rownames (gene names).")
+  
+  # Compute Z-scores per gene if not provided
+  if (is.null(spectra_score)) {
+    row_means <- rowMeans(spectra_tpm)
+    row_sds <- apply(spectra_tpm, 1, sd)
+    row_sds[row_sds == 0] <- 1  # avoid division by zero for constant rows
+    spectra_score <- (spectra_tpm - row_means) / row_sds
+  } else {
+    spectra_score <- as.matrix(spectra_score)
+    stopifnot(identical(dim(spectra_score), dim(spectra_tpm)))
+  }
+  
+  # Build per-gene, per-pattern stats (vectorized)
+  # For each gene and each pattern, compute the ratio to the best competing pattern
+  # and other useful quantities.
+  stats_list <- vector("list", n_patterns)
+  
+  for (i in seq_len(n_patterns)) {
+    tpm_this <- spectra_tpm[, i]
+    zscore_this <- spectra_score[, i]
+    
+    # Max loading across all OTHER patterns for each gene
+    if (n_patterns == 2) {
+      max_other <- spectra_tpm[, -i]
+    } else {
+      max_other <- apply(spectra_tpm[, -i, drop = FALSE], 1, max)
+    }
+    
+    ratio <- tpm_this / (max_other + 1e-10)
+    
+    stats_list[[i]] <- data.frame(
+      gene = genes,
+      pattern = patterns[i],
+      tpm = tpm_this,
+      zscore = zscore_this,
+      max_other_tpm = max_other,
+      ratio = ratio,
+      stringsAsFactors = FALSE
+    )
+  }
+  
+  marker_df <- do.call(rbind, stats_list)
+  rownames(marker_df) <- NULL
+  
+  # Apply minimum score filter
+  if (min_score > 0) {
+    marker_df <- marker_df[marker_df$tpm >= min_score, ]
+  }
+  
+  # Apply shared-gene exclusion filter
+  if (exclude_shared) {
+    marker_df <- marker_df[marker_df$ratio >= shared_threshold, ]
+  }
+  
+  # Compute the composite marker_score based on method
+  marker_df$marker_score <- switch(method,
+                                   
+                                   "weighted_zscore" = {
+                                     # Z-score captures specificity (how unusually high this gene loads on
+                                     # this pattern relative to its own distribution). Multiplying by
+                                     # log1p(TPM) upweights genes that are also highly expressed.
+                                     # log1p prevents a handful of very-high-TPM housekeeping genes from
+                                     # dominating; the log compression keeps magnitude informative but
+                                     # bounded.
+                                     marker_df$zscore * log1p(marker_df$tpm)
+                                   },
+                                   
+                                   "softmax_weighted" = {
+                                     # For each gene, compute softmax across patterns on TPM values.
+                                     # softmax(x_i) = exp(x_i) / sum(exp(x_j)) gives a specificity
+                                     # proportion that amplifies differences more than a linear proportion
+                                     # would. Multiply by TPM to weight by magnitude.
+                                     # Vectorized: subtract row max for numerical stability, then compute.
+                                     row_max <- apply(spectra_tpm, 1, max)
+                                     scaled <- spectra_tpm - row_max  # subtract max per row
+                                     exp_scaled <- exp(scaled)
+                                     softmax_mat <- exp_scaled / rowSums(exp_scaled)
+                                     score_mat <- softmax_mat * spectra_tpm
+                                     # Map back to the long-format marker_df
+                                     as.vector(score_mat[cbind(
+                                       match(marker_df$gene, genes),
+                                       match(marker_df$pattern, patterns)
+                                     )])
+                                   },
+                                   
+                                   "rank_product" = {
+                                     # Non-parametric approach: for each pattern, rank genes by
+                                     # (1) specificity (ratio to max_other) and (2) magnitude (tpm).
+                                     # Combine as reciprocal of the product of ranks. This is robust
+                                     # to skewed distributions and outliers. Genes that rank well on
+                                     # BOTH dimensions get the highest score.
+                                     rp_scores <- numeric(nrow(marker_df))
+                                     for (pat in patterns) {
+                                       idx <- which(marker_df$pattern == pat)
+                                       pat_data <- marker_df[idx, ]
+                                       n_genes_pat <- nrow(pat_data)
+                                       rank_spec <- rank(-pat_data$ratio, ties.method = "average")
+                                       rank_mag <- rank(-pat_data$tpm, ties.method = "average")
+                                       rp_scores[idx] <- 1 / (rank_spec * rank_mag)
+                                     }
+                                     rp_scores
+                                   },
+                                   
+                                   "ratio" = {
+                                     # Pure specificity baseline: fold-enrichment over best competitor.
+                                     # No magnitude weighting. Useful for comparison but tends to select
+                                     # low-expression genes that happen to be very pattern-specific.
+                                     marker_df$ratio
+                                   },
+                                   
+                                   stop("Unknown method: ", method,
+                                        ". Choose from: weighted_zscore, softmax_weighted, rank_product, ratio")
+  )
+  
+  # Select top markers per pattern
+  markers <- list()
+  for (pat in patterns) {
+    pat_df <- marker_df[marker_df$pattern == pat, ]
+    pat_df <- pat_df[order(pat_df$marker_score, decreasing = TRUE), ]
+    markers[[pat]] <- head(pat_df$gene, n_markers)
+  }
+  
+  return(list(
+    markers = markers,
+    marker_stats = marker_df,
+    method = method
+  ))
+}
+compare_pattern_usage <- function(usage, group1_cellids, group2_cellids = NULL,
+                                  group_labels = c("infected", "uninfected")) {
+  # If only one list given, derive the second as all remaining cells
+  if (is.null(group2_cellids)) {
+    group2_cellids <- setdiff(rownames(usage), group1_cellids)
+  }
+  
+  # Subset pattern matrices
+  group1_patterns <- usage[rownames(usage) %in% group1_cellids, , drop = FALSE]
+  group2_patterns <- usage[rownames(usage) %in% group2_cellids, , drop = FALSE]
+  
+  # Calculate summary statistics
+  group1_means <- colMeans(group1_patterns)
+  group2_means <- colMeans(group2_patterns)
+  
+  comparison_df <- data.frame(
+    pattern = colnames(usage),
+    group1_mean = group1_means,
+    group2_mean = group2_means,
+    log2_fold_change = log2((group1_means + 1e-10) / (group2_means + 1e-10))
+  )
+  
+  # Statistical testing with Wilcoxon rank-sum test
+  stat_results <- lapply(colnames(usage), function(pat) {
+    test <- wilcox.test(group1_patterns[, pat], group2_patterns[, pat])
+    data.frame(
+      pattern = pat,
+      p_value = test$p.value,
+      group1_median = median(group1_patterns[, pat]),
+      group2_median = median(group2_patterns[, pat])
+    )
+  })
+  
+  stat_df <- do.call(rbind, stat_results)
+  stat_df$p_adj <- p.adjust(stat_df$p_value, method = "BH")
+  
+  # Prepare data for plotting
+  plot_data <- rbind(
+    data.frame(
+      cellID = rownames(group1_patterns),
+      group = group_labels[1],
+      as.data.frame(group1_patterns),
+      check.names = FALSE
+    ),
+    data.frame(
+      cellID = rownames(group2_patterns),
+      group = group_labels[2],
+      as.data.frame(group2_patterns),
+      check.names = FALSE
+    )
+  )
+  
+  return(list(
+    comparison = comparison_df,
+    stats = stat_df,
+    plot_data = plot_data,
+    group1_patterns = group1_patterns,
+    group2_patterns = group2_patterns
+  ))
+}
+### plotting
+plot_usage_heatmap <- function(usage, metadata = NULL, output_path = NULL) {
+  # Normalize usage per cell (row-wise)
+  usage_norm <- usage / rowSums(usage)
+  
+  # Set up annotation if metadata provided
+  if (!is.null(metadata)) {
+    # Ensure rownames match
+    common_cells <- intersect(rownames(usage_norm), rownames(metadata))
+    usage_norm <- usage_norm[common_cells, ]
+    annotation_row <- metadata[common_cells, , drop = FALSE]
+  } else {
+    annotation_row <- NA
+  }
+  
+  # Create heatmap
+  p <- pheatmap(
+    t(usage_norm),
+    cluster_rows = TRUE,
+    cluster_cols = TRUE,
+    show_colnames = FALSE,
+    color = viridis(100),
+    main = "cNMF Pattern Usage (normalized)",
+    annotation_col = if (!is.null(metadata)) annotation_row else NA,
+    silent = TRUE
+  )
+  
+  if (!is.null(output_path)) {
+    pdf(output_path, width = 12, height = 6)
+    print(p)
+    dev.off()
+    cat("Saved:", output_path, "\n")
+  }
+  
+  return(p)
+}
+plot_marker_heatmap <- function(spectra, markers, n_genes = 20, output_path = NULL) {
+  # Get top n genes for each pattern
+  all_marker_genes <- unique(unlist(lapply(markers, head, n_genes)))
+  
+  # Subset spectra to marker genes
+  spectra_subset <- spectra[all_marker_genes, ]
+  
+  # Z-score for visualization
+  spectra_scaled <- t(scale(t(spectra_subset)))
+  
+  # Create annotation for which pattern each gene belongs to
+  gene_pattern <- data.frame(
+    pattern = sapply(all_marker_genes, function(g) {
+      for (pat in names(markers)) {
+        if (g %in% head(markers[[pat]], n_genes)) return(pat)
+      }
+      return(NA)
+    }),
+    row.names = all_marker_genes
+  )
+  
+  p <- pheatmap(
+    spectra_scaled,
+    cluster_rows = FALSE,
+    cluster_cols = FALSE,
+    show_rownames = nrow(spectra_scaled) <= 50,
+    color = colorRampPalette(c("blue", "white", "red"))(100),
+    main = paste("Top", n_genes, "Marker Genes per Pattern"),
+    annotation_row = gene_pattern,
+    silent = TRUE
+  )
+  
+  if (!is.null(output_path)) {
+    pdf(output_path, width = 8, height = 12)
+    print(p)
+    dev.off()
+    cat("Saved:", output_path, "\n")
+  }
+  
+  return(p)
+}
+plot_pattern_violins <- function(comparison_result, output_path = NULL,
+                                 group_names = c("infected", "uninfected")) {
+  plot_data <- comparison_result$plot_data
+  stat_df <- comparison_result$stats
+  
+  plot_long <- pivot_longer(
+    plot_data,
+    cols = -c(cellID, group),
+    names_to = "pattern",
+    values_to = "weight"
+  )
+  
+  # Relabel groups using provided names
+  plot_long$group <- factor(plot_long$group,
+                            levels = c(group_names[1], group_names[2]))
+  
+  max_weights <- plot_long %>%
+    group_by(pattern) %>%
+    summarise(ymax = max(weight), .groups = "drop")
+  
+  sig_data <- merge(stat_df, max_weights, by = "pattern")
+  sig_data$y_pos <- sig_data$ymax * 1.05
+  sig_data$label <- case_when(
+    sig_data$p_adj < 0.001 ~ "***",
+    sig_data$p_adj < 0.01 ~ "**",
+    sig_data$p_adj < 0.05 ~ "*",
+    TRUE ~ "ns"
+  )
+  
+  p <- ggplot(plot_long, aes(x = pattern, y = weight, fill = group)) +
+    geom_violin(position = position_dodge(0.8), scale = "width", trim = TRUE) +
+    geom_boxplot(
+      position = position_dodge(0.8),
+      width = 0.1,
+      outlier.shape = NA,
+      alpha = 0.7
+    ) +
+    geom_text(
+      data = sig_data,
+      aes(x = pattern, y = y_pos, label = label),
+      inherit.aes = FALSE,
+      size = 4
+    ) +
+    scale_fill_manual(values = c("#E41A1C", "#377EB8")) +
+    labs(
+      x = "Pattern",
+      y = "Pattern Weight",
+      fill = "Group",
+      title = paste0("cNMF Pattern Usage: ", group_names[1], " vs ", group_names[2])
+    ) +
+    theme_classic() +
+    theme(
+      axis.text.x = element_text(angle = 45, hjust = 1),
+      legend.position = "bottom"
+    )
+  
+  if (!is.null(output_path)) {
+    ggsave(output_path, p, width = 10, height = 6)
+    cat("Saved:", output_path, "\n")
+  }
+  
+  return(p)
+}
+plot_log2fc <- function(comparison_result, output_path = NULL,
+                        group_names = c("infected", "uninfected")) {
+  comparison_df <- comparison_result$comparison
+  stat_df <- comparison_result$stats
+  
+  plot_df <- merge(comparison_df, stat_df[, c("pattern", "p_adj")], by = "pattern")
+  plot_df$significant <- factor(plot_df$p_adj < 0.05, levels = c(FALSE, TRUE))
+  
+  pattern_order <- paste0("Pattern_", sort(as.numeric(gsub("Pattern_", "", plot_df$pattern))))
+  plot_df$pattern <- factor(plot_df$pattern, levels = pattern_order)
+  
+  p <- ggplot(plot_df, aes(x = pattern, y = log2_fold_change, fill = significant)) +
+    geom_bar(stat = "identity") +
+    geom_hline(yintercept = 0, linetype = "dashed") +
+    scale_fill_manual(values = c("FALSE" = "grey60", "TRUE" = "#E41A1C"),
+                      labels = c("ns", "p < 0.05"),
+                      drop = FALSE) +
+    labs(
+      x = "Pattern",
+      y = paste0("Log2 Fold Change (", group_names[1], " / ", group_names[2], ")"),
+      fill = "Significance",
+      title = paste0("Pattern Enrichment in ", group_names[1], " Cells")
+    ) +
+    theme_classic()
+  
+  if (!is.null(output_path)) {
+    ggsave(output_path, p, width = 8, height = 6)
+    cat("Saved:", output_path, "\n")
+  }
+  
+  return(p)
+}
+# =============================================================================
 # Saturation
+# =============================================================================
 ## Function to perform sampling analysis on cellID data without reads
 sample_cellID <- function(df, percentages = seq(10, 99, by = 10), replicates = 5) {
   # Get total number of rows and unique cellIDs in the full dataset

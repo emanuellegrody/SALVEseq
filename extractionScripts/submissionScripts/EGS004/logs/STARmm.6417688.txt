@@ -1,0 +1,5 @@
+Building STAR index...
+Jun 22 18:00:28 ..... started STAR run
+Jun 22 18:00:28 ... starting to generate Genome files
+Jun 22 18:01:24 ..... processing annotations GTF
+Error: STAR index build failed. Check the log above.

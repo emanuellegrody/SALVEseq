@@ -1,0 +1,29 @@
+Reading cell IDs from /projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/Seurat/UMAPcoords/D13UMAP_coords.csv...
+Total unique 16bp cell barcodes: 4837
+Found 4837 cell IDs to extract
+Extracting reads from /projects/b1042/GoyalLab/egrody/extractedData/EGS007/longRead/nf-core/cDNA/bam/dedup/cDNA.dedup.sorted.bam...
+Looking for cell IDs (sample): ['AGGATCTAGGAAAGAC', 'ACCGTTCCACTCCTTG', 'TGTGCGGAGTCTAGCT', 'ACTGATGTCCCGAGGT', 'ATTGTTCAGTGCTAGG']
+Creating index for /projects/b1042/GoyalLab/egrody/extractedData/EGS007/longRead/bamsort/cells//D13_bamsort_validCellID.bam...
+Created index file: /projects/b1042/GoyalLab/egrody/extractedData/EGS007/longRead/bamsort/cells//D13_bamsort_validCellID.bam.bai
+
+Extraction Statistics:
+Total reads processed: 1,939
+Reads without CB tag: 0
+Reads with cell IDs not in our list: 1,939
+Reads extracted (passed all filters): 0
+
+Filter rates:
+  - Cell barcode filter excluded: 100.00%
+  - Overall extraction rate: 0.00%
+
+TROUBLESHOOTING:
+No reads were extracted. Possible reasons:
+1. Cell ID format mismatch between CSV and BAM file
+2. No reads in the BAM file have cell barcodes in your list
+3. BAM file might use a different tag format than expected
+
+Suggested next steps:
+- Check the format of cell barcodes in your BAM file:
+  samtools view your_input.bam | grep -o "CB:Z:[^ ]*" | head -10
+- Run with --analyze_input to inspect the first few reads of your input file
+- Verify that your CSV file contains the correct cell barcode format

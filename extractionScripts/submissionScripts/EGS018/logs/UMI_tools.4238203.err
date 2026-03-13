@@ -1,0 +1,96 @@
+Traceback (most recent call last):
+  File "/home/egy2296/.conda/envs/cellranger/bin/umi_tools", line 11, in <module>
+    sys.exit(main())
+  File "/home/egy2296/.local/lib/python3.9/site-packages/umi_tools-1.1.6-py3.9-linux-x86_64.egg/umi_tools/umi_tools.py", line 61, in main
+    module.main(sys.argv)
+  File "/home/egy2296/.local/lib/python3.9/site-packages/umi_tools-1.1.6-py3.9-linux-x86_64.egg/umi_tools/extract.py", line 306, in main
+    (options, args) = U.Start(parser, argv=argv,
+  File "/home/egy2296/.local/lib/python3.9/site-packages/umi_tools-1.1.6-py3.9-linux-x86_64.egg/umi_tools/Utilities.py", line 1083, in Start
+    global_options.stdin = openFile(global_options.stdin, "r")
+  File "/home/egy2296/.local/lib/python3.9/site-packages/umi_tools-1.1.6-py3.9-linux-x86_64.egg/umi_tools/Utilities.py", line 513, in openFile
+    return gzip.open(filename, 'rt', encoding="ascii")
+  File "/home/egy2296/.conda/envs/cellranger/lib/python3.9/gzip.py", line 58, in open
+    binary_file = GzipFile(filename, gz_mode, compresslevel)
+  File "/home/egy2296/.conda/envs/cellranger/lib/python3.9/gzip.py", line 173, in __init__
+    fileobj = self.myfileobj = builtins.open(filename, mode or 'rb')
+FileNotFoundError: [Errno 2] No such file or directory: '/projects/b1042/GoyalLab/egrody/rawData/EGS018/Sequencing/*tat_Pacute*R1_001.fastq.gz'
+Traceback (most recent call last):
+  File "/home/egy2296/.conda/envs/cellranger/bin/umi_tools", line 11, in <module>
+    sys.exit(main())
+  File "/home/egy2296/.local/lib/python3.9/site-packages/umi_tools-1.1.6-py3.9-linux-x86_64.egg/umi_tools/umi_tools.py", line 61, in main
+    module.main(sys.argv)
+  File "/home/egy2296/.local/lib/python3.9/site-packages/umi_tools-1.1.6-py3.9-linux-x86_64.egg/umi_tools/extract.py", line 306, in main
+    (options, args) = U.Start(parser, argv=argv,
+  File "/home/egy2296/.local/lib/python3.9/site-packages/umi_tools-1.1.6-py3.9-linux-x86_64.egg/umi_tools/Utilities.py", line 1083, in Start
+    global_options.stdin = openFile(global_options.stdin, "r")
+  File "/home/egy2296/.local/lib/python3.9/site-packages/umi_tools-1.1.6-py3.9-linux-x86_64.egg/umi_tools/Utilities.py", line 513, in openFile
+    return gzip.open(filename, 'rt', encoding="ascii")
+  File "/home/egy2296/.conda/envs/cellranger/lib/python3.9/gzip.py", line 58, in open
+    binary_file = GzipFile(filename, gz_mode, compresslevel)
+  File "/home/egy2296/.conda/envs/cellranger/lib/python3.9/gzip.py", line 173, in __init__
+    fileobj = self.myfileobj = builtins.open(filename, mode or 'rb')
+FileNotFoundError: [Errno 2] No such file or directory: '/projects/b1042/GoyalLab/egrody/rawData/EGS018/Sequencing/*tat_W2*R1_001.fastq.gz'
+Traceback (most recent call last):
+  File "/home/egy2296/.conda/envs/cellranger/bin/umi_tools", line 11, in <module>
+    sys.exit(main())
+  File "/home/egy2296/.local/lib/python3.9/site-packages/umi_tools-1.1.6-py3.9-linux-x86_64.egg/umi_tools/umi_tools.py", line 61, in main
+    module.main(sys.argv)
+  File "/home/egy2296/.local/lib/python3.9/site-packages/umi_tools-1.1.6-py3.9-linux-x86_64.egg/umi_tools/extract.py", line 306, in main
+    (options, args) = U.Start(parser, argv=argv,
+  File "/home/egy2296/.local/lib/python3.9/site-packages/umi_tools-1.1.6-py3.9-linux-x86_64.egg/umi_tools/Utilities.py", line 1083, in Start
+    global_options.stdin = openFile(global_options.stdin, "r")
+  File "/home/egy2296/.local/lib/python3.9/site-packages/umi_tools-1.1.6-py3.9-linux-x86_64.egg/umi_tools/Utilities.py", line 513, in openFile
+    return gzip.open(filename, 'rt', encoding="ascii")
+  File "/home/egy2296/.conda/envs/cellranger/lib/python3.9/gzip.py", line 58, in open
+    binary_file = GzipFile(filename, gz_mode, compresslevel)
+  File "/home/egy2296/.conda/envs/cellranger/lib/python3.9/gzip.py", line 173, in __init__
+    fileobj = self.myfileobj = builtins.open(filename, mode or 'rb')
+FileNotFoundError: [Errno 2] No such file or directory: '/projects/b1042/GoyalLab/egrody/rawData/EGS018/Sequencing/*tat_D0*R1_001.fastq.gz'
+Traceback (most recent call last):
+  File "/home/egy2296/.conda/envs/cellranger/bin/umi_tools", line 11, in <module>
+    sys.exit(main())
+  File "/home/egy2296/.local/lib/python3.9/site-packages/umi_tools-1.1.6-py3.9-linux-x86_64.egg/umi_tools/umi_tools.py", line 61, in main
+    module.main(sys.argv)
+  File "/home/egy2296/.local/lib/python3.9/site-packages/umi_tools-1.1.6-py3.9-linux-x86_64.egg/umi_tools/extract.py", line 306, in main
+    (options, args) = U.Start(parser, argv=argv,
+  File "/home/egy2296/.local/lib/python3.9/site-packages/umi_tools-1.1.6-py3.9-linux-x86_64.egg/umi_tools/Utilities.py", line 1083, in Start
+    global_options.stdin = openFile(global_options.stdin, "r")
+  File "/home/egy2296/.local/lib/python3.9/site-packages/umi_tools-1.1.6-py3.9-linux-x86_64.egg/umi_tools/Utilities.py", line 513, in openFile
+    return gzip.open(filename, 'rt', encoding="ascii")
+  File "/home/egy2296/.conda/envs/cellranger/lib/python3.9/gzip.py", line 58, in open
+    binary_file = GzipFile(filename, gz_mode, compresslevel)
+  File "/home/egy2296/.conda/envs/cellranger/lib/python3.9/gzip.py", line 173, in __init__
+    fileobj = self.myfileobj = builtins.open(filename, mode or 'rb')
+FileNotFoundError: [Errno 2] No such file or directory: '/projects/b1042/GoyalLab/egrody/rawData/EGS018/Sequencing/*tat_Invitro*R1_001.fastq.gz'
+Traceback (most recent call last):
+  File "/home/egy2296/.conda/envs/cellranger/bin/umi_tools", line 11, in <module>
+    sys.exit(main())
+  File "/home/egy2296/.local/lib/python3.9/site-packages/umi_tools-1.1.6-py3.9-linux-x86_64.egg/umi_tools/umi_tools.py", line 61, in main
+    module.main(sys.argv)
+  File "/home/egy2296/.local/lib/python3.9/site-packages/umi_tools-1.1.6-py3.9-linux-x86_64.egg/umi_tools/extract.py", line 306, in main
+    (options, args) = U.Start(parser, argv=argv,
+  File "/home/egy2296/.local/lib/python3.9/site-packages/umi_tools-1.1.6-py3.9-linux-x86_64.egg/umi_tools/Utilities.py", line 1083, in Start
+    global_options.stdin = openFile(global_options.stdin, "r")
+  File "/home/egy2296/.local/lib/python3.9/site-packages/umi_tools-1.1.6-py3.9-linux-x86_64.egg/umi_tools/Utilities.py", line 513, in openFile
+    return gzip.open(filename, 'rt', encoding="ascii")
+  File "/home/egy2296/.conda/envs/cellranger/lib/python3.9/gzip.py", line 58, in open
+    binary_file = GzipFile(filename, gz_mode, compresslevel)
+  File "/home/egy2296/.conda/envs/cellranger/lib/python3.9/gzip.py", line 173, in __init__
+    fileobj = self.myfileobj = builtins.open(filename, mode or 'rb')
+FileNotFoundError: [Errno 2] No such file or directory: '/projects/b1042/GoyalLab/egrody/rawData/EGS018/Sequencing/*tat_W0*R1_001.fastq.gz'
+Traceback (most recent call last):
+  File "/home/egy2296/.conda/envs/cellranger/bin/umi_tools", line 11, in <module>
+    sys.exit(main())
+  File "/home/egy2296/.local/lib/python3.9/site-packages/umi_tools-1.1.6-py3.9-linux-x86_64.egg/umi_tools/umi_tools.py", line 61, in main
+    module.main(sys.argv)
+  File "/home/egy2296/.local/lib/python3.9/site-packages/umi_tools-1.1.6-py3.9-linux-x86_64.egg/umi_tools/extract.py", line 306, in main
+    (options, args) = U.Start(parser, argv=argv,
+  File "/home/egy2296/.local/lib/python3.9/site-packages/umi_tools-1.1.6-py3.9-linux-x86_64.egg/umi_tools/Utilities.py", line 1083, in Start
+    global_options.stdin = openFile(global_options.stdin, "r")
+  File "/home/egy2296/.local/lib/python3.9/site-packages/umi_tools-1.1.6-py3.9-linux-x86_64.egg/umi_tools/Utilities.py", line 513, in openFile
+    return gzip.open(filename, 'rt', encoding="ascii")
+  File "/home/egy2296/.conda/envs/cellranger/lib/python3.9/gzip.py", line 58, in open
+    binary_file = GzipFile(filename, gz_mode, compresslevel)
+  File "/home/egy2296/.conda/envs/cellranger/lib/python3.9/gzip.py", line 173, in __init__
+    fileobj = self.myfileobj = builtins.open(filename, mode or 'rb')
+FileNotFoundError: [Errno 2] No such file or directory: '/projects/b1042/GoyalLab/egrody/rawData/EGS018/Sequencing/*tat_D195*R1_001.fastq.gz'

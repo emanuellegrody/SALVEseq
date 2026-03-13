@@ -1,0 +1,11 @@
+BCL to FASTQ file converter
+bcl2fastq v2.20.0.422
+Copyright (c) 2007-2017 Illumina, Inc.
+
+2025-09-01 14:21:06 [1542f2b4e0c0] Command-line invocation: bcl2fastq --create-fastq-for-index-reads --ignore-missing-positions --ignore-missing-controls --ignore-missing-filter --ignore-missing-bcls --no-lane-splitting --output-dir=/projects/b1042/GoyalLab/egrody/rawData/EGS018/Sequencing/fastq/ --runfolder-dir=/projects/b1042/GoyalLab/egrody/rawData/EGS018/Sequencing/250830_VH01990_44_AAHJW7YM5/ --sample-sheet=/projects/b1042/GoyalLab/egrody/rawData/EGS018/Sequencing/20250830_EGS018_sampleSheet.csv 
+2025-09-01 14:21:06 [1542f2b4e0c0] INFO: Minimum log level: INFO
+2025-09-01 14:21:06 [1542f2b4e0c0] INFO: Sample sheet: '/projects/b1042/GoyalLab/egrody/rawData/EGS018/Sequencing/20250830_EGS018_sampleSheet.csv'
+2025-09-01 14:21:06 [1542f2b4e0c0] ERROR: bcl2fastq::common::Exception: 2025-Sep-01 14:21:06: Success (0): /software/sources/builds/bcl2fastq2/bcl2fastq/src/cxx/lib/config/SampleSheetCsv.cpp(563): Throw in function virtual void bcl2fastq::config::detail::DataSectionParser::validateCharacters(const string&, const string&) const
+Dynamic exception type: boost::exception_detail::clone_impl<bcl2fastq::common::InputDataError>
+std::exception::what: Invalid characters in sampleid: 'tat.Pacute'. Only alphanumeric, '-', or '_' characters are allowed.
+
