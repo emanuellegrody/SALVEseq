@@ -32,7 +32,7 @@ packages <- c(
   "transport"
 )
 
-versions_file <- "/gpfs/home/egy2296/SALVEseq/packages_versions.csv"
+versions_file <- "/gpfs/home/egy2296/SALVEseq/extractionScripts/R/packages_versions.csv"
 
 load_packages_with_versions <- function(packages, versions_file, update_versions_file = TRUE) {
   
