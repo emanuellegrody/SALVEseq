@@ -21,7 +21,7 @@ set -e
 # =============================================================================
 # DATASET CONFIGURATION
 # =============================================================================
-BASE_OUTPUT_DIR="/projects/b1042/GoyalLab/egrody/extractedData/EGL002/singleCell/cNMF/"
+BASE_OUTPUT_DIR="/projects/b1042/GoyalLab/egrody/extractedData/EGS024/singleCell/cNMF/"
 
 # =============================================================================
 # Parse arguments
@@ -48,7 +48,7 @@ DENSITY=${3:-2.0}
 ACCOUNT="b1042"
 PARTITION="genomics"
 SCRIPT_DIR="/home/egy2296/SALVEseq/extractionScripts/Python"
-LOG_DIR="/home/egy2296/SALVEseq/extractionScripts/submissionScripts/EGL002/logs"
+LOG_DIR="/home/egy2296/SALVEseq/extractionScripts/submissionScripts/EGS024/logs"
 CONDA_ENV="jupyter"
 
 # =============================================================================

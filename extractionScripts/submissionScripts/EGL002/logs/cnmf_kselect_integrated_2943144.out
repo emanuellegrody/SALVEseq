@@ -1,0 +1,26 @@
+=== integrated: Combine ===
+Combining factorization results...
+Combining factorizations for k=4.
+Combining factorizations for k=5.
+Combining factorizations for k=6.
+Combining factorizations for k=7.
+Combining factorizations for k=8.
+Combining factorizations for k=9.
+cNMF object saved: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/singleCell/cNMF/integrated_cnmf_object.pkl
+Results combined.
+
+=== integrated: K Selection ===
+Generating K selection plot...
+  K selection plot: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/singleCell/cNMF/integrated/integrated.k_selection.png
+  WARNING: Stats file not found at /projects/b1042/GoyalLab/egrody/extractedData/EGL002/singleCell/cNMF/integrated/integrated.k_selection_stats.txt
+cNMF object saved: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/singleCell/cNMF/integrated_cnmf_object.pkl
+
+==============================================
+Phase 1 complete. Inspect the K selection plot:
+  /projects/b1042/GoyalLab/egrody/extractedData/EGL002/singleCell/cNMF/integrated/integrated.k_selection.png
+
+Then run Phase 2 with your chosen K:
+  ./cNMF_postprocess.sh <K> [density]
+==============================================
+
+integrated Phase 1 complete: Mon Mar 16 13:02:06 CDT 2026

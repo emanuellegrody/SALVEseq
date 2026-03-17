@@ -1,0 +1,27 @@
+=== integrated: Configuration ===
+Current configuration:
+  OUTPUT_DIR: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/singleCell/cNMF/
+  RUN_NAME: integrated
+  INPUT_H5AD: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/singleCell/Seurat/integrated//integrated.h5ad
+  COUNTS_FILE: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/singleCell/cNMF/integrated_adata_for_cnmf.h5ad
+  K_RANGE: [4, 5, 6, 7, 8, 9]
+  N_ITER: 200
+  N_HVG: 2000
+  SEED: 36
+  N_WORKERS: 4
+
+=== integrated: Preprocess ===
+Loading data: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/singleCell/Seurat/integrated//integrated.h5ad
+  Loaded 10897 cells x 15984 genes
+  Saved prepared data: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/singleCell/cNMF/integrated_adata_for_cnmf.h5ad
+Preprocessing complete.
+
+=== integrated: Prepare ===
+Preparing cNMF analysis: integrated
+  K range: [4, 5, 6, 7, 8, 9]
+  Iterations per K: 200
+  HVG count: 2000
+cNMF object saved: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/singleCell/cNMF/integrated_cnmf_object.pkl
+Preparation complete.
+
+integrated prep complete: Mon Mar 16 12:44:50 CDT 2026

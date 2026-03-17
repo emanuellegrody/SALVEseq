@@ -24,6 +24,8 @@ chemistry="$5"
 shift 5
 extra_flags=("$@")
 
+mkdir -p "$outputpath"
+
 # Validate chemistry version
 if [ "$chemistry" != "v3" ] && [ "$chemistry" != "v4" ]; then
     echo "Error: chemistry version must be 'v3' or 'v4', got '$chemistry'"

@@ -1,0 +1,11 @@
+Traceback (most recent call last):
+  File "/gpfs/home/egy2296/SALVEseq/extractionScripts/Python/cNMF.py", line 378, in <module>
+    main()
+    ~~~~^^
+  File "/gpfs/home/egy2296/SALVEseq/extractionScripts/Python/cNMF.py", line 374, in main
+    postprocess(args.k, args.density)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "/gpfs/home/egy2296/SALVEseq/extractionScripts/Python/cNMF.py", line 289, in postprocess
+    print(f"  {col}: {', '.join(genes)}")
+                      ~~~~~~~~~^^^^^^^
+TypeError: sequence item 0: expected str instance, int found

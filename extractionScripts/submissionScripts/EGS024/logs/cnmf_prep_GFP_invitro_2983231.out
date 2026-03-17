@@ -1,0 +1,27 @@
+=== GFP_invitro: Configuration ===
+Current configuration:
+  OUTPUT_DIR: /projects/b1042/GoyalLab/egrody/extractedData/EGS024/singleCell/cNMF/
+  RUN_NAME: GFP_invitro
+  INPUT_H5AD: /projects/b1042/GoyalLab/egrody/extractedData/EGS024/singleCell/Seurat/RDS//GFP_invitro.h5ad
+  COUNTS_FILE: /projects/b1042/GoyalLab/egrody/extractedData/EGS024/singleCell/cNMF/GFP_invitro_adata_for_cnmf.h5ad
+  K_RANGE: [4, 5, 6, 7, 8, 9, 10]
+  N_ITER: 200
+  N_HVG: 2000
+  SEED: 36
+  N_WORKERS: 4
+
+=== GFP_invitro: Preprocess ===
+Loading data: /projects/b1042/GoyalLab/egrody/extractedData/EGS024/singleCell/Seurat/RDS//GFP_invitro.h5ad
+  Loaded 9220 cells x 16377 genes
+  Saved prepared data: /projects/b1042/GoyalLab/egrody/extractedData/EGS024/singleCell/cNMF/GFP_invitro_adata_for_cnmf.h5ad
+Preprocessing complete.
+
+=== GFP_invitro: Prepare ===
+Preparing cNMF analysis: GFP_invitro
+  K range: [4, 5, 6, 7, 8, 9, 10]
+  Iterations per K: 200
+  HVG count: 2000
+cNMF object saved: /projects/b1042/GoyalLab/egrody/extractedData/EGS024/singleCell/cNMF/GFP_invitro_cnmf_object.pkl
+Preparation complete.
+
+GFP_invitro prep complete: Tue Mar 17 10:15:47 CDT 2026

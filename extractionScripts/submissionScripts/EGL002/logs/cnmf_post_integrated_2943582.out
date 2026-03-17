@@ -1,0 +1,21 @@
+=== Postprocess (K=7, density=2.0) ===
+Postprocessing: K=7, density_threshold=2.0
+  Usage matrix: 10897 cells x 7 patterns
+  Spectra matrix: 15984 genes x 7 patterns
+  Exported: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/singleCell/cNMF/integrated_usage_K7.csv
+  Exported: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/singleCell/cNMF/integrated_spectra_K7.csv
+  Exported: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/singleCell/cNMF/integrated_spectra_tpm_K7.csv
+  Exported: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/singleCell/cNMF/integrated_top_genes_K7.csv
+
+Top 10 genes per pattern:
+
+==============================================
+cNMF Workflow Complete: Mon Mar 16 13:12:47 CDT 2026
+==============================================
+Output files in: /projects/b1042/GoyalLab/egrody/extractedData/EGL002/singleCell/cNMF/
+  - integrated_usage_K7.csv
+  - integrated_spectra_K7.csv
+  - integrated_spectra_tpm_K7.csv
+  - integrated_top_genes_K7.csv
+
+Next: Run cNMF_analysis.R

@@ -1,0 +1,21 @@
+=== Postprocess (K=6, density=0.1) ===
+Postprocessing: K=6, density_threshold=0.1
+  Usage matrix: 9220 cells x 6 patterns
+  Spectra matrix: 16377 genes x 6 patterns
+  Exported: /projects/b1042/GoyalLab/egrody/extractedData/EGS024/singleCell/cNMF/GFP_invitro_usage_K6.csv
+  Exported: /projects/b1042/GoyalLab/egrody/extractedData/EGS024/singleCell/cNMF/GFP_invitro_spectra_K6.csv
+  Exported: /projects/b1042/GoyalLab/egrody/extractedData/EGS024/singleCell/cNMF/GFP_invitro_spectra_tpm_K6.csv
+  Exported: /projects/b1042/GoyalLab/egrody/extractedData/EGS024/singleCell/cNMF/GFP_invitro_top_genes_K6.csv
+
+Top 10 genes per pattern:
+
+==============================================
+cNMF Workflow Complete: Tue Mar 17 10:42:06 CDT 2026
+==============================================
+Output files in: /projects/b1042/GoyalLab/egrody/extractedData/EGS024/singleCell/cNMF/
+  - GFP_invitro_usage_K6.csv
+  - GFP_invitro_spectra_K6.csv
+  - GFP_invitro_spectra_tpm_K6.csv
+  - GFP_invitro_top_genes_K6.csv
+
+Next: Run cNMF_analysis.R

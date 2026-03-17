@@ -1,0 +1,17 @@
+=== Before anything ===
+PATH: /software/miniconda3/4.12.0/bin:/gpfs/software/2025/pseudo-system-utils:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/usr/lpp/mmfs/bin:/hpc/usertools:/home/egy2296/.local/bin:/home/egy2296/bin
+/software/miniconda3/4.12.0/bin/python3
+
+=== After module purge ===
+PATH: /software/miniconda3/4.12.0/bin:/gpfs/software/2025/pseudo-system-utils:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/usr/lpp/mmfs/bin:/hpc/usertools:/home/egy2296/.local/bin:/home/egy2296/bin
+/software/miniconda3/4.12.0/bin/python3
+
+=== After source activate jupyter ===
+PATH: /home/egy2296/.conda/envs/jupyter/bin:/gpfs/software/2025/pseudo-system-utils:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/usr/lpp/mmfs/bin:/hpc/usertools:/home/egy2296/.local/bin:/home/egy2296/bin
+/home/egy2296/.conda/envs/jupyter/bin/python3
+pandas OK: 2.3.3
+
+=== Alternative: conda activate ===
+PATH: /home/egy2296/.conda/envs/jupyter/bin:/gpfs/software/2025/pseudo-system-utils:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/usr/lpp/mmfs/bin:/hpc/usertools:/home/egy2296/.local/bin:/home/egy2296/bin
+/home/egy2296/.conda/envs/jupyter/bin/python3
+pandas OK: 2.3.3

@@ -1,0 +1,13 @@
+which python3: /home/egy2296/.conda/envs/jupyter/bin/python3
+pandas OK: 2.3.3
+config would run here
+Current configuration:
+  OUTPUT_DIR: .
+  RUN_NAME: cnmf_run
+  INPUT_H5AD: 
+  COUNTS_FILE: ./cnmf_run_adata_for_cnmf.h5ad
+  K_RANGE: [5, 6, 7, 8, 9, 10]
+  N_ITER: 100
+  N_HVG: 2000
+  SEED: 42
+  N_WORKERS: 4

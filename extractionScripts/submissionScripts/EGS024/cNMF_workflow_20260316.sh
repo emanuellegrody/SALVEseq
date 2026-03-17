@@ -41,11 +41,11 @@ SAMPLES=("$@")
 # =============================================================================
 # SHARED CONFIGURATION
 # =============================================================================
-H5AD_DIR="/projects/b1042/GoyalLab/egrody/extractedData/EGL002/singleCell/Seurat/integrated/"
-export CNMF_OUTPUT_DIR="/projects/b1042/GoyalLab/egrody/extractedData/EGL002/singleCell/cNMF/"
+H5AD_DIR="/projects/b1042/GoyalLab/egrody/extractedData/EGS024/singleCell/Seurat/RDS/"
+export CNMF_OUTPUT_DIR="/projects/b1042/GoyalLab/egrody/extractedData/EGS024/singleCell/cNMF/"
 
 # cNMF parameters (shared across samples)
-export CNMF_K_RANGE="4,5,6,7,8,9"
+export CNMF_K_RANGE="4,5,6,7,8,9,10"
 export CNMF_N_ITER=200
 export CNMF_N_HVG=2000
 export CNMF_SEED=36
@@ -55,7 +55,7 @@ export CNMF_N_WORKERS=4
 ACCOUNT="b1042"
 PARTITION="genomics"
 SCRIPT_DIR="/home/egy2296/SALVEseq/extractionScripts/Python/"
-LOG_DIR="/home/egy2296/SALVEseq/extractionScripts/submissionScripts/EGL002/logs"
+LOG_DIR="/home/egy2296/SALVEseq/extractionScripts/submissionScripts/EGS024/logs"
 CONDA_ENV="jupyter"
 
 mkdir -p "${LOG_DIR}"
@@ -108,6 +108,8 @@ for SAMPLE in "${SAMPLES[@]}"; do
 #SBATCH --output=${LOG_DIR}/cnmf_prep_${SAMPLE}_%j.out
 #SBATCH --error=${LOG_DIR}/cnmf_prep_${SAMPLE}_%j.err
 
+set -e
+
 export CNMF_INPUT_H5AD="${CNMF_INPUT_H5AD}"
 export CNMF_OUTPUT_DIR="${CNMF_OUTPUT_DIR}"
 export CNMF_RUN_NAME="${CNMF_RUN_NAME}"
@@ -153,6 +155,8 @@ PREP_SCRIPT
 #SBATCH --output=${LOG_DIR}/cnmf_factor_${SAMPLE}_%A_%a.out
 #SBATCH --error=${LOG_DIR}/cnmf_factor_${SAMPLE}_%A_%a.err
 
+set -e
+
 export CNMF_OUTPUT_DIR="${CNMF_OUTPUT_DIR}"
 export CNMF_RUN_NAME="${CNMF_RUN_NAME}"
 export CNMF_N_WORKERS="${CNMF_N_WORKERS}"
@@ -182,6 +186,8 @@ FACTOR_SCRIPT
 #SBATCH -t 0:15:00
 #SBATCH --output=${LOG_DIR}/cnmf_kselect_${SAMPLE}_%j.out
 #SBATCH --error=${LOG_DIR}/cnmf_kselect_${SAMPLE}_%j.err
+
+set -e
 
 export CNMF_OUTPUT_DIR="${CNMF_OUTPUT_DIR}"
 export CNMF_RUN_NAME="${CNMF_RUN_NAME}"
