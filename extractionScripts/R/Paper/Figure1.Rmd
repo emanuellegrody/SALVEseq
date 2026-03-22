@@ -936,3 +936,105 @@ Splicing UMAPS
 
 # SIV total
 
+# Venn Diagrams
+
+```{r}
+# --- File list ---
+root_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/joint/dataframes/"
+output_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/joint/plots/Venn/"
+samples <- list(
+  #"KLRB1",
+  "Invitro",
+  "Pacute",
+  "D195"
+)
+
+# --- Plotting function ---
+plot_venn <- function(gex_only, salve_only, both, title, outfile) {
+  gex_total   <- gex_only + both
+  salve_total <- salve_only + both
+
+  # Radii proportional to sqrt of set size (area = pi*r^2, so r ~ sqrt(n))
+  scale <- 2  # base scale factor
+  r1 <- scale * sqrt(gex_total / max(gex_total, salve_total))    # GEX (left)
+  r2 <- scale * sqrt(salve_total / max(gex_total, salve_total))  # SALVE (right)
+
+  # Target intersection area
+  total <- gex_only + salve_only + both
+  target_area <- (both / total) * pi * max(r1, r2)^2
+
+  if (both == 0) {
+    d <- r1 + r2 + 0.3
+  } else if (gex_only == 0 && salve_only == 0) {
+    d <- abs(r1 - r2)
+  } else {
+    # Intersection area of two circles with radii r1, r2 and center distance d
+    int_area <- function(d) {
+      if (d >= r1 + r2) return(0)
+      if (d <= abs(r1 - r2)) return(pi * min(r1, r2)^2)
+      a1 <- r1^2 * acos((d^2 + r1^2 - r2^2) / (2 * d * r1))
+      a2 <- r2^2 * acos((d^2 + r2^2 - r1^2) / (2 * d * r2))
+      tri <- 0.5 * sqrt((-d+r1+r2)*(d+r1-r2)*(d-r1+r2)*(d+r1+r2))
+      a1 + a2 - tri
+    }
+
+    f <- function(d) int_area(d) - target_area
+
+    lo <- abs(r1 - r2) + 0.001
+    hi <- r1 + r2 - 0.001
+
+    if (sign(f(lo)) == sign(f(hi))) {
+      d <- (lo + hi) / 2
+      message("uniroot fallback for: ", title)
+    } else {
+      d <- uniroot(f, c(lo, hi), tol = 1e-10)$root
+    }
+  }
+
+  circles <- data.frame(x = c(-d/2, d/2), y = c(0, 0), r = c(r1, r2))
+
+  # Label positions: midpoint of each exclusive crescent
+  gex_label_x   <- (-d/2) - r1/2
+  salve_label_x <- (d/2) + r2/2
+
+  labels <- data.frame(
+    x = c(gex_label_x, 0, salve_label_x),
+    y = c(0, 0, 0),
+    count = c(gex_only, both, salve_only)
+  )
+
+  cat_labels <- data.frame(
+    x = c(gex_label_x, salve_label_x),
+    y = c(max(r1, r2) + 0.3, max(r1, r2) + 0.3),
+    label = c("GEX", "SALVE")
+  )
+
+  p <- ggplot() +
+    geom_circle(data = circles, aes(x0 = x, y0 = y, r = r),
+                fill = NA, color = "black", linewidth = 0.8) +
+    geom_text(data = labels, aes(x = x, y = y, label = count), size = 6) +
+    geom_text(data = cat_labels, aes(x = x, y = y, label = label), size = 6) +
+    ggtitle(title) +
+    coord_fixed() +
+    theme_void() +
+    theme(plot.title = element_text(hjust = 0.5, size = 14))
+
+  ggsave(outfile, p, width = 6, height = 5)
+}
+
+# --- Loop through files ---
+for (sample_name in samples) {
+  both <- read.csv(paste0(root_dir, sample_name, "_both.csv"))
+  gex_only <- read.csv(paste0(root_dir, sample_name, "_onlySingleCell.csv"))
+  salve_only <- read.csv(paste0(root_dir, sample_name, "_onlySALVE.csv"))
+
+  outfile <- paste0(output_dir, "venn_", sample_name, ".pdf")
+
+  plot_venn(nrow(gex_only), nrow(salve_only), nrow(both), sample_name, outfile)
+}
+
+outfile <- paste0(output_dir, "venn_KLRB1.pdf")
+plot_venn(24, 32, 175, "KLRB1", outfile)
+
+```
+

@@ -179,8 +179,6 @@ Clustering detour
 ```{r clustering}
 seurat_obj <- readRDS("/projects/b1042/GoyalLab/egrody/extractedData/EGL002/singleCell/Seurat/integrated/integrated.rds")
 
-library(clustree)
-
 # Run clustering at multiple resolutions
 seurat_obj <- FindClusters(seurat_obj, resolution = 0.4, algorithm = 4)
 seurat_obj <- FindClusters(seurat_obj, resolution = 0.5, algorithm = 4)
@@ -3007,44 +3005,58 @@ library(FNN)
 # Nearest-neighbor matching: WT-KO cell pairing
 # ============================================================
 
-match_cells_by_nn <- function(seurat_obj, result_df, 
-                               reduction = "integrated.dr",
-                               k = 1) {
-  # Extract the integrated embedding — this is the space where
-  # batch/condition effects have been removed, so neighbors
-  # across conditions are transcriptionally equivalent.
-  #
-  # Check what reductions are available in your object:
-  # names(seurat_obj@reductions)
-  # Common options: "pca", "integrated.dr", "harmony"
-  
+match_per_gene <- function(seurat_obj, result_df, genes,
+                            reduction = "harmony") {
+
   embeddings <- Embeddings(seurat_obj, reduction = reduction)
-  
-  # Split cells by condition
-  meta <- seurat_obj@meta.data %>%
-    mutate(cellID = colnames(seurat_obj)) %>%
-    mutate(condition = sub("_.*", "", cellID))
-  
-  wt_cells <- meta %>% filter(condition == "Normal") %>% pull(cellID)
-  ko_cells <- meta %>% filter(condition == "Esrp2KO") %>% pull(cellID)
-  
-  wt_embed <- embeddings[wt_cells, ]
-  ko_embed <- embeddings[ko_cells, ]
-  
-  # For each WT cell, find its k nearest KO neighbors
-  # FNN::get.knnx is efficient for cross-set nearest neighbor search.
-  # It uses a kd-tree internally, O(n log n) construction.
-  nn_result <- get.knnx(data = ko_embed, query = wt_embed, k = k)
-  
-  # Build matched pairs
-  pairs <- data.frame(
-    wt_cell = rep(wt_cells, each = k),
-    ko_cell = ko_cells[as.vector(t(nn_result$nn.index))],
-    distance = as.vector(t(nn_result$nn.dist)),
-    stringsAsFactors = FALSE
+  meta <- data.frame(
+    cellID = colnames(seurat_obj),
+    condition = sub("_.*", "", colnames(seurat_obj))
   )
-  
-  return(pairs)
+
+  all_results <- list()
+
+  for (gene in genes) {
+    gex_col <- paste0(gene, "_GEX")
+
+    # Cells expressing this gene
+    expressing_cells <- result_df %>%
+      filter(.data[[gex_col]] > 0) %>%
+      pull(cellID)
+
+    # Split by condition
+    expr_wt <- intersect(expressing_cells,
+                          meta$cellID[meta$condition == "Normal"])
+    expr_ko <- intersect(expressing_cells,
+                          meta$cellID[meta$condition == "Esrp2KO"])
+
+    if (length(expr_wt) < 10 || length(expr_ko) < 10) {
+      cat(sprintf("%s: too few expressing cells (WT: %d, KO: %d), skipping\n",
+                  gene, length(expr_wt), length(expr_ko)))
+      next
+    }
+
+    nn <- get.knnx(data = embeddings[expr_ko, ],
+                    query = embeddings[expr_wt, ], k = 1)
+
+    gene_pairs <- data.frame(
+      wt_cell = expr_wt,
+      ko_cell = expr_ko[nn$nn.index[, 1]],
+      distance = nn$nn.dist[, 1],
+      stringsAsFactors = FALSE
+    )
+
+    # Distance filter
+    cutoff <- quantile(gene_pairs$distance, 0.95)
+    gene_pairs <- gene_pairs %>% filter(distance <= cutoff)
+
+    cat(sprintf("%s: %d expressing WT, %d expressing KO, %d pairs after filter\n",
+                gene, length(expr_wt), length(expr_ko), nrow(gene_pairs)))
+
+    all_results[[gene]] <- gene_pairs
+  }
+
+  return(all_results)
 }
 
 # ============================================================
@@ -3184,6 +3196,7 @@ plot_matched_analysis <- function(all_pairs, seurat_obj,
                               sum(gene_pairs$pair_type == "WT exon+ / KO exon-"),
                               sum(gene_pairs$pair_type == "WT exon- / KO exon+"))) +
       theme_bw(base_size = 11) +
+      theme(aspect.ratio = 1) +
       theme(panel.grid = element_blank())
     
     ggsave(paste0(output_prefix, "_", gene, "_umap.pdf"), p,
@@ -3222,135 +3235,127 @@ output_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGL002/joint/integr
 seurat_obj <- readRDS("/projects/b1042/GoyalLab/egrody/extractedData/EGL002/singleCell/Seurat/integrated/integrated.rds")
 
 # Step 1: Match cells
-# Check available reductions first:
-names(seurat_obj@reductions)
-pairs <- match_cells_by_nn(seurat_obj, result,
-                            reduction = "harmony",  # adjust to your reduction
-                            k = 1)
+pairs <- match_per_gene(seurat_obj, result, genes)
 
 # Step 2: Compare exon inclusion in matched pairs
-all_pairs <- compare_matched_pairs(pairs, result, genes)
+all_pairs_list <- list()
+for (gene in names(pairs)) {
+  gene_pairs <- pairs[[gene]]
+  gene_compared <- compare_matched_pairs(gene_pairs, result, gene)
+  all_pairs_list[[gene]] <- gene_compared
+}
+all_pairs_expr <- bind_rows(all_pairs_list)
 
 # Step 3: Test
-matched_stats <- test_matched_pairs(all_pairs)
-print(matched_stats)
-write.table(matched_stats, paste0(output_dir, "stats_matched_pairs_mcnemar.tsv"),
-           sep = "\t", row.names = FALSE, quote = FALSE)
+matched_stats_expr <- test_matched_pairs(all_pairs_expr)
+print(matched_stats_expr)
+write.table(matched_stats_expr, paste0(output_dir, "stats_matched_expressing.tsv"),
+            sep = "\t", row.names = FALSE, quote = FALSE)
 
-# Step 4: Visualize
-plot_matched_analysis(all_pairs, seurat_obj,
-                       output_prefix = paste0(output_dir, "matched_nn"))
+# Step 5: Visualize
+plot_matched_analysis(all_pairs_expr, seurat_obj,
+                       output_prefix = paste0(output_dir, "matched_expressing_nn"))
 ```
 
 ```{r controls}
 # ============================================================
-# Control 1: Distance distribution of matched pairs
-# Compare to random cross-condition pairs to show that
-# nearest-neighbor matching produces closer pairs than chance.
+# Control 1: Distance distribution — per gene
 # ============================================================
 
-assess_matching_quality <- function(seurat_obj, pairs, result_df,
-                                     reduction = "integrated.dr",
-                                     n_random = 5000, seed = 42) {
-
+assess_matching_quality_pergene <- function(seurat_obj, pairs_list, result_df,
+                                             reduction = "harmony",
+                                             n_random = 5000, seed = 42) {
+  set.seed(seed)
   embeddings <- Embeddings(seurat_obj, reduction = reduction)
   meta <- data.frame(
     cellID = colnames(seurat_obj),
     condition = sub("_.*", "", colnames(seurat_obj))
   )
 
-  wt_cells <- meta %>% filter(condition == "Normal") %>% pull(cellID)
-  ko_cells <- meta %>% filter(condition == "Esrp2KO") %>% pull(cellID)
+  plot_list <- list()
 
-  # Random cross-condition pairs
-  set.seed(seed)
-  n_rand <- min(n_random, length(wt_cells), length(ko_cells))
-  rand_wt <- sample(wt_cells, n_rand)
-  rand_ko <- sample(ko_cells, n_rand)
+  for (gene in names(pairs_list)) {
+    gene_pairs <- pairs_list[[gene]]
+    gex_col <- paste0(gene, "_GEX")
 
-  rand_dist <- sqrt(rowSums(
-    (embeddings[rand_wt, ] - embeddings[rand_ko, ])^2
-  ))
+    # Get expressing cells per condition for this gene
+    expressing <- result_df %>%
+      filter(.data[[gex_col]] > 0) %>%
+      pull(cellID)
+    expr_wt <- intersect(expressing, meta$cellID[meta$condition == "Normal"])
+    expr_ko <- intersect(expressing, meta$cellID[meta$condition == "Esrp2KO"])
 
-  dist_df <- bind_rows(
-    data.frame(type = "NN matched", distance = pairs$distance),
-    data.frame(type = "Random cross-condition", distance = rand_dist)
-  )
+    # Random pairs among expressing cells
+    n_rand <- min(n_random, length(expr_wt), length(expr_ko))
+    rand_wt <- sample(expr_wt, n_rand)
+    rand_ko <- sample(expr_ko, n_rand)
+    rand_dist <- sqrt(rowSums(
+      (embeddings[rand_wt, ] - embeddings[rand_ko, ])^2
+    ))
 
-  # Also compute within-condition NN distances as a baseline:
-  # how close are WT cells to their nearest WT neighbor?
-  # This is the floor — matched pairs cannot be closer than this
-  # on average because they must cross conditions.
-  nn_within <- get.knnx(
-    data = embeddings[wt_cells, ],
-    query = embeddings[wt_cells, ],
-    k = 2  # k=2 because k=1 is the cell itself
-  )
-  within_dist <- nn_within$nn.dist[, 2]
+    # Within-WT NN among expressing cells
+    nn_within <- FNN::get.knnx(
+      data = embeddings[expr_wt, ], query = embeddings[expr_wt, ], k = 2
+    )
+    within_dist <- nn_within$nn.dist[, 2]
 
-  dist_df <- bind_rows(
-    dist_df,
-    data.frame(type = "Within-WT NN", distance = within_dist)
-  )
+    dist_df <- bind_rows(
+      data.frame(type = "NN matched", distance = gene_pairs$distance),
+      data.frame(type = "Random cross-condition", distance = rand_dist),
+      data.frame(type = "Within-WT NN", distance = within_dist)
+    )
 
-  p_dist <- ggplot(dist_df, aes(x = distance, fill = type)) +
-    geom_density(alpha = 0.5, linewidth = 0.3) +
-    scale_fill_manual(values = c(
-      "NN matched" = "#4575b4",
-      "Random cross-condition" = "#d73027",
-      "Within-WT NN" = "#74add1"
-    )) +
-    labs(
-      x = "Euclidean distance in integrated embedding",
-      y = "Density",
-      title = "Matching quality: NN pairs vs random pairs",
-      subtitle = paste0(
-        "Median NN: ", round(median(pairs$distance), 3),
-        " | Median random: ", round(median(rand_dist), 3),
-        " | Median within-WT: ", round(median(within_dist), 3)
-      )
-    ) +
-    theme_bw(base_size = 11) +
-    theme(legend.position = "top", legend.title = element_blank())
+    ks <- ks.test(gene_pairs$distance, rand_dist, alternative = "greater")
 
-  # KS test: are NN distances significantly closer than random?
-  ks <- ks.test(pairs$distance, rand_dist, alternative = "less")
+    p <- ggplot(dist_df, aes(x = distance, fill = type)) +
+      geom_density(alpha = 0.5, linewidth = 0.3) +
+      scale_fill_manual(values = c(
+        "NN matched" = "#4575b4",
+        "Random cross-condition" = "#d73027",
+        "Within-WT NN" = "#74add1"
+      )) +
+      labs(
+        x = "Euclidean distance in integrated embedding",
+        y = "Density",
+        title = gene,
+        subtitle = sprintf("Median NN: %.3f | Median random: %.3f | KS p = %.2e",
+                           median(gene_pairs$distance), median(rand_dist),
+                           ks$p.value)
+      ) +
+      theme_bw(base_size = 11) +
+      theme(legend.position = "top", legend.title = element_blank())
 
-  cat(sprintf("Median NN distance: %.4f\n", median(pairs$distance)))
-  cat(sprintf("Median random distance: %.4f\n", median(rand_dist)))
-  cat(sprintf("Median within-WT NN distance: %.4f\n", median(within_dist)))
-  cat(sprintf("KS test (NN < random): D = %.4f, p = %.2e\n",
-              ks$statistic, ks$p.value))
+    plot_list[[gene]] <- p
+  }
 
-  return(list(plot = p_dist, dist_df = dist_df, ks_test = ks))
+  combined <- cowplot::plot_grid(plotlist = plot_list, ncol = 2)
+  return(list(plots = plot_list, combined = combined))
 }
 
 
 # ============================================================
-# Control 2: Permutation test for discordance
-# Shuffle condition labels and re-run matching to establish
-# the null distribution of discordant pair counts.
+# Control 2: Permutation test — per gene, expression-matched
 # ============================================================
 
-permutation_test <- function(seurat_obj, result_df, genes,
-                              reduction = "harmony",
-                              n_perm = 1000, seed = 42) {
-
+permutation_test_pergene <- function(seurat_obj, result_df, genes,
+                                      reduction = "harmony",
+                                      n_perm = 1000, seed = 42) {
   set.seed(seed)
   embeddings <- Embeddings(seurat_obj, reduction = reduction)
   all_cells <- colnames(seurat_obj)
   conditions <- sub("_.*", "", all_cells)
 
-  n_wt <- sum(conditions == "Normal")
-  n_ko <- sum(conditions == "Esrp2KO")
-
-  # Observed stats
-  real_pairs <- match_cells_by_nn(seurat_obj, result_df,
-                                   reduction = reduction, k = 1)
-  dist_cutoff <- quantile(real_pairs$distance, 0.95)
-  real_pairs <- real_pairs %>% filter(distance <= dist_cutoff)
-  real_compared <- compare_matched_pairs(real_pairs, result_df, genes)
-  real_stats <- real_compared %>%
+  # Observed stats from expressing-cell matching
+  real_pairs_list <- match_per_gene(seurat_obj, result_df, genes,
+                                     reduction = reduction)
+  real_all <- list()
+  for (gene in names(real_pairs_list)) {
+    real_all[[gene]] <- compare_matched_pairs(
+      real_pairs_list[[gene]], result_df, gene
+    )
+  }
+  real_combined <- bind_rows(real_all)
+  real_stats <- real_combined %>%
     group_by(gene) %>%
     summarise(
       observed_wt_only = sum(pair_category == "wt_only"),
@@ -3358,61 +3363,71 @@ permutation_test <- function(seurat_obj, result_df, genes,
       .groups = "drop"
     )
 
-  # Permutation: shuffle condition assignment, re-match using
-  # the same embedding (do not rename cells or modify the Seurat object).
-  # Instead, assign shuffled labels and use them to split cells
-  # into "pseudo-WT" and "pseudo-KO" for matching.
+  # Permutation: shuffle condition labels, then for each gene
+  # restrict to expressing cells, re-match, count discordance.
   perm_results <- list()
 
   for (i in seq_len(n_perm)) {
     if (i %% 100 == 0) cat(sprintf("Permutation %d / %d\n", i, n_perm))
 
-    # Shuffle which cells are called WT vs KO
-    shuffled_idx <- sample(seq_along(all_cells))
-    pseudo_wt <- all_cells[shuffled_idx[1:n_wt]]
-    pseudo_ko <- all_cells[shuffled_idx[(n_wt + 1):(n_wt + n_ko)]]
+    # Shuffle condition labels
+    shuffled_conditions <- sample(conditions)
+    names(shuffled_conditions) <- all_cells
 
-    # Match pseudo-WT to nearest pseudo-KO in embedding space
-    nn <- tryCatch({
-      FNN::get.knnx(
-        data = embeddings[pseudo_ko, , drop = FALSE],
-        query = embeddings[pseudo_wt, , drop = FALSE],
-        k = 1
+    perm_gene_stats <- list()
+
+    for (gene in genes) {
+      gex_col <- paste0(gene, "_GEX")
+
+      # Expressing cells (same set regardless of permutation)
+      expressing <- result_df %>%
+        filter(.data[[gex_col]] > 0) %>%
+        pull(cellID)
+
+      # Split by shuffled condition
+      pseudo_wt <- expressing[shuffled_conditions[expressing] == "Normal"]
+      pseudo_ko <- expressing[shuffled_conditions[expressing] == "Esrp2KO"]
+
+      if (length(pseudo_wt) < 10 || length(pseudo_ko) < 10) next
+
+      nn <- tryCatch({
+        FNN::get.knnx(
+          data = embeddings[pseudo_ko, , drop = FALSE],
+          query = embeddings[pseudo_wt, , drop = FALSE],
+          k = 1
+        )
+      }, error = function(e) NULL)
+
+      if (is.null(nn)) next
+
+      perm_pairs <- data.frame(
+        wt_cell = pseudo_wt,
+        ko_cell = pseudo_ko[nn$nn.index[, 1]],
+        distance = nn$nn.dist[, 1],
+        stringsAsFactors = FALSE
       )
-    }, error = function(e) NULL)
 
-    if (is.null(nn)) next
+      cutoff <- quantile(perm_pairs$distance, 0.95)
+      perm_pairs <- perm_pairs %>% filter(distance <= cutoff)
 
-    perm_pairs <- data.frame(
-      wt_cell = pseudo_wt,
-      ko_cell = pseudo_ko[nn$nn.index[, 1]],
-      distance = nn$nn.dist[, 1],
-      stringsAsFactors = FALSE
-    )
+      perm_compared <- compare_matched_pairs(perm_pairs, result_df, gene)
 
-    # Apply same distance filter
-    perm_pairs <- perm_pairs %>% filter(distance <= dist_cutoff)
+      perm_gene_stats[[gene]] <- data.frame(
+        gene = gene,
+        wt_only = sum(perm_compared$pair_category == "wt_only"),
+        ko_only = sum(perm_compared$pair_category == "ko_only"),
+        perm = i
+      )
+    }
 
-    # Look up SALVE counts using original cellIDs (not shuffled labels)
-    perm_compared <- compare_matched_pairs(perm_pairs, result_df, genes)
-
-    perm_stats <- perm_compared %>%
-      group_by(gene) %>%
-      summarise(
-        wt_only = sum(pair_category == "wt_only"),
-        ko_only = sum(pair_category == "ko_only"),
-        .groups = "drop"
-      ) %>%
-      mutate(perm = i)
-
-    perm_results[[i]] <- perm_stats
+    if (length(perm_gene_stats) > 0) {
+      perm_results[[i]] <- bind_rows(perm_gene_stats)
+    }
   }
 
   perm_df <- bind_rows(perm_results)
 
-  # Permutation p-value: fraction of permutations with asymmetry
-  # as extreme as observed. Use the absolute difference |wt_only - ko_only|
-  # as the test statistic so it works for genes where KO should be higher.
+  # Permutation p-values
   perm_pvalues <- perm_df %>%
     group_by(gene) %>%
     mutate(perm_asymmetry = abs(wt_only - ko_only)) %>%
@@ -3425,20 +3440,20 @@ permutation_test <- function(seurat_obj, result_df, genes,
       obs_asymmetry = first(obs_asymmetry),
       mean_null_wt_only = mean(wt_only),
       sd_null_wt_only = sd(wt_only),
-      # Two-sided: how often is null asymmetry >= observed asymmetry
       perm_p = (sum(perm_asymmetry >= obs_asymmetry) + 1) / (n_perm + 1),
       .groups = "drop"
     )
 
-  # Plot null distributions
+  # Plot
   plot_list <- list()
   for (g in genes) {
     gene_perm <- perm_df %>% filter(gene == g)
-    obs <- real_stats %>% filter(gene == g)
+    if (nrow(gene_perm) == 0) next
 
-    # Plot the asymmetry (wt_only - ko_only) under null
+    obs <- real_stats %>% filter(gene == g)
     gene_perm <- gene_perm %>% mutate(asymmetry = wt_only - ko_only)
     obs_asym <- obs$observed_wt_only - obs$observed_ko_only
+    pp <- perm_pvalues %>% filter(gene == g) %>% pull(perm_p)
 
     p <- ggplot(gene_perm, aes(x = asymmetry)) +
       geom_histogram(bins = 40, fill = "grey70", color = "grey40",
@@ -3449,11 +3464,8 @@ permutation_test <- function(seurat_obj, result_df, genes,
         x = "WT-only minus KO-only discordant pairs",
         y = "Count (permutations)",
         title = g,
-        subtitle = sprintf(
-          "Observed: %d - %d = %d | Permutation p = %.4f",
-          obs$observed_wt_only, obs$observed_ko_only, obs_asym,
-          perm_pvalues %>% filter(gene == g) %>% pull(perm_p)
-        )
+        subtitle = sprintf("Observed: %d | Permutation p = %.4f",
+                           obs_asym, pp)
       ) +
       theme_bw(base_size = 11)
 
@@ -3473,202 +3485,324 @@ permutation_test <- function(seurat_obj, result_df, genes,
 
 
 # ============================================================
-# Control 3: Within-condition matching (negative control)
-# Match WT cells to other WT cells. If the matching is valid,
-# discordance should be symmetric (no directional bias)
+# Control 3: Within-condition negative control — per gene
 # ============================================================
 
-within_condition_control <- function(seurat_obj, result_df, genes,
-                                      reduction = "integrated.dr") {
-
+within_condition_control_pergene <- function(seurat_obj, result_df, genes,
+                                              reduction = "harmony") {
   embeddings <- Embeddings(seurat_obj, reduction = reduction)
   meta <- data.frame(
     cellID = colnames(seurat_obj),
     condition = sub("_.*", "", colnames(seurat_obj))
   )
-
   wt_cells <- meta %>% filter(condition == "Normal") %>% pull(cellID)
-  wt_embed <- embeddings[wt_cells, ]
 
-  # Split WT cells into two arbitrary halves
-  set.seed(42)
-  half_idx <- sample(seq_along(wt_cells), length(wt_cells) %/% 2)
-  wt_a <- wt_cells[half_idx]
-  wt_b <- wt_cells[-half_idx]
-
-  nn_within <- get.knnx(data = embeddings[wt_b, ],
-                         query = embeddings[wt_a, ], k = 1)
-
-  within_pairs <- data.frame(
-    wt_cell = wt_a,
-    ko_cell = wt_b[nn_within$nn.index[, 1]],
-    distance = nn_within$nn.dist[, 1],
-    stringsAsFactors = FALSE
-  )
-
-  # Use compare_matched_pairs — the column names say "wt" and "ko"
-  # but both are actually WT. Any asymmetry here indicates a problem
-  # with the method, not a biological signal.
-  within_compared <- compare_matched_pairs(within_pairs, result_df, genes)
-
-  within_stats <- within_compared %>%
-    group_by(gene) %>%
-    summarise(
-      n_pairs = n(),
-      group_a_only = sum(pair_category == "wt_only"),
-      group_b_only = sum(pair_category == "ko_only"),
-      both_detected = sum(pair_category == "both_detected"),
-      both_zero = sum(pair_category == "both_zero"),
-      p_value = tryCatch({
-        tab <- matrix(c(both_detected, group_a_only,
-                         group_b_only, both_zero), nrow = 2, byrow = TRUE)
-        mcnemar.test(tab, correct = TRUE)$p.value
-      }, error = function(e) NA_real_),
-      .groups = "drop"
-    )
-
-  cat("Within-WT control (expect symmetric, non-significant):\n")
-  print(within_stats)
-
-  return(within_stats)
-}
-
-
-# ============================================================
-# Run all controls
-# ============================================================
-
-genes <- c("Kras", "Nf2", "Dgkd", "Slk", "Lsm14b")
-
-# Control 1: Distance quality
-quality <- assess_matching_quality(seurat_obj, pairs, result,
-                                    reduction = "harmony")
-ggsave(paste0(output_dir, "control_matching_distance.pdf"), quality$plot,
-       width = 8, height = 5)
-
-# Control 2: Permutation test (slow — reduce n_perm for initial testing)
-perm <- permutation_test(seurat_obj, result, genes,
-                          reduction = "harmony",
-                          n_perm = 1000)
-ggsave(paste0(output_dir, "control_permutation_null.pdf"), perm$combined_plot,
-       width = 10, height = 10)
-write.table(perm$perm_pvalues, "stats_permutation_pvalues.tsv",
-            sep = "\t", row.names = FALSE, quote = FALSE)
-
-# Control 3: Within-condition negative control
-within_ctrl <- within_condition_control(seurat_obj, result, genes,
-                                         reduction = "harmony")
-write.table(within_ctrl, paste0(output_dir, "stats_control_within_wt.tsv"),
-            sep = "\t", row.names = FALSE, quote = FALSE)
-```
-
-```{r sensitivity}
-# Quick sensitivity check
-sensitivity_check <- all_pairs %>%
-  filter(pair_category == "wt_only") %>%
-  group_by(gene) %>%
-  summarise(
-    median_wt_gex = median(wt_gex),
-    median_ko_gex = median(ko_gex),
-    p_gex_diff = wilcox.test(wt_gex, ko_gex)$p.value,
-    .groups = "drop"
-  )
-print(sensitivity_check)
-```
-
-Alternatively, I could match cells with neighbors based on if they express the gene from GEX
-```{r}
-match_per_gene <- function(seurat_obj, result_df, genes,
-                            reduction = "harmony") {
-
-  embeddings <- Embeddings(seurat_obj, reduction = reduction)
-  meta <- data.frame(
-    cellID = colnames(seurat_obj),
-    condition = sub("_.*", "", colnames(seurat_obj))
-  )
-
-  all_results <- list()
+  results <- list()
 
   for (gene in genes) {
     gex_col <- paste0(gene, "_GEX")
 
-    # Cells expressing this gene
-    expressing_cells <- result_df %>%
-      filter(.data[[gex_col]] > 0) %>%
+    # WT cells expressing this gene
+    expr_wt <- result_df %>%
+      filter(.data[[gex_col]] > 0, cellID %in% wt_cells) %>%
       pull(cellID)
 
-    # Split by condition
-    expr_wt <- intersect(expressing_cells,
-                          meta$cellID[meta$condition == "Normal"])
-    expr_ko <- intersect(expressing_cells,
-                          meta$cellID[meta$condition == "Esrp2KO"])
-
-    if (length(expr_wt) < 10 || length(expr_ko) < 10) {
-      cat(sprintf("%s: too few expressing cells (WT: %d, KO: %d), skipping\n",
-                  gene, length(expr_wt), length(expr_ko)))
+    if (length(expr_wt) < 20) {
+      cat(sprintf("%s: too few expressing WT cells (%d), skipping\n",
+                  gene, length(expr_wt)))
       next
     }
 
-    nn <- get.knnx(data = embeddings[expr_ko, ],
-                    query = embeddings[expr_wt, ], k = 1)
+    # Split into two halves
+    set.seed(42)
+    half_idx <- sample(seq_along(expr_wt), length(expr_wt) %/% 2)
+    wt_a <- expr_wt[half_idx]
+    wt_b <- expr_wt[-half_idx]
 
-    gene_pairs <- data.frame(
-      wt_cell = expr_wt,
-      ko_cell = expr_ko[nn$nn.index[, 1]],
+    nn <- FNN::get.knnx(data = embeddings[wt_b, ],
+                         query = embeddings[wt_a, ], k = 1)
+
+    within_pairs <- data.frame(
+      wt_cell = wt_a,
+      ko_cell = wt_b[nn$nn.index[, 1]],
       distance = nn$nn.dist[, 1],
       stringsAsFactors = FALSE
     )
 
-    # Distance filter
-    cutoff <- quantile(gene_pairs$distance, 0.95)
-    gene_pairs <- gene_pairs %>% filter(distance <= cutoff)
+    cutoff <- quantile(within_pairs$distance, 0.95)
+    within_pairs <- within_pairs %>% filter(distance <= cutoff)
 
-    cat(sprintf("%s: %d expressing WT, %d expressing KO, %d pairs after filter\n",
-                gene, length(expr_wt), length(expr_ko), nrow(gene_pairs)))
+    within_compared <- compare_matched_pairs(within_pairs, result_df, gene)
 
-    all_results[[gene]] <- gene_pairs
+    stats <- within_compared %>%
+      summarise(
+        gene = gene,
+        n_pairs = n(),
+        group_a_only = sum(pair_category == "wt_only"),
+        group_b_only = sum(pair_category == "ko_only"),
+        both_detected = sum(pair_category == "both_detected"),
+        both_zero = sum(pair_category == "both_zero"),
+        p_value = tryCatch({
+          tab <- matrix(c(both_detected, group_a_only,
+                           group_b_only, both_zero), nrow = 2, byrow = TRUE)
+          mcnemar.test(tab, correct = TRUE)$p.value
+        }, error = function(e) NA_real_)
+      )
+
+    results[[gene]] <- stats
   }
 
-  return(all_results)
+  out <- bind_rows(results)
+  cat("Within-WT control (expect symmetric, non-significant):\n")
+  print(out)
+  return(out)
 }
 
-# Step 1
-pairs <- match_per_gene(seurat_obj, result, genes)
-# Step 2: Compare exon inclusion per gene
-all_pairs_list <- list()
-for (gene in names(pairs)) {
-  gene_pairs <- pairs[[gene]]
-  gene_compared <- compare_matched_pairs(gene_pairs, result, gene)
-  all_pairs_list[[gene]] <- gene_compared
-}
-all_pairs_expr <- bind_rows(all_pairs_list)
 
-# Step 3: Test
-matched_stats_expr <- test_matched_pairs(all_pairs_expr)
-print(matched_stats_expr)
-write.table(matched_stats_expr, paste0(output_dir, "stats_matched_expressing.tsv"),
+# ============================================================
+# Run all controls on expressing-cell matching
+# ============================================================
+
+genes <- c("Kras", "Nf2", "Dgkd", "Slk", "Lsm14b")
+
+# Control 1
+quality <- assess_matching_quality_pergene(seurat_obj, pairs, result,
+                                            reduction = "harmony")
+ggsave(paste0(output_dir, "control_expressing_pair_distance.pdf"), quality$combined,
+       width = 12, height = 10)
+
+# Control 2 (slow — start with n_perm = 100 to test)
+perm <- permutation_test_pergene(seurat_obj, result, genes,
+                                  reduction = "harmony",
+                                  n_perm = 1000)
+ggsave(paste0(output_dir, "control_expressing_permutation.pdf"), perm$combined_plot,
+       width = 10, height = 10)
+write.table(perm$perm_pvalues, paste0(output_dir, "stats_expressing_control_permutation.tsv"),
             sep = "\t", row.names = FALSE, quote = FALSE)
 
-# Step 4: Sensitivity check — confirm GEX is now balanced
-sensitivity_expr <- all_pairs_expr %>%
-  filter(pair_category == "wt_only") %>%
-  group_by(gene) %>%
-  summarise(
-    n_discordant = n(),
-    median_wt_gex = median(wt_gex),
-    median_ko_gex = median(ko_gex),
-    p_gex_diff = tryCatch(
-      wilcox.test(wt_gex, ko_gex)$p.value,
-      error = function(e) NA_real_
-    ),
-    .groups = "drop"
-  )
-cat("\nSensitivity check (expressing cells only):\n")
-print(sensitivity_expr)
-
-# Step 5: Visualize
-plot_matched_analysis(all_pairs_expr, seurat_obj,
-                       output_prefix = paste0(output_dir, "matched_expressing_nn"))
-
+# Control 3
+within_ctrl <- within_condition_control_pergene(seurat_obj, result, genes,
+                                                 reduction = "harmony")
+write.table(within_ctrl, paste0(output_dir, "stats_expressing_control_within_wt.tsv"),
+            sep = "\t", row.names = FALSE, quote = FALSE)
 ```
+
+
+```{r for figure}
+# --- Panel A: Discordance barplot (expressing cells only) ---
+# This is the core result. Replot from the expressing-cell matching.
+summary_df <- all_pairs_expr %>%
+  filter(pair_category %in% c("wt_only", "ko_only")) %>%
+  mutate(pair_category = recode(pair_category,
+    "wt_only" = "WT only",
+    "ko_only" = "KO only"
+  )) %>%
+  count(gene, pair_category) %>%
+  # Add expected direction from bulk
+  mutate(bulk_direction = case_when(
+    gene %in% c("Kras", "Nf2", "Slk") ~ "Exon down in KO (bulk)",
+    gene %in% c("Dgkd", "Lsm14b") ~ "Exon up in KO (bulk)"
+  ))
+
+panel_a <- ggplot(summary_df, aes(x = gene, y = n, fill = pair_category)) +
+  geom_col(position = position_dodge(width = 0.7), width = 0.6) +
+  scale_fill_manual(values = c("WT only" = "#4575b4", "KO only" = "#d73027")) +
+  # Add McNemar p-values
+  geom_text(
+    data = matched_stats_expr %>%
+      mutate(
+        label = case_when(
+          p_adj < 0.001 ~ sprintf("p = %.1e", p_adj),
+          p_adj < 0.05  ~ sprintf("p = %.3f", p_adj),
+          TRUE          ~ "ns"
+        ),
+        # Position above the taller bar
+        y_pos = pmax(wt_only, ko_only) + 8
+      ),
+    aes(x = gene, y = y_pos, label = label),
+    inherit.aes = FALSE, size = 3, vjust = 0
+  ) +
+  labs(
+    x = NULL,
+    y = "Number of discordant pairs",
+    fill = "Exon detected in",
+    title = "Matched-pair exon detection discordance",
+    subtitle = "Among cells expressing each gene (GEX > 0), NN-matched in integrated embedding"
+  ) +
+  theme_bw(base_size = 11) +
+  theme(legend.position = "top",
+        panel.grid.minor = element_blank(),
+        panel.grid.major.x = element_blank())
+
+
+# --- Panel B: Schematic of the matching strategy ---
+# This is best made in Illustrator/BioRender, but a text placeholder:
+# Show: WT cell --NN match--> KO cell, compare SALVE detection
+
+
+# --- Panel C: UMAP for Kras (strongest result) ---
+# Reuse the UMAP from plot_matched_analysis but clean it up.
+# Show all cells grey, WT exon+ discordant in blue.
+
+umap_embed <- Embeddings(seurat_obj, reduction = "umap")
+umap_df <- data.frame(
+  cellID = rownames(umap_embed),
+  UMAP1 = umap_embed[, 1],
+  UMAP2 = umap_embed[, 2]
+)
+
+kras_disc <- all_pairs_expr %>%
+  filter(gene == "Kras", pair_category == "wt_only")
+
+wt_points <- kras_disc %>%
+  left_join(umap_df, by = c("wt_cell" = "cellID"))
+
+panel_b <- ggplot() +
+  geom_point(data = umap_df, aes(x = UMAP1, y = UMAP2),
+             color = "grey85", size = 0.2) +
+  geom_point(data = wt_points, aes(x = UMAP1, y = UMAP2),
+             color = "#4575b4", size = 1.0, alpha = 0.7) +
+  labs(title = "Kras: WT cells with exon detected",
+       subtitle = "Matched KO neighbor lacks exon (192 pairs)") +
+  theme_bw(base_size = 11) +
+  theme(panel.grid = element_blank(),
+        axis.text = element_blank(),
+        axis.ticks = element_blank())
+
+
+# --- Panel C: Summary table ---
+table_data <- matched_stats_expr %>%
+  mutate(
+    bulk_expected = case_when(
+      gene == "Kras"   ~ "Down",
+      gene == "Nf2"    ~ "Down",
+      gene == "Slk"    ~ "Down",
+      gene == "Dgkd"   ~ "Up",
+      gene == "Lsm14b" ~ "Up"
+    ),
+    sc_direction = ifelse(wt_only > ko_only, "Down in KO", "Up in KO"),
+    consistent = ifelse(
+      (bulk_expected == "Down" & sc_direction == "Down in KO") |
+        (bulk_expected == "Up" & sc_direction == "Up in KO"),
+      "Yes", "No"
+    ),
+    p_display = case_when(
+      is.na(p_adj) ~ "NA",
+      p_adj < 0.001 ~ formatC(p_adj, format = "e", digits = 1),
+      TRUE ~ formatC(p_adj, format = "f", digits = 3)
+    )
+  ) %>%
+  select(gene, wt_only, ko_only, both_detected, p_display,
+         bulk_expected, sc_direction, consistent) %>%
+  rename(
+    Gene = gene,
+    `WT only` = wt_only,
+    `KO only` = ko_only,
+    `Both det.` = both_detected,
+    `p (adj)` = p_display,
+    `Bulk dir.` = bulk_expected,
+    `SC dir.` = sc_direction,
+    Match = consistent
+  )
+
+table_theme <- ttheme_minimal(
+  core = list(fg_params = list(fontsize = 9)),
+  colhead = list(fg_params = list(fontsize = 9, fontface = "bold"))
+)
+
+table_grob <- tableGrob(table_data, rows = NULL, theme = table_theme)
+
+panel_c <- ggplot() +
+  annotation_custom(table_grob) +
+  labs(title = "Concordance with bulk RNA-seq") +
+  theme_void(base_size = 11) +
+  theme(plot.title = element_text(face = "bold", size = 11))
+
+# --- Assemble ---
+top_row <- plot_grid(panel_a, panel_b, ncol = 2, rel_widths = c(1.2, 1),
+                     labels = c("A", "B"))
+bottom_row <- plot_grid(panel_c, ncol = 1, labels = c("C"))
+main_fig <- plot_grid(top_row, bottom_row, ncol = 1,
+                      rel_heights = c(1, 0.5))
+
+ggsave(paste0(output_dir, "figure_matched_pairs_main.pdf"), main_fig,
+       width = 12, height = 10)
+```
+
+```{r for supp figs}
+# --- Supp 1: Distance distribution (Control 1) ---
+# Already generated: control_matching_distance.pdf
+# Shows that NN matching produces closer pairs than random
+
+# --- Supp 2: Within-condition negative control (Control 3) ---
+# Already generated: stats_within_wt_control.tsv
+# Show as a small table or barplot confirming no asymmetry within WT
+
+# --- Supp 3: Permutation null distributions (Control 2) ---
+# Already generated: control_permutation_null.pdf
+# Shows observed values relative to shuffled null
+
+# --- Supp 4: Sensitivity check ---
+# Show that GEX is balanced in discordant pairs after expression matching
+sensitivity_plot <- sensitivity_expr %>%
+  pivot_longer(cols = c(median_wt_gex, median_ko_gex),
+               names_to = "condition", values_to = "median_GEX") %>%
+  mutate(condition = recode(condition,
+    "median_wt_gex" = "WT cell",
+    "median_ko_gex" = "KO cell"
+  )) %>%
+  ggplot(aes(x = gene, y = median_GEX, fill = condition)) +
+  geom_col(position = position_dodge(width = 0.7), width = 0.6) +
+  scale_fill_manual(values = c("WT cell" = "#4575b4", "KO cell" = "#d73027")) +
+  labs(x = NULL, y = "Median GEX in discordant pairs",
+       title = "Expression level balance in discordant pairs",
+       subtitle = "After restricting to expressing cells") +
+  theme_bw(base_size = 11) +
+  theme(legend.position = "top")
+
+ggsave("supp_sensitivity_check.pdf", sensitivity_plot,
+       width = 7, height = 5)
+
+# --- Supp 5: UMAPs for Nf2 and Slk ---
+# Same format as Kras panel_c but for the other significant genes
+for (gene in c("Nf2", "Slk")) {
+  gene_disc <- all_pairs_expr %>%
+    filter(gene == !!gene, pair_category == "wt_only")
+
+  gene_wt_points <- gene_disc %>%
+    left_join(umap_df, by = c("wt_cell" = "cellID"))
+
+  n_disc <- nrow(gene_disc)
+  n_ko <- all_pairs_expr %>%
+    filter(gene == !!gene, pair_category == "ko_only") %>%
+    nrow()
+
+  p <- ggplot() +
+    geom_point(data = umap_df, aes(x = UMAP1, y = UMAP2),
+               color = "grey85", size = 0.2) +
+    geom_point(data = gene_wt_points, aes(x = UMAP1, y = UMAP2),
+               color = "#4575b4", size = 1.0, alpha = 0.7) +
+    labs(title = paste0(gene, ": WT cells with exon detected"),
+         subtitle = sprintf("Matched KO neighbor lacks exon (%d WT-only, %d KO-only pairs)",
+                            n_disc, n_ko)) +
+    theme_bw(base_size = 11) +
+    theme(panel.grid = element_blank(),
+          axis.text = element_blank(),
+          axis.ticks = element_blank())
+
+  ggsave(sprintf("supp_umap_%s_discordant.pdf", gene), p,
+         width = 7, height = 6)
+}
+
+# --- Supp 6: Detection barplots from earlier analysis ---
+# The per-cluster detection rate plots (your Image 1) serve as
+# supplementary context showing the raw signal distribution
+# before the matched-pair analysis. Already generated.
+
+# --- Supp 7: Violin plots from earlier analysis ---
+# These show the full data distribution and provide context
+# for why cluster-level tests were not significant (sparsity).
+# Already generated. Frame them as descriptive, not inferential.
+```
+
 
