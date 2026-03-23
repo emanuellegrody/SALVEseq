@@ -1,0 +1,6 @@
+sample,fastq,cell_count
+D1,/projects/b1042/GoyalLab/egrody/rawData/EGS025/fastq/D1.fastq.gz,5200
+nef,/projects/b1042/GoyalLab/egrody/rawData/EGS025/fastq/nef.fastq.gz,3700
+pol,/projects/b1042/GoyalLab/egrody/rawData/EGS025/fastq/pol.fastq.gz,1000
+SSenv,/projects/b1042/GoyalLab/egrody/rawData/EGS025/fastq/SSenv.fastq.gz,1800
+tat,/projects/b1042/GoyalLab/egrody/rawData/EGS025/fastq/tat.fastq.gz,750

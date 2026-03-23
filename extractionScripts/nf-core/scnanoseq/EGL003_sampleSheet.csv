@@ -1,0 +1,6 @@
+sample,fastq,cell_count
+Dgkd,/projects/b1042/GoyalLab/egrody/rawData/EGS025/fastq/Dgkd.fastq.gz,2700
+Kras,/projects/b1042/GoyalLab/egrody/rawData/EGS025/fastq/Kras.fastq.gz,2800
+Lsm,/projects/b1042/GoyalLab/egrody/rawData/EGS025/fastq/Lsm.fastq.gz,2700
+Nf2,/projects/b1042/GoyalLab/egrody/rawData/EGS025/fastq/Nf2.fastq.gz,2800
+Slk,/projects/b1042/GoyalLab/egrody/rawData/EGS025/fastq/Slk.fastq.gz,2700
