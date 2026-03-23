@@ -2,11 +2,11 @@
 #==================================================================================================
 # stepOne from 10X barcode recovery pipeline
 #
-# EG updated Feb 2026:
+# EG updated Feb/Mar 2026:
 #   stream-process reads for significant memory usage reduction
 #   more efficient searches with regex.search
 #   more efficient unique with sets
-#   changed UMI to [16:26] from [17:26]
+#   changed UMI to [16:28] from [17:26]
 #   uses index and stagger sequence to separate samples
 #   added processing for Vpx barcode (SALVEseq)
 #
@@ -309,7 +309,7 @@ def main():
 
     # --- Constants ---
     CELL_ID_SLICE = slice(0, 16)
-    UMI_SLICE = slice(16, 26)
+    UMI_SLICE = slice(16, 28)
     MIN_QSCORE = 14
     MAX_LOW_QSCORE_BASES = 5
     bad_barcode_pattern = regex.compile(r'AAAA|TTTT|GGGG|CCCC|NN')
