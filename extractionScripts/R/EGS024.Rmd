@@ -231,16 +231,19 @@ cat("Total cells:\t", nrow(coex),
     "\nMonocyte:\t", sum(coex$monocyte == 1),
     "\nB cell:\t\t", sum(coex$B_cell == 1))
 ```
+
 ## Barcode
 ```{r}
 umap.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS024/singleCell/Seurat/UMAPcoords/"
 UMAP_data <- read.csv(paste0(umap.dir, "GFP_invitroUMAP_coords.csv"), row.names = "X")
 UMAP_data <- UMAP_data %>% select(cellID, UMAP1, UMAP2, cluster, size)
 
-singlet.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS024/barcode/singletCode/"
+singlet.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS024/barcode/stepFour/"
 
 side_reactions <- c("GFP_barcode_1", "GFP_barcode_9")
 base.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS024/barcode/stepThree/"
+
+threshold <- 3
 
 barcodeData <- list()
 filtered_cells <- tibble()
@@ -257,7 +260,7 @@ for (i in side_reactions) {
     filter(cellID %in% singlet_data$cellID) %>%
     filter(cellID %in% UMAP_data$cellID) %>%
     count(cellID, BC50StarcodeD8, name = "count") %>%
-    filter(count > 4)
+    filter(count > threshold)
 
   test <- barcodeData[[i]]
   
@@ -319,53 +322,15 @@ filtered_clean_cells <- filtered_cells %>%
   filter(!grepl(blacklist_pattern, barcode))
 
 output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS024/barcode/"
-write.csv(filtered_clean_cells, paste0(output.dir, "filtered3_barcoded_cells.csv"))
+write.csv(filtered_clean_cells, paste0(output.dir, "filtered_barcoded_cells_threshold", threshold, ".csv"))
 
 ```
-Comparing barcodes in library_1 and library_9
-```{r}
-# overlap between GFP_barcode_1 and GFP_barcode_9
-results <- list()
 
-for (threshold in 0:5) {
-  barcodeData <- list()
-  for (i in side_reactions) {
-    temp <- read.csv(file.path(base.dir, i, "stepThreeStarcodeShavedReads.txt"), 
-                     sep = "\t")
-    barcodeData[[i]] <- temp %>% mutate(cellID = paste0(cellID, "-1")) %>%
-      select(cellID, UMI, BC50StarcodeD8) %>%
-      filter(cellID %in% singlet_data$cellID) %>%
-      filter(cellID %in% UMAP_data$cellID) %>%
-      count(cellID, BC50StarcodeD8, name = "count") %>%
-      filter(count > threshold)
-  }
-  
-  bc1 <- unique(barcodeData[[1]]$BC50StarcodeD8)
-  bc2 <- unique(barcodeData[[2]]$BC50StarcodeD8)
-  
-  shared <- length(intersect(bc1, bc2))
-  only1 <- length(setdiff(bc1, bc2))
-  only2 <- length(setdiff(bc2, bc1))
-  
-  results[[as.character(threshold)]] <- data.frame(
-    threshold = threshold,
-    barcodes_1 = length(bc1),
-    barcodes_2 = length(bc2),
-    shared = shared,
-    only_in_1 = only1,
-    only_in_2 = only2,
-    jaccard = shared / length(union(bc1, bc2))
-  )
-}
-
-overlap_df <- bind_rows(results)
-print(overlap_df)
-```
 
 ### Check top barcodes dominance
 Are my top barcodes the same top barcodes as Nitu got during her diversity check sequencing? If so, there may be a bias in the barcode diversity
 ```{r}
-input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS024/barcode/NK2_barcodeDiversity/analyzed/Multiple_Samples/separated/"
+input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS024/barcode/older/NK2_barcodeDiversity/analyzed/Multiple_Samples/separated/"
 diversity <- c(barcode = character(), count = integer())
 for (i in 1:3) {
   div_part <- read.csv(paste0(input.dir, "NK2_old_", i, "_diversity_final50_8.txt"),
@@ -412,7 +377,7 @@ cat("# barcodes shared:\t", sum(barcodes %in% diversity$BC50), "\n")
 ### two-barcode combos
 ```{r}
 input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS024/barcode/"
-barcoded_cells <- read.csv(paste0(input.dir, "filtered3_barcoded_cells.csv"), row.names = "X")
+barcoded_cells <- read.csv(paste0(input.dir, "filtered_barcoded_cells_threshold4.csv"), row.names = "X")
 barcode_counts <- barcoded_cells %>%
   count(barcode, name = "count", sort = TRUE)
 
@@ -442,7 +407,7 @@ umap.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS024/singleCell/Seu
 UMAP_data <- read.csv(paste0(umap.dir, "GFP_invitroUMAP_coords.csv"), row.names = "X")
 UMAP_data <- UMAP_data %>% select(cellID, UMAP1, UMAP2, cluster, size)
 
-singlet.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS024/singletCode/"
+singlet.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS024/barcode/stepFour/"
 singlet_data <- read.csv(paste0(singlet.dir, "GFP_barcode_1__singlets_all.txt"), col.names = "cellID")
 singlet_data <- singlet_data %>% mutate(cellID = paste0(cellID, "-1"))
 
@@ -705,36 +670,84 @@ print(sample_overlap)
 
 
 ### Barcode abundance plot
-```{r}
-#plotting barcode abundance
-lib1 <- barcodeData[["GFP_barcode_1"]] %>%
-  count(BC50StarcodeD8, name = "lib1_abundance")
+Also Jaccard index
+```{r abundance plot}
+# overlap between GFP_barcode_1 and GFP_barcode_9
+singlet_1 <- read.csv(paste0(singlet.dir, "GFP_barcode_1__singlets_all.txt"), col.names = "cellID")
+singlet_9 <- read.csv(paste0(singlet.dir, "GFP_barcode_9__singlets_all.txt"), col.names = "cellID")
+singlet_data <- data.frame(cellID = union(singlet_1$cellID, singlet_9$cellID)) %>%
+  mutate(cellID = paste0(cellID, "-1"))
 
-lib2 <- barcodeData[["GFP_barcode_9"]] %>%
-  count(BC50StarcodeD8, name = "lib2_abundance")
+results <- list()
+plot_list <- list()
 
-abundance <- inner_join(lib1, lib2, by = "BC50StarcodeD8") %>%
-  replace_na(list(lib1_abundance = 0, lib2_abundance = 0))
+for (threshold in 0:5) {
+  barcodeData <- list()
+  for (i in side_reactions) {
+    temp <- read.delim(file.path(base.dir, i, "stepThreeStarcodeShavedReads.txt"))
+    barcodeData[[i]] <- temp %>% mutate(cellID = paste0(cellID, "-1")) %>%
+      select(cellID, UMI, BC50StarcodeD8) %>%
+      filter(cellID %in% singlet_data$cellID) %>%
+      filter(cellID %in% UMAP_data$cellID) %>%
+      count(cellID, BC50StarcodeD8, name = "count") %>%
+      filter(count > threshold)
+  }
 
-cor_val <- round(cor(abundance$lib1_abundance, abundance$lib2_abundance), 3)
+  bc1 <- unique(barcodeData[[1]]$BC50StarcodeD8)
+  bc2 <- unique(barcodeData[[2]]$BC50StarcodeD8)
 
-p <- ggplot(abundance, aes(x = lib2_abundance, y = lib1_abundance)) +
-  geom_bin2d(binwidth = c(200, 200)) +
-  scale_fill_gradientn(colors = c("black", "blue", "purple", "red", "yellow"),
-                       name = "Number of\nBarcodes",
-                       trans = "log10") +
-  geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "grey50") +
-  annotate("text", x = max(abundance$lib2_abundance) * 0.3,
-           y = max(abundance$lib1_abundance) * 0.95,
-           label = paste("R =", cor_val), size = 4) +
-  labs(x = "Barcode abundance\nGFP_barcode_9",
-       y = "Barcode abundance\nGFP_barcode_1",
-       title = "Correlation between two barcode libraries") +
-  coord_fixed(ratio = 1) +
-  theme_classic()
+  shared <- length(intersect(bc1, bc2))
+  only1 <- length(setdiff(bc1, bc2))
+  only2 <- length(setdiff(bc2, bc1))
 
-ggsave(file.path(base.dir, "barcode_abundance_correlation_reads.pdf"),
-       p, width = 6, height = 6)
+  results[[as.character(threshold)]] <- data.frame(
+    threshold = threshold,
+    barcodes_1 = length(bc1),
+    barcodes_2 = length(bc2),
+    shared = shared,
+    only_in_1 = only1,
+    only_in_2 = only2,
+    jaccard = shared / length(union(bc1, bc2))
+  )
+
+  # barcode abundance subplot
+  lib1 <- barcodeData[[1]] %>%
+    count(BC50StarcodeD8, name = "lib1_abundance")
+  lib2 <- barcodeData[[2]] %>%
+    count(BC50StarcodeD8, name = "lib2_abundance")
+  abundance <- inner_join(lib1, lib2, by = "BC50StarcodeD8")
+
+  r_squared <- cor(abundance$lib1_abundance, abundance$lib2_abundance)^2
+
+   p <- ggplot(abundance, aes(x = lib2_abundance, y = lib1_abundance)) +
+    geom_bin2d() +
+    scale_fill_gradientn(colors = c("black", "blue", "purple", "red", "yellow"),
+                         name = "Number of\nBarcodes",
+                         trans = "log10") +
+    geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "grey50") +
+    scale_x_log10() +
+    scale_y_log10() +
+    annotate("text", x = Inf, y = Inf, hjust = 1.1, vjust = 1.5,
+             label = paste0("R^2 == ", round(r_squared, 3)), parse = TRUE) +
+    labs(x = "Barcode abundance\nlibrary 2",
+         y = "Barcode abundance\nlibrary 1",
+         title = paste0("threshold > ", threshold)) +
+    coord_fixed(ratio = 1) +
+    theme_classic(base_size = 10) +
+    theme(plot.title = element_text(hjust = 0.5))
+
+  plot_list[[as.character(threshold)]] <- p
+}
+
+overlap_df <- bind_rows(results)
+print(overlap_df)
+
+# Arrange all threshold plots in a single row
+combined <- wrap_plots(plot_list, nrow = 1)
+
+output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS024/barcode/"
+ggsave(paste0(output.dir, "barcode_overlap_thresholds.pdf"), combined,
+       width = 4 * length(plot_list), height = 4)
 ```
 
 
@@ -816,6 +829,97 @@ ggplot(df, aes(x = barcode_status, y = GFP, fill = barcode_status)) +
 ```
 
 
+### Comparing barcodes between short (EGS024) and long (EGS025) read
+```{r}
+shortRead <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS024/barcode/stepThree/"
+longRead <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS025/barcode/stepThree/"
+
+results <- list()
+
+for (threshold in 0:5) {
+  bc_024 <- read.delim(file.path(shortRead, "GFP_barcode_1", "stepThreeStarcodeShavedReads.txt")) %>%
+    count(cellID, BC50StarcodeD8, name = "count") %>%
+    filter(count > threshold)
+
+  bc_025 <- read.delim(file.path(longRead, "FM", "stepThreeStarcodeShavedReads.txt")) %>%
+    count(cellID, BC50StarcodeD8, name = "count") %>%
+    filter(count > threshold)
+
+  barcodes_024 <- unique(bc_024$BC50StarcodeD8)
+  barcodes_025 <- unique(bc_025$BC50StarcodeD8)
+
+  shared <- length(intersect(barcodes_024, barcodes_025))
+  only_024 <- length(setdiff(barcodes_024, barcodes_025))
+  only_025 <- length(setdiff(barcodes_025, barcodes_024))
+
+  results[[as.character(threshold)]] <- data.frame(
+    threshold = threshold,
+    barcodes_EGS024 = length(barcodes_024),
+    barcodes_EGS025 = length(barcodes_025),
+    shared = shared,
+    only_in_EGS024 = only_024,
+    only_in_EGS025 = only_025,
+    jaccard = shared / length(union(barcodes_024, barcodes_025))
+  )
+}
+
+overlap_df <- bind_rows(results)
+print(overlap_df)
+```
+
+Per-cell barcode concordance between short and long read (singlet cells only)
+```{r}
+threshold <- 4
+
+singlets_short <- read.csv("/projects/b1042/GoyalLab/egrody/extractedData/EGS024/barcode/stepFour/GFP_barcode_1__singlets_all.txt",
+                           header = FALSE, col.names = "cellID")
+singlets_long <- read.csv("/projects/b1042/GoyalLab/egrody/extractedData/EGS025/barcode/stepFour/FM__singlets_all.txt",
+                          header = FALSE, col.names = "cellID")
+
+bc_short <- read.delim(file.path(shortRead, "GFP_barcode_1", "stepThreeStarcodeShavedReads.txt")) %>%
+  filter(cellID %in% singlets_short$cellID) %>%
+  count(cellID, BC50StarcodeD8, name = "count") %>%
+  filter(count > threshold) %>%
+  group_by(cellID) %>%
+  summarise(barcodes_short = list(sort(unique(BC50StarcodeD8))), .groups = "drop")
+
+bc_long <- read.delim(file.path(longRead, "FM", "stepThreeStarcodeShavedReads.txt")) %>%
+  filter(cellID %in% singlets_long$cellID) %>%
+  count(cellID, BC50StarcodeD8, name = "count") %>%
+  filter(count > threshold) %>%
+  group_by(cellID) %>%
+  summarise(barcodes_long = list(sort(unique(BC50StarcodeD8))), .groups = "drop")
+
+shared_cells <- inner_join(bc_short, bc_long, by = "cellID")
+cat("Cells found in both:", nrow(shared_cells), "\n")
+
+shared_cells <- shared_cells %>%
+  rowwise() %>%
+  mutate(
+    n_short = length(barcodes_short),
+    n_long = length(barcodes_long),
+    n_shared = length(intersect(barcodes_short, barcodes_long)),
+    exact_match = setequal(barcodes_short, barcodes_long)
+  ) %>%
+  ungroup()
+
+cat("Exact barcode match:", sum(shared_cells$exact_match), "/", nrow(shared_cells),
+    "(", round(100 * mean(shared_cells$exact_match), 1), "%)\n")
+cat("At least one shared barcode:", sum(shared_cells$n_shared > 0), "/", nrow(shared_cells),
+    "(", round(100 * mean(shared_cells$n_shared > 0), 1), "%)\n")
+cat("No shared barcodes:", sum(shared_cells$n_shared == 0), "/", nrow(shared_cells),
+    "(", round(100 * mean(shared_cells$n_shared == 0), 1), "%)\n")
+
+shared_cells %>%
+  mutate(category = case_when(
+    exact_match ~ "exact match",
+    n_shared > 0 ~ "partial overlap",
+    TRUE ~ "no overlap"
+  )) %>%
+  count(category) %>%
+  print()
+```
+
 # Joint Dataset
 ## Joining
 
@@ -837,7 +941,7 @@ umap_file <- paste0(
 cd4_file <- paste0(
         "/projects/b1042/GoyalLab/egrody/extractedData/EGS024/singleCell/Seurat/expressionDF/", 
          sample_name, "_CD4T.csv")
-barcode_file <- paste0(barcode.dir, "filtered3_barcoded_cells.csv")
+barcode_file <- paste0(barcode.dir, "filtered_barcoded_cells_threshold4.csv")
 
 salve_data <- if(file.exists(salve_file)) read.csv(salve_file) else NULL
 gex_data <- if(file.exists(gex_file)) read.csv(gex_file) else NULL
@@ -1138,7 +1242,7 @@ umap_file <- paste0(Seurat.dir, "UMAPcoords/",
   sample_name, "UMAP_coords.csv")
 cd4_file <- paste0(Seurat.dir, "expressionDF/",
   sample_name, "_CD4T.csv")
-barcode_file <- paste0(barcode.dir, "filtered3_barcoded_cells.csv")
+barcode_file <- paste0(barcode.dir, "filtered_barcoded_cells_threshold4.csv")
 salve_umi_file <- paste0(SALVE.dir, "minimum/valid_UMI/", sample_name, "_SALVE_valid_cellID_UMI.csv")
 gex_umi_file <- paste0(GEX.dir, "minimum/valid_UMI/", sample_name, "_GEX_valid_cellID_UMI.csv")
 
@@ -1464,7 +1568,7 @@ sample_name <- "GFP_invitro"
 rds.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS024/singleCell/Seurat/RDS/"
 rds_file <- paste0(rds.dir, sample_name, ".rds")
 barcode.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS024/barcode/"
-barcode_file <- paste0(barcode.dir, "filtered3_barcoded_cells.csv")
+barcode_file <- paste0(barcode.dir, "filtered_barcoded_cells_threshold4.csv")
 
 seurat_obj <- readRDS(rds_file)
 barcode_data <- read.csv(barcode_file, row.names = "X")
