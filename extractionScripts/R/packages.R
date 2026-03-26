@@ -177,6 +177,15 @@ for (pkg in bioc_packages) {
 # Run the loader
 load_packages_with_versions(packages, versions_file, update_versions_file = TRUE)
 
+# Resolve namespace conflicts — ensure dplyr wins over MASS and plyr
+if ("dplyr" %in% loadedNamespaces()) {
+  conflict_fns <- c("select", "filter", "count", "rename", "mutate", "arrange", "summarise", "summarize")
+  for (fn in conflict_fns) {
+    if (exists(fn, envir = asNamespace("dplyr")))
+      assign(fn, get(fn, envir = asNamespace("dplyr")), envir = .GlobalEnv)
+  }
+}
+
 # ---- Python dependency: leidenalg (required for Seurat FindClusters algorithm = 4) ----
 # Seurat calls leidenalg via reticulate. If the Python package is missing,
 # FindClusters(..., algorithm = 4) will error at runtime.
@@ -186,17 +195,5 @@ load_packages_with_versions(packages, versions_file, update_versions_file = TRUE
 # reticulate::use_python("/path/to/python", required = TRUE) BEFORE this block
 # to ensure the correct interpreter is targeted.
 
-if (!reticulate::py_module_available("leidenalg")) {
-  cat("Installing Python package 'leidenalg' for Leiden clustering...\n")
-  tryCatch({
-    reticulate::py_install("leidenalg", pip = TRUE)
-    if (!reticulate::py_module_available("leidenalg")) {
-      cat("WARNING: leidenalg installed but not importable. Check that reticulate ",
-          "is bound to the correct Python (see reticulate::py_config()).\n")
-    }
-  }, error = function(e) {
-    cat("WARNING: Failed to install leidenalg:", e$message, "\n",
-        "  Leiden clustering (algorithm = 4) will not be available.\n",
-        "  Louvain (algorithm = 1) will still work.\n")
-  })
-}
+# leidenalg is optional — only needed for Seurat FindClusters(algorithm = 4).
+# To install manually: pip install leidenalg
