@@ -109,7 +109,7 @@ echo "========== SINGLET CODE =========="
 mkdir -p "$SINGLET_OUT"
 
 for sample in "${SAMPLES[@]}"; do
-    python "${SCRIPTS}/singletCode.py" \
+    python "${SCRIPTS}/stepFour.py" \
         --input "${STEPTHREE_OUT}/${sample}/stepThreeStarcodeShavedReads.txt" \
         --sample "$sample" \
         --outdir "$SINGLET_OUT"
