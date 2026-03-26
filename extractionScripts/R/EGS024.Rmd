@@ -238,18 +238,20 @@ UMAP_data <- read.csv(paste0(umap.dir, "GFP_invitroUMAP_coords.csv"), row.names 
 UMAP_data <- UMAP_data %>% select(cellID, UMAP1, UMAP2, cluster, size)
 
 singlet.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS024/barcode/singletCode/"
-singlet_data <- read.csv(paste0(singlet.dir, "GFP_barcode_1__singlets_all.txt"), col.names = "cellID")
-singlet_data <- singlet_data %>% mutate(cellID = paste0(cellID, "-1"))
 
 side_reactions <- c("GFP_barcode_1", "GFP_barcode_9")
 base.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS024/barcode/stepThree/"
 
 barcodeData <- list()
 filtered_cells <- tibble()
+
 for (i in side_reactions) {
   cat(i, "\n")
-  temp <- read.csv(file.path(base.dir, i, "stepThreeStarcodeShavedReads.txt"), 
-                       sep = "\t")
+
+  singlet_data <- read.csv(paste0(singlet.dir, i, "__singlets_all.txt"), col.names = "cellID")
+  singlet_data <- singlet_data %>% mutate(cellID = paste0(cellID, "-1"))
+
+  temp <- read.delim(file.path(base.dir, i, "stepThreeStarcodeShavedReads.txt"))
   barcodeData[[i]] <- temp %>% mutate(cellID = paste0(cellID, "-1")) %>%
     select(cellID, UMI, BC50StarcodeD8) %>%
     filter(cellID %in% singlet_data$cellID) %>%
@@ -2057,7 +2059,7 @@ print(summary_table)
 
 ## Other Joint Analyses
 
-### cell cycle
+### looking at patterns, cell cycle
 ```{r}
 rds_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS024/singleCell/Seurat/RDS/"
 seurat_obj <- readRDS(paste0(rds_dir, "GFP_invitro.rds"))
