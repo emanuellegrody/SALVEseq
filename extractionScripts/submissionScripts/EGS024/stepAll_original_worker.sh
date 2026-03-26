@@ -31,7 +31,7 @@ FILTERED_BC_MATRIX="/projects/b1042/GoyalLab/egrody/extractedData/${EXPERIMENT}/
 STEPONE_OUT="/projects/b1042/GoyalLab/egrody/extractedData/${EXPERIMENT}/barcode/stepOne_original/"
 STEPTWO_OUT="/projects/b1042/GoyalLab/egrody/extractedData/${EXPERIMENT}/barcode/stepTwo_original/"
 STEPTHREE_OUT="/projects/b1042/GoyalLab/egrody/extractedData/${EXPERIMENT}/barcode/stepThree_original/"
-SINGLET_OUT="/projects/b1042/GoyalLab/egrody/extractedData/${EXPERIMENT}/barcode/singletCode_original/"
+SINGLET_OUT="/projects/b1042/GoyalLab/egrody/extractedData/${EXPERIMENT}/barcode/stepFour_original/"
 
 SCRIPTS="/home/egy2296/SALVEseq/extractionScripts/barcode"
 PYTHON="/home/egy2296/.conda/envs/SALVE/bin/python"
@@ -203,7 +203,7 @@ echo "========== SINGLET CODE =========="
 
 mkdir -p "$SINGLET_OUT"
 
-$PYTHON "${SCRIPTS}/singletCode.py" \
+$PYTHON "${SCRIPTS}/stepFour.py" \
     --input "${STEPTHREE_OUT}/${SAMPLE}/stepThreeStarcodeShavedReads.txt" \
     --sample "$SAMPLE" \
     --outdir "$SINGLET_OUT"

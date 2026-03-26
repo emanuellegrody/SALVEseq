@@ -65,8 +65,7 @@ def main():
         save_plot_umi=True
     )
 
-    print(f"Total singlets: {stats['Total Singlets']}")
-    print(f"Total multiplets: {stats['Total Multiplets']}")
+    print(f"Stats:\n{stats.to_string()}")
     print(f"Output written to: {args.outdir}")
 
 
