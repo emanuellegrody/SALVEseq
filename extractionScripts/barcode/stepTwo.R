@@ -1,22 +1,30 @@
 #======================================================================================================================================
-#Input Files: It takes inputs from files generated in stepOne and from 10XCellranger pipeline generated filteredMatrix -> barcode.tsv.gz
-#Change these file PATHs based on your folder structure and where your datasets are stored. 
-#$PATH needs to be changed/input at 3 places.
+#Input Files: It takes inputs from files generated in stepOne and from cellranger filteredMatrix -> barcode.tsv.gz
+#
+# Usage (CLI):
+#   Rscript stepTwo.R <filtered_bc_matrix_dir> <stepOne_base_dir> <output_base_dir> <sample1> [sample2 ...]
+#
+# If no arguments are provided, falls back to the hardcoded defaults below.
 #======================================================================================================================================
 
-input1Directory <- '/projects/b1042/GoyalLab/egrody/extractedData/EGS024/singleCell/counts/Mmul_10_mac239_GFP_GFP_GEX/outs/filtered_feature_bc_matrix/'
-input2Base <- '/projects/b1042/GoyalLab/egrody/extractedData/EGS024/stepOne/'
-outputBase <- '/projects/b1042/GoyalLab/egrody/extractedData/EGS024/stepTwo/'
-
-#***************************************************************************************************************************************
-#*****************************************************DO NOT EDIT BEYOND THIS POINT*****************************************************
-#***************************************************************************************************************************************
+args <- commandArgs(trailingOnly = TRUE)
+if (length(args) >= 4) {
+  input1Directory <- args[1]
+  input2Base <- args[2]
+  outputBase <- args[3]
+  samples <- args[4:length(args)]
+} else if (length(args) == 0) {
+  input1Directory <- '/projects/b1042/GoyalLab/egrody/extractedData/EGS024/singleCell/counts/Mmul_10_mac239_GFP_GFP_GEX/outs/filtered_feature_bc_matrix/'
+  input2Base <- '/projects/b1042/GoyalLab/egrody/extractedData/EGS025/barcode/stepOne/'
+  outputBase <- '/projects/b1042/GoyalLab/egrody/extractedData/EGS025/barcode/stepTwo/'
+  samples <- c("FM")
+} else {
+  stop("Usage: Rscript stepTwo.R <filtered_bc_matrix_dir> <stepOne_base_dir> <output_base_dir> <sample1> [sample2 ...]")
+}
 
 library(tidyverse, quietly = TRUE)
 library(stringdist, quietly = TRUE)
 library(gridExtra, quietly = TRUE)
-
-samples <- c("GFP_barcode_1", "GFP_barcode_9")
 
 data1file = as_tibble(read.table(paste0(input1Directory,"barcodes.tsv.gz"), stringsAsFactors=F)) %>% dplyr::rename(cellID = V1) 
 data1file = as_tibble(substring(data1file$cellID, 1,nchar(data1file[1,1])-2)) %>% dplyr::rename(cellID = value) 
