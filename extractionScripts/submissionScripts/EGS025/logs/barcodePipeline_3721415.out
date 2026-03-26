@@ -1,0 +1,21 @@
+Starting pipeline from step 2
+========== STEP TWO ==========
+FM loaded
+Starting distance calculation...
+Comparing samplings...
+Saving...
+Done
+
+========== STEP TWO COMPLETE ==========
+========== STEP THREE ==========
+starcode running for FM
+FM 50_d8 done
+FM 40_d8 done
+FM 30_d8 done
+FM 30_d6 done
+Loaded 276020 reads. Applying starcode replacements...
+Creating starcode replaced table...
+Done. Output written to /projects/b1042/GoyalLab/egrody/extractedData/EGS025/barcode/stepThree//FM/stepThreeStarcodeShavedReads.txt
+FM complete
+========== STEP THREE COMPLETE ==========
+========== SINGLET CODE ==========
