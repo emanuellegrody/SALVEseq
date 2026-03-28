@@ -920,6 +920,59 @@ shared_cells %>%
   print()
 ```
 
+Per-cell barcode concordance between barcode_1 and barcode_9 read (singlet cells only)
+```{r}
+threshold <- 4
+
+singlets_short <- read.csv("/projects/b1042/GoyalLab/egrody/extractedData/EGS024/barcode/stepFour/GFP_barcode_1__singlets_all.txt",
+                           header = FALSE, col.names = "cellID")
+singlets_9 <- read.csv("/projects/b1042/GoyalLab/egrody/extractedData/EGS024/barcode/stepFour/GFP_barcode_9__singlets_all.txt",
+                          header = FALSE, col.names = "cellID")
+
+bc_short <- read.delim(file.path(shortRead, "GFP_barcode_1", "stepThreeStarcodeShavedReads.txt")) %>%
+  filter(cellID %in% singlets_short$cellID) %>%
+  count(cellID, BC50StarcodeD8, name = "count") %>%
+  filter(count > threshold) %>%
+  group_by(cellID) %>%
+  summarise(barcodes_short = list(sort(unique(BC50StarcodeD8))), .groups = "drop")
+
+bc_9 <- read.delim(file.path(shortRead, "GFP_barcode_9", "stepThreeStarcodeShavedReads.txt")) %>%
+  filter(cellID %in% singlets_9$cellID) %>%
+  count(cellID, BC50StarcodeD8, name = "count") %>%
+  filter(count > threshold) %>%
+  group_by(cellID) %>%
+  summarise(barcodes_9 = list(sort(unique(BC50StarcodeD8))), .groups = "drop")
+
+shared_cells <- inner_join(bc_short, bc_9, by = "cellID")
+cat("Cells found in both:", nrow(shared_cells), "\n")
+
+shared_cells <- shared_cells %>%
+  rowwise() %>%
+  mutate(
+    n_short = length(barcodes_short),
+    n_long = length(barcodes_9),
+    n_shared = length(intersect(barcodes_short, barcodes_9)),
+    exact_match = setequal(barcodes_short, barcodes_9)
+  ) %>%
+  ungroup()
+
+cat("Exact barcode match:", sum(shared_cells$exact_match), "/", nrow(shared_cells),
+    "(", round(100 * mean(shared_cells$exact_match), 1), "%)\n")
+cat("At least one shared barcode:", sum(shared_cells$n_shared > 0), "/", nrow(shared_cells),
+    "(", round(100 * mean(shared_cells$n_shared > 0), 1), "%)\n")
+cat("No shared barcodes:", sum(shared_cells$n_shared == 0), "/", nrow(shared_cells),
+    "(", round(100 * mean(shared_cells$n_shared == 0), 1), "%)\n")
+
+shared_cells %>%
+  mutate(category = case_when(
+    exact_match ~ "exact match",
+    n_shared > 0 ~ "partial overlap",
+    TRUE ~ "no overlap"
+  )) %>%
+  count(category) %>%
+  print()
+```
+
 # Joint Dataset
 ## Joining
 
@@ -1573,7 +1626,7 @@ barcode_file <- paste0(barcode.dir, "filtered_barcoded_cells_threshold4.csv")
 seurat_obj <- readRDS(rds_file)
 barcode_data <- read.csv(barcode_file, row.names = "X")
 
-output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS024/barcode/similarity/"
+output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS024/barcode/plots/similarity/"
 
 # Build data frame: UMAP coords, PCA embeddings, cluster, barcode
 umap_coords <- as.data.frame(Embeddings(seurat_obj, "umap"))
@@ -1720,153 +1773,6 @@ p_edist_hist <- ggplot() +
 print(p_edist_hist)
 ggsave(p_edist_hist, file = paste0(output.dir, "edist_density_clones_vs_random.pdf"),
          device = "pdf")
-
-# ---------------------------------------------------------------------------
-# 2. Pairwise Mixing Coefficient
-# ---------------------------------------------------------------------------
-# For each pair of clones of similar size, compute:
-#   mixing coefficient = (non-self neighbors) / (self neighbors)
-# where neighbors are found in 50-dimensional PC space. For each cell in
-# clone A, its neighbors are classified as "self" (from clone A) or
-# "non-self" (from clone B), and vice versa. The neighbor count k is
-# min(10, size of smaller clone). A mixing coefficient of 1 means perfect
-# mixing (equal self and non-self neighbors); 0 means no mixing (clones
-# occupy entirely separate regions).
-#
-# To keep comparisons fair, only clones within a similar size range are
-# compared. Within each pair, neighbor counts are normalized by clone size.
-
-cat("Computing pairwise mixing coefficients\n")
-
-# Use first 50 PCs as specified in the methods
-pc_cols_50 <- grep("^PC_", colnames(data), value = TRUE)
-pc_cols_50 <- pc_cols_50[1:min(50, length(pc_cols_50))]
-
-# Size bins for pairing clones of similar size (fold-change <= 2)
-clone_sizes <- data.frame(
-  barcode = clone_barcodes,
-  size = as.integer(barcode_counts[clone_barcodes]),
-  stringsAsFactors = FALSE
-)
-
-compute_mixing_coeff <- function(coords_a, coords_b) {
-  # Pool both clones
-  n_a <- nrow(coords_a)
-  n_b <- nrow(coords_b)
-  pooled <- rbind(coords_a, coords_b)
-  labels <- c(rep("A", n_a), rep("B", n_b))
-
-  # k = min(10, smaller clone size), as per Goyal et al. methods
-  k <- min(10, min(n_a, n_b))
-  if (k < 1) return(NA)
-
-  knn <- FNN::get.knn(pooled, k = k)
-  nn_idx <- knn$nn.index
-
-  total_self <- 0
-  total_nonself <- 0
-
-  for (i in seq_len(nrow(pooled))) {
-    neighbor_labels <- labels[nn_idx[i, ]]
-    self_count <- sum(neighbor_labels == labels[i])
-    nonself_count <- sum(neighbor_labels != labels[i])
-
-    # Normalize by clone size to account for size differences:
-    # weight non-self by (own_size / other_size) so that a larger clone
-    # does not dominate the neighbor counts
-    if (labels[i] == "A") {
-      nonself_count <- nonself_count * (n_a / n_b)
-    } else {
-      nonself_count <- nonself_count * (n_b / n_a)
-    }
-
-    total_self <- total_self + self_count
-    total_nonself <- total_nonself + nonself_count
-  }
-
-  if (total_self == 0) return(NA)
-  return(total_nonself / total_self)
-}
-
-# Generate all pairs within similar size (ratio <= 2)
-mixing_pairs <- data.frame(
-  barcode_a = character(), barcode_b = character(),
-  size_a = integer(), size_b = integer(),
-  mixing_coeff = numeric(), stringsAsFactors = FALSE
-)
-
-for (i in 1:(nrow(clone_sizes) - 1)) {
-  for (j in (i + 1):nrow(clone_sizes)) {
-    sa <- clone_sizes$size[i]
-    sb <- clone_sizes$size[j]
-    ratio <- max(sa, sb) / max(min(sa, sb), 1)
-    if (ratio > 2) next  # skip pairs with >2-fold size difference
-
-    ca <- as.matrix(data[data$barcode == clone_sizes$barcode[i], pc_cols_50])
-    cb <- as.matrix(data[data$barcode == clone_sizes$barcode[j], pc_cols_50])
-    mc <- compute_mixing_coeff(ca, cb)
-
-    mixing_pairs <- rbind(mixing_pairs, data.frame(
-      barcode_a = clone_sizes$barcode[i],
-      barcode_b = clone_sizes$barcode[j],
-      size_a = sa, size_b = sb,
-      mixing_coeff = mc, stringsAsFactors = FALSE
-    ))
-  }
-}
-
-# Null: for each pair, shuffle cells to create two random "clones"
-# of the same sizes and compute mixing
-null_mixing_pairs <- replicate(min(n_permutations, 50), {
-  mc_null <- sapply(seq_len(nrow(mixing_pairs)), function(p) {
-    sa <- mixing_pairs$size_a[p]
-    sb <- mixing_pairs$size_b[p]
-    idx <- sample(nrow(all_coords), sa + sb)
-    ra <- as.matrix(data[idx[1:sa], pc_cols_50])
-    rb <- as.matrix(data[idx[(sa + 1):(sa + sb)], pc_cols_50])
-    compute_mixing_coeff(ra, rb)
-  })
-  mean(mc_null, na.rm = TRUE)
-})
-null_mix_mean <- mean(null_mixing_pairs, na.rm = TRUE)
-
-cat("Pairwise mixing coefficient computation complete:",
-    nrow(mixing_pairs), "pairs\n")
-
-# Plot: distribution of pairwise mixing coefficients
-p_mix <- ggplot(mixing_pairs, aes(x = mixing_coeff)) +
-  geom_histogram(fill = "steelblue", alpha = 0.6, bins = 40) +
-  geom_vline(xintercept = null_mix_mean, linetype = "dashed", color = "red") +
-  geom_vline(xintercept = 1, linetype = "dotted", color = "gray40") +
-  annotate("text", x = 1.02, y = Inf, vjust = 2,
-           label = "perfect mixing", color = "gray40", size = 3, hjust = 0) +
-  annotate("text", x = null_mix_mean + 0.02, y = Inf, vjust = 4,
-           label = "random null", color = "red", size = 3, hjust = 0) +
-  theme_classic() +
-  labs(
-    x = "Mixing coefficient (non-self / self neighbors)",
-    y = "Count (clone pairs)",
-    title = "Pairwise Mixing Coefficient"
-  )
-print(p_mix)
-ggsave(p_mix, file = paste0(output.dir, "mixingcoef_histogram_pairwise.pdf"),
-       device = "pdf")
-
-# Plot: mixing coefficient vs mean clone pair size
-mixing_pairs$mean_size <- (mixing_pairs$size_a + mixing_pairs$size_b) / 2
-p_mix_size <- ggplot(mixing_pairs, aes(x = mean_size, y = mixing_coeff)) +
-  geom_point(size = 1.5, alpha = 0.6) +
-  geom_hline(yintercept = null_mix_mean, linetype = "dashed", color = "red") +
-  theme_classic() +
-  theme(aspect.ratio = 1) +
-  labs(
-    x = "Mean clone pair size",
-    y = "Mixing coefficient",
-    title = "Pairwise Mixing vs Clone Size"
-  )
-print(p_mix_size)
-ggsave(p_mix_size, file = paste0(output.dir, "mixingcoef_dotplot_pairwise.pdf"),
-       device = "pdf")
 
 # ---------------------------------------------------------------------------
 # 3. Pairwise E-distance Between Clones
@@ -2160,26 +2066,21 @@ cat("Summary of barcode similarity metrics:\n")
 print(summary_table)
 ```
 
-
-## Other Joint Analyses
-
-### looking at patterns, cell cycle
+### Patterns annotation with barcodes
 ```{r}
+# Loading
 rds_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS024/singleCell/Seurat/RDS/"
 seurat_obj <- readRDS(paste0(rds_dir, "GFP_invitro.rds"))
 combined.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS024/combined/"
 combined_data <- read.csv(paste0(combined.dir, "dataframes/GFP_invitro_all.csv"))
-
-
+## cell cycle scoring
 s_genes <- cc.genes.updated.2019$s.genes
 g2m_genes <- cc.genes.updated.2019$g2m.genes
-
 seurat_obj <- CellCycleScoring(seurat_obj,
                         s.features = s_genes,
                         g2m.features = g2m_genes,
                         set.ident = FALSE)
-
-# Add barcode info from combined_data to Seurat metadata
+## Add barcode info from combined_data to Seurat metadata
 barcode_map <- combined_data %>%
   select(cellID, barcode) %>%
   distinct()
@@ -2187,8 +2088,7 @@ seurat_obj@meta.data$cellID <- rownames(seurat_obj@meta.data)
 seurat_obj@meta.data <- seurat_obj@meta.data %>%
   left_join(barcode_map, by = "cellID")
 rownames(seurat_obj@meta.data) <- seurat_obj@meta.data$cellID
-
-# Now compute clone size
+## Now compute clone size
 barcode_counts <- seurat_obj@meta.data %>%
   filter(barcode != "none") %>%
   count(barcode, name = "clone_size")
@@ -2201,7 +2101,7 @@ seurat_obj@meta.data <- seurat_obj@meta.data %>%
 rownames(seurat_obj@meta.data) <- seurat_obj@meta.data$cellID
 
 
-# obj@meta.data now has: S.Score, G2M.Score, Phase
+# printing cell cycle phases
 table(seurat_obj@meta.data$Phase[seurat_obj@meta.data$clone_size == 1])
 table(seurat_obj@meta.data$Phase[seurat_obj@meta.data$clone_size > 1])
 
@@ -2334,8 +2234,36 @@ cat("Significant DE genes (padj < 0.05):", sum(de_within_c1$p_val_adj < 0.05), "
 head(de_within_c1[order(de_within_c1$p_val_adj),], 10)
 ```
 
+### Clones vs singletons
 Difference between clones and singletons in clusters
 ```{r}
+# Loading
+
+rds_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS024/singleCell/Seurat/RDS/"
+seurat_obj <- readRDS(paste0(rds_dir, "GFP_invitro.rds"))
+combined.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS024/combined/"
+combined_data <- read.csv(paste0(combined.dir, "dataframes/GFP_invitro_all.csv"))
+## Add barcode info from combined_data to Seurat metadata
+barcode_map <- combined_data %>%
+  select(cellID, barcode) %>%
+  distinct()
+seurat_obj@meta.data$cellID <- rownames(seurat_obj@meta.data)
+seurat_obj@meta.data <- seurat_obj@meta.data %>%
+  left_join(barcode_map, by = "cellID")
+rownames(seurat_obj@meta.data) <- seurat_obj@meta.data$cellID
+## Now compute clone size
+barcode_counts <- seurat_obj@meta.data %>%
+  filter(barcode != "none") %>%
+  count(barcode, name = "clone_size")
+seurat_obj@meta.data <- seurat_obj@meta.data %>%
+  left_join(barcode_counts, by = "barcode") %>%
+  mutate(
+    clone_size = ifelse(barcode == "none", NA_integer_, clone_size),
+    is_singleton = clone_size == 1
+  )
+rownames(seurat_obj@meta.data) <- seurat_obj@meta.data$cellID
+
+
 for (cl in c(1, 2, 3, 4, 5, 6, 7, 8)) {
   cl_obj <- subset(seurat_obj, seurat_clusters == cl & 
                      barcode_status %in% c("singleton", "clone"))
@@ -2355,6 +2283,120 @@ for (cl in c(1, 2, 3, 4, 5, 6, 7, 8)) {
   cat("Cluster", cl, "- Singletons:", n_sing, "Clones:", n_clone,
       "- Sig DE genes:", n_sig, "\n")
 }
+```
+
+Clone sizes per cluster
+```{r}
+clone_meta <- seurat_obj@meta.data %>%
+  filter(barcode != "none", !is.na(clone_size))
+
+for (cl in sort(unique(clone_meta$seurat_clusters))) {
+  cl_data <- clone_meta %>% filter(seurat_clusters == cl)
+  n_singletons <- sum(cl_data$is_singleton)
+  clone_sizes <- cl_data %>%
+    filter(!is_singleton) %>%
+    distinct(barcode, clone_size) %>%
+    count(clone_size, name = "n_clones") %>%
+    arrange(clone_size)
+
+  cat("Cluster", cl, "—", n_distinct(cl_data$barcode), "unique barcodes,",
+      nrow(cl_data), "cells,", n_singletons, "singletons\n")
+  for (r in seq_len(nrow(clone_sizes))) {
+    cat("  size", clone_sizes$clone_size[r], ":", clone_sizes$n_clones[r], "clones\n")
+  }
+  cat("\n")
+}
+
+# Clone size distribution per dominant cluster
+clone_size_by_cluster <- clone_meta %>%
+  count(barcode, seurat_clusters, clone_size) %>%
+  group_by(barcode) %>%
+  slice_max(n, n = 1, with_ties = FALSE) %>%
+  ungroup() %>%
+  mutate(size_bin = case_when(
+    clone_size == 1 ~ "1 (singleton)",
+    clone_size >= 5 & clone_size <= 10 ~ "5-10",
+    clone_size > 10 ~ "11+",
+    TRUE ~ as.character(clone_size)
+  )) %>%
+  mutate(size_bin = factor(size_bin, levels = c("1 (singleton)", "2", "3", "4", "5-10", "11+"))) %>%
+  count(seurat_clusters, size_bin, name = "n_clones")
+
+ggplot(clone_size_by_cluster, aes(x = seurat_clusters, y = n_clones, fill = size_bin)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  scale_fill_brewer(palette = "Blues", direction = 1) +
+  labs(x = "Cluster", y = "Number of clones", fill = "Clone size", 
+       title = "Clone Size by Dominant Cluster") +
+  theme_minimal()
+
+# Stacked barplot: clone composition by dominant cluster
+clone_cells <- clone_meta %>%
+  filter(!is_singleton)
+
+# For each clone, find the most popular cluster
+dominant_cluster <- clone_cells %>%
+  count(barcode, seurat_clusters) %>%
+  group_by(barcode) %>%
+  slice_max(n, n = 1, with_ties = FALSE) %>%
+  ungroup() %>%
+  select(barcode, dominant_cluster = seurat_clusters)
+
+clone_plot_data <- clone_cells %>%
+  left_join(dominant_cluster, by = "barcode") %>%
+  mutate(in_dominant = seurat_clusters == dominant_cluster) %>%
+  count(barcode, in_dominant, name = "n") %>%
+  mutate(in_dominant = ifelse(in_dominant, "Dominant cluster", "Other clusters"))
+
+# Order clones by total size
+clone_order <- clone_plot_data %>%
+  group_by(barcode) %>%
+  summarise(total = sum(n)) %>%
+  arrange(desc(total)) %>%
+  pull(barcode)
+
+clone_plot_data$barcode <- factor(clone_plot_data$barcode, levels = clone_order)
+clone_plot_data$in_dominant <- factor(clone_plot_data$in_dominant,
+                                      levels = c("Other clusters", "Dominant cluster"))
+
+ggplot(clone_plot_data, aes(x = barcode, y = n, fill = in_dominant)) +
+  geom_bar(stat = "identity") +
+  scale_fill_manual(values = c("Dominant cluster" = "gray30", "Other clusters" = "gray80")) +
+  labs(x = "Clone", y = "Clone size", fill = "") +
+  theme_minimal() +
+  theme(axis.text.x = element_blank(), axis.ticks.x = element_blank(),
+        panel.grid.major.x = element_blank())
+
+# Per-cluster composition: singletons, native clone members, visiting clone members
+# Count how many cells each clone has in each non-dominant cluster
+visiting_counts <- clone_meta %>%
+  left_join(dominant_cluster, by = "barcode") %>%
+  filter(!is_singleton, seurat_clusters != dominant_cluster) %>%
+  count(barcode, seurat_clusters, name = "n_visiting")
+
+cluster_composition <- clone_meta %>%
+  left_join(dominant_cluster, by = "barcode") %>%
+  left_join(visiting_counts, by = c("barcode", "seurat_clusters")) %>%
+  mutate(category = case_when(
+    is_singleton ~ "Singleton",
+    seurat_clusters == dominant_cluster ~ "Native clone member",
+    n_visiting > 3 ~ "Gatecrashing (>3 cells)",
+    TRUE ~ "Visiting (\u22643 cells)"
+  )) %>%
+  count(seurat_clusters, category, name = "n")
+
+cluster_composition$category <- factor(cluster_composition$category,
+  levels = c("Gatecrashing (>3 cells)", "Visiting (\u22643 cells)", "Native clone member", "Singleton"))
+
+ggplot(cluster_composition, aes(x = seurat_clusters, y = n, fill = category)) +
+  geom_bar(stat = "identity") +
+  scale_fill_manual(values = c("Singleton" = "gray80",
+                                "Native clone member" = "gray30",
+                                "Visiting (\u22643 cells)" = "steelblue3",
+                                "Gatecrashing (>3 cells)" = "firebrick3")) +
+  labs(x = "Cluster", y = "Cells", fill = "") +
+  theme_minimal()
+
+
 ```
 
 Distance between clones and singletons in cluster 1
@@ -2478,9 +2520,97 @@ output_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS024/joint/plots/
 ggsave(paste0(output_dir, "barcode_edist_violins_cluster1.pdf"), p)
 ```
 
+Euclidean distance of singletons: cluster 7 vs non-cluster 7
+```{r}
+library(ggpubr)
 
+rds_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS024/singleCell/Seurat/RDS/"
+seurat_obj <- readRDS(paste0(rds_dir, "GFP_invitro.rds"))
+combined.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS024/combined/"
+combined_data <- read.csv(paste0(combined.dir, "dataframes/GFP_invitro_all.csv"))
+barcode_map <- combined_data %>% select(cellID, barcode) %>% distinct()
+seurat_obj@meta.data$cellID <- rownames(seurat_obj@meta.data)
+seurat_obj@meta.data <- seurat_obj@meta.data %>% left_join(barcode_map, by = "cellID")
+rownames(seurat_obj@meta.data) <- seurat_obj@meta.data$cellID
+barcode_counts <- seurat_obj@meta.data %>%
+  filter(barcode != "none") %>% count(barcode, name = "clone_size")
+seurat_obj@meta.data <- seurat_obj@meta.data %>%
+  left_join(barcode_counts, by = "barcode") %>%
+  mutate(clone_size = ifelse(barcode == "none", NA_integer_, clone_size),
+         is_singleton = clone_size == 1)
+rownames(seurat_obj@meta.data) <- seurat_obj@meta.data$cellID
 
-### Host factors
+# Get singletons in cluster 7 and cluster 1
+singletons <- subset(seurat_obj, is_singleton == TRUE)
+pca <- Embeddings(singletons, "pca")[, 1:30]
+meta <- singletons@meta.data
+in_cl7 <- which(meta$seurat_clusters == 7)
+in_cl1 <- which(meta$seurat_clusters == 1)
+
+# Subsample to equal size (smaller of the two clusters)
+set.seed(42)
+n_cells <- min(length(in_cl7), length(in_cl1))
+in_cl7 <- sample(in_cl7, n_cells)
+in_cl1 <- sample(in_cl1, n_cells)
+n_pairs <- choose(n_cells, 2)  # all unique pairs from n_cells
+cat("Cells per group:", n_cells, "| Pairs per comparison:", n_pairs, "\n")
+
+pair_dist <- function(pairs, pca) {
+  sqrt(rowSums((pca[pairs[,1],] - pca[pairs[,2],])^2))
+}
+
+# 1. Within cluster 7: all pairs of singletons in cluster 7
+within7_pairs <- t(combn(in_cl7, 2))
+d_within7 <- pair_dist(within7_pairs, pca)
+
+# 2. Within cluster 1: all pairs of singletons in cluster 1
+within1_pairs <- t(combn(in_cl1, 2))
+d_within1 <- pair_dist(within1_pairs, pca)
+
+# 3. Between cluster 7 and cluster 1: all cross-pairs, subsampled to match
+between_all <- expand.grid(in_cl7, in_cl1)
+between_pairs <- as.matrix(between_all[sample(nrow(between_all), n_pairs), ])
+d_between <- pair_dist(between_pairs, pca)
+
+cat("Within cluster 7:  ", round(mean(d_within7), 3), "+/-", round(sd(d_within7), 3), "\n")
+cat("Within cluster 1:  ", round(mean(d_within1), 3), "+/-", round(sd(d_within1), 3), "\n")
+cat("Cluster 7 vs 1:    ", round(mean(d_between), 3), "+/-", round(sd(d_between), 3), "\n")
+
+dist_df <- data.frame(
+  distance = c(d_within7, d_within1, d_between),
+  comparison = rep(c("Within cluster 7", "Within cluster 1", "Cluster 7 vs 1"),
+                   each = n_pairs)
+)
+dist_df$comparison <- factor(dist_df$comparison,
+  levels = c("Within cluster 7", "Within cluster 1", "Cluster 7 vs 1"))
+
+# Kruskal-Wallis omnibus test, then Dunn's post-hoc with Bonferroni correction
+kw <- kruskal.test(distance ~ comparison, data = dist_df)
+cat("\nKruskal-Wallis p =", format.pval(kw$p.value, digits = 3), "\n")
+
+dunn <- pairwise.wilcox.test(dist_df$distance, dist_df$comparison,
+                              p.adjust.method = "bonferroni")
+cat("\nPairwise Wilcoxon (Bonferroni-corrected):\n")
+print(dunn)
+
+ggplot(dist_df, aes(x = comparison, y = distance)) +
+  geom_violin(fill = "gray80") +
+  geom_boxplot(width = 0.1) +
+  stat_compare_means(comparisons = list(
+    c("Within cluster 7", "Within cluster 1"),
+    c("Within cluster 7", "Cluster 7 vs 1"),
+    c("Within cluster 1", "Cluster 7 vs 1")
+  ), method = "wilcox.test", p.adjust.method = "bonferroni",
+  label = "p.signif", step.increase = 0.05) +
+  theme_classic() +
+  labs(x = "", y = "Euclidean distance (PCA space)",
+       title = "Singleton e-dist: cluster 7 vs cluster 1") +
+  theme(axis.text.x = element_text(angle = 25, hjust = 1))
+```
+
+## Other Joint Analyses
+
+### Host factors (skip)
 
 ```{r restrict and depend}
 factors_restrict <- c("APOBEC3G", "APOBEC3H", "TRIM5", "SAMHD1", 
@@ -2513,27 +2643,28 @@ results_sparse <- host_virus_correlation_sparse(
     outputs = TRUE
 )
 
+output_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/joint/hostVirus/dependencyFactors/"
 host_virus_correlation(joint_data, objects, factors_restrict, viral_col = "SALVE", 
-            output.dir = "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/joint/hostVirus/new_restrictionFactors/")
+            output.dir = output_dir)
 host_virus_correlation(joint_data, objects, factors_restrict, viral_col = "USprop", 
-            output.dir = "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/joint/hostVirus/restrictionFactors/")
+            output.dir = output_dir)
 host_virus_correlation(joint_data, objects, factors_restrict, viral_col = "SSprop", 
-            output.dir = "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/joint/hostVirus/restrictionFactors/")
+            output.dir = output_dir)
 host_virus_correlation(joint_data, objects, factors_restrict, viral_col = "MSprop", 
-            output.dir = "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/joint/hostVirus/restrictionFactors/")
+            output.dir = output_dir)
 host_virus_correlation(joint_data, objects, factors_restrict, viral_col = "GEX", 
-            output.dir = "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/joint/hostVirus/restrictionFactors/")
+            output.dir = output_dir)
 
 host_virus_correlation(joint_data, objects, factors_depend, viral_col = "SALVE", 
-            output.dir = "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/joint/hostVirus/dependencyFactors/")
+            output.dir = output_dir)
 host_virus_correlation(joint_data, objects, factors_depend, viral_col = "USprop", 
-            output.dir = "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/joint/hostVirus/dependencyFactors/")
+            output.dir = output_dir)
 host_virus_correlation(joint_data, objects, factors_depend, viral_col = "SSprop", 
-            output.dir = "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/joint/hostVirus/dependencyFactors/")
+            output.dir = output_dir)
 host_virus_correlation(joint_data, objects, factors_depend, viral_col = "MSprop", 
-            output.dir = "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/joint/hostVirus/dependencyFactors/")
+            output.dir = output_dir)
 host_virus_correlation(joint_data, objects, factors_depend, viral_col = "GEX", 
-            output.dir = "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/joint/hostVirus/dependencyFactors/")
+            output.dir = output_dir)
 
 # are the trends the same between SALVE and GEX? And the isoforms?
 input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/joint/hostVirus/dependencyFactors/"
