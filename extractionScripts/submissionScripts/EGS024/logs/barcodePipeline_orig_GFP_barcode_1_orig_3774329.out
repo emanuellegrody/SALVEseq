@@ -1,0 +1,22 @@
+=== Pipeline for sample: GFP_barcode_1 (stagger_length=1, start_step=4) ===
+========== SINGLET CODE ==========
+Loading input: /projects/b1042/GoyalLab/egrody/extractedData/EGS024/barcode/stepThree_original//GFP_barcode_1/stepThreeStarcodeShavedReads.txt
+Sample: GFP_barcode_1 | Reads: 641,090
+The sample sheet provided can be used as input to get_singlets to get a list of singlets identified.
+Running get_singlets...
+INFO: Raw data counts: 
+sample
+GFP_barcode_1    641090
+Name: count, dtype: int64
+Total cells for sample GFP_barcode_1: 10116
+INFO: Using ratio based filtering.
+Current Sample Adjusted UMI cutoff: 5
+All singlets identified with multiple barcodes are unique? True
+Total Singlets: 7093
+Total Multiplets: 986
+Stats:
+   single_sample_barcode_singlets  multi_barcode_singlets  dominant_umi_barcode_singlets  total_singlets  total_undetermined  low_umi_cells_removed  total_cells        dataset         sample
+0                            3496                    3394                            203            7093                 986                   2037        10116  GFP_barcode_1  GFP_barcode_1
+Output written to: /projects/b1042/GoyalLab/egrody/extractedData/EGS024/barcode/stepFour_original/
+========== SINGLET CODE COMPLETE ==========
+Pipeline finished for GFP_barcode_1.
