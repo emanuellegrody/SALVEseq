@@ -1,0 +1,266 @@
+Processing 7 samples for read length distributions
+==========================================
+Processing D1...
+  BAM: /projects/b1042/GoyalLab/egrody/extractedData/EGS025/nf-core/D1/genome/bam/barcode_tagged/D1.tagged.bam
+  Output: /projects/b1042/GoyalLab/egrody/extractedData/EGS025/nf-core/batch_qcs/read_lengths/D1_read_lengths.csv
+Analyzing aligned read lengths for: mac239
+
+Total mapped primary reads: 12,411
+Skipped unmapped: 0
+Skipped secondary/supplementary: 147
+Reads with length data: 12,411
+Length range: 80 - 9192 bp
+Mean length: 1644.6 bp
+Median length: 172 bp
+
+Read length distribution (bin size = 50bp):
+          Range     Count  Bar
+--------------------------------------------------------------------------------
+     50-99            158  #
+    100-149          2739  ###############################
+    150-199          4341  ##################################################
+    200-249           159  #
+    250-299           511  #####
+    300-349           159  #
+    350-399           180  ##
+    400-449           136  #
+    450-499           298  ###
+    500-549            63  
+    550-599           636  #######
+    600-649             7  
+    650-699             5  
+    700-749             2  
+    750-799             6  
+    800-849             3  
+    850-899             2  
+    900-949             3  
+    950-999             1  
+   1000-1049            4  
+   1250-1299            1  
+   1300-1349            4  
+   1350-1399            1  
+   1500-1549            3  
+   1700-1749            1  
+   1750-1799            2  
+   2150-2199            3  
+   2300-2349            1  
+   2700-2749            1  
+   2800-2849            4  
+   2950-2999            1  
+   3000-3049            1  
+   3600-3649            5  
+   3700-3749            1  
+   3750-3799            1  
+   4050-4099            1  
+   4100-4149            1  
+   4300-4349           28  
+   4350-4399          291  ###
+   4450-4499           52  
+   4600-4649            1  
+   4750-4799           19  
+   4800-4849           46  
+   4850-4899           65  
+   4900-4949            7  
+   5050-5099            2  
+   5100-5149            2  
+   5150-5199          105  #
+   5200-5249           30  
+   5250-5299          702  ########
+   5300-5349            7  
+   5350-5399            7  
+   5450-5499            1  
+   5500-5549           63  
+   5550-5599          357  ####
+   5600-5649           83  
+   5750-5799           15  
+   5800-5849           24  
+   5850-5899            2  
+   6000-6049            5  
+   6050-6099           14  
+   6100-6149            8  
+   6150-6199          104  #
+   6200-6249            6  
+   6450-6499            2  
+   6900-6949            3  
+   7850-7899          156  #
+   7950-7999            2  
+   8100-8149            2  
+   8250-8299           32  
+   8300-8349          277  ###
+   8350-8399          371  ####
+   8450-8499           16  
+   8500-8549           20  
+   8550-8599           26  
+   8800-8849            1  
+   8850-8899            1  
+   9150-9199           11  
+
+CSV written to /projects/b1042/GoyalLab/egrody/extractedData/EGS025/nf-core/batch_qcs/read_lengths/D1_read_lengths.csv
+Plot saved to /projects/b1042/GoyalLab/egrody/extractedData/EGS025/nf-core/batch_qcs/read_lengths/D1_read_lengths.png
+  Done.
+-----------------------------
+Warning: BAM file not found for FM: /projects/b1042/GoyalLab/egrody/extractedData/EGS025/nf-core/FM/genome/bam/barcode_tagged/FM.tagged.bam
+Processing SSenv...
+  BAM: /projects/b1042/GoyalLab/egrody/extractedData/EGS025/nf-core/SSenv/genome/bam/barcode_tagged/SSenv.tagged.bam
+  Output: /projects/b1042/GoyalLab/egrody/extractedData/EGS025/nf-core/batch_qcs/read_lengths/SSenv_read_lengths.csv
+Analyzing aligned read lengths for: mac239
+
+Total mapped primary reads: 385
+Skipped unmapped: 0
+Skipped secondary/supplementary: 3
+Reads with length data: 385
+Length range: 80 - 2851 bp
+Mean length: 436.6 bp
+Median length: 244 bp
+
+Read length distribution (bin size = 50bp):
+          Range     Count  Bar
+--------------------------------------------------------------------------------
+     50-99              5  ##
+    100-149            58  ##############################
+    150-199            85  ############################################
+    200-249            67  ###################################
+    250-299            11  #####
+    300-349            22  ###########
+    350-399             3  #
+    400-449             1  
+    500-549             7  ###
+    550-599            95  ##################################################
+    600-649             9  ####
+    750-799             1  
+   1200-1249            2  #
+   1250-1299            1  
+   1550-1599            1  
+   2750-2799            2  #
+   2850-2899           15  #######
+
+CSV written to /projects/b1042/GoyalLab/egrody/extractedData/EGS025/nf-core/batch_qcs/read_lengths/SSenv_read_lengths.csv
+Plot saved to /projects/b1042/GoyalLab/egrody/extractedData/EGS025/nf-core/batch_qcs/read_lengths/SSenv_read_lengths.png
+  Done.
+-----------------------------
+Warning: BAM file not found for Vpx: /projects/b1042/GoyalLab/egrody/extractedData/EGS025/nf-core/Vpx/genome/bam/barcode_tagged/Vpx.tagged.bam
+Processing nef...
+  BAM: /projects/b1042/GoyalLab/egrody/extractedData/EGS025/nf-core/nef/genome/bam/barcode_tagged/nef.tagged.bam
+  Output: /projects/b1042/GoyalLab/egrody/extractedData/EGS025/nf-core/batch_qcs/read_lengths/nef_read_lengths.csv
+Analyzing aligned read lengths for: mac239
+
+Total mapped primary reads: 1,123
+Skipped unmapped: 0
+Skipped secondary/supplementary: 53
+Reads with length data: 1,123
+Length range: 83 - 879 bp
+Mean length: 493.9 bp
+Median length: 243 bp
+
+Read length distribution (bin size = 50bp):
+          Range     Count  Bar
+--------------------------------------------------------------------------------
+     50-99              4  
+    100-149            24  ##
+    150-199            93  ##########
+    200-249           462  ##################################################
+    250-299            17  #
+    300-349            19  ##
+    350-399            10  #
+    400-449             3  
+    450-499             3  
+    500-549             5  
+    550-599            33  ###
+    600-649             5  
+    700-749            23  ##
+    750-799             8  
+    800-849             4  
+    850-899           410  ############################################
+
+CSV written to /projects/b1042/GoyalLab/egrody/extractedData/EGS025/nf-core/batch_qcs/read_lengths/nef_read_lengths.csv
+Plot saved to /projects/b1042/GoyalLab/egrody/extractedData/EGS025/nf-core/batch_qcs/read_lengths/nef_read_lengths.png
+  Done.
+-----------------------------
+Processing pol...
+  BAM: /projects/b1042/GoyalLab/egrody/extractedData/EGS025/nf-core/pol/genome/bam/barcode_tagged/pol.tagged.bam
+  Output: /projects/b1042/GoyalLab/egrody/extractedData/EGS025/nf-core/batch_qcs/read_lengths/pol_read_lengths.csv
+Analyzing aligned read lengths for: mac239
+
+Total mapped primary reads: 33
+Skipped unmapped: 0
+Skipped secondary/supplementary: 4
+Reads with length data: 33
+Length range: 127 - 4416 bp
+Mean length: 552.4 bp
+Median length: 349 bp
+
+Read length distribution (bin size = 50bp):
+          Range     Count  Bar
+--------------------------------------------------------------------------------
+    100-149             6  ##########################################
+    150-199             2  ##############
+    200-249             1  #######
+    250-299             7  ##################################################
+    300-349             1  #######
+    350-399             1  #######
+    450-499             5  ###################################
+    600-649             2  ##############
+    850-899             7  ##################################################
+   4400-4449            1  #######
+
+CSV written to /projects/b1042/GoyalLab/egrody/extractedData/EGS025/nf-core/batch_qcs/read_lengths/pol_read_lengths.csv
+Plot saved to /projects/b1042/GoyalLab/egrody/extractedData/EGS025/nf-core/batch_qcs/read_lengths/pol_read_lengths.png
+  Done.
+-----------------------------
+Processing tat...
+  BAM: /projects/b1042/GoyalLab/egrody/extractedData/EGS025/nf-core/tat/genome/bam/barcode_tagged/tat.tagged.bam
+  Output: /projects/b1042/GoyalLab/egrody/extractedData/EGS025/nf-core/batch_qcs/read_lengths/tat_read_lengths.csv
+Analyzing aligned read lengths for: mac239
+
+Total mapped primary reads: 3,643
+Skipped unmapped: 0
+Skipped secondary/supplementary: 17
+Reads with length data: 3,643
+Length range: 82 - 3585 bp
+Mean length: 1910.2 bp
+Median length: 2728 bp
+
+Read length distribution (bin size = 50bp):
+          Range     Count  Bar
+--------------------------------------------------------------------------------
+     50-99            121  #####
+    100-149            19  
+    150-199            48  ##
+    200-249            48  ##
+    250-299            26  #
+    300-349            14  
+    350-399            35  #
+    400-449           141  #####
+    450-499            69  ##
+    500-549           111  ####
+    550-599           654  ###########################
+    600-649            41  #
+    650-699             1  
+    700-749             4  
+    750-799             3  
+    850-899            18  
+    950-999             8  
+   1000-1049            1  
+   1050-1099            1  
+   1250-1299            4  
+   1300-1349            3  
+   1350-1399            1  
+   2350-2399           11  
+   2600-2649            1  
+   2650-2699           67  ##
+   2700-2749         1186  ##################################################
+   2750-2799          676  ############################
+   2800-2849            1  
+   2850-2899           61  ##
+   2900-2949          229  #########
+   2950-2999            2  
+   3000-3049            4  
+   3550-3599           34  #
+
+CSV written to /projects/b1042/GoyalLab/egrody/extractedData/EGS025/nf-core/batch_qcs/read_lengths/tat_read_lengths.csv
+Plot saved to /projects/b1042/GoyalLab/egrody/extractedData/EGS025/nf-core/batch_qcs/read_lengths/tat_read_lengths.png
+  Done.
+-----------------------------
+==========================================
+All samples processed!
+Results in: /projects/b1042/GoyalLab/egrody/extractedData/EGS025/nf-core/batch_qcs/read_lengths

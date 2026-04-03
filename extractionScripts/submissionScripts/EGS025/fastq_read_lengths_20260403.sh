@@ -19,6 +19,7 @@ SAMPLES=("D1" "FM" "SSenv" "Vpx" "nef" "pol" "tat")
 INPUT_ROOT="/projects/b1042/GoyalLab/egrody/rawData/EGS025/fastq"
 OUTPUT_ROOT="/projects/b1042/GoyalLab/egrody/extractedData/EGS025/nf-core/batch_qcs/read_lengths"
 SCRIPT_PATH="/home/egy2296/SALVEseq/extractionScripts/Python/fastq_read_lengths.py"
+HOMOLOGY_SEQ="TGCTCTTCCGATCT"
 
 # Allow single sample mode
 if [ "$#" -eq 1 ]; then
@@ -56,6 +57,7 @@ for sample in "${SAMPLES[@]}"; do
     python3 "${SCRIPT_PATH}" \
         "${FASTQ_FILE}" \
         "${OUTPUT_CSV}" \
+        --require-seq "${HOMOLOGY_SEQ}" \
         --plot "${OUTPUT_PNG}" \
         --sample-name "${sample}" \
         --bin-size 50

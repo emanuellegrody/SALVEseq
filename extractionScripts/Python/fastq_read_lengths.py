@@ -27,6 +27,12 @@ import csv
 import gzip
 from collections import Counter
 
+COMPLEMENT = str.maketrans('ACGT', 'TGCA')
+
+
+def reverse_complement(seq):
+    return seq.translate(COMPLEMENT)[::-1]
+
 
 def find_polyt_end(seq, min_t=8, search_window=100):
     """
@@ -128,7 +134,8 @@ def parse_fastq(filepath):
             yield header, seq, qual
 
 
-def collect_read_lengths(fastq_file, trim=True, min_t=8, search_window=100):
+def collect_read_lengths(fastq_file, trim=True, min_t=8, search_window=100,
+                         require_seq=None):
     """
     Collect read lengths from a FASTQ file.
 
@@ -137,6 +144,8 @@ def collect_read_lengths(fastq_file, trim=True, min_t=8, search_window=100):
         trim: If True, trim 10X adapter structure before measuring length
         min_t: Minimum consecutive T/A bases to identify polyT/polyA
         search_window: How many bases from read start/end to search for polyT/A
+        require_seq: If set, only count reads containing this sequence (or its
+                     reverse complement) anywhere in the read
 
     Returns:
         Counter of read_length -> count, stats dict
@@ -144,9 +153,20 @@ def collect_read_lengths(fastq_file, trim=True, min_t=8, search_window=100):
     length_counts = Counter()
     total = 0
     trimmed_count = 0
+    filtered_count = 0
+
+    if require_seq:
+        req_fwd = require_seq.upper()
+        req_rc = reverse_complement(req_fwd)
 
     for header, seq, qual in parse_fastq(fastq_file):
         total += 1
+
+        if require_seq:
+            if req_fwd not in seq and req_rc not in seq:
+                filtered_count += 1
+                continue
+
         raw_len = len(seq)
 
         if trim:
@@ -163,6 +183,7 @@ def collect_read_lengths(fastq_file, trim=True, min_t=8, search_window=100):
     stats = {
         'total_reads': total,
         'trimmed_reads': trimmed_count,
+        'filtered_reads': filtered_count,
     }
     return length_counts, stats
 
@@ -247,6 +268,9 @@ if __name__ == "__main__":
                         help="Path to save histogram plot (PNG)")
     parser.add_argument("--sample-name", type=str, default=None,
                         help="Sample name to display in plot title")
+    parser.add_argument("--require-seq", type=str, default=None,
+                        help="Only include reads containing this sequence "
+                             "(or its reverse complement). E.g. a homology arm")
     parser.add_argument("--bin-size", type=int, default=50,
                         help="Bin size for histogram display (default: 50)")
 
@@ -255,16 +279,26 @@ if __name__ == "__main__":
     trim = not args.no_trim
     mode = "trimmed (10X adapter removal)" if trim else "raw"
     print(f"Analyzing {mode} read lengths from: {args.fastq_file}")
+    if args.require_seq:
+        rc = reverse_complement(args.require_seq.upper())
+        print(f"Filtering for reads containing: {args.require_seq.upper()} "
+              f"(or RC: {rc})")
 
     length_counts, stats = collect_read_lengths(
         args.fastq_file, trim=trim, min_t=args.min_polyt,
-        search_window=args.search_window
+        search_window=args.search_window, require_seq=args.require_seq
     )
 
     # Print summary
     print(f"\nTotal reads: {stats['total_reads']:,}")
+    if args.require_seq:
+        kept = stats['total_reads'] - stats['filtered_reads']
+        pct = 100 * kept / max(1, stats['total_reads'])
+        print(f"Reads passing sequence filter: {kept:,} ({pct:.1f}%)")
+        print(f"Reads filtered out: {stats['filtered_reads']:,}")
     if trim:
-        pct = 100 * stats['trimmed_reads'] / max(1, stats['total_reads'])
+        kept = stats['total_reads'] - stats['filtered_reads']
+        pct = 100 * stats['trimmed_reads'] / max(1, kept)
         print(f"Reads with adapter trimmed: {stats['trimmed_reads']:,} ({pct:.1f}%)")
 
     if length_counts:
