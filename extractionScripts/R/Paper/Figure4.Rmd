@@ -1,0 +1,287 @@
+---
+title: "Figure4"
+author: "Emanuelle Grody"
+date: "2026-03-26"
+output: html_document
+---
+
+```{r, message=FALSE, warning=FALSE}
+source("~/SALVEseq/extractionScripts/R/packages.R")
+source("~/SALVEseq/extractionScripts/R/functions.R")
+```
+
+## Panel B
+```{r}
+base.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS024/barcode/stepThree/"
+singlet.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS024/barcode/stepFour/"
+
+singlet_1 <- read.csv(paste0(singlet.dir, "GFP_barcode_1__singlets_all.txt"), col.names = "cellID")
+singlet_9 <- read.csv(paste0(singlet.dir, "GFP_barcode_9__singlets_all.txt"), col.names = "cellID")
+singlet_data <- data.frame(cellID = union(singlet_1$cellID, singlet_9$cellID)) %>%
+  mutate(cellID = paste0(cellID, "-1"))
+
+results <- list()
+plot_list <- list()
+
+for (threshold in 0:5) {
+  barcodeData <- list()
+  for (i in side_reactions) {
+    temp <- read.delim(file.path(base.dir, i, "stepThreeStarcodeShavedReads.txt"))
+    barcodeData[[i]] <- temp %>% mutate(cellID = paste0(cellID, "-1")) %>%
+      select(cellID, UMI, BC50StarcodeD8) %>%
+      filter(cellID %in% singlet_data$cellID) %>%
+      filter(cellID %in% UMAP_data$cellID) %>%
+      count(cellID, BC50StarcodeD8, name = "count") %>%
+      filter(count > threshold)
+  }
+
+  lib1 <- barcodeData[[1]] %>%
+    count(BC50StarcodeD8, name = "lib1_abundance")
+  lib2 <- barcodeData[[2]] %>%
+    count(BC50StarcodeD8, name = "lib2_abundance")
+  abundance <- inner_join(lib1, lib2, by = "BC50StarcodeD8")
+
+  r_squared <- cor(abundance$lib1_abundance, abundance$lib2_abundance)^2
+
+   p <- ggplot(abundance, aes(x = lib2_abundance, y = lib1_abundance)) +
+    geom_bin2d() +
+    scale_fill_gradientn(colors = c("black", "blue", "purple", "red", "yellow"),
+                         name = "Number of\nBarcodes",
+                         trans = "log10") +
+    geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "grey50") +
+    scale_x_log10() +
+    scale_y_log10() +
+    annotate("text", x = Inf, y = Inf, hjust = 1.1, vjust = 1.5,
+             label = paste0("R^2 == ", round(r_squared, 3)), parse = TRUE) +
+    labs(x = "Barcode abundance\nlibrary 2",
+         y = "Barcode abundance\nlibrary 1",
+         title = paste0("threshold > ", threshold)) +
+    coord_fixed(ratio = 1) +
+    theme_classic(base_size = 10) +
+    theme(plot.title = element_text(hjust = 0.5))
+
+  plot_list[[as.character(threshold)]] <- p
+}
+
+# Arrange all threshold plots in a single row
+combined <- wrap_plots(plot_list, nrow = 1)
+
+output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS024/barcode/"
+ggsave(paste0(output.dir, "barcode_overlap_thresholds.pdf"), combined,
+       width = 4 * length(plot_list), height = 4)
+```
+
+
+
+
+## Panel C
+```{r}
+sample_name <- "GFP_invitro"
+combined.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS024/combined/"
+combined_data <- read.csv(paste0(combined.dir, "dataframes/", sample_name, "_all.csv"))
+
+plotBarcodeUMAP(combined_data, "GFP_invitro clones", min_count = 2, 
+                output_dir = paste0(combined.dir, "plots/"),
+                saveas = paste0("UMAP_barcode_clones.pdf"))
+plotBarcodeUMAP(combined_data, "GFP_invitro singletons", max_count = 1, 
+                output_dir = paste0(combined.dir, "plots/"),
+                saveas = paste0("UMAP_barcode_singletons.pdf"))
+plotBarcodeUMAP(combined_data, "GFP_invitro clones sized > 50", min_count = 50, 
+                output_dir = paste0(combined.dir, "plots/"),
+                saveas = paste0("UMAP_barcode_clonesGreaterThan50.pdf"))
+
+
+# identity UMAP: barcoded and infected
+plot_data <- combined_data
+plot_data$highlight <- ifelse(plot_data$barcode != "none" & plot_data$total > 0, "yes", "no")
+plot_data <- arrange(plot_data, highlight)
+
+p <- ggplot(plot_data, aes(x = UMAP1, y = UMAP2, color = highlight)) +
+  geom_point(aes(size = highlight)) +
+  scale_color_manual(values = c("no" = "gray93", "yes" = "black")) +
+  scale_size_manual(values = c("no" = 0.5, "yes" = 0.8)) +
+  theme_classic() +
+  theme(aspect.ratio = 1) +
+  guides(size = "none", color = "none") +
+  ggtitle("Barcoded cells with nonzero total expression")
+
+print(p)
+ggsave(p, file = paste0(combined.dir, "plots/UMAP_barcoded_infected.pdf"),
+       device = "pdf")
+
+# clone fate: infected proportion of clone
+plot_data <- combined_data
+plot_data <- plot_data %>%
+  filter(barcode != "none") %>%
+  mutate(infected = ifelse(total > 0, "infected", "uninfected"))
+clone_counts <- plot_data %>%
+  group_by(barcode) %>%
+  summarise(
+    clone_size = n(),
+    n_infected = sum(infected == "infected"),
+    n_uninfected = sum(infected == "uninfected"),
+    pct_infected = round(100 * n_infected / clone_size, 1),
+    .groups = "drop"
+  ) %>%
+  arrange(desc(n_infected), desc(clone_size))
+
+cat("Total infected cells:", sum(clone_counts$n_infected), "\n")
+cat("Total clones with >= 1 infected cell:",
+    sum(clone_counts$n_infected > 0), "of", nrow(clone_counts), "\n\n")
+
+cat("Per-clone breakdown:\n")
+for (i in seq_len(nrow(clone_counts))) {
+  row <- clone_counts[i, ]
+  cat(sprintf("  %s | infected: %d | uninfected: %d | %s%%\n",
+              row$barcode, row$n_infected, row$n_uninfected, row$pct_infected))
+}
+
+# Plot: only clones with >= 1 infected cell
+infected_clones <- clone_counts %>% filter(n_infected > 0)
+
+if (nrow(infected_clones) > 0) {
+  infected_clones$label <- substr(infected_clones$barcode, 1, 10)
+  infected_clones$label <- factor(infected_clones$label,
+                                   levels = rev(infected_clones$label))
+
+  infected_long <- infected_clones %>%
+    tidyr::pivot_longer(cols = c(n_infected, n_uninfected),
+                        names_to = "status", values_to = "count") %>%
+    mutate(status = ifelse(status == "n_infected", "infected", "uninfected"))
+
+  p <- ggplot(infected_long, aes(x = label, y = count, fill = status)) +
+    geom_col() +
+    scale_fill_manual(values = c("infected" = "black", "uninfected" = "gray80")) +
+    coord_flip() +
+    theme_classic() +
+    labs(x = "", y = "Number of cells in clone", fill = "",
+         title = "Clones with infected cells")
+
+  print(p)
+}
+```
+
+## Panel D
+For Cluster 1
+```{r}
+#cluster1 <- subset(seurat_obj, 
+#                     barcode_status %in% c("singleton", "clone"))
+#
+# uncomment the above to run for all clusters
+#
+cluster1 <- subset(seurat_obj, seurat_clusters == 1 & 
+                     barcode_status %in% c("singleton", "clone"))
+pca <- Embeddings(cluster1, "pca")[, 1:30]
+meta_c1 <- cluster1@meta.data
+is_sing <- meta_c1$is_singleton
+
+sing_idx <- which(is_sing)
+clone_idx <- which(!is_sing)
+
+set.seed(42)
+n_pairs <- 2000  # consistent across all comparisons
+
+pair_dist <- function(pairs, pca) {
+  sqrt(rowSums((pca[pairs[,1],] - pca[pairs[,2],])^2))
+}
+
+# 1. Within-clone: both cells share the same barcode
+clone_barcodes <- meta_c1$barcode[clone_idx]
+# Only barcodes with 2+ cells in this cluster
+bc_counts <- table(clone_barcodes)
+eligible_bcs <- names(bc_counts[bc_counts >= 2])
+
+within_pairs <- matrix(NA, nrow = n_pairs, ncol = 2)
+for (k in seq_len(n_pairs)) {
+  bc <- sample(eligible_bcs, 1)
+  members <- clone_idx[clone_barcodes == bc]
+  picked <- sample(members, 2, replace = FALSE)
+  within_pairs[k,] <- picked
+}
+d_within <- pair_dist(within_pairs, pca)
+
+# 2. Between-clone: two clone cells with different barcodes
+between_pairs <- matrix(NA, nrow = n_pairs, ncol = 2)
+for (k in seq_len(n_pairs)) {
+  i <- sample(clone_idx, 1)
+  j <- sample(clone_idx, 1)
+  while (meta_c1$barcode[j] == meta_c1$barcode[i]) {
+    j <- sample(clone_idx, 1)
+  }
+  between_pairs[k,] <- c(i, j)
+}
+d_between <- pair_dist(between_pairs, pca)
+
+# 3. Singleton-Singleton
+ss_pairs <- matrix(NA, nrow = n_pairs, ncol = 2)
+for (k in seq_len(n_pairs)) {
+  picked <- sample(sing_idx, 2, replace = TRUE)
+  while (picked[1] == picked[2]) {
+    picked <- sample(sing_idx, 2, replace = TRUE)
+  }
+  ss_pairs[k,] <- picked
+}
+d_ss <- pair_dist(ss_pairs, pca)
+
+# 4. Clone-Singleton
+cs_pairs <- cbind(
+  sample(clone_idx, n_pairs, replace = TRUE),
+  sample(sing_idx, n_pairs, replace = TRUE)
+)
+d_cs <- pair_dist(cs_pairs, pca)
+
+# 5. Random (any two cells in cluster 1)
+all_idx <- seq_len(nrow(pca))
+rand_pairs <- matrix(NA, nrow = n_pairs, ncol = 2)
+for (k in seq_len(n_pairs)) {
+  picked <- sample(all_idx, 2)
+  rand_pairs[k,] <- picked
+}
+d_rand <- pair_dist(rand_pairs, pca)
+
+# Summary
+cat("Within-clone:       ", round(mean(d_within), 3), "+/-", round(sd(d_within), 3), "\n")
+cat("Between-clone:      ", round(mean(d_between), 3), "+/-", round(sd(d_between), 3), "\n")
+cat("Singleton-Singleton:", round(mean(d_ss), 3), "+/-", round(sd(d_ss), 3), "\n")
+cat("Clone-Singleton:    ", round(mean(d_cs), 3), "+/-", round(sd(d_cs), 3), "\n")
+cat("Random:             ", round(mean(d_rand), 3), "+/-", round(sd(d_rand), 3), "\n")
+
+# Plot
+dist_df <- data.frame(
+  distance = c(d_within, d_between, d_ss, d_cs, d_rand),
+  comparison = rep(c("Within-clone", "Between-clone", 
+                      "Singleton-Singleton", "Clone-Singleton", "Random"),
+                   each = n_pairs)
+)
+dist_df$comparison <- factor(dist_df$comparison,
+                              levels = c("Within-clone", "Between-clone",
+                                         "Singleton-Singleton", 
+                                         "Clone-Singleton", "Random"))
+
+
+library(ggpubr)
+
+comparisons_list <- list(
+  c("Within-clone", "Between-clone"),
+  c("Within-clone", "Singleton-Singleton"),
+  c("Within-clone", "Clone-Singleton"),
+  c("Within-clone", "Random"),
+  c("Between-clone", "Singleton-Singleton"),
+  c("Between-clone", "Clone-Singleton"),
+  c("Singleton-Singleton", "Clone-Singleton"),
+  c("Singleton-Singleton", "Random")
+)
+
+p <- ggplot(dist_df, aes(x = comparison, y = distance)) +
+  geom_violin(fill = "gray80") +
+  geom_boxplot(width = 0.1) +
+  stat_compare_means(comparisons = comparisons_list, 
+                     method = "wilcox.test",
+                     label = "p.signif",
+                     step.increase = 0.05) +
+  theme_classic() +
+  labs(x = "", y = "Euclidean distance (PCA space)") +
+  theme(axis.text.x = element_text(angle = 25, hjust = 1))
+output_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS024/joint/plots/"
+ggsave(paste0(output_dir, "barcode_edist_violins_cluster1.pdf"), p)
+```

@@ -5,16 +5,15 @@ date: "2025-09-28"
 output: html_document
 ---
 
-```{r, echo = FALSE}
-source("~/SALVEseq/packages.R")
-source("~/SALVEseq/functions.R")
+```{r, message=FALSE, warning=FALSE}
+source("~/SALVEseq/extractionScripts/R/packages.R")
+source("~/SALVEseq/extractionScripts/R/functions.R")
 ```
 
 # KLRB1
 
-From EGS_016SALVEseq.Rmd
-
-## GEX
+## Extraction
+### GEX
 bamsort
 ```{r GEX bamsort}
 input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS002/singleCell/bamsort/alignment/"
@@ -24,9 +23,7 @@ raw_cellIDs <- read.csv("/projects/b1042/GoyalLab/egrody/extractedData/EGS014/si
 #raw_cellIDs <- split(raw_cellIDs_df$cellID, raw_cellIDs_df$sample)
 
 # processing
-if (!dir.exists(output.dir)) {
-  dir.create(output.dir, recursive = TRUE)
-}
+dir.create(output.dir, recursive = TRUE, showWarnings = FALSE)
 
 filename <- "W0_concat_GEX_bamsort_alignment_KLRB1.csv"
 sample_files <- paste0(input.dir, filename)
@@ -137,9 +134,7 @@ tryCatch({
 # minimums
 input <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS002/singleCell/bamsort/reads/KLRB1/W0_UMI_read_counts_full.csv"
 output_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS002/singleCell/bamsort/reads/KLRB1/minimum/" 
-if (!dir.exists(output_dir)) {
-  dir.create(output_dir, recursive = TRUE)
-}
+dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
 
 W0_min <- set_minimumsv6("KLRB1", input, min_reads = 1, min_umi = 1)
 write.csv(W0_min, paste0(output_dir, "W0_minread1_minumi1.csv"))
@@ -159,9 +154,8 @@ GEX_KLRB1_W0 <- W0_min %>%
 max(GEX_KLRB1_W0$KLRB1)
 ```
 
-## SALVE
-bamsort
-```{r SALVE}
+### CaRe
+```{r}
 input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/SALVE/bamsort/alignment/"
 output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/SALVE/bamsort/reads/KLRB1"
 
@@ -280,6 +274,8 @@ tryCatch({
 # minimums
 input <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/SALVE/bamsort/reads/KLRB1/W0_UMI_read_counts_full.csv"
 output_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/SALVE/bamsort/reads/KLRB1/minimum/" 
+dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
+
 W0_min <- set_minimums("KLRB1", input, min_reads = 5, min_umi = 1)
 write.csv(W0_min, paste0(output_dir, "SALVE_KLRB1_W0_SALVE_minreads5.csv"))
 SALVE_KLRB1_W0 <- W0_min %>%
@@ -289,7 +285,7 @@ SALVE_KLRB1_W0 <- W0_min %>%
 max(SALVE_KLRB1_W0$KLRB1)
 ```
 
-## joint
+### joint
 ```{r}
 # Loading
 input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/SALVE/bamsort/reads/KLRB1/minimum/"
@@ -314,41 +310,53 @@ W0_joint <- left_join(GEX_KLRB1_W0, SALVE_KLRB1_W0, by = "cellID") %>%
 W0_joint[is.na(W0_joint)] <- 0
 
 
-# Numbers
-cat("\nSample\tTotal_cells\tboth\t10X_only\tSALVE_only\n")
-#for (name in c("W2_joint", "W0_joint")) {
-  name <- "W0_joint" #comment out for loop
-  current_df <- get(name)
-  both <- current_df %>% filter(GEX != 0 & SALVE != 0)
-  onlySingleCell <- current_df %>% 
-    filter(GEX != 0) %>%
-    filter(!(cellID %in% both$cellID))
-  onlySALVE <- current_df %>% 
-    filter(SALVE != 0) %>%
-    filter(!(cellID %in% both$cellID))
-  
-  cat(name, "\t",
-      nrow(current_df), "\t",
-      nrow(both), "\t",
-      nrow(onlySingleCell), "\t",
-      nrow(onlySALVE), "\n")
-#}
-  
-# for in-text comparison of # UMI and # cells between methods
-# run the following on non-log1p transformed KLRB1 values
-cat("\n# UMI in GEX total:\t", sum(current_df$GEX),
-    "\n# UMI in GEX only:\t", sum(onlySingleCell$GEX),
-    "\n% UMI in GEX only:\t", round(sum(onlySingleCell$GEX) / sum(current_df$GEX) * 100, 2), "%",
-    "\n# Cells in GEX total:\t", sum(current_df$GEX > 0),
-    "\n# Cells in GEX only:\t", sum(onlySingleCell$GEX > 0),
-    "\n% Cells in GEX only:\t", round(sum(onlySingleCell$GEX > 0) / sum(current_df$GEX > 0) * 100, 2), "%")
+
+# Saving
+name <- "W0_joint"
+current_df <- get(name)
+both <- current_df %>% filter(GEX != 0 & SALVE != 0)
+onlySingleCell <- current_df %>% 
+  filter(GEX != 0) %>%
+  filter(!(cellID %in% both$cellID))
+onlySALVE <- current_df %>% 
+  filter(SALVE != 0) %>%
+  filter(!(cellID %in% both$cellID))
+
+output_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/joint/dataframes/"
+dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
+write.csv(both, paste0(output_dir, "KLRB1_both.csv"), row.names = FALSE)
+write.csv(onlySingleCell, paste0(output_dir, "KLRB1_onlySingleCell.csv"), row.names = FALSE)
+write.csv(onlySALVE, paste0(output_dir, "KLRB1_onlySALVE.csv"), row.names = FALSE)
+write.csv(current_df, paste0(output_dir, "KLRB1_all.csv"), row.names = FALSE)
 
 ```
 
-Plots
+## Plotting
 ```{r}
+# Loading
+input_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/joint/dataframes/"
+W0_joint <- read.csv(paste0(input_dir, "KLRB1_all.csv"))
+
+# for in-text comparison of # UMI and # cells between methods
+# run the following on non-log1p transformed KLRB1 values
+both <- W0_joint %>% filter(GEX != 0 & SALVE != 0)
+onlySingleCell <- W0_joint %>% 
+  filter(GEX != 0) %>%
+  filter(!(cellID %in% both$cellID))
+onlySALVE <- W0_joint %>% 
+  filter(SALVE != 0) %>%
+  filter(!(cellID %in% both$cellID))
+cat("\n# UMI in GEX total:\t", sum(W0_joint$GEX),
+    "\n# UMI in GEX only:\t", sum(onlySingleCell$GEX),
+    "\n% UMI in GEX only:\t", round(sum(onlySingleCell$GEX) / sum(W0_joint$GEX) * 100, 2), "%",
+    "\n# Cells in GEX total:\t", sum(W0_joint$GEX > 0),
+    "\n# Cells in GEX only:\t", sum(onlySingleCell$GEX > 0),
+    "\n% Cells in GEX only:\t", 
+    round(sum(onlySingleCell$GEX > 0) / sum(W0_joint$GEX > 0) * 100, 2), "%")
+
 # UMAPs
-output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/joint/plots/KLRB1/"
+output.dir <- "/projects/b1042/GoyalLab/egrody/plotData/Figure1/"
+dir.create(output.dir, recursive = TRUE, showWarnings = FALSE)
 
 plotUMAP(W0_joint, colorby = GEX, 
          "W0 joint KLRB1: GEX (bamsort)", 
@@ -363,255 +371,51 @@ plotUMAP(W0_joint, colorby = SALVE,
 
 
 # Correlation
-either <- W0_joint %>% filter(GEX != 0 | SALVE != 0)
-both <- W0_joint %>% filter(GEX != 0 & SALVE != 0)
-
-p <- ggplot(data = W0_joint, aes(x = SALVE, y = GEX)) +
-  #geom_smooth(method = "lm", se = TRUE, color = "red", alpha = 0.7) +
-  geom_jitter(alpha = 0.6, size = 1.5, width = 0.1, height = 0.1) +
-  #geom_abline(intercept = 0, slope = 1, color = "red") +
-  labs(
-    x = "SALVE",
-    y = "GEX",
-    title = paste("W0 KLRB1 Correlation: SALVE vs GEX")
-  ) +
-  theme_minimal() +
-  coord_fixed(ratio = 1) +
-  xlim(0, 3) +
-  ylim(0, 3)
-print(p)
-p_exclude_zero <- ggplot(data = subset(W0_joint, SALVE > 0 | GEX > 0), aes(x = SALVE, y = GEX)) +
-  #geom_abline(intercept = 0, slope = 1, color = "red", linewidth = 1) +
-  geom_smooth(method = "lm", se = TRUE, color = "white", alpha = 0.7) +
-  geom_bin2d(bins = 18, alpha = 0.8) +
-  labs(
-    x = "SALVE",
-    y = "GEX",
-    title = "2D Binning (Excluding 0,0 Point)"
-  ) +
-  theme_minimal() +
-  coord_cartesian(xlim = c(0, 3), ylim = c(0, 3)) +
-  scale_fill_viridis_c(name = "Count") +
-  theme(aspect.ratio = 1) +
-  guides(fill = guide_colorbar(raster = TRUE))
-print(p_exclude_zero)
-ggsave("/projects/b1042/GoyalLab/egrody/extractedData/EGS016/joint/plots/KLRB1/KLRB1_correlation_jitter.pdf", 
+p <- plot_jitter_marginal(W0_joint, paste0("W0 KLRB1 Correlation"))
+ggsave(paste0(output.dir, "jitter_KLRB1.pdf"), 
        plot = p)
-ggsave("/projects/b1042/GoyalLab/egrody/extractedData/EGS016/joint/plots/KLRB1/KLRB1_correlation_2Dbinning.pdf", 
-       plot = p_exclude_zero)
-
-max(W0_joint$SALVE)
-max(W0_joint$GEX)
-
-cor(W0_joint$SALVE, W0_joint$GEX)
-cor(either$SALVE, either$GEX)
-cor(both$SALVE, both$GEX)
-```
-
-
-
-
-# env/nef only
-
-## SALVE
-```{r}
-samples <- data.frame(
-  datasets = c(
-    "LP29_D0",
-    "invitro",
-    "P_acute_GEX",
-    "W0"
-  ),
-  samples = c(
-    "D0",
-    "Invitro",
-    "Pacute",
-    "W0"
-  )
-)
-
-input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/SALVE/bamsort/alignment/v5coordinates/envonly"
-output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/SALVE/bamsort/reads/v5coordinates/envonly"
-dir.create(output.dir, showWarnings = FALSE)
-
-raw_cellIDs_df <- read.csv("/projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/raw_cellIDs/all_raw_cellIDs.csv")
-raw_cellIDs <- split(raw_cellIDs_df$cellID, raw_cellIDs_df$sample)
-
-process_bamsortv5(samples$samples, input.dir, output.dir, raw_cellIDs)
-
-# minimums
-input_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/SALVE/bamsort/reads/v5coordinates/envonly"
-output_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/SALVE/bamsort/reads/v5coordinates/envonly/minimum" 
-dir.create(output_dir, showWarnings = FALSE)
-
-viremia <- c(
-    "Invitro",
-    "Pacute"
-  )
-ART <- c(
-    "D0",
-    "W0"
-  )
-process_all_set_minimums("SALVE", viremia, input_dir, output_dir, min_reads = 5, min_umi = 2)
-process_all_set_minimums("SALVE", ART, input_dir, output_dir, min_reads = 2, min_umi = 2)
+nonzero_df <- W0_joint %>% filter(SALVE > 0, GEX > 0)
+p_nz <- plot_jitter_marginal(nonzero_df, paste0("W0 KLRB1 (non-zero only)"))
+ggsave(paste0(output.dir, "jitter_nonzero_KLRB1.pdf"), plot = p_nz)
 
 ```
 
-## GEX
-### bamsort
-```{r}
-samples <- data.frame(
-  datasets = c(
-    "LP29_D0",
-    "LP29_D195",
-    "LP29_D83",
-    "invitro",
-    "P_acute_combined",
-    "W0",
-    "W2"
-  ),
-  samples = c(
-    "D0",
-    "D195",
-    "D83",
-    "Invitro",
-    "Pacute_combined",
-    "W0",
-    "W2"
-  ),
-  folders = c(
-    "/projects/b1042/GoyalLab/egrody/extractedData/EGS004/singleCell/counts/Mmul_10_mac239/",
-    "/projects/b1042/GoyalLab/egrody/extractedData/EGS004/singleCell/counts/Mmul_10_mac239/",
-    "/projects/b1042/GoyalLab/egrody/extractedData/EGS004/singleCell/counts/Mmul_10_mac239/",
-    "/projects/b1042/GoyalLab/egrody/extractedData/EGS002/singleCell/counts/Mmul_10_mac239/",
-    "/projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/counts/Mmul_10_mac239/",
-    "/projects/b1042/GoyalLab/egrody/extractedData/EGS002/singleCell/counts/Mmul_10_mac239/",
-    "/projects/b1042/GoyalLab/egrody/extractedData/EGS002/singleCell/counts/Mmul_10_mac239/"
-  )
-)
 
-# Process
-input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/bamsort/alignment/"
-output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/bamsort/reads/v5/"
+# SIV
 
-raw_cellIDs_df <- read.csv("/projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/raw_cellIDs/all_raw_cellIDs.csv")
-raw_cellIDs <- split(raw_cellIDs_df$cellID, raw_cellIDs_df$sample)
-
-process_bamsortv5(samples$samples, input.dir, output.dir, raw_cellIDs)
-
-# Minimums
-input_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/bamsort/reads/v5/"
-output_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/bamsort/reads/v5/minimum/"
-
-process_all_set_minimums("GEX", samples$samples, input_dir, output_dir, min_reads_cell = 2)
-
-```
-
-### UMAP coords
-```{r}
-samples <- data.frame(
-  datasets = c(
-    #"LP29_D0",
-    #"LP29_D195",
-    #"LP29_D83",
-    #"invitro",
-    "P_acute_combined",
-    "W0"#,
-    #"W2"
-  ),
-  samples = c(
-    #"D0",
-    #"D195",
-    #"D83",
-    #"Invitro",
-    "Pacute",
-    "W0"#,
-    #"W2"
-  ),
-  folders = c(
-    #"/projects/b1042/GoyalLab/egrody/extractedData/EGS004/singleCell/counts/Mmul_10_mac239/",
-    #"/projects/b1042/GoyalLab/egrody/extractedData/EGS004/singleCell/counts/Mmul_10_mac239/",
-    #"/projects/b1042/GoyalLab/egrody/extractedData/EGS004/singleCell/counts/Mmul_10_mac239/",
-    #"/projects/b1042/GoyalLab/egrody/extractedData/EGS002/singleCell/counts/Mmul_10_mac239/",
-    "/projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/counts/Mmul_10_mac239/",
-    "/projects/b1042/GoyalLab/egrody/extractedData/EGS002/singleCell/counts/Mmul_10_mac239/"#,
-    #"/projects/b1042/GoyalLab/egrody/extractedData/EGS002/singleCell/counts/Mmul_10_mac239/"
-  )
-)
-
-output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/Seurat/UMAPcoords"
-if (!dir.exists(output.dir)) {
-  dir.create(output.dir, recursive = TRUE)
-}
-
-for (i in 1:nrow(samples)) {
-  sample_name <- samples$samples[i]
-  dataset <- samples$datasets[i]
-  folder <- samples$folders[i]
-  input.dir <- paste0(folder, "Mmul_10_mac239_", dataset, "/outs/filtered_feature_bc_matrix/")
-  
-  tryCatch({
-    seurat_obj <- SeuratPipeline(input.dir, sample_name, plots = FALSE)
-    
-    # Generate expression data frame without gene expression
-    sample_df <- targetExpressionDF(seurat_obj, genes = "")
-
-    # Add sample and target columns to the dataframe
-    sample_df$sample <- sample_name
-
-    write.csv(sample_df, paste0(output.dir, sample_name, "UMAP_coords.csv"))
-    
-    cat("Processed sample:", sample_name, "\n")
-  }, error = function(e) {
-    cat("Error processing sample", sample_name, ":", conditionMessage(e), "\n\n")
-  })
-}
-```
-
-## joint
+## Extraction
+### joint
 ```{r}
 # Loading
-samples <- data.frame(
-  datasets = c(
-    "LP29_D0",
-    "invitro",
-    "P_acute_combined",
-    "W0"
-  ),
-  samples = c(
+samples <-  c(
     "D0",
+    "D195",
     "Invitro",
-    "Pacute_combined",
-    "W0"
-  ),
-  folders = c(
-    "/projects/b1042/GoyalLab/egrody/extractedData/EGS004/singleCell/counts/Mmul_10/",
-    "/projects/b1042/GoyalLab/egrody/extractedData/EGS004/singleCell/counts/Mmul_10/",
-    "/projects/b1042/GoyalLab/egrody/extractedData/EGS004/singleCell/counts/Mmul_10/",
-    "/projects/b1042/GoyalLab/egrody/extractedData/EGS002/singleCell/counts/Mmul_10_only/",
-    "/projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/counts/Mmul_10/",
-    "/projects/b1042/GoyalLab/egrody/extractedData/EGS002/singleCell/counts/Mmul_10_only/",
-    "/projects/b1042/GoyalLab/egrody/extractedData/EGS002/singleCell/counts/Mmul_10_only/"
-  )
+    "Pacute",
+    "W0",
+    "W2"
 )
 
-SALVE.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/SALVE/bamsort/reads/v5coordinates/envonly/minimum/"
-GEX.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/bamsort/reads/v5/minimum/"
-
+dir.base <- "/projects/b1042/GoyalLab/egrody/extractedData/"
 joint_data <- list()
 
-for (i in 1:nrow(samples)) {
-  sample_name <- samples$samples[i] 
-  folder <- samples$folders[i]
+for (i in 1:length(samples)) {
+  sample_name <- samples[i]
   
   # Read all data files
-  salve_file <- paste0(SALVE.dir, sample_name, "_SALVE_filtered.csv")
-  gex_file <- paste0(GEX.dir, sample_name, "_GEX_filtered.csv")
-  umap_file <- paste0(folder, "expressionDF/", sample_name, "UMAP_coords.csv")
+  salve_file <- paste0(dir.base, "EGS018/SALVE/bamsort/reads/v6/minimum/",
+                       sample_name, "_SALVE_filtered.csv")
+  gex_file <- paste0(dir.base, "EGS016/singleCell/bamsort/reads/v6/minimum/",
+                     sample_name, "_GEX_filtered.csv")
+  umap_file <- paste0(dir.base, "EGS016/singleCell/Seurat/UMAPcoords/", 
+                      sample_name, "UMAP_coords.csv")
+  cd4_file <- paste0(dir.base, "EGS016/singleCell/Seurat/expressionDF/", 
+                     sample_name, "_CD4T.csv")
   
   salve_data <- if(file.exists(salve_file)) read.csv(salve_file) else NULL
   gex_data <- if(file.exists(gex_file)) read.csv(gex_file) else NULL
   umap_data <- if(file.exists(umap_file)) read.csv(umap_file, row.names = "X") else NULL
+  cd4_data <- if(file.exists(cd4_file)) read.csv(cd4_file, row.names = "X") else NULL
   
   # Skip if no data at all
   if (is.null(salve_data) && is.null(gex_data) && is.null(umap_data)) {
@@ -619,11 +423,9 @@ for (i in 1:nrow(samples)) {
     next
   }
   
-  # Get cellIDs from Mmul_10 only df
+  # Create base dataframe
   all_cells <- as.character(umap_data$cellID)
   all_cells <- unique(all_cells)
-  
-  # Create base dataframe
   result <- data.frame(cellID = all_cells)
   
   # Add UMAP data
@@ -636,10 +438,12 @@ for (i in 1:nrow(samples)) {
   # Add GEX data
   if (!is.null(gex_data)) {
     gex_processed <- gex_data %>%
-      mutate(GEX = log1p(rowSums(across(c(US, spliced, any))))) %>%
       mutate(cellID = as.character(cellID)) %>%
-      select(cellID, GEX)
-    result <- left_join(result, gex_processed, by = "cellID")
+      select(cellID, total, US)
+    result <- left_join(result, gex_processed, by = "cellID") %>%
+      mutate(GEX = log1p(total)) %>%
+      mutate(GEX.US = log1p(US)) %>%
+      select(-total, -US)
   } else {
     result$GEX <- 0
   }
@@ -647,40 +451,49 @@ for (i in 1:nrow(samples)) {
   # Add SALVE data
   if (!is.null(salve_data)) {
     salve_processed <- salve_data %>%
-      #group_by(cellID) %>%
       rename(SALVE = total) %>%
-      mutate(spliced = rowSums(across(c(spliced, S, SS, MS)))) %>%
-      mutate(across(c(SALVE, US, spliced), log1p)) %>%
       mutate(cellID = as.character(cellID)) %>%
-      select(cellID, SALVE, US, spliced)
-    result <- left_join(result, salve_processed, by = "cellID")
+      select(cellID, SALVE, US, SS, MS)
+    result <- left_join(result, salve_processed, by = "cellID") %>%
+      mutate(SALVE = log1p(SALVE)) %>%
+      mutate(USprop = US / (US+MS+SS)) %>%
+      mutate(SSprop = SS / (US+MS+SS)) %>%
+      mutate(MSprop = MS / (US+MS+SS)) %>%
+      mutate(US = log1p(US)) %>%
+      mutate(SS = log1p(SS)) %>%
+      mutate(MS = log1p(MS))
   } else {
     result$SALVE <- 0
   }
   
-  # Replace NAs with 0
   result[is.na(result)] <- 0
   
-  # Filter data
+  # Cell type filtering
+  cd4_data <- cd4_data %>%
+    mutate(CD3 = ifelse(CD3D > 0 | CD3E > 0 | CD3G > 0, 1, 0)) %>%
+    mutate(CD4 = ifelse(CD4 > 0 , 1, 0)) %>%
+    mutate(CD8 = ifelse(CD8A > 0 , 1, 0)) %>%
+    select(cellID, CD4, CD3, CD8)
+  result <- left_join(result, cd4_data, by = "cellID")
   result <- result %>%
-    mutate(GEX = ifelse(CD4 > 0 & CD3 > 0, GEX, 0)) %>% 
-    mutate(across(c(SALVE, US, spliced), 
-              ~ ifelse(CD4 > 0 & CD3 > 0, .x, 0)))
+    mutate(across(any_of(c("GEX", "GEX.US")), 
+              ~ ifelse(CD4 > 0 & CD3 > 0, .x, 0))) %>% 
+    mutate(across(any_of(c("SALVE", "US", "MS", "SS")), 
+              ~ ifelse(CD4 > 0 & CD3 > 0, .x, 0))) %>%
+    filter(CD4 == 0 | CD8 == 0) %>% # exclude cells CD4+ and CD8+
+    select(-CD8, -CD3, -CD4)
   
   joint_data[[sample_name]] <- result
   cat("Processed", sample_name, "\n")
 }
 
-```
+# Saving
+output_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/joint/dataframes/"
+dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
 
-```{r}
-cat("\nSample\tTotal_cells\tboth\t10X_only\tSALVE_only\n")
 
-# Process each dataset in the joint_data list
 for (sample_name in names(joint_data)) {
-  # Get the current dataframe
   current_df <- joint_data[[sample_name]]
-  #   mutate(all_spliced = spliced.y + S + SS + MS)
   
   both <- current_df %>% filter(GEX != 0 & SALVE != 0)
   either <- current_df %>% filter(GEX != 0 | SALVE != 0)
@@ -691,257 +504,68 @@ for (sample_name in names(joint_data)) {
     filter(SALVE != 0) %>%
     filter(!(cellID %in% both$cellID))
 
-  cat(sample_name, "\t",
-      nrow(current_df), "\t",
-      nrow(both), "\t",
-      nrow(onlySingleCell), "\t",
-      nrow(onlySALVE), "\n")
-
-  # cat(sample_name, "\tCorrelation:", cor(current_df$GEX, current_df$SALVE), "\n",
-  #     "\tMax SALVE:", max(current_df$SALVE), "\n",
-  #     "\tMax GEX:", max(current_df$GEX), "\n\n")
-
-
-  # p <- ggplot(data = current_df, aes(x = SALVE, y = GEX)) +
-  #   #geom_smooth(method = "lm", se = TRUE, color = "red", alpha = 0.7) +
-  #   geom_jitter(alpha = 0.6, size = 1.5, width = 0.1, height = 0.1) +
-  #   #geom_abline(intercept = 0, slope = 1, color = "red") +
-  #   labs(
-  #     x = "SALVE",
-  #     y = "GEX",
-  #     title = paste0(sample_name, " SIV total Correlation")
-  #   ) +
-  #   theme_minimal() +
-  #   coord_fixed(ratio = 1) +
-  #   xlim(0, 9.1) +
-  #   ylim(0, 9.1)
-  # print(p)
-  # p_exclude_zero <- ggplot(data = subset(current_df, SALVE > 0 | GEX > 0), aes(x = SALVE, y = GEX)) +
-  #   #geom_abline(intercept = 0, slope = 1, color = "red", linewidth = 1) +
-  #   geom_smooth(method = "lm", se = TRUE, color = "white", alpha = 0.7) +
-  #   geom_bin2d(bins = 30, alpha = 0.8) +
-  #   labs(
-  #     x = "SALVE",
-  #     y = "GEX",
-  #     title = paste0(sample_name, " SIV total 2D Binning (Excluding 0,0)")
-  #   ) +
-  #   theme_minimal() +
-  #   coord_cartesian(xlim = c(0, 9.1), ylim = c(0, 9.1)) +
-  #   scale_fill_viridis_c(name = "Count") +
-  #   theme(aspect.ratio = 1) +
-  #   guides(fill = guide_colorbar(raster = TRUE))
-  # print(p_exclude_zero)
-  # output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/joint/plots/v5/"
-  # ggsave(paste0(output.dir, sample_name, "_CD4_correlation_jitter.svg"),
-  #        plot = p)
-  # ggsave(paste0(output.dir, sample_name, "_CD4_correlation_2Dbinning.svg"),
-  #        plot = p_exclude_zero)
-  # 
-  output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/joint/plots/v5/"
-  plotUMAP(current_df, colorby = GEX,
-         paste0(sample_name, " joint SIV total: GEX (bamsort)"),
-         output.dir,
-         paste0(sample_name, "_CD4_GEX_bamsort.svg"),
-         comparison = FALSE, color = "darkblue")
-  plotUMAP(current_df, colorby = SALVE,
-         paste0(sample_name, " joint SIV total: SALVE (bamsort)"),
-         output.dir,
-         paste0(sample_name, "_CD4_SALVE_bamsort.svg"),
-         comparison = FALSE, color = "darkblue")
-
-  
-
-  # pearson_cor <- cor(current_df$all_spliced, current_df$spliced.x, use = "complete.obs")
-  # r_squared <- pearson_cor^2
-  # lm_model <- lm(spliced.x ~ all_spliced, data = current_df)
-  # slope <- coef(lm_model)[2]
-  # p <- ggplot(data = current_df, aes(x = all_spliced, y = spliced.x)) +
-  #     geom_point() +
-  #   geom_smooth(method = "lm", se = TRUE, color = "red") +
-  #     labs(
-  #       x = "SALVE spliced",
-  #       y = "GEX spliced",
-  #       title = paste("Correlation for ", sample_name)
-  #     ) +
-  #     theme_minimal()# +
-  #     # annotate("text", 
-  #     #      x = -Inf, y = Inf, 
-  #     #      label = paste("Slope =", round(slope, 3), "\n",
-  #     #                   "R² =", round(r_squared, 3), "\n",
-  #     #                   "r =", round(pearson_cor, 3)), 
-  #     #      hjust = -0.1, vjust = 1.2, 
-  #     #      size = 4, color = "black")
-  # print(p)
-  # 
-  
-  # Save CSVs
-  #write.csv(both, paste0(output_dir, "left_", sample_name, "_both.csv"), row.names = FALSE)
-  #write.csv(onlySingleCell, paste0(output_dir, "left_", sample_name, "_onlySingleCell.csv"), row.names = FALSE)
-  #write.csv(onlySALVE, paste0(output_dir, "left_", sample_name, "_onlySALVE.csv"), row.names = FALSE)
-  #write.csv(current_df, paste0(output_dir, "left_", sample_name, "_all.csv"), row.names = FALSE)
-}
-
-
-```
-
-Exploring correlations
-```{r correlations deep dive}
-D13 <- joint_data[["D13"]]
-either <- D13 %>% filter(GEX != 0 | SALVE != 0) #%>%
-  # mutate(US = log1p(US)) %>%
-  # mutate(all_spliced = log1p(spliced) + log1p(S) + log1p(SS) + log1p(MS)) %>%
-  # mutate(any = log1p(any))
-columns_to_plot <- c("US", "all_spliced", "any", "SALVE")
-
-for (col_name in columns_to_plot) {
-  p <- ggplot(data = either, aes(x = .data[[col_name]], y = GEX)) +
-    geom_point() +
-    geom_abline(intercept = 0, slope = 1, color = "red") +
-    labs(
-      x = col_name,
-      y = "GEX",
-      title = paste("D13 Correlation:", col_name, "vs GEX")
-    ) +
-    theme_minimal()
-  print(p)
-}
-
-library(ggpubr)
-p <- ggplot(data = either, aes(x = all_spliced, y = SALVE)) +
-  geom_point() +
-  geom_smooth(method = "nls", 
-              formula = y ~ a * x^b, 
-              method.args = list(start = list(a = 1, b = 1)),
-              se = TRUE, color = "blue") +
-  labs(
-    x = "spliced",
-    y = "total",
-    title = paste("D13 Correlation: spliced vs total")
-  ) +
-  theme_minimal()
-print(p)
-
-
-
-
-# Remove zeros for fitting
-either_nonzero <- either %>% filter(SALVE > 0)
-
-# Log-transform both variables
-log_salve <- log1p(either_nonzero$SALVE)
-log_gex <- log1p(either_nonzero$GEX)
-
-# Fit linear model to log-log data
-power_model <- lm(log_gex ~ log_salve)
-slope <- coef(power_model)[2]  # This is your power law exponent
-intercept <- coef(power_model)[1]  # log(scaling constant)
-scaling_constant <- exp(intercept)
-
-# Calculate correlations
-pearson_cor <- cor(log_salve, log_gex, use = "complete.obs")
-r_squared <- summary(power_model)$r.squared
-
-# Plot with stats
-p <- ggplot(data = either_nonzero, aes(x = SALVE, y = GEX)) +
-  geom_point(alpha = 0.6) +
-  geom_smooth(method = "lm", se = TRUE, color = "blue") +
-  scale_x_log10() +
-  scale_y_log10() +
-  labs(
-    x = "SALVE (log scale)",
-    y = "GEX (log scale)",
-    title = "D13 Correlation: Power Law Fit"
-  ) +
-  theme_minimal() +
-  annotate("text", 
-           x = -Inf, y = Inf,
-           label = paste("Power Law: GEX = ", round(scaling_constant, 3), " × SALVE^", round(slope, 3), "\n",
-                        "R² =", round(r_squared, 3), "\n",
-                        "r =", round(pearson_cor, 3)),
-           hjust = -0.1, vjust = 1.2,
-           size = 4, color = "black")
-
-p <- ggplot(data = either_nonzero, aes(x = SALVE, y = GEX)) +
-  geom_point(alpha = 0.6) +
-  geom_smooth(method = "lm", se = TRUE, color = "blue") +
-  scale_x_log10() +
-  scale_y_log10() +
-  labs(
-    x = "SALVE (log scale)",
-    y = "GEX (log scale)", 
-    title = "D13 Correlation: Power Law Fit (Log-Log Scale)"
-  ) +
-  theme_minimal()
-print(p)
-
-
-  
-```
-
-```{r CD4}
-output <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/plots"
-UMAP <- plotUMAP(joint_data[["Invitro"]], SALVE, "SALVE Invitro UMAP", output, "Invitro_SALVE.svg", comparison = FALSE)
-UMAP
-
-
-
-samples <- data.frame(
-  samples = c(
-    "JK85_D13",
-    "invitro"
-  )
-)
-
-
-input_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/singleCell/counts/"
-
-# Process each sample
-for (i in 1:nrow(samples)) {
-  sample_name <- samples$samples[i]
-  input.dir <- paste0(input_dir, "Mmul_10_mac239v4_", sample_name, "/outs/filtered_feature_bc_matrix/")
-  
-    seurat_obj <- SeuratPipeline(input.dir, sample_name, plots = FALSE)
-    p <- FeaturePlot(seurat_obj, "CD4")
-    print(p)
+  write.csv(both, paste0(output_dir, sample_name, "_both.csv"), row.names = FALSE)
+  write.csv(onlySingleCell, paste0(output_dir, sample_name, "_onlySingleCell.csv"), row.names = FALSE)
+  write.csv(onlySALVE, paste0(output_dir, sample_name, "_onlySALVE.csv"), row.names = FALSE)
+  write.csv(current_df, paste0(output_dir, sample_name, "_all.csv"), row.names = FALSE)
 }
 ```
 
-Splicing UMAPS
+
+## Plotting
 ```{r}
-## for lightning talk figures
-  output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/joint/plots/v5/subset/"
-  plotUMAP(current_df, colorby = US,
-         paste0(sample_name, " joint SALVE US"),
+samples <-  c(
+    "D0",
+    "D195",
+    "Invitro",
+    "Pacute"
+)
+input_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/joint/dataframes/"
+output.dir <- "/projects/b1042/GoyalLab/egrody/plotData/Figure1/"
+dir.create(output.dir, recursive = TRUE, showWarnings = FALSE)
+joint_data <- list()
+
+for (sample_name in samples) {
+  current_df <- read.csv(paste0(input_dir, sample_name, "_all.csv"))
+  joint_data[[sample_name]] <- current_df
+}
+
+
+
+# Process each dataset in the joint_data list
+for (sample_name in names(joint_data)) {
+  current_df <- joint_data[[sample_name]]
+
+  p <- plot_jitter_marginal(current_df, paste0(sample_name, " SIV Correlation"))
+  ggsave(paste0(output.dir, "jitter_", sample_name, ".pdf"), plot = p)
+
+  nonzero_df <- current_df %>% filter(SALVE > 0, GEX > 0)
+  p_nz <- plot_jitter_marginal(nonzero_df, paste0(sample_name, " SIV (non-zero only)"))
+  ggsave(paste0(output.dir, "jitter_nonzero_", sample_name, ".pdf"), plot = p_nz)
+
+  
+  plotUMAP(current_df, colorby = GEX,
+         paste0(sample_name, " joint SIV: GEX"),
          output.dir,
-         paste0(sample_name, "_umap_SALVE_US.svg"),
-         comparison = FALSE, color = "royalblue1")
-  plotUMAP(current_df, colorby = spliced,
-         paste0(sample_name, " joint SALVE spliced"),
-         output.dir,
-         paste0(sample_name, "_umap_SALVE_spliced.svg"),
+         paste0("UMAP_", sample_name, "_GEX.pdf"),
          comparison = FALSE, color = "red")
   plotUMAP(current_df, colorby = SALVE,
-         paste0(sample_name, " joint SALVE"),
+         paste0(sample_name, " joint SIV: CaRe"),
          output.dir,
-         paste0(sample_name, "_umap_SALVE.svg"),
-         comparison = FALSE, color = "purple4")
-    plotUMAP(current_df, colorby = GEX,
-         paste0(sample_name, " joint GEX"),
-         output.dir,
-         paste0(sample_name, "_umap_GEX.svg"),
-         comparison = FALSE, color = "purple4")
+         paste0("UMAP_", sample_name, "_CaRe.pdf"),
+         comparison = FALSE, color = "red")
+}
 ```
 
 
-
-# SIV total
-
-# Venn Diagrams
+### Venn Diagrams
 
 ```{r}
 # --- File list ---
 root_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/joint/dataframes/"
 output_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/joint/plots/Venn/"
+dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
+
 samples <- list(
   #"KLRB1",
   "Invitro",
@@ -950,22 +574,22 @@ samples <- list(
 )
 
 # --- Plotting function ---
-plot_venn <- function(gex_only, salve_only, both, title, outfile) {
+plot_venn <- function(gex_only, care_only, both, title, outfile) {
   gex_total   <- gex_only + both
-  salve_total <- salve_only + both
+  care_total <- care_only + both
 
   # Radii proportional to sqrt of set size (area = pi*r^2, so r ~ sqrt(n))
   scale <- 2  # base scale factor
-  r1 <- scale * sqrt(gex_total / max(gex_total, salve_total))    # GEX (left)
-  r2 <- scale * sqrt(salve_total / max(gex_total, salve_total))  # SALVE (right)
+  r1 <- scale * sqrt(gex_total / max(gex_total, care_total))    # GEX (left)
+  r2 <- scale * sqrt(care_total / max(gex_total, care_total))  # CaRe (right)
 
   # Target intersection area
-  total <- gex_only + salve_only + both
+  total <- gex_only + care_only + both
   target_area <- (both / total) * pi * max(r1, r2)^2
 
   if (both == 0) {
     d <- r1 + r2 + 0.3
-  } else if (gex_only == 0 && salve_only == 0) {
+  } else if (gex_only == 0 && care_only == 0) {
     d <- abs(r1 - r2)
   } else {
     # Intersection area of two circles with radii r1, r2 and center distance d
@@ -995,18 +619,18 @@ plot_venn <- function(gex_only, salve_only, both, title, outfile) {
 
   # Label positions: midpoint of each exclusive crescent
   gex_label_x   <- (-d/2) - r1/2
-  salve_label_x <- (d/2) + r2/2
+  care_label_x <- (d/2) + r2/2
 
   labels <- data.frame(
-    x = c(gex_label_x, 0, salve_label_x),
+    x = c(gex_label_x, 0, care_label_x),
     y = c(0, 0, 0),
-    count = c(gex_only, both, salve_only)
+    count = c(gex_only, both, care_only)
   )
 
   cat_labels <- data.frame(
-    x = c(gex_label_x, salve_label_x),
+    x = c(gex_label_x, care_label_x),
     y = c(max(r1, r2) + 0.3, max(r1, r2) + 0.3),
-    label = c("GEX", "SALVE")
+    label = c("GEX", "CaRe")
   )
 
   p <- ggplot() +
@@ -1026,11 +650,11 @@ plot_venn <- function(gex_only, salve_only, both, title, outfile) {
 for (sample_name in samples) {
   both <- read.csv(paste0(root_dir, sample_name, "_both.csv"))
   gex_only <- read.csv(paste0(root_dir, sample_name, "_onlySingleCell.csv"))
-  salve_only <- read.csv(paste0(root_dir, sample_name, "_onlySALVE.csv"))
+  care_only <- read.csv(paste0(root_dir, sample_name, "_onlySALVE.csv"))
 
   outfile <- paste0(output_dir, "venn_", sample_name, ".pdf")
 
-  plot_venn(nrow(gex_only), nrow(salve_only), nrow(both), sample_name, outfile)
+  plot_venn(nrow(gex_only), nrow(care_only), nrow(both), sample_name, outfile)
 }
 
 outfile <- paste0(output_dir, "venn_KLRB1.pdf")
