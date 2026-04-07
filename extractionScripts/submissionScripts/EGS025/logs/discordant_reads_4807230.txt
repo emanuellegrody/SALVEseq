@@ -1,0 +1,51 @@
+==========================================
+Processing D1...
+Loading isoform classifications...
+  Long read: 2877 CB:UMI pairs
+  Short read: 14389 CB:UMI pairs
+  Discordant pairs (LR=MS vs SR=US): 18
+  Discordant list: /projects/b1042/GoyalLab/egrody/extractedData/EGS025/bamsort/discordant/D1_discordant.csv
+Extracting from long read BAM...
+  Extracted 18 long reads → /projects/b1042/GoyalLab/egrody/extractedData/EGS025/bamsort/discordant/D1_discordant_longread.bam
+Extracting from short read BAM...
+  Extracted 18 short reads → /projects/b1042/GoyalLab/egrody/extractedData/EGS025/bamsort/discordant/D1_discordant_shortread.bam
+Done.
+-----------------------------
+==========================================
+Processing SSenv...
+Loading isoform classifications...
+  Long read: 116 CB:UMI pairs
+  Short read: 14389 CB:UMI pairs
+  Discordant pairs (LR=MS vs SR=US): 0
+No discordant pairs found.
+-----------------------------
+==========================================
+Processing nef...
+Loading isoform classifications...
+  Long read: 423 CB:UMI pairs
+  Short read: 14389 CB:UMI pairs
+  Discordant pairs (LR=MS vs SR=US): 0
+No discordant pairs found.
+-----------------------------
+==========================================
+Processing pol...
+Loading isoform classifications...
+  Long read: 19 CB:UMI pairs
+  Short read: 14389 CB:UMI pairs
+  Discordant pairs (LR=MS vs SR=US): 0
+No discordant pairs found.
+-----------------------------
+==========================================
+Processing tat...
+Loading isoform classifications...
+  Long read: 587 CB:UMI pairs
+  Short read: 14389 CB:UMI pairs
+  Discordant pairs (LR=MS vs SR=US): 12
+  Discordant list: /projects/b1042/GoyalLab/egrody/extractedData/EGS025/bamsort/discordant/tat_discordant.csv
+Extracting from long read BAM...
+  Extracted 12 long reads → /projects/b1042/GoyalLab/egrody/extractedData/EGS025/bamsort/discordant/tat_discordant_longread.bam
+Extracting from short read BAM...
+  Extracted 12 short reads → /projects/b1042/GoyalLab/egrody/extractedData/EGS025/bamsort/discordant/tat_discordant_shortread.bam
+Done.
+-----------------------------
+Done. Results in: /projects/b1042/GoyalLab/egrody/extractedData/EGS025/bamsort/discordant

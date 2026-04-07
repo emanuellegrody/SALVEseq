@@ -7,9 +7,12 @@ Description:
     Classifies reads into isoforms (US, MS, SS, or any) based on alignment.
 
 Isoform Classification Logic:
-    US (Unspliced): Alignment of ≥50bp within region D1/431-A1/4658 (+/- 5bp tolerance)
-    MS (Multiply Spliced): Alignment before D4/6043, gap D4/6043-A7/8252, alignment after A7/8252
-    SS (Singly Spliced): Alignment before D1/431, gap D1/431-A1/4658, alignment D4/6043-A7/8252
+    US (Unspliced): Alignment of ≥50bp within region D1/431-A1/4658, with no splice
+                    junction (N) spanning that region (+/- 5bp tolerance)
+    MS (Multiply Spliced): Alignment before D4/6043, splice gap D4/6043-A7/8252,
+                           alignment after A7/8252
+    SS (Singly Spliced): Alignment before D1/431, splice gap D1/431-A1/4658,
+                         alignment in D4/6043-A7/8252
     any: All other alignment patterns
 
 Input:
@@ -22,13 +25,14 @@ Output CSV Columns:
     - isoform: Classification (US, MS, SS, or any)
 
 Technical Details:
-    - Uses CIGAR string parsing to identify aligned (M) and gapped (N) regions
+    - Uses CIGAR string parsing to identify aligned (M) and splice gap (N) regions
     - Tolerance zone: +/- 5bp for all coordinate boundaries
-    - Only processes mapped reads with valid CIGAR strings
+    - Only processes primary mapped reads aligned to mac239
+    - Deduplicates output by cellID + UMI (one classification per pair)
     - Prioritizes isoform classification in order: US → MS → SS → any
 
 Usage:
-    python3 bamsort_isoform_longread.py input.bam output.csv [--tolerance 5]
+    python3 bamsort_isoform_longread.py input.bam output.csv [--tolerance 10]
 """
 
 import pysam
@@ -40,14 +44,14 @@ from collections import defaultdict
 
 
 # Define genomic regions with biological meaning
-REGION_US_START = 985
-REGION_US_END = 5212
-REGION_MS_GAP_START = 6597
-REGION_MS_GAP_END = 8806
-REGION_SS_GAP_START = 985
-REGION_SS_GAP_END = 5212
-REGION_SS_AFTER_START = 6597
-REGION_SS_AFTER_END = 8806
+REGION_US_START = 431
+REGION_US_END = 4658
+REGION_MS_GAP_START = 6043
+REGION_MS_GAP_END = 8252
+REGION_SS_GAP_START = 431
+REGION_SS_GAP_END = 4658
+REGION_SS_AFTER_START = 6043
+REGION_SS_AFTER_END = 8252
 
 # Technical parameters
 MIN_ALIGNMENT_LENGTH = 50  # Minimum bp for US classification
@@ -55,15 +59,16 @@ MIN_ALIGNMENT_LENGTH = 50  # Minimum bp for US classification
 
 def parse_alignment_regions(read):
     """
-    Parse CIGAR string to extract all aligned regions (M operations).
+    Parse CIGAR string to extract aligned regions (M) and splice gaps (N).
 
     Returns:
-        list of tuples: [(start, end), ...] for each M operation in reference coordinates
+        tuple: (aligned_regions, gap_regions) each as [(start, end), ...]
     """
     if not read.cigartuples or read.reference_start is None or read.is_unmapped:
-        return []
+        return [], []
 
     aligned_regions = []
+    gap_regions = []
     ref_pos = read.reference_start
 
     for op, length in read.cigartuples:
@@ -72,15 +77,16 @@ def parse_alignment_regions(read):
             ref_pos += length
         elif op == 2:  # D - deletion (consumes reference)
             ref_pos += length
-        elif op == 3:  # N - intron/skip (consumes reference, creates gap)
+        elif op == 3:  # N - intron/skip (splice junction)
+            gap_regions.append((ref_pos, ref_pos + length))
             ref_pos += length
         # I (insertion), S (soft clip), H (hard clip), P (padding) don't consume reference
 
-    return aligned_regions
+    return aligned_regions, gap_regions
 
 
 def has_alignment_in_region(aligned_regions, region_start, region_end,
-                            min_length=1, tolerance=5):
+                            min_length=1, tolerance=10):
     """
     Check if any aligned region overlaps with target region within tolerance.
 
@@ -110,51 +116,53 @@ def has_alignment_in_region(aligned_regions, region_start, region_end,
     return False
 
 
-def has_gap_in_region(aligned_regions, gap_start, gap_end, tolerance=5):
+
+def lacks_alignment_in_region(aligned_regions, region_start, region_end,
+                              tolerance=10):
     """
-    Check if there is NO alignment in the specified gap region (within tolerance).
+    Check that no aligned region overlaps with the core of the target region.
+
+    Uses tolerance to SHRINK the query region (more permissive — small
+    alignment fragments near boundaries are ignored).
 
     Args:
         aligned_regions: List of (start, end) tuples
-        gap_start: Start of expected gap region
-        gap_end: End of expected gap region
+        region_start: Start of expected gap region
+        region_end: End of expected gap region
         tolerance: +/- bp tolerance for boundaries
 
     Returns:
-        bool: True if gap exists (no alignment in region)
+        bool: True if no alignment exists in the core region
     """
-    # Apply tolerance to shrink the gap region (more permissive)
-    # This means we only check for alignment in the core gap region
-    gap_start_with_tolerance = gap_start + tolerance
-    gap_end_with_tolerance = gap_end - tolerance
+    core_start = region_start + tolerance
+    core_end = region_end - tolerance
 
-    # If tolerance makes the region invalid, be conservative
-    if gap_start_with_tolerance >= gap_end_with_tolerance:
+    if core_start >= core_end:
         return True
 
     for align_start, align_end in aligned_regions:
-        # Check if any alignment overlaps with core gap region
-        overlap_start = max(align_start, gap_start_with_tolerance)
-        overlap_end = min(align_end, gap_end_with_tolerance)
-
-        if overlap_end > overlap_start:  # There is overlap
+        overlap_start = max(align_start, core_start)
+        overlap_end = min(align_end, core_end)
+        if overlap_end > overlap_start:
             return False
 
-    return True  # No alignment found in gap region
+    return True
 
 
-def classify_isoform(aligned_regions, tolerance=5):
+def classify_isoform(aligned_regions, tolerance=10):
     """
-    Classify read into isoform based on alignment pattern.
+    Classify read into isoform based on alignment and splice pattern.
 
     Classification is mutually exclusive and prioritized as:
-    1. US (Unspliced): ≥50bp alignment within D1-A7
-    2. MS (Multiply Splices): alignment before D4, gap D4-A7, alignment after A7
-    3. SS (Singly Spliced): alignment before D1, gap D1-A7, alignment D4-A7
+    1. US (Unspliced): any alignment within D1/431-A1/4658 — overrides all others
+    2. MS (Multiply Spliced): no alignment in D4/6043-A7/8252 (intron removed),
+       alignment before D4 and after A7
+    3. SS (Singly Spliced): no alignment in D1/431-A1/4658 (intron removed),
+       alignment before D1 and in D4/6043-A7/8252, D4-A7 region IS aligned
     4. any: Everything else
 
     Args:
-        aligned_regions: List of (start, end) tuples
+        aligned_regions: List of (start, end) tuples from M operations
         tolerance: +/- bp tolerance for boundaries
 
     Returns:
@@ -163,33 +171,42 @@ def classify_isoform(aligned_regions, tolerance=5):
     if not aligned_regions:
         return "any"
 
-    # Check US: Significant alignment within 431-4658 region
-    if has_alignment_in_region(aligned_regions, REGION_US_START, REGION_US_END,
-                               min_length=MIN_ALIGNMENT_LENGTH, tolerance=tolerance):
+    # Check US first: any alignment in D1-A1 overrides everything
+    if has_alignment_in_region(aligned_regions, REGION_US_START,
+                                REGION_US_END,
+                                min_length=MIN_ALIGNMENT_LENGTH,
+                                tolerance=tolerance):
         return "US"
 
-    # Check MS: alignment before 6043, gap 6043-8252, alignment after 8252
-    has_before_ms = has_alignment_in_region(aligned_regions, 0, REGION_MS_GAP_START,
+    d4a7_spliced = lacks_alignment_in_region(aligned_regions,
+                                             REGION_MS_GAP_START,
+                                             REGION_MS_GAP_END, tolerance)
+    d1a1_spliced = lacks_alignment_in_region(aligned_regions,
+                                             REGION_SS_GAP_START,
+                                             REGION_SS_GAP_END, tolerance)
+
+    # Check MS: D4-A7 intron removed, alignment before D4 and after A7
+    if d4a7_spliced:
+        has_before = has_alignment_in_region(aligned_regions, 0,
+                                             REGION_MS_GAP_START,
+                                             min_length=1, tolerance=tolerance)
+        has_after = has_alignment_in_region(aligned_regions, REGION_MS_GAP_END,
+                                            float('inf'),
                                             min_length=1, tolerance=tolerance)
-    has_gap_ms = has_gap_in_region(aligned_regions, REGION_MS_GAP_START,
-                                   REGION_MS_GAP_END, tolerance=tolerance)
-    has_after_ms = has_alignment_in_region(aligned_regions, REGION_MS_GAP_END,
-                                           float('inf'), min_length=1, tolerance=tolerance)
+        if has_before and has_after:
+            return "MS"
 
-    if has_before_ms and has_gap_ms and has_after_ms:
-        return "MS"
-
-    # Check SS: alignment before 431, gap 431-4658, alignment 6043-8252
-    has_before_ss = has_alignment_in_region(aligned_regions, 0, REGION_SS_GAP_START,
+    # Check SS: D1-A1 intron removed, alignment before D1 and in D4-A7,
+    # but D4-A7 must be aligned (otherwise it's MS or any)
+    if d1a1_spliced and not d4a7_spliced:
+        has_before = has_alignment_in_region(aligned_regions, 0,
+                                             REGION_SS_GAP_START,
+                                             min_length=1, tolerance=tolerance)
+        has_after = has_alignment_in_region(aligned_regions, REGION_SS_AFTER_START,
+                                            REGION_SS_AFTER_END,
                                             min_length=1, tolerance=tolerance)
-    has_gap_ss = has_gap_in_region(aligned_regions, REGION_SS_GAP_START,
-                                   REGION_SS_GAP_END, tolerance=tolerance)
-    has_after_ss = has_alignment_in_region(aligned_regions, REGION_SS_AFTER_START,
-                                           REGION_SS_AFTER_END, min_length=1,
-                                           tolerance=tolerance)
-
-    if has_before_ss and has_gap_ss and has_after_ss:
-        return "SS"
+        if has_before and has_after:
+            return "SS"
 
     # Default: any other pattern
     return "any"
@@ -211,14 +228,20 @@ def extract_tag_safe(read, *tag_names):
     return tuple(values)
 
 
-def process_bam_file(bam_file, output_csv, tolerance=5):
+def process_bam_file(bam_file, output_csv, tolerance=5, reference="mac239",
+                     split_bam=False):
     """
     Process BAM file and classify reads into isoforms.
+
+    Only processes primary alignments to the specified reference. Output is
+    deduplicated by (cellID, UMI) — one classification per pair.
 
     Args:
         bam_file: Path to input BAM file
         output_csv: Path to output CSV file
         tolerance: +/- bp tolerance for region boundaries
+        reference: Reference name to filter for (default: mac239)
+        split_bam: If True, write separate BAM files for each isoform class
     """
     # Validate inputs
     if not os.path.exists(bam_file):
@@ -237,22 +260,30 @@ def process_bam_file(bam_file, output_csv, tolerance=5):
     except Exception as e:
         raise RuntimeError(f"Failed to open BAM file: {e}")
 
+    # Open split BAM writers if requested
+    bam_writers = {}
+    if split_bam:
+        output_base = os.path.splitext(output_csv)[0]
+        for iso in ['US', 'SS', 'MS', 'any']:
+            bam_path = f"{output_base}_{iso}.bam"
+            bam_writers[iso] = pysam.AlignmentFile(bam_path, "wb", header=bam.header)
+
     # Statistics tracking
     stats = {
         'total_reads': 0,
         'unmapped_reads': 0,
+        'secondary_supplementary': 0,
+        'wrong_reference': 0,
         'no_cell_barcode': 0,
         'no_umi': 0,
+        'duplicate_cb_umi': 0,
         'classified_reads': 0,
         'isoform_counts': defaultdict(int)
     }
 
-    # Open output CSV
-    try:
-        csvfile = open(output_csv, 'w', newline='')
-        writer = csv.writer(csvfile)
-        writer.writerow(['cellID', 'UMI', 'isoform'])
+    seen_cb_umi = {}  # (cb, umi) -> isoform
 
+    try:
         # Process each read
         for read in bam:
             stats['total_reads'] += 1
@@ -260,6 +291,16 @@ def process_bam_file(bam_file, output_csv, tolerance=5):
             # Skip unmapped reads
             if read.is_unmapped:
                 stats['unmapped_reads'] += 1
+                continue
+
+            # Skip secondary and supplementary alignments
+            if read.is_secondary or read.is_supplementary:
+                stats['secondary_supplementary'] += 1
+                continue
+
+            # Filter to target reference only
+            if read.reference_name != reference:
+                stats['wrong_reference'] += 1
                 continue
 
             # Extract cell barcode and UMI
@@ -277,26 +318,52 @@ def process_bam_file(bam_file, output_csv, tolerance=5):
             if not umi:
                 stats['no_umi'] += 1
 
+            # Deduplicate by (CB, UMI) — keep first classification
+            key = (cb, umi)
+            if key in seen_cb_umi:
+                stats['duplicate_cb_umi'] += 1
+                continue
+
             # Parse alignment regions from CIGAR
-            aligned_regions = parse_alignment_regions(read)
+            aligned_regions, _ = parse_alignment_regions(read)
 
             # Classify isoform
             isoform = classify_isoform(aligned_regions, tolerance=tolerance)
 
-            # Write to CSV
-            writer.writerow([cb, str(umi), isoform])
-
+            seen_cb_umi[key] = isoform
             stats['classified_reads'] += 1
             stats['isoform_counts'][isoform] += 1
 
-        csvfile.close()
+            # Write to split BAM
+            if split_bam:
+                bam_writers[isoform].write(read)
+
         bam.close()
 
+        # Close and index split BAMs
+        if split_bam:
+            output_base = os.path.splitext(output_csv)[0]
+            for iso, writer in bam_writers.items():
+                writer.close()
+                bam_path = f"{output_base}_{iso}.bam"
+                tmp_path = bam_path + ".unsorted.tmp"
+                os.rename(bam_path, tmp_path)
+                pysam.sort("-o", bam_path, tmp_path)
+                os.remove(tmp_path)
+                pysam.index(bam_path)
+
+        # Write deduplicated results
+        with open(output_csv, 'w', newline='') as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerow(['cellID', 'UMI', 'isoform'])
+            for (cb, umi), isoform in seen_cb_umi.items():
+                writer.writerow([cb, str(umi), isoform])
+
     except Exception as e:
-        if 'csvfile' in locals():
-            csvfile.close()
         if 'bam' in locals():
             bam.close()
+        for w in bam_writers.values():
+            w.close()
         raise RuntimeError(f"Error during processing: {e}")
 
     return stats
@@ -310,10 +377,12 @@ def print_statistics(stats, tolerance):
     print("-" * 60)
     print(f"Total reads examined: {stats['total_reads']}")
     print(f"Unmapped reads: {stats['unmapped_reads']}")
+    print(f"Secondary/supplementary (skipped): {stats['secondary_supplementary']}")
+    print(f"Wrong reference (skipped): {stats['wrong_reference']}")
     print(f"Reads without cell barcode (skipped): {stats['no_cell_barcode']}")
     print(f"Reads without UMI (still classified): {stats['no_umi']}")
-    print(f"Successfully classified reads: {stats['classified_reads']}")
-    print(f"Success rate: {100 * stats['classified_reads'] / max(1, stats['total_reads']):.1f}%")
+    print(f"Duplicate CB+UMI (skipped): {stats['duplicate_cb_umi']}")
+    print(f"Unique CB+UMI pairs classified: {stats['classified_reads']}")
     print("-" * 60)
     print("Isoform distribution:")
     for isoform in ['US', 'MS', 'SS', 'any']:
@@ -330,17 +399,17 @@ if __name__ == "__main__":
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Isoform Definitions:
-  US (Unspliced):    ≥50bp alignment within 431-4658
-  MS (Major Splice): Alignment before 6043, gap 6043-8252, alignment after 8252
-  SS (Skip Splice):  Alignment before 431, gap 431-4658, alignment 6043-8252
-  any:              All other patterns
+  US (Unspliced):        ≥50bp alignment within 431-4658, no splice gap there
+  MS (Multiply Spliced): Splice gap 6043-8252, alignment before and after
+  SS (Singly Spliced):   Splice gap 431-4658, alignment before 431 and in 6043-8252
+  any:                   All other patterns
 
 Tolerance:
   All coordinate boundaries use +/- 5bp tolerance by default to account for
   biological variation and alignment uncertainty.
 
 Examples:
-  # Default tolerance (5bp)
+  # Default tolerance (10bp)
   python3 bamsort_isoform_classifier.py input.bam output.csv
 
   # Custom tolerance
@@ -353,20 +422,18 @@ Examples:
 
     parser.add_argument("bam_file", help="Path to input BAM file")
     parser.add_argument("output_csv", help="Path to output CSV file")
-    parser.add_argument("--tolerance", type=int, default=5,
-                        help="Coordinate tolerance in bp (default: 5)")
+    parser.add_argument("--tolerance", type=int, default=10,
+                        help="Coordinate tolerance in bp (default: 10)")
+    parser.add_argument("--split-bam", action="store_true",
+                        help="Write separate BAM files for each isoform class "
+                             "(US, SS, MS, any)")
 
     args = parser.parse_args()
 
-    print(f"Input BAM: {args.bam_file}")
-    print(f"Output CSV: {args.output_csv}")
-    print(f"Coordinate tolerance: +/- {args.tolerance}bp")
-    print("-" * 60)
-
     try:
-        stats = process_bam_file(args.bam_file, args.output_csv, args.tolerance)
+        stats = process_bam_file(args.bam_file, args.output_csv, args.tolerance,
+                                 split_bam=args.split_bam)
         print_statistics(stats, args.tolerance)
-        print(f"Results written to: {args.output_csv}")
 
     except (FileNotFoundError, PermissionError, RuntimeError) as e:
         print(f"Error: {e}", file=sys.stderr)

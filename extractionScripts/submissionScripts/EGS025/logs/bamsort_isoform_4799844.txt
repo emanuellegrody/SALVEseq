@@ -1,0 +1,105 @@
+Processing sample: D1
+Input BAM: /projects/b1042/GoyalLab/egrody/extractedData/EGS025/nf-core//D1/genome/bam/dedup/D1.genome.dedup.bam
+Output CSV: /projects/b1042/GoyalLab/egrody/extractedData/EGS025/bamsort/isoform/D1_isoforms.csv
+Processing complete!
+------------------------------------------------------------
+Total reads examined: 9318
+Unmapped reads: 0
+Secondary/supplementary (skipped): 103
+Wrong reference (skipped): 0
+Reads without cell barcode (skipped): 0
+Reads without UMI (still classified): 0
+Duplicate CB+UMI (skipped): 6338
+Unique CB+UMI pairs classified: 2877
+------------------------------------------------------------
+Isoform distribution:
+  US: 2061 (71.6%)
+  MS: 284 (9.9%)
+  SS: 60 (2.1%)
+  any: 472 (16.4%)
+------------------------------------------------------------
+Tolerance used: +/- 10bp
+Processing sample: SSenv
+Input BAM: /projects/b1042/GoyalLab/egrody/extractedData/EGS025/nf-core//SSenv/genome/bam/dedup/SSenv.genome.dedup.bam
+Output CSV: /projects/b1042/GoyalLab/egrody/extractedData/EGS025/bamsort/isoform/SSenv_isoforms.csv
+Processing complete!
+------------------------------------------------------------
+Total reads examined: 304
+Unmapped reads: 0
+Secondary/supplementary (skipped): 3
+Wrong reference (skipped): 0
+Reads without cell barcode (skipped): 0
+Reads without UMI (still classified): 0
+Duplicate CB+UMI (skipped): 185
+Unique CB+UMI pairs classified: 116
+------------------------------------------------------------
+Isoform distribution:
+  US: 1 (0.9%)
+  MS: 0 (0.0%)
+  SS: 0 (0.0%)
+  any: 115 (99.1%)
+------------------------------------------------------------
+Tolerance used: +/- 10bp
+Processing sample: nef
+Input BAM: /projects/b1042/GoyalLab/egrody/extractedData/EGS025/nf-core//nef/genome/bam/dedup/nef.genome.dedup.bam
+Output CSV: /projects/b1042/GoyalLab/egrody/extractedData/EGS025/bamsort/isoform/nef_isoforms.csv
+Processing complete!
+------------------------------------------------------------
+Total reads examined: 1011
+Unmapped reads: 0
+Secondary/supplementary (skipped): 53
+Wrong reference (skipped): 0
+Reads without cell barcode (skipped): 0
+Reads without UMI (still classified): 0
+Duplicate CB+UMI (skipped): 535
+Unique CB+UMI pairs classified: 423
+------------------------------------------------------------
+Isoform distribution:
+  US: 3 (0.7%)
+  MS: 0 (0.0%)
+  SS: 0 (0.0%)
+  any: 420 (99.3%)
+------------------------------------------------------------
+Tolerance used: +/- 10bp
+Processing sample: pol
+Input BAM: /projects/b1042/GoyalLab/egrody/extractedData/EGS025/nf-core//pol/genome/bam/dedup/pol.genome.dedup.bam
+Output CSV: /projects/b1042/GoyalLab/egrody/extractedData/EGS025/bamsort/isoform/pol_isoforms.csv
+Processing complete!
+------------------------------------------------------------
+Total reads examined: 35
+Unmapped reads: 0
+Secondary/supplementary (skipped): 4
+Wrong reference (skipped): 0
+Reads without cell barcode (skipped): 0
+Reads without UMI (still classified): 0
+Duplicate CB+UMI (skipped): 12
+Unique CB+UMI pairs classified: 19
+------------------------------------------------------------
+Isoform distribution:
+  US: 17 (89.5%)
+  MS: 0 (0.0%)
+  SS: 0 (0.0%)
+  any: 2 (10.5%)
+------------------------------------------------------------
+Tolerance used: +/- 10bp
+Processing sample: tat
+Input BAM: /projects/b1042/GoyalLab/egrody/extractedData/EGS025/nf-core//tat/genome/bam/dedup/tat.genome.dedup.bam
+Output CSV: /projects/b1042/GoyalLab/egrody/extractedData/EGS025/bamsort/isoform/tat_isoforms.csv
+Processing complete!
+------------------------------------------------------------
+Total reads examined: 2384
+Unmapped reads: 0
+Secondary/supplementary (skipped): 16
+Wrong reference (skipped): 0
+Reads without cell barcode (skipped): 0
+Reads without UMI (still classified): 0
+Duplicate CB+UMI (skipped): 1781
+Unique CB+UMI pairs classified: 587
+------------------------------------------------------------
+Isoform distribution:
+  US: 4 (0.7%)
+  MS: 367 (62.5%)
+  SS: 0 (0.0%)
+  any: 216 (36.8%)
+------------------------------------------------------------
+Tolerance used: +/- 10bp
