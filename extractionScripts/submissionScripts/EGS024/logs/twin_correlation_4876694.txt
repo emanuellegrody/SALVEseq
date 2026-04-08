@@ -1,0 +1,79 @@
+Loading h5ad...
+  9220 cells x 16377 genes
+  2519 barcoded cells in 275 clones (size >= 2)
+  2000 highly variable genes selected
+
+Building twin pairs (all within-clone combinations)...
+  30028 twin pairs generated
+
+Computing twin delta correlation matrix...
+  Done in 5.1s
+
+Computing gene-gene population Spearman correlation...
+  Done in 0.4s
+
+Generating null distribution (10000 shuffles)...
+  Running 10000 shuffles for null distribution...
+    Shuffle 500/10000 (2546s elapsed, ~48381s remaining)
+    Shuffle 1000/10000 (5367s elapsed, ~48306s remaining)
+    Shuffle 1500/10000 (8432s elapsed, ~47783s remaining)
+    Shuffle 2000/10000 (11255s elapsed, ~45019s remaining)
+    Shuffle 2500/10000 (14051s elapsed, ~42153s remaining)
+    Shuffle 3000/10000 (16594s elapsed, ~38718s remaining)
+    Shuffle 3500/10000 (19154s elapsed, ~35572s remaining)
+    Shuffle 4000/10000 (21748s elapsed, ~32622s remaining)
+    Shuffle 4500/10000 (24341s elapsed, ~29750s remaining)
+    Shuffle 5000/10000 (26932s elapsed, ~26932s remaining)
+    Shuffle 5500/10000 (29525s elapsed, ~24157s remaining)
+    Shuffle 6000/10000 (32119s elapsed, ~21412s remaining)
+    Shuffle 6500/10000 (34711s elapsed, ~18690s remaining)
+    Shuffle 7000/10000 (37306s elapsed, ~15988s remaining)
+    Shuffle 7500/10000 (39901s elapsed, ~13300s remaining)
+    Shuffle 8000/10000 (42496s elapsed, ~10624s remaining)
+    Shuffle 8500/10000 (45092s elapsed, ~7957s remaining)
+    Shuffle 9000/10000 (47687s elapsed, ~5299s remaining)
+    Shuffle 9500/10000 (50283s elapsed, ~2646s remaining)
+    Shuffle 10000/10000 (52878s elapsed, ~0s remaining)
+  Null distribution complete in 52878s
+
+Computing z-scores and p-values...
+
+  1176259 / 1999000 gene pairs significant (FDR-corrected p < 0.01)
+
+  Full results: /projects/b1042/GoyalLab/egrody/extractedData/EGS024/twinfer/twin_correlation_results.csv
+  Significant pairs: /projects/b1042/GoyalLab/egrody/extractedData/EGS024/twinfer/significant_twin_correlations.csv
+
+  Matrices saved to /projects/b1042/GoyalLab/egrody/extractedData/EGS024/twinfer/
+
+============================================================
+SUMMARY
+============================================================
+  Cells: 2519
+  Clones: 275
+  Twin pairs: 30028
+  Genes: 2000
+  Gene pairs tested: 1999000
+  Significant (FDR < 0.01): 1176259
+
+  Top 20 significant pairs:
+            gene_1             gene_2  twin_delta_correlation      z_score  p_value_adjusted
+ENSMMUG00000062894 ENSMMUG00000054784               -0.566051  -378.266756               0.0
+ENSMMUG00000062894 ENSMMUG00000051453               -0.599275 -1417.858478               0.0
+ENSMMUG00000062894             TNRC6C               -0.288685   -55.199069               0.0
+ENSMMUG00000062894              CCL15               -0.591010  -660.443194               0.0
+ENSMMUG00000062894              CCL18               -0.589881  -568.531176               0.0
+ENSMMUG00000062894 ENSMMUG00000008111               -0.355648  -114.977914               0.0
+ENSMMUG00000062894              KRBA2               -0.485473  -211.276975               0.0
+ENSMMUG00000062894 ENSMMUG00000059830               -0.598450 -1418.140818               0.0
+ENSMMUG00000062894 ENSMMUG00000062775               -0.599310 -1249.783049               0.0
+ENSMMUG00000062894              NXPH3               -0.387800  -147.454162               0.0
+ENSMMUG00000062894                MNT               -0.540959  -295.167174               0.0
+ENSMMUG00000062894             CUEDC1               -0.598899 -1418.182366               0.0
+ENSMMUG00000062894             CNTROB               -0.527347  -282.738443               0.0
+ENSMMUG00000062894 ENSMMUG00000062546               -0.595593  -992.476940               0.0
+ENSMMUG00000062894 ENSMMUG00000053298               -0.596529 -1005.416001               0.0
+ENSMMUG00000062894              CEP95               -0.338226  -112.256770               0.0
+ENSMMUG00000062894              GDPD1               -0.574222  -445.126717               0.0
+            RIMKLA ENSMMUG00000057596               -0.599215 -1421.664776               0.0
+             PHTF2 ENSMMUG00000063097               -0.179348   -45.044706               0.0
+             PHTF2              HBEGF               -0.179411   -45.136820               0.0
