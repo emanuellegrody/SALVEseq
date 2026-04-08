@@ -6,8 +6,8 @@ output: html_document
 ---
 
 ```{r, message=FALSE, warning=FALSE}
-source("~/SALVEseq/packages.R")
-source("~/SALVEseq/functions.R")
+source("~/SALVEseq/extractionScripts/R/packages.R")
+source("~/SALVEseq/extractionScripts/R/functions.R")
 ```
 
 # Individual Datasets
@@ -17,6 +17,7 @@ GEX: bamsort
 ```{r GEX bamsort}
 input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/bamsort/alignment/"
 output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/bamsort/reads/KLRB1"
+dir.create(output.dir, recursive = TRUE, showWarnings = FALSE)
 
 raw_cellIDs <- read.csv("/projects/b1042/GoyalLab/egrody/extractedData/EGS014/singleCell/raw_cellIDs/Uninfected_raw_cellIDs.csv")
 #raw_cellIDs <- split(raw_cellIDs_df$cellID, raw_cellIDs_df$sample)
@@ -134,6 +135,7 @@ tryCatch({
 # minimums
 input <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/bamsort/reads/KLRB1/W0_UMI_read_counts_full.csv"
 output_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/bamsort/reads/KLRB1/minimum/" 
+dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
 
 W0_min <- set_minimums("KLRB1", input, min_reads = 1, min_umi = 1)
 write.csv(W0_min, paste0(output_dir, "W0_minread1_minumi1.csv"))
@@ -157,6 +159,7 @@ SALVE: bamsort
 ```{r SALVE}
 input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/SALVE/bamsort/alignment/KLRB1/"
 output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/SALVE/bamsort/reads/KLRB1/"
+dir.create(output.dir, recursive = TRUE, showWarnings = FALSE)
 
 raw_cellIDs <- read.csv("/projects/b1042/GoyalLab/egrody/extractedData/EGS014/singleCell/raw_cellIDs/Uninfected_raw_cellIDs.csv")
 
@@ -266,7 +269,8 @@ tryCatch({
 
 # minimums
 input <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/SALVE/bamsort/reads/KLRB1/W0_UMI_read_counts_full.csv"
-output_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/SALVE/bamsort/reads/KLRB1/minimum/" 
+output_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/SALVE/bamsort/reads/KLRB1/minimum/" dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
+
 W0_min <- set_minimums("KLRB1", input, min_reads = 5, min_umi = 1)
 write.csv(W0_min, paste0(output_dir, "SALVE_KLRB1_W0_SALVE_minreads5.csv"))
 SALVE_KLRB1_W0 <- W0_min %>%
@@ -335,6 +339,7 @@ cat("\nNumbers for text\n\nTotal GEX UMI: ",
 Subsample read-weighted UMI
 ```{r}
 output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/SALVE/saturation/sample_UMI/"
+dir.create(output.dir, recursive = TRUE, showWarnings = FALSE)
 input <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/SALVE/bamsort/reads/KLRB1/W0_UMI_read_counts_full.csv"
 SALVE_nomin <- read.csv(input) %>%
   rename(reads = read_count)
@@ -687,11 +692,7 @@ Run this once first to get raw cellIDs:
 # Load and save raw cell IDs from 10X data
 raw_cellIDs <- list()
 output_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/raw_cellIDs" 
-
-# Create output directory if it doesn't exist
-if (!dir.exists(output_dir)) {
-  dir.create(output_dir, recursive = TRUE)
-}
+dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
 
 
 samples <- data.frame(
@@ -787,6 +788,7 @@ samples <- c(
 input.dirs <- c("/projects/b1042/GoyalLab/egrody/extractedData/EGS016/SALVE/bamsort/alignment/v5coordinates/", 
           "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/SALVE/bamsort/alignment/v5coordinates/")
 output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/SALVE/bamsort/reads/v6/"
+dir.create(output.dir, recursive = TRUE, showWarnings = FALSE)
 
 
 raw_cellIDs_df <- read.csv("/projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/raw_cellIDs/all_raw_cellIDs.csv")
@@ -798,6 +800,7 @@ process_bamsortv6(samples, input.dirs, output.dir, raw_cellIDs,
 # minimums
 input_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/SALVE/bamsort/reads/v6/"
 output_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/SALVE/bamsort/reads/v6/minimum/" 
+dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
 
 viremia <- c(
     "Invitro",
@@ -845,6 +848,7 @@ samples <- data.frame(
 # Process
 input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/bamsort/alignment/v5/"
 output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/bamsort/reads/v6/"
+dir.create(output.dir, recursive = TRUE, showWarnings = FALSE)
 
 raw_cellIDs_df <- read.csv("/projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/raw_cellIDs/all_raw_cellIDs.csv")
 raw_cellIDs <- split(raw_cellIDs_df$cellID, raw_cellIDs_df$sample)
@@ -854,6 +858,7 @@ process_bamsortv6(samples$samples, input.dir, output.dir, raw_cellIDs)
 # Minimums
 input_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/bamsort/reads/v6/"
 output_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/bamsort/reads/v6/minimum/"
+dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
 
 process_all_set_minimumsv6("GEX", samples$samples, input_dir, TRUE, output_dir, min_reads_cell = 2)
 
@@ -896,9 +901,7 @@ samples <- data.frame(
 )
 
 output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/Seurat/UMAPcoords/"
-if (!dir.exists(output.dir)) {
-  dir.create(output.dir, recursive = TRUE)
-}
+dir.create(output.dir, recursive = TRUE, showWarnings = FALSE)
 
 for (i in 1:nrow(samples)) {
   sample_name <- samples$samples[i]
@@ -979,6 +982,7 @@ print(diversity_pacute)
 
 
 output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/Seurat/plots/"
+dir.create(output.dir, recursive = TRUE, showWarnings = FALSE)
 
 features <- list(
   CD4 = "CD4",
@@ -1109,9 +1113,8 @@ genes <- c(
 
 input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/Seurat/RDS/"
 output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/Seurat/expressionDF/"
-if (!dir.exists(output.dir)) {
-  dir.create(output.dir, recursive = TRUE)
-}
+dir.create(output.dir, recursive = TRUE, showWarnings = FALSE)
+
 for (i in 1:length(samples)) {
   sample_name <- samples[i]
   input_file <- paste0(input.dir, sample_name, ".rds")
@@ -1390,6 +1393,7 @@ cat("\n# UMI in GEX total:\t", sum(current_df$GEX),
 
 # plotting
 output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/joint/plots/KLRB1/"
+dir.create(output.dir, recursive = TRUE, showWarnings = FALSE)
 
 plotUMAP(W0_joint, colorby = GEX,
          "W0 joint KLRB1: GEX (bamsort)",
@@ -1403,6 +1407,8 @@ plotUMAP(W0_joint, colorby = SALVE,
          comparison = FALSE, color = "gray25")
 
 output_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/joint/dataframes/"
+dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
+
 write.csv(both, paste0(output_dir, "KLRB1_both.csv"), row.names = FALSE)
 write.csv(onlySingleCell, paste0(output_dir, "KLRB1_onlySingleCell.csv"), row.names = FALSE)
 write.csv(onlySALVE, paste0(output_dir, "KLRB1_onlySALVE.csv"), row.names = FALSE)
@@ -1576,6 +1582,7 @@ for (i in 1:length(samples)) {
 Saving
 ```{r}
 output_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/joint/dataframes/"
+dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
 #cat("\nSample\tTotal_cells\tboth\t10X_only\tSALVE_only\n")
 
 # Process each dataset in the joint_data list
@@ -1637,6 +1644,7 @@ for (sample_name in names(joint_data)) {
 
 
   output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/joint/plots/"
+  dir.create(output.dir, recursive = TRUE, showWarnings = FALSE)
   plotUMAP(current_df, colorby = GEX,
          paste0(sample_name, " joint SIV total: GEX (bamsort)"),
          output.dir,
@@ -1662,6 +1670,7 @@ for (sample_name in names(joint_data)) {
 Splicing proportions
 ```{r proportions}
 output_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/joint/plots/proportions/"
+dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
 for (sample_name in names(joint_data)) {
   df <- joint_data[[sample_name]]
   
@@ -1709,6 +1718,7 @@ Splicing UMAPS w expression
 ```{r}
 ## for lightning talk figures
   output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/joint/plots/v5/subset/"
+  dir.create(output.dir, recursive = TRUE, showWarnings = FALSE)
   plotUMAP(current_df, colorby = US,
          paste0(sample_name, " joint SALVE US"),
          output.dir,
@@ -1734,6 +1744,7 @@ Splicing UMAPS w expression
 Splicing UMAPS w/o expression (identity only)
 ```{r}
 output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/joint/plots/identity/"
+dir.create(output.dir, recursive = TRUE, showWarnings = FALSE)
 col1s <- c("infected", "splicers")
 col2s <- c("uninfected", "nonsplicers")
 
@@ -1874,6 +1885,7 @@ for (i in 1:length(samples)) {
 
 ```{r}
 output_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/combined/dataframes/"
+dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
 cat("\nSample\tTotal_cells\tcombined\n")
 
 # Process each dataset in the joint_data list
@@ -1891,6 +1903,7 @@ for (sample_name in names(combined_data)) {
   #     "\tMax GEX:", max(current_df$GEX), "\n\n")
   
   output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/combined/plots/"
+  dir.create(output.dir, recursive = TRUE, showWarnings = FALSE)
   plotUMAP(current_df, colorby = total,
          paste0(sample_name, " joint SIV total: combined"),
          output.dir,
@@ -2517,9 +2530,7 @@ for (config in sample_configs) {
   
   # Create output directory if it doesn't exist
   output_dir <- paste0(input_dir, "plots/")
-  if (!dir.exists(output_dir)) {
-    dir.create(output_dir, recursive = TRUE)
-  }
+  dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
   
   ggsave(paste0(output_dir, sample_name, "_combined_log.pdf"), 
          plot = p_log, width = 15, height = 8)
@@ -2858,9 +2869,8 @@ test_metabolic_correlations <- function(joint_salve_data, joint_rds,
   
   # Save if output directory provided
   if (!is.null(output.dir)) {
-    if (!dir.exists(output.dir)) {
-      dir.create(output.dir, recursive = TRUE)
-    }
+    dir.create(output.dir, recursive = TRUE, showWarnings = FALSE)
+
     write.csv(combined_results, 
               file.path(output.dir, paste0(viral_col, "_metabolic_correlations.csv")),
               row.names = FALSE)
@@ -2934,6 +2944,7 @@ subsets <- c("P_acute_150M", "P_acute_200M", "P_acute_300M", "P_acute_400M")
 # Process
 input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/bamsort/alignment/subsample/"
 output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/bamsort/reads/subsample/"
+dir.create(output.dir, recursive = TRUE, showWarnings = FALSE)
 
 raw_cellIDs_df <- read.csv("/projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/raw_cellIDs/all_raw_cellIDs.csv")
 raw_cellIDs <- split(raw_cellIDs_df$cellID, raw_cellIDs_df$sample)
@@ -2947,6 +2958,7 @@ process_bamsortv6(subsets, input.dir, output.dir, raw_cellID)
 # Minimums
 input_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS009/singleCell/bamsort/reads/subsample/"
 output_dir <- paste0(input_dir, "minimum/")
+dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
 
 process_all_set_minimumsv6("GEX", subsets, input_dir, TRUE, output_dir, min_reads_cell = 2)
 ```
@@ -2963,8 +2975,6 @@ cd4_file <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/Seu
 # Output directories
 output_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS009/joint/dataframes/"
 plot_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS009/joint/plots/"
-
-# Create output directories if they don't exist
 dir.create(output_dir, showWarnings = FALSE, recursive = TRUE)
 dir.create(plot_dir, showWarnings = FALSE, recursive = TRUE)
 
@@ -3128,9 +3138,8 @@ for (i in 1:length(samples)) {
                                    )
     
     output.dir <- paste0(output.base, sample_name, "/")
-    if (!dir.exists(output.dir)) {
-      dir.create(output.dir, recursive = TRUE)
-    }
+    dir.create(output.dir, recursive = TRUE, showWarnings = FALSE)
+
     #save_subset_analysis(results, output_dir = output.dir)
     plot_subset_analysis(seurat_obj, results, list_of_cells1, output_dir = paste0(output.dir, "plots/"))
     
@@ -3436,6 +3445,7 @@ perform_deg_pathway_analysis <- function(seurat_obj,
 ```{r}
 input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/Seurat/RDS/"
 output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/joint/subset/new/"
+dir.create(output.dir, recursive = TRUE, showWarnings = FALSE)
 
 samples <- c("Invitro",
              "D195",
@@ -3451,9 +3461,7 @@ for (i in 1:length(samples)) {
     genes_to_keep <- rownames(seurat_obj)[!rownames(seurat_obj) %in% genes_to_exclude]
     seurat_obj <- subset(seurat_obj, features = genes_to_keep)
 
-    if (!dir.exists(output.dir)) {
-      dir.create(output.dir, recursive = TRUE)
-    }
+    dir.create(output.dir, recursive = TRUE, showWarnings = FALSE)
     
     salve <- combined_data[[sample_name]]
     available_cols <- intersect(c("MS", "SS-MS", "SS"), colnames(salve))
@@ -3507,10 +3515,10 @@ selected_ks <- c(5, 6, 6)
 for (i in 1:length(samples)) {
   run_name <- samples[i]
   selected_k <- selected_ks[i]
-  output_dir <- paste0("/projects/b1042/GoyalLab/egrody/extractedData/EGS016/joint/plots/cNMF/", run_name, "/")
-  if (!dir.exists(output_dir)) {
-    dir.create(output_dir, recursive = TRUE)
-  }
+  output_dir <- paste0("/projects/b1042/GoyalLab/egrody/extractedData/EGS016/joint/plots/cNMF/",
+                       run_name, "/")
+  dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
+
   cat("Loading: ",run_name, "\n")
 
   # =============================================================================
@@ -3996,9 +4004,8 @@ for (i in 1:length(samples)) {
   selected_k <- selected_ks[i]
   output_dir <- paste0("/projects/b1042/GoyalLab/egrody/extractedData/EGS016/joint/plots/cNMF/", 
                        run_name, "/")
-  if (!dir.exists(output_dir)) {
-    dir.create(output_dir, recursive = TRUE)
-  }
+  dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
+
   cat("Loading: ", run_name, "\n")
   
   usage_file <- file.path(load_dir, paste0(run_name, "_usage_K", selected_k, ".csv"))
@@ -4042,9 +4049,8 @@ for (i in 1:length(samples)) {
   selected_k <- selected_ks[i]
   output_dir <- paste0("/projects/b1042/GoyalLab/egrody/extractedData/EGS016/joint/plots/cNMF/", 
                        run_name, "/")
-  if (!dir.exists(output_dir)) {
-    dir.create(output_dir, recursive = TRUE)
-  }
+  dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
+
   cat("Loading: ", run_name, "\n")
   
   usage_file <- file.path(load_dir, paste0(run_name, "_usage_K", selected_k, ".csv"))
@@ -4090,6 +4096,7 @@ Why don't we see those 10X only cells also in SALVE?
 ```{r cellID sampling}
 input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/bamsort/split/"
 output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/saturation/sample_cellID/"
+dir.create(output.dir, recursive = TRUE, showWarnings = FALSE)
 
 # Process each sample
 for (sample in samples$samples) {
@@ -4233,6 +4240,7 @@ model_results <- fit_models(results, target_coverage = 120)
 ```{r}
 input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/bamsort/split/"
 output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS014/SALVE/saturation/sample_UMI/"
+dir.create(output.dir, recursive = TRUE, showWarnings = FALSE)
 
 # Process each sample
 for (sample in samples$samples) {
@@ -4606,6 +4614,7 @@ p_long <- plot_ecdf_comparison(longread, longreadlog, fish, fishlog,
                                exp_name = "longread", ref_name = "HCR")
 
 output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS023/plots/"
+dir.create(output.dir, recursive = TRUE, showWarnings = FALSE)
 ggsave(paste0(output.dir, "ecdf_SALVE.pdf"), p_salve, width = 15, height = 4)
 ggsave(paste0(output.dir, "ecdf_GEX.pdf"), p_gex, width = 15, height = 4)
 ggsave(paste0(output.dir, "ecdf_longread.pdf"), p_long, width = 15, height = 4)
@@ -5033,6 +5042,7 @@ results_spliced <- compare_methods_to_reference(
 # Compile and plot
 results_list <- list(results_US, results_spliced, results_SS, results_MS)
 output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS023/plots/"
+dir.create(output.dir, recursive = TRUE, showWarnings = FALSE)
 
 plot_barplot_comparison(
   results_list = results_list,
@@ -5093,6 +5103,7 @@ results_spliced$distance_df
 
 results_list <- list(results_US, results_spliced, results_SS, results_MS)
 output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS023/plots/"
+dir.create(output.dir, recursive = TRUE, showWarnings = FALSE)
 
 plot_barplot_comparison(
   results_list = results_list,
@@ -5277,6 +5288,7 @@ D195 <- current_df %>%
   mutate(spliceform = if_else(SALVE > 0, spliceform, "none")) %>%
   arrange(spliceform != "none")
 output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/joint/plots/"
+dir.create(output.dir, recursive = TRUE, showWarnings = FALSE)
 
 umap <- ggplot(D195, aes(x = UMAP1, y = UMAP2)) +
   geom_point(aes(color = spliceform), size = 1, shape = 16) +
@@ -5304,6 +5316,7 @@ invitro <- df %>%
   mutate(spliceform = factor(spliceform, levels = c("none", "any", "nospliced", "spliced"))) %>%
   arrange(spliceform)
 output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/joint/plots/"
+dir.create(output.dir, recursive = TRUE, showWarnings = FALSE)
 
 umap <- ggplot(invitro, aes(x = UMAP1, y = UMAP2)) +
   geom_point(aes(color = spliceform), size = 1, shape = 16) +
