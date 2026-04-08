@@ -1,0 +1,79 @@
+Loading h5ad...
+  9220 cells x 16377 genes
+  2519 barcoded cells in 275 clones (size >= 2)
+  2000 highly variable genes selected
+
+Building twin pairs (one random pair per clone)...
+  275 independent twin pairs (one per clone)
+
+Computing twin delta correlation matrix...
+  Done in 0.1s
+
+Computing gene-gene population Spearman correlation...
+  Done in 0.4s
+
+Generating null distribution (10000 shuffles)...
+  Running 10000 shuffles for null distribution...
+    Shuffle 500/10000 (47s elapsed, ~900s remaining)
+    Shuffle 1000/10000 (94s elapsed, ~847s remaining)
+    Shuffle 1500/10000 (141s elapsed, ~800s remaining)
+    Shuffle 2000/10000 (189s elapsed, ~757s remaining)
+    Shuffle 2500/10000 (237s elapsed, ~710s remaining)
+    Shuffle 3000/10000 (283s elapsed, ~660s remaining)
+    Shuffle 3500/10000 (329s elapsed, ~611s remaining)
+    Shuffle 4000/10000 (375s elapsed, ~563s remaining)
+    Shuffle 4500/10000 (422s elapsed, ~515s remaining)
+    Shuffle 5000/10000 (468s elapsed, ~468s remaining)
+    Shuffle 5500/10000 (515s elapsed, ~421s remaining)
+    Shuffle 6000/10000 (561s elapsed, ~374s remaining)
+    Shuffle 6500/10000 (608s elapsed, ~327s remaining)
+    Shuffle 7000/10000 (655s elapsed, ~281s remaining)
+    Shuffle 7500/10000 (702s elapsed, ~234s remaining)
+    Shuffle 8000/10000 (748s elapsed, ~187s remaining)
+    Shuffle 8500/10000 (795s elapsed, ~140s remaining)
+    Shuffle 9000/10000 (842s elapsed, ~94s remaining)
+    Shuffle 9500/10000 (889s elapsed, ~47s remaining)
+    Shuffle 10000/10000 (936s elapsed, ~0s remaining)
+  Null distribution complete in 936s
+
+Computing z-scores and p-values...
+
+  1516 / 1999000 gene pairs significant (FDR-corrected p < 0.01)
+
+  Full results: /projects/b1042/GoyalLab/egrody/extractedData/EGS024/twinfer/twin_correlation_results.csv
+  Significant pairs: /projects/b1042/GoyalLab/egrody/extractedData/EGS024/twinfer/significant_twin_correlations.csv
+
+  Matrices saved to /projects/b1042/GoyalLab/egrody/extractedData/EGS024/twinfer/
+
+============================================================
+SUMMARY
+============================================================
+  Cells: 2519
+  Clones: 275
+  Twin pairs: 275
+  Genes: 2000
+  Gene pairs tested: 1999000
+  Significant (FDR < 0.01): 1516
+
+  Top 20 significant pairs:
+            gene_1  gene_2  twin_delta_correlation    z_score  p_value_adjusted
+             DIP2C    MTA3               -0.456844 -11.008044      6.986668e-22
+             HERC5    MTA3               -0.420289 -10.793754      2.188307e-21
+             MAML1    MTA3               -0.414830 -10.800595      2.188307e-21
+ENSMMUG00000063852    MTA3               -0.410468 -10.777876      2.188307e-21
+              KLC4    MTA3               -0.406721 -10.604488      8.156507e-21
+            ZNF827    MTA3                0.524040  10.592180      8.156507e-21
+            PRSS23    MTA3                0.504854  10.591470      8.156507e-21
+            IGFBP7    MTA3               -0.449277 -10.592224      8.156507e-21
+             ADRB2    MTA3               -0.400437 -10.554197      1.078964e-20
+            JCHAIN    MTA3               -0.389921 -10.479607      2.142696e-20
+              PER3    MTA3               -0.405534 -10.417851      3.735326e-20
+              MTA3    EPN2               -0.374552 -10.368326      5.313085e-20
+              MTA3   ALDOC               -0.384120 -10.371130      5.313085e-20
+            DENND3    MTA3               -0.377107 -10.344727      6.313631e-20
+              MTA3 TNFSF14                0.509448  10.323304      7.367966e-20
+              MTA3    NEK3               -0.391647 -10.224703      1.920265e-19
+             MEGF9    MTA3               -0.427127 -10.214165      2.014855e-19
+             ABCA1    MTA3               -0.379976 -10.165750      3.131141e-19
+              EGR2    MTA3               -0.391254 -10.156204      3.271514e-19
+             KLRG1    MTA3               -0.404756 -10.142921      3.553595e-19
