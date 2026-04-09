@@ -1511,6 +1511,55 @@ host_virus_correlation <- function(joint_salve_data, joint_rds, genes_list, vira
 # =============================================================================
 # Plotting
 # =============================================================================
+## correlation plot
+plot_jitter_marginal <- function(df, title, xlims = c(0, 9.1), ylims = c(0, 9.1)) {
+  r2 <- cor(df$SALVE, df$GEX)^2
+  
+  p_main <- ggplot(data = df, aes(x = SALVE, y = GEX)) +
+    geom_jitter(alpha = 0.6, size = 1.5, width = 0.1, height = 0.1) +
+    annotate("text", x = xlims[1] + diff(xlims) * 0.05,
+             y = ylims[2] - diff(ylims) * 0.07,
+             label = paste0("R² = ", signif(r2, 3)),
+             size = 4, hjust = 0) +
+    labs(x = "SALVE", y = "GEX") +
+    theme_minimal() +
+    scale_x_continuous(limits = xlims, expand = c(0, 0), breaks = scales::breaks_width(1)) +
+    scale_y_continuous(limits = ylims, expand = c(0, 0), breaks = scales::breaks_width(1))
+  
+  top_bins <- hist(df$SALVE, breaks = seq(xlims[1], xlims[2], length.out = 31), plot = FALSE)
+  top_df <- data.frame(x = head(top_bins$breaks, -1) + diff(top_bins$breaks) / 2,
+                       count = top_bins$counts + 0.01,
+                       width = diff(top_bins$breaks))
+  
+  p_top <- ggplot(top_df, aes(x = x, y = count)) +
+    geom_col(width = top_df$width[1], fill = "gray80", color = "white") +
+    scale_x_continuous(limits = xlims, expand = c(0, 0)) +
+    scale_y_continuous(trans = scales::pseudo_log_trans(base = 10),
+                       breaks = c(0, 1, 10, 100, 1000, 10000)) +
+    labs(y = "Count", title = title) +
+    theme_minimal() +
+    theme(axis.title.x = element_blank(), axis.text.x = element_blank(),
+          axis.ticks.x = element_blank())
+  
+  right_bins <- hist(df$GEX, breaks = seq(ylims[1], ylims[2], length.out = 31), plot = FALSE)
+  right_df <- data.frame(x = head(right_bins$breaks, -1) + diff(right_bins$breaks) / 2,
+                         count = right_bins$counts + 0.01,
+                         width = diff(right_bins$breaks))
+  
+  p_right <- ggplot(right_df, aes(x = x, y = count)) +
+    geom_col(width = right_df$width[1], fill = "gray80", color = "white") +
+    scale_x_continuous(limits = ylims, expand = c(0, 0)) +
+    scale_y_continuous(trans = scales::pseudo_log_trans(base = 10),
+                       breaks = c(0, 1, 10, 100, 1000, 10000)) +
+    labs(y = "Count") +
+    coord_flip() +
+    theme_minimal() +
+    theme(axis.title.y = element_blank(), axis.text.y = element_blank(),
+          axis.ticks.y = element_blank())
+  
+  p_top + plot_spacer() + p_main + p_right +
+    plot_layout(ncol = 2, nrow = 2, widths = c(4, 1), heights = c(1, 4))
+}
 ## plot a UMAP
 plotUMAP <- function(data, colorby, title, output_dir, saveas, comparison = FALSE, color = "darkblue") {
   colorby_str <- if (is.character(substitute(colorby))) {

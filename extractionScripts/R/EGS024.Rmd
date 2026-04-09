@@ -21,11 +21,7 @@ Run this once first to get raw cellIDs:
 raw_cellIDs <- list()
 input.dir = "/projects/b1042/GoyalLab/egrody/extractedData/EGS024/singleCell/counts/concat/"
 output_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS024/singleCell/raw_cellIDs" 
-
-# Create output directory if it doesn't exist
-if (!dir.exists(output_dir)) {
-  dir.create(output_dir, recursive = TRUE)
-}
+dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
 
 all_cellIDs <- data.frame(cellID = character(), sample = character(), stringsAsFactors = FALSE)
 
@@ -73,6 +69,7 @@ Making full and minimum filtered lists:
 ```{r}
 input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS024/SALVE/bamsort/alignment/"
 output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS024/SALVE/bamsort/reads/"
+dir.create(output.dir, recursive = TRUE, showWarnings = FALSE)
 
 samples <- c("GFP_invitro")
 raw_cellIDs <- read.csv("/projects/b1042/GoyalLab/egrody/extractedData/EGS024/singleCell/raw_cellIDs/GFP_invitro_raw_cellIDs.csv")
@@ -83,10 +80,96 @@ process_bamsortv6(samples, input.dir, output.dir, raw_cellIDs,
 # minimums
 input_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS024/SALVE/bamsort/reads/"
 output_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS024/SALVE/bamsort/reads/minimum/" 
-
+dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
 
 process_all_set_minimumsv6("SALVE", samples, input_dir, TRUE, output_dir, 
                            min_reads = 2, min_umi = 2)
+
+```
+
+
+
+### long read
+```{r}
+# load long read (bamsort_isoform_longread.py output)
+dir.base <- "/projects/b1042/GoyalLab/egrody/extractedData/"
+lr.dir <- paste0(dir.base, "EGS025/bamsort/isoform/")
+samples <- c("D1", "pol", "tat", "SSenv", "nef")
+longread <- list()
+for (sample in samples) {
+  temp <- read.csv(paste0(lr.dir, sample, "_isoforms.csv"))
+  temp$cb_umi <- paste0(temp$cellID, ":", temp$UMI)
+  longread[[sample]] <- temp
+}
+
+# load short read (process_bamsortv6 output)
+shortread_all <- read.csv(paste0(dir.base, 
+                                 "EGS024/SALVE/bamsort/reads/GFP_invitro_UMI_read_counts_full.csv"),
+                   stringsAsFactors = FALSE)
+
+# matching long read format
+shortread_all$cellID <- sub("-1$", "", shortread_all$cellID)
+shortread_all <- shortread_all %>%
+  mutate(isoform = case_when(
+    category == "US" ~ "US",
+    category == "MS" ~ "MS",
+    category == "SS" ~ "SS",
+    TRUE             ~ "any"
+  ))
+shortread_all$cb_umi <- paste0(shortread_all$cellID, ":", shortread_all$UMI)
+
+# deduplicate: if a cb_umi has multiple rows, keep the most specific isoform
+shortread_dedup <- shortread_all %>%
+  mutate(isoform_rank = case_when(
+    isoform == "US" ~ 1, isoform == "MS" ~ 2, isoform == "SS" ~ 3, TRUE ~ 4
+  )) %>%
+  group_by(cb_umi) %>%
+  slice_min(isoform_rank, n = 1, with_ties = FALSE) %>%
+  ungroup() %>%
+  select(-isoform_rank)
+
+# compare per sample
+shortread_nonany <- sum(shortread_dedup$isoform != "any")
+cat(sprintf("\nSR total=%d (non-any %d)\n",
+            nrow(shortread_dedup), shortread_nonany))
+total_long <- 0
+total_nonany <- 0
+for (sample in samples) {
+  longread_df <- longread[[sample]]
+  shared_keys <- intersect(longread_df$cb_umi, shortread_dedup$cb_umi)
+
+  longread_nonany <- sum(longread_df$isoform != "any")
+  cat(sprintf("\n%s: LR=%d (non-any %d), overlap=%d (%.1f%% of LR)\n",
+              sample, nrow(longread_df), longread_nonany,
+              length(shared_keys), 100 * length(shared_keys) / max(1, nrow(longread_df))))
+  total_long <- total_long + nrow(longread_df)
+  total_nonany <- total_nonany + longread_nonany
+  if (length(shared_keys) > 0) {
+    compare <- merge(
+      longread_df[longread_df$cb_umi %in% shared_keys, c("cb_umi", "isoform")],
+      shortread_dedup[shortread_dedup$cb_umi %in% shared_keys, c("cb_umi", "isoform")],
+      by = "cb_umi", suffixes = c(".lr", ".sr")
+    )
+    cat("Concordance:\n")
+    print(table(LongRead = compare$isoform.lr, ShortRead = compare$isoform.sr))
+    cat(sprintf("Agreement: %d / %d (%.1f%%)\n",
+                sum(compare$isoform.lr == compare$isoform.sr), nrow(compare),
+                100 * mean(compare$isoform.lr == compare$isoform.sr)))
+    # precision: among non-any assignments, how often do LR and SR agree?
+    longread_called <- compare %>% filter(isoform.lr != "any")
+    shortread_called <- compare %>% filter(isoform.sr != "any")
+    cat(sprintf("Long read precision: %d / %d non-any LR calls agree with SR (%.1f%%)\n",
+                sum(longread_called$isoform.lr == longread_called$isoform.sr),
+                nrow(longread_called),
+                100 * mean(longread_called$isoform.lr == longread_called$isoform.sr)))
+    cat(sprintf("Short read precision: %d / %d non-any SR calls agree with LR (%.1f%%)\n",
+                sum(shortread_called$isoform.lr == shortread_called$isoform.sr),
+                nrow(shortread_called),
+                100 * mean(shortread_called$isoform.lr == shortread_called$isoform.sr)))
+  }
+}
+
+cat("LR total=",total_long, "(non-any", total_nonany, ")")
 
 ```
 
@@ -102,6 +185,7 @@ samples = c(
 input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS024/singleCell/bamsort/alignment/"
 output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS024/singleCell/bamsort/reads/"
 raw_cellIDs <- read.csv("/projects/b1042/GoyalLab/egrody/extractedData/EGS024/singleCell/raw_cellIDs/GFP_invitro_raw_cellIDs.csv")
+dir.create(output.dir, recursive = TRUE, showWarnings = FALSE)
 
 process_bamsortv6(samples, input.dir, output.dir, raw_cellIDs,
         correction_dir = "/projects/b1042/GoyalLab/egrody/extractedData/EGS024/singleCell/bamsort/splice/")
@@ -109,6 +193,7 @@ process_bamsortv6(samples, input.dir, output.dir, raw_cellIDs,
 # Minimums
 input_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS024/singleCell/bamsort/reads/"
 output_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS024/singleCell/bamsort/reads/minimum/"
+dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
 
 process_all_set_minimumsv6("GEX", samples, input_dir, TRUE, output_dir, min_reads_cell = 1)
 
@@ -129,6 +214,7 @@ samples <- data.frame(
 )
 
 output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS024/singleCell/Seurat/"
+dir.create(output.dir, recursive = TRUE, showWarnings = FALSE)
 
 for (i in 1:nrow(samples)) {
   sample_name <- samples$samples[i]
@@ -149,9 +235,7 @@ for (i in 1:nrow(samples)) {
     sample_df$sample <- sample_name
 
     outUMAP.dir <- paste0(output.dir, "UMAPcoords/")
-    if (!dir.exists(outUMAP.dir)) {
-      dir.create(outUMAP.dir, recursive = TRUE)
-    }
+    dir.create(output.dir, recursive = TRUE, showWarnings = FALSE)
     write.csv(sample_df, paste0(outUMAP.dir, sample_name, "UMAP_coords.csv"))
     
     cat("Processed sample:", sample_name, "\n")
@@ -184,9 +268,7 @@ genes <- c(
 
 input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS024/singleCell/Seurat/RDS/"
 output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS024/singleCell/Seurat/expressionDF/"
-if (!dir.exists(output.dir)) {
-  dir.create(output.dir, recursive = TRUE)
-}
+dir.create(output.dir, recursive = TRUE, showWarnings = FALSE)
 
 sample_name <- "GFP_invitro"
 input_file <- paste0(input.dir, sample_name, ".rds")
@@ -322,6 +404,7 @@ filtered_clean_cells <- filtered_cells %>%
   filter(!grepl(blacklist_pattern, barcode))
 
 output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS024/barcode/"
+dir.create(output.dir, recursive = TRUE, showWarnings = FALSE)
 write.csv(filtered_clean_cells, paste0(output.dir, "filtered_barcoded_cells_threshold", threshold, ".csv"))
 
 ```
@@ -502,6 +585,7 @@ overlap <- combo_individual[combo_individual %in% single$barcode]
 # ============================================================
 
 output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS024/barcode/plots/"
+dir.create(output.dir, recursive = TRUE, showWarnings = FALSE)
 # ============================================================
 # PLOT 1: Threshold sweep — supports Hypothesis 1
 # Shows that lowering UMI threshold recovers real combos
@@ -746,6 +830,7 @@ print(overlap_df)
 combined <- wrap_plots(plot_list, nrow = 1)
 
 output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS024/barcode/"
+dir.create(output.dir, recursive = TRUE, showWarnings = FALSE)
 ggsave(paste0(output.dir, "barcode_overlap_thresholds.pdf"), combined,
        width = 4 * length(plot_list), height = 4)
 ```
@@ -758,6 +843,7 @@ dataset <- "GFP_GEX"
 folder <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS024/singleCell/Seurat/RDS/"
 output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS024/singleCell/Seurat/"
 input.dir <- paste0(folder, sample_name, ".rds")
+dir.create(output.dir, recursive = TRUE, showWarnings = FALSE)
 
 tryCatch({
   seurat_obj <- readRDS(input.dir)
@@ -770,9 +856,7 @@ tryCatch({
   sample_df$sample <- sample_name
 
   outUMAP.dir <- paste0(output.dir, "UMAPcoords/")
-  if (!dir.exists(outUMAP.dir)) {
-    dir.create(outUMAP.dir, recursive = TRUE)
-  }
+  dir.create(output.dir, recursive = TRUE, showWarnings = FALSE)
   write.csv(sample_df, paste0(outUMAP.dir, sample_name, "_GFP.csv"))
   
   cat("Processed sample:", sample_name, "\n")
@@ -1089,6 +1173,7 @@ cat("Processed", sample_name, "\n")
 Saving
 ```{r}
 output_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS024/joint/dataframes/"
+dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
 
 cat("\nSample\tTotal_cells\tboth\t10X_only\tSALVE_only\n")
 
@@ -1152,6 +1237,7 @@ cat("Barcoded cells:\t\t", sum(joint_data$barcode != "none"),
 
 
 output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/joint/plots/"
+dir.create(output.dir, recursive = TRUE, showWarnings = FALSE)
 plotUMAP(current_df, colorby = GEX,
        paste0(sample_name, " joint SIV total: GEX (bamsort)"),
        output.dir,
@@ -1370,7 +1456,7 @@ cat("Processed", sample_name, "\n")
 
 ```{r}
 output_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS024/combined/dataframes/"
-dir.create(output_dir, recursive = TRUE)
+dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
 cat("\nSample\tTotal_cells\tcombined\n")
 
 current_df <- combined_data
@@ -1385,6 +1471,7 @@ cat(sample_name, "\t",
 #     "\tMax GEX:", max(current_df$GEX), "\n\n")
 
 output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS024/combined/plots/"
+dir.create(output.dir, recursive = TRUE, showWarnings = FALSE)
 plotUMAP(combined_data, colorby = total,
        paste0(sample_name, " - SIV combined"),
        output.dir,
@@ -1403,6 +1490,7 @@ write.csv(current_df, paste0(output_dir, sample_name, "_all.csv"), row.names = F
 ###Splicing proportions
 ```{r proportions}
 output_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/joint/plots/proportions/"
+dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
 for (sample_name in names(joint_data)) {
   df <- joint_data[[sample_name]]
   
@@ -1450,6 +1538,7 @@ for (sample_name in names(joint_data)) {
 ```{r}
 ## for lightning talk figures
   output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/joint/plots/v5/subset/"
+  dir.create(output.dir, recursive = TRUE, showWarnings = FALSE)
   plotUMAP(current_df, colorby = US,
          paste0(sample_name, " joint SALVE US"),
          output.dir,
@@ -1475,6 +1564,7 @@ for (sample_name in names(joint_data)) {
 ###Splicing UMAPS w/o expression (identity only)
 ```{r}
 output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/joint/plots/identity/"
+dir.create(output.dir, recursive = TRUE, showWarnings = FALSE)
 col1s <- c("infected", "splicers")
 col2s <- c("uninfected", "nonsplicers")
 
@@ -1598,21 +1688,16 @@ if (nrow(infected_clones) > 0) {
 ```
 
 ### Clone similarity
-```{r}
-# Barcode Similarity Analysis
-#
-# Metrics:
-#   1. E-distance: energy statistic between clone and random sample (Szekely & Rizzo, 2004)
-#   2. KNN mixing coefficient: fraction of k nearest neighbors sharing same barcode
-#   3. Pairwise E-distance between barcodes
-#   4. Phenotypic volume: log-determinant of covariance matrix in embedding space
-#   5. Shannon equitability index (Pielou's J): evenness of clone across clusters
-#
-# Each metric is compared against a null distribution built from
-# size-matched random cell samples to assess whether clonemates are
-# more similar in UMAP/PC space than expected by chance.
 
-library(FNN)      # get.knn(): fast exact k-nearest neighbor search
+Metrics:
+  1. E-distance: energy statistic between clone and random sample
+  2. KNN mixing coefficient: fraction of k nearest neighbors sharing same barcode
+  3. Pairwise E-distance between barcodes
+
+Each metric is compared against a null distribution built from size-matched random cell samples
+
+```{r}
+library(FNN)
 
 # ---------------------------------------------------------------------------
 # 0. Setup: load Seurat object and barcode data
@@ -1621,12 +1706,13 @@ sample_name <- "GFP_invitro"
 rds.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS024/singleCell/Seurat/RDS/"
 rds_file <- paste0(rds.dir, sample_name, ".rds")
 barcode.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS024/barcode/"
-barcode_file <- paste0(barcode.dir, "filtered_barcoded_cells_threshold4.csv")
+barcode_file <- paste0(barcode.dir, "filtered_barcoded_cells_threshold3.csv")
 
 seurat_obj <- readRDS(rds_file)
 barcode_data <- read.csv(barcode_file, row.names = "X")
 
 output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS024/barcode/plots/similarity/"
+dir.create(output.dir, recursive = TRUE, showWarnings = FALSE)
 
 # Build data frame: UMAP coords, PCA embeddings, cluster, barcode
 umap_coords <- as.data.frame(Embeddings(seurat_obj, "umap"))
@@ -1638,7 +1724,6 @@ pca_coords$cellID <- rownames(pca_coords)
 
 meta <- seurat_obj@meta.data
 meta$cellID <- rownames(meta)
-# Use seurat_clusters if available; otherwise first cluster column found
 cluster_col <- if ("seurat_clusters" %in% colnames(meta)) {
   "seurat_clusters"
 } else {
@@ -1656,12 +1741,8 @@ cat("Loaded", nrow(data), "cells,",
     sum(data$barcode != "none"), "barcoded\n")
 
 # Coordinate columns for distance-based metrics.
-# PCA embeddings preserve true distances better than UMAP, which applies
-# nonlinear warping that distorts inter-point distances. Using the first
-# 20 PCs captures the majority of variance while keeping computation fast.
 pc_cols <- grep("^PC_", colnames(data), value = TRUE)
-pc_cols <- pc_cols[1:min(20, length(pc_cols))]
-# UMAP columns used only for plotting
+pc_cols <- pc_cols[1:min(30, length(pc_cols))]
 umap_cols <- c("UMAP1", "UMAP2")
 coord_cols <- pc_cols
 
@@ -1679,12 +1760,7 @@ set.seed(42)
 # ---------------------------------------------------------------------------
 # For each clone, compute the E-distance between its cells and a random
 # sample of equal size drawn from all cells. Repeat n_permutations times
-# for the random-vs-random null. A clone whose E-distance exceeds the null
-# occupies a distinct region of the embedding.
-#
-# E-distance formula (Szekely & Rizzo, 2005):
-#   e(C_i, C_j) = (n_i * n_j)/(n_i + n_j) * [2*M_ij - M_ii - M_jj]
-# where M_ij = mean(||X_ip - X_jq||) over all cross-pairs.
+# for the random-vs-random null.
 
 all_coords <- as.matrix(data[, coord_cols])
 
@@ -1692,7 +1768,6 @@ compute_edist <- function(coords_a, coords_b) {
   # Manual E-distance (Szekely & Rizzo, 2005) without the energy package.
   # e(A,B) = (n_a * n_b)/(n_a + n_b) * [2*M_ab - M_aa - M_bb]
   # where M_ab = mean of all pairwise distances between A and B.
-  # Uses dist() for within-sample and a cross-distance matrix for between.
   n_a <- nrow(coords_a)
   n_b <- nrow(coords_b)
   M_ab <- mean(as.matrix(dist(rbind(coords_a, coords_b)))[1:n_a, (n_a + 1):(n_a + n_b)])
@@ -1779,7 +1854,6 @@ ggsave(p_edist_hist, file = paste0(output.dir, "edist_density_clones_vs_random.p
 # ---------------------------------------------------------------------------
 # Compute E-distance between every pair of clones. Clones that are more
 # distant from each other in the embedding adopt more divergent fates.
-# Only computed for clones with >= min_cells cells to keep runtime feasible.
 
 min_cells_pairwise <- 10
 large_clones <- names(barcode_counts[barcode_counts >= min_cells_pairwise &
@@ -1804,12 +1878,11 @@ if (n_large >= 2) {
   # Hierarchical clustering on pairwise E-distances
   hc <- hclust(as.dist(pairwise_edist), method = "ward.D2")
 
-  # Truncate barcode labels to first 8 characters for readability.
-  # Full barcode sequences are too long to display without overlap.
+  # Shorten barcode labels for readability.
   short_labels <- substr(large_clones, 1, 8)
 
   if (n_large <= 40) {
-    # Few enough clones to show truncated labels
+    # Few clones: show truncated labels
     p_dend <- plot(hc, labels = short_labels, hang = -1,
          main = "Hierarchical clustering of clones by E-distance",
          xlab = "", sub = "", cex = 0.7)
@@ -1817,7 +1890,7 @@ if (n_large >= 2) {
     ggsave(p_dend, file = paste0(output.dir, "edist_dendrogram.pdf"),
            device = "pdf")
   } else {
-    # Too many clones: drop labels entirely, show structure only
+    # Too many clones: drop labels
     p_dend <- plot(hc, labels = FALSE, hang = -1,
          main = paste0("Hierarchical clustering of clones by E-distance (n=", n_large, ")"),
          xlab = "", sub = "")
@@ -1830,240 +1903,14 @@ if (n_large >= 2) {
 } else {
   cat("Fewer than 2 clones with >=", min_cells_pairwise, "cells; skipping pairwise analysis\n")
 }
-# ---------------------------------------------------------------------------
-# 4. Phenotypic Volume
-# ---------------------------------------------------------------------------
-# Phenotypic volume quantifies how much of the embedding space a clone
-# occupies. Computed as the log-determinant of the covariance matrix of
-# a clone's coordinates. The log-determinant of
-# a p-dimensional covariance matrix equals the log of the generalized
-# variance, which is proportional to the squared hypervolume of the
-# point cloud's principal ellipsoid. Using log avoids numerical overflow
-# and makes the metric additive across dimensions.
-#
-# Compared to a convex hull, the covariance determinant is more robust
-# to outliers and does not require the geometry package, which can fail
-# in degenerate configurations (e.g., collinear points).
-#
-# Null: random samples of the same size drawn from all cells.
-
-library(geometry)  # convhulln() for convex hull volume as alternative
-
-cat("Computing phenotypic volume for", length(clone_barcodes), "clones\n")
-
-phenovol_results <- data.frame(
-  barcode = character(),
-  clone_size = integer(),
-  log_det_cov = numeric(),
-  hull_volume = numeric(),
-  null_logdet_mean = numeric(),
-  null_logdet_sd = numeric(),
-  logdet_z = numeric(),
-  stringsAsFactors = FALSE
-)
-
-for (bc in clone_barcodes) {
-  clone_idx <- which(data$barcode == bc)
-  clone_coords <- all_coords[clone_idx, , drop = FALSE]
-  n_clone <- nrow(clone_coords)
-
-  # Log-determinant of covariance matrix
-  cov_mat <- cov(clone_coords)
-  obs_logdet <- log(max(det(cov_mat), .Machine$double.xmin))
-
-  # Convex hull volume (area in 2D)
-  obs_hull <- tryCatch({
-    if (n_clone > ncol(clone_coords)) {
-      ch <- convhulln(clone_coords, options = "FA")
-      ch$vol
-    } else { NA }
-  }, error = function(e) NA)
-
-  # Null distribution
-  null_logdets <- replicate(n_permutations, {
-    ri <- sample(nrow(all_coords), n_clone)
-    rc <- cov(all_coords[ri, , drop = FALSE])
-    log(max(det(rc), .Machine$double.xmin))
-  })
-
-  null_mean <- mean(null_logdets)
-  null_sd <- sd(null_logdets)
-  z <- if (null_sd > 0) (obs_logdet - null_mean) / null_sd else NA
-
-  phenovol_results <- rbind(phenovol_results, data.frame(
-    barcode = bc, clone_size = n_clone,
-    log_det_cov = obs_logdet, hull_volume = obs_hull,
-    null_logdet_mean = null_mean, null_logdet_sd = null_sd,
-    logdet_z = z, stringsAsFactors = FALSE
-  ))
-}
-
-cat("Phenotypic volume computation complete\n")
-
-# Plot: phenotypic volume z-score vs clone size
-p_pvol <- ggplot(phenovol_results, aes(x = clone_size, y = logdet_z)) +
-  geom_point(size = 1.5) +
-  geom_hline(yintercept = 0, linetype = "dashed", color = "gray50") +
-  theme_classic() +
-  theme(aspect.ratio = 1) +
-  labs(
-    x = "Clone size (number of cells)",
-    y = "Phenotypic volume z-score (log|cov| vs random)",
-    title = "Phenotypic Volume by Clone"
-  )
-print(p_pvol)
-
-# Plot: observed log-det vs null
-p_pvol_hist <- ggplot() +
-  geom_density(data = phenovol_results,
-               aes(x = log_det_cov, fill = "Observed clones"), alpha = 0.5) +
-  geom_density(data = phenovol_results,
-               aes(x = null_logdet_mean, fill = "Random null (mean)"), alpha = 0.5) +
-  scale_fill_manual(values = c("Observed clones" = "steelblue",
-                                "Random null (mean)" = "gray70")) +
-  theme_classic() +
-  labs(x = "log(det(Cov))", y = "Density", fill = "",
-       title = "Phenotypic volume: observed vs null")
-print(p_pvol_hist)
 
 # ---------------------------------------------------------------------------
-# 5. Shannon's Equitability Index (Pielou's J)
+# 4. Summary table
 # ---------------------------------------------------------------------------
-# Measures how evenly a clone's cells distribute across transcriptomic
-# clusters. Defined as J = H / H_max, where:
-#   H     = -sum(p_i * ln(p_i))   (Shannon entropy)
-#   H_max = ln(S)                 (S = number of clusters occupied)
-#   p_i   = proportion of the clone's cells in cluster i
-#
-# J = 1 means cells are perfectly evenly spread; J -> 0 means cells
-# concentrate in a single cluster. This captures fate diversity: clones
-# with high J adopt multiple transcriptomic states, while low J clones
-# converge to one state (Goyal et al., 2023; Zhang, Melzer et al., 2024).
-#
-# Requires a cluster column. The Seurat cluster assignments were loaded
-# in setup. If the column is missing, fall back to k-means on PCs.
-
-if (!"cluster" %in% colnames(data) || all(is.na(data$cluster))) {
-  n_clusters <- 10
-  km <- kmeans(all_coords, centers = n_clusters, nstart = 25)
-  data$cluster <- as.character(km$cluster)
-  cat("No Seurat cluster column found; assigned", n_clusters, "k-means clusters on PCs\n")
-} else {
-  data$cluster <- as.character(data$cluster)
-  cat("Using Seurat cluster assignments:", length(unique(data$cluster)), "clusters\n")
-}
-
-# Shannon equitability per clone
-shannon_equitability <- function(cluster_vec) {
-  tab <- table(cluster_vec)
-  props <- as.numeric(tab) / sum(tab)
-  S <- length(tab)              # number of occupied clusters
-  if (S <= 1) return(0)         # all cells in one cluster
-  H <- -sum(props * log(props))
-  H_max <- log(S)
-  J <- H / H_max
-  return(J)
-}
-
-shannon_results <- data.frame(
-  barcode = character(),
-  clone_size = integer(),
-  n_clusters_occupied = integer(),
-  shannon_H = numeric(),
-  equitability_J = numeric(),
-  null_J_mean = numeric(),
-  null_J_sd = numeric(),
-  J_z = numeric(),
-  stringsAsFactors = FALSE
-)
-
-cat("Computing Shannon equitability for", length(clone_barcodes), "clones\n")
-
-cluster_vec_all <- data$cluster
-
-for (bc in clone_barcodes) {
-  clone_idx <- which(data$barcode == bc)
-  clone_clusters <- cluster_vec_all[clone_idx]
-  n_clone <- length(clone_idx)
-
-  tab <- table(clone_clusters)
-  props <- as.numeric(tab) / sum(tab)
-  S <- length(tab)
-  H <- if (S > 1) -sum(props * log(props)) else 0
-  J <- shannon_equitability(clone_clusters)
-
-  # Null: random cells of same size
-  null_Js <- replicate(n_permutations, {
-    ri <- sample(length(cluster_vec_all), n_clone)
-    shannon_equitability(cluster_vec_all[ri])
-  })
-
-  null_mean <- mean(null_Js)
-  null_sd <- sd(null_Js)
-  z <- if (null_sd > 0) (J - null_mean) / null_sd else NA
-
-  shannon_results <- rbind(shannon_results, data.frame(
-    barcode = bc, clone_size = n_clone,
-    n_clusters_occupied = S,
-    shannon_H = H, equitability_J = J,
-    null_J_mean = null_mean, null_J_sd = null_sd,
-    J_z = z, stringsAsFactors = FALSE
-  ))
-}
-
-cat("Shannon equitability computation complete\n")
-
-# Plot: equitability vs clone size
-p_shan <- ggplot(shannon_results, aes(x = clone_size, y = equitability_J)) +
-  geom_point(size = 1.5) +
-  geom_hline(aes(yintercept = mean(null_J_mean)),
-             linetype = "dashed", color = "red", data = shannon_results) +
-  theme_classic() +
-  theme(aspect.ratio = 1) +
-  ylim(0, 1) +
-  labs(
-    x = "Clone size (number of cells)",
-    y = "Shannon equitability (J)",
-    title = "Fate Diversity by Clone (Shannon Equitability)"
-  )
-print(p_shan)
-
-# Plot: equitability z-scores
-p_shan_z <- ggplot(shannon_results, aes(x = clone_size, y = J_z)) +
-  geom_point(size = 1.5) +
-  geom_hline(yintercept = 0, linetype = "dashed", color = "gray50") +
-  theme_classic() +
-  theme(aspect.ratio = 1) +
-  labs(
-    x = "Clone size (number of cells)",
-    y = "Equitability z-score (vs random null)",
-    title = "Shannon Equitability Z-Score"
-  )
-print(p_shan_z)
-
-# Plot: distribution of J observed vs null
-p_shan_hist <- ggplot() +
-  geom_histogram(data = shannon_results,
-                 aes(x = equitability_J, fill = "Observed"), alpha = 0.6, bins = 30) +
-  geom_vline(xintercept = mean(shannon_results$null_J_mean),
-             linetype = "dashed", color = "red") +
-  scale_fill_manual(values = c("Observed" = "steelblue")) +
-  theme_classic() +
-  labs(x = "Shannon equitability (J)", y = "Count", fill = "",
-       title = "Per-clone equitability vs random null mean")
-print(p_shan_hist)
-
-# ---------------------------------------------------------------------------
-# 6. Summary table
-# ---------------------------------------------------------------------------
-summary_table <- edist_results %>%
-  left_join(mixing_per_clone, by = c("barcode", "clone_size")) %>%
-  left_join(phenovol_results %>% select(barcode, log_det_cov, hull_volume, logdet_z),
-            by = "barcode") %>%
-  left_join(shannon_results %>% select(barcode, n_clusters_occupied, equitability_J, J_z),
-            by = "barcode")
-cat("Summary of barcode similarity metrics:\n")
-print(summary_table)
+# summary_table <- edist_results %>%
+#   left_join(mixing_per_clone, by = c("barcode", "clone_size"))
+# cat("Summary of barcode similarity metrics:\n")
+# print(summary_table)
 ```
 
 ### Patterns annotation with barcodes
@@ -2517,6 +2364,7 @@ p <- ggplot(dist_df, aes(x = comparison, y = distance)) +
   labs(x = "", y = "Euclidean distance (PCA space)") +
   theme(axis.text.x = element_text(angle = 25, hjust = 1))
 output_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS024/joint/plots/"
+dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
 ggsave(paste0(output_dir, "barcode_edist_violins_cluster1.pdf"), p)
 ```
 
@@ -2544,69 +2392,680 @@ rownames(seurat_obj@meta.data) <- seurat_obj@meta.data$cellID
 singletons <- subset(seurat_obj, is_singleton == TRUE)
 pca <- Embeddings(singletons, "pca")[, 1:30]
 meta <- singletons@meta.data
+
+# --- Parameters ---
+set.seed(42)
+N_SUBSAMPLE <- 500   # pairs per group; reduce dependence from O(n^2) pairs
+N_PERM      <- 1000  # permutations for null distribution
+
+pair_dist <- function(idx_a, idx_b, pca) {
+  # Compute Euclidean distance between row pairs in pca matrix
+  sqrt(rowSums((pca[idx_a, , drop = FALSE] - pca[idx_b, , drop = FALSE])^2))
+}
+
+subsample_pairs <- function(idx, n, pca) {
+  # Draw n random pairs WITHOUT replacement from idx; reduces cell re-use
+  # Each draw picks 2*n distinct indices -> at most 2 appearances per cell
+  pool <- sample(idx, min(2 * n, length(idx)))
+  half <- length(pool) %/% 2
+  pair_dist(pool[1:half], pool[(half + 1):(2 * half)], pca)
+}
+
+# --- Extract PCA and cluster labels for singletons ---
+pca  <- Embeddings(singletons, "pca")[, 1:30]
+meta <- singletons@meta.data
+
 in_cl7 <- which(meta$seurat_clusters == 7)
 in_cl1 <- which(meta$seurat_clusters == 1)
 
-# Subsample to equal size (smaller of the two clusters)
-set.seed(42)
-n_cells <- min(length(in_cl7), length(in_cl1))
-in_cl7 <- sample(in_cl7, n_cells)
-in_cl1 <- sample(in_cl1, n_cells)
-n_pairs <- choose(n_cells, 2)  # all unique pairs from n_cells
-cat("Cells per group:", n_cells, "| Pairs per comparison:", n_pairs, "\n")
+cat("Singletons in cluster 7:", length(in_cl7), "\n")
+cat("Singletons in cluster 1:", length(in_cl1), "\n")
 
-pair_dist <- function(pairs, pca) {
-  sqrt(rowSums((pca[pairs[,1],] - pca[pairs[,2],])^2))
+# --- Observed subsampled distances ---
+d_w7  <- subsample_pairs(in_cl7, N_SUBSAMPLE, pca)
+d_w1  <- subsample_pairs(in_cl1, N_SUBSAMPLE, pca)
+
+cx_a  <- sample(in_cl7, N_SUBSAMPLE, replace = TRUE)
+cx_b  <- sample(in_cl1, N_SUBSAMPLE, replace = TRUE)
+d_bet <- pair_dist(cx_a, cx_b, pca)
+
+cat("\nObserved means:\n")
+cat("  Within cluster 7:", round(mean(d_w7), 3), "+/-", round(sd(d_w7), 3), "\n")
+cat("  Within cluster 1:", round(mean(d_w1), 3), "+/-", round(sd(d_w1), 3), "\n")
+cat("  Cluster 7 vs 1: ", round(mean(d_bet), 3), "+/-", round(sd(d_bet), 3), "\n")
+
+# --- Permutation test for within-cluster difference ---
+# Null hypothesis: within-cluster distance distributions are exchangeable
+# i.e., cluster label has no effect on intra-cluster spread among singletons
+all_within_idx <- c(in_cl7, in_cl1)
+obs_delta <- mean(d_w1) - mean(d_w7)   # observed difference in means
+
+perm_deltas <- numeric(N_PERM)
+for (i in seq_len(N_PERM)) {
+  perm_labels <- sample(c(rep(7, length(in_cl7)), rep(1, length(in_cl1))))
+  p7 <- all_within_idx[perm_labels == 7]
+  p1 <- all_within_idx[perm_labels == 1]
+  perm_deltas[i] <- mean(subsample_pairs(p1, N_SUBSAMPLE, pca)) -
+                    mean(subsample_pairs(p7, N_SUBSAMPLE, pca))
 }
 
-# 1. Within cluster 7: all pairs of singletons in cluster 7
-within7_pairs <- t(combn(in_cl7, 2))
-d_within7 <- pair_dist(within7_pairs, pca)
+# Two-sided permutation p-value
+perm_p <- mean(abs(perm_deltas) >= abs(obs_delta))
+cat("\nPermutation test (within-cluster 7 vs within-cluster 1):\n")
+cat("  Observed delta mean:", round(obs_delta, 4), "\n")
+cat("  Permutation p-value:", round(perm_p, 4), "\n")
+cat("  Interpretation: p < 0.05 means the within-cluster spread difference\n")
+cat("  is unlikely under random label assignment.\n")
 
-# 2. Within cluster 1: all pairs of singletons in cluster 1
-within1_pairs <- t(combn(in_cl1, 2))
-d_within1 <- pair_dist(within1_pairs, pca)
+# --- Plot permutation null distribution ---
+perm_df <- data.frame(delta = perm_deltas)
+p_perm <- ggplot(perm_df, aes(x = delta)) +
+  geom_histogram(bins = 40, fill = "gray70", color = "white") +
+  geom_vline(xintercept = obs_delta, color = "black", linewidth = 1, linetype = "dashed") +
+  annotate("text", x = obs_delta, y = Inf, vjust = 2, hjust = -0.1,
+           label = paste0("obs. delta\np_perm = ", round(perm_p, 4))) +
+  theme_classic() +
+  labs(x = "Delta mean distance (within cl1 - within cl7)",
+       y = "Count",
+       title = "Permutation null: within-cluster spread difference")
 
-# 3. Between cluster 7 and cluster 1: all cross-pairs, subsampled to match
-between_all <- expand.grid(in_cl7, in_cl1)
-between_pairs <- as.matrix(between_all[sample(nrow(between_all), n_pairs), ])
-d_between <- pair_dist(between_pairs, pca)
-
-cat("Within cluster 7:  ", round(mean(d_within7), 3), "+/-", round(sd(d_within7), 3), "\n")
-cat("Within cluster 1:  ", round(mean(d_within1), 3), "+/-", round(sd(d_within1), 3), "\n")
-cat("Cluster 7 vs 1:    ", round(mean(d_between), 3), "+/-", round(sd(d_between), 3), "\n")
-
+# --- Violin plot with corrected pairwise tests ---
 dist_df <- data.frame(
-  distance = c(d_within7, d_within1, d_between),
-  comparison = rep(c("Within cluster 7", "Within cluster 1", "Cluster 7 vs 1"),
-                   each = n_pairs)
+  distance   = c(d_w7, d_w1, d_bet),
+  comparison = factor(
+    c(rep("Within cluster 7", length(d_w7)),
+      rep("Within cluster 1", length(d_w1)),
+      rep("Cluster 7 vs 1",   length(d_bet))),
+    levels = c("Within cluster 7", "Within cluster 1", "Cluster 7 vs 1")
+  )
 )
-dist_df$comparison <- factor(dist_df$comparison,
-  levels = c("Within cluster 7", "Within cluster 1", "Cluster 7 vs 1"))
 
-# Kruskal-Wallis omnibus test, then Dunn's post-hoc with Bonferroni correction
+# Single omnibus test, then Bonferroni-corrected post-hoc
 kw <- kruskal.test(distance ~ comparison, data = dist_df)
 cat("\nKruskal-Wallis p =", format.pval(kw$p.value, digits = 3), "\n")
-
 dunn <- pairwise.wilcox.test(dist_df$distance, dist_df$comparison,
                               p.adjust.method = "bonferroni")
 cat("\nPairwise Wilcoxon (Bonferroni-corrected):\n")
 print(dunn)
 
-ggplot(dist_df, aes(x = comparison, y = distance)) +
+p_violin <- ggplot(dist_df, aes(x = comparison, y = distance)) +
   geom_violin(fill = "gray80") +
-  geom_boxplot(width = 0.1) +
-  stat_compare_means(comparisons = list(
-    c("Within cluster 7", "Within cluster 1"),
-    c("Within cluster 7", "Cluster 7 vs 1"),
-    c("Within cluster 1", "Cluster 7 vs 1")
-  ), method = "wilcox.test", p.adjust.method = "bonferroni",
-  label = "p.signif", step.increase = 0.05) +
+  geom_boxplot(width = 0.1, outlier.size = 0.5) +
+  stat_compare_means(
+    comparisons = list(
+      c("Within cluster 7", "Within cluster 1"),
+      c("Within cluster 7", "Cluster 7 vs 1"),
+      c("Within cluster 1", "Cluster 7 vs 1")
+    ),
+    method         = "wilcox.test",
+    p.adjust.method = "bonferroni",
+    label          = "p.signif",
+    step.increase  = 0.07
+  ) +
   theme_classic() +
   labs(x = "", y = "Euclidean distance (PCA space)",
-       title = "Singleton e-dist: cluster 7 vs cluster 1") +
+       title = paste0("Singleton e-dist: cluster 7 vs cluster 1\n",
+                      "(subsampled pairs, n=", N_SUBSAMPLE, " per group)")) +
   theme(axis.text.x = element_text(angle = 25, hjust = 1))
+
+print(p_violin)
+print(p_perm)
 ```
+
+### Heritable genes
+Inspired from fluctuation test analysis
+```{r}
+library(Matrix)
+
+# ---- 1. Load data and attach barcode metadata --------------------------------
+
+rds_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS024/singleCell/Seurat/RDS/"
+seurat_obj <- readRDS(paste0(rds_dir, "GFP_invitro.rds"))
+
+combined.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS024/combined/"
+combined_data <- read.csv(paste0(combined.dir, "dataframes/GFP_invitro_all.csv"))
+
+barcode_map <- combined_data %>%
+  select(cellID, barcode) %>%
+  distinct()
+
+seurat_obj@meta.data$cellID <- rownames(seurat_obj@meta.data)
+seurat_obj@meta.data <- seurat_obj@meta.data %>%
+  left_join(barcode_map, by = "cellID")
+rownames(seurat_obj@meta.data) <- seurat_obj@meta.data$cellID
+
+barcode_counts <- seurat_obj@meta.data %>%
+  filter(barcode != "none") %>%
+  count(barcode, name = "clone_size")
+
+seurat_obj@meta.data <- seurat_obj@meta.data %>%
+  left_join(barcode_counts, by = "barcode") %>%
+  mutate(
+    clone_size = ifelse(barcode == "none", NA_integer_, clone_size),
+    is_singleton = clone_size == 1
+  )
+rownames(seurat_obj@meta.data) <- seurat_obj@meta.data$cellID
+
+# ---- 2. Setup: clusters, HVGs, expression matri ----------------------
+# Use Seurat clusters as cell-type proxy. If you have manual annotations in
+# metadata (e.g., seurat_obj$cell_type), replace "seurat_clusters" below.
+CLUSTER_COL <- "seurat_clusters"
+MIN_CLONE_SIZE <- 3
+N_PERM <- 1000
+n_cores <- min(detectCores() - 1, 8)
+ 
+hvgs <- VariableFeatures(seurat_obj)
+if (length(hvgs) == 0) stop("No variable features found. Run FindVariableFeatures() first.")
+ 
+# Full expression matrix (log-normalized) for HVGs, all cells with barcodes
+meta <- seurat_obj@meta.data %>%
+  filter(!is.na(clone_size), clone_size >= MIN_CLONE_SIZE)
+ 
+expr_mat <- as.matrix(GetAssayData(seurat_obj, layer = "data")[hvgs, meta$cellID])
+ 
+# ---- 3. Characterize clone composition across clusters ----------------------
+ 
+clone_cluster_comp <- meta %>%
+  count(barcode, !!sym(CLUSTER_COL)) %>%
+  group_by(barcode) %>%
+  mutate(
+    total_cells = sum(n),
+    frac = n / total_cells,
+    n_clusters = n()
+  ) %>%
+  ungroup()
+ 
+# Classify clones: "pure" if >80% of cells in one cluster, "mixed" otherwise.
+PURITY_THRESHOLD <- 0.80
+ 
+clone_purity <- clone_cluster_comp %>%
+  group_by(barcode) %>%
+  summarise(
+    dominant_cluster = .data[[CLUSTER_COL]][which.max(frac)],
+    dominant_frac = max(frac),
+    n_clusters = first(n_clusters),
+    total_cells = first(total_cells),
+    is_pure = max(frac) >= PURITY_THRESHOLD,
+    .groups = "drop"
+)
+ 
+cat("\n--- Clone purity summary ---\n")
+cat(sprintf("Pure clones (>=%d%% in one cluster): %d\n",
+            PURITY_THRESHOLD * 100, sum(clone_purity$is_pure)))
+cat(sprintf("Mixed clones: %d\n", sum(!clone_purity$is_pure)))
+print(table(clone_purity$dominant_cluster, clone_purity$is_pure,
+            dnn = c("Cluster", "Pure")))
+ 
+# ---- 4. ICC function ---------------------------------------
+ 
+compute_icc <- function(expr_vec, group_labels) {
+  groups <- split(expr_vec, group_labels)
+  n_groups <- length(groups)
+  group_sizes <- lengths(groups)
+  N <- sum(group_sizes)
+ 
+  if (n_groups < 2) return(0)
+ 
+  grand_mean <- mean(expr_vec)
+  group_means <- vapply(groups, mean, numeric(1))
+ 
+  ss_between <- sum(group_sizes * (group_means - grand_mean)^2)
+  ss_within <- sum(unlist(lapply(groups, function(g) sum((g - mean(g))^2))))
+ 
+  df_between <- n_groups - 1
+  df_within <- N - n_groups
+  if (df_within == 0) return(0)
+ 
+  ms_between <- ss_between / df_between
+  ms_within <- ss_within / df_within
+ 
+  k0 <- (N - sum(group_sizes^2) / N) / (n_groups - 1)
+  icc <- (ms_between - ms_within) / (ms_between + (k0 - 1) * ms_within)
+  return(max(icc, 0))
+}
+ 
+# ---- 5. Within-cluster heritability (controls for cell type) -----------------
+ 
+cat("\n--- Within-cluster heritability analysis ---\n")
+ 
+pure_clones <- clone_purity %>% filter(is_pure)
+ 
+# Determine which clusters have enough pure clones for analysis
+cluster_clone_counts <- pure_clones %>%
+  count(dominant_cluster, name = "n_clones") %>%
+  filter(n_clones >= 2)
+ 
+cat(sprintf("Clusters with >= 2 pure clones: %d\n", nrow(cluster_clone_counts)))
+ 
+within_cluster_results <- list()
+ 
+for (cl in cluster_clone_counts$dominant_cluster) {
+  clones_in_cluster <- pure_clones %>%
+    filter(dominant_cluster == cl) %>%
+    pull(barcode)
+ 
+  # Get cells belonging to these clones AND in this cluster
+  cells_in <- meta %>%
+    filter(barcode %in% clones_in_cluster,
+           !!sym(CLUSTER_COL) == cl) %>%
+    pull(cellID)
+ 
+  if (length(cells_in) < 6) next  # need reasonable sample
+ 
+  cl_expr <- expr_mat[, cells_in, drop = FALSE]
+  cl_labels <- meta$barcode[match(cells_in, meta$cellID)]
+ 
+  # Remove genes with zero variance in this subset (uninformative)
+  gene_vars <- apply(cl_expr, 1, var)
+  keep_genes <- names(gene_vars[gene_vars > 0])
+  cl_expr <- cl_expr[keep_genes, , drop = FALSE]
+ 
+  cat(sprintf("  Cluster %s: %d clones, %d cells, %d informative genes\n",
+              cl, length(clones_in_cluster), length(cells_in), length(keep_genes)))
+ 
+  # Observed ICC
+  obs_icc <- apply(cl_expr, 1, compute_icc, group_labels = cl_labels)
+ 
+  # Permutation null: shuffle clone labels within this cluster's cells
+  set.seed(42)
+  perm_labels_list <- replicate(N_PERM, sample(cl_labels), simplify = FALSE)
+ 
+  perm_icc_mat <- mclapply(perm_labels_list, function(pl) {
+    apply(cl_expr, 1, compute_icc, group_labels = pl)
+  }, mc.cores = n_cores)
+  perm_icc_mat <- do.call(cbind, perm_icc_mat)
+ 
+  perm_p <- (rowSums(perm_icc_mat >= obs_icc) + 1) / (N_PERM + 1)
+  perm_padj <- p.adjust(perm_p, method = "BH")
+ 
+  res <- data.frame(
+    gene = names(obs_icc),
+    cluster = cl,
+    icc = obs_icc,
+    perm_pvalue = perm_p,
+    perm_padj = perm_padj,
+    mean_expr = rowMeans(cl_expr),
+    detection_rate = rowMeans(cl_expr > 0),
+    n_clones = length(clones_in_cluster),
+    n_cells = length(cells_in),
+    stringsAsFactors = FALSE
+  )
+ 
+  within_cluster_results[[cl]] <- res
+}
+ 
+within_cluster_df <- bind_rows(within_cluster_results)
+rownames(within_cluster_df) <- NULL
+ 
+# ---- 6. Per-clone coherence analysis -----------------------------------------
+ 
+cat("\n--- Per-clone coherence analysis ---\n")
+ 
+N_RANDOM_SAMPLES <- 200
+ 
+clone_coherence_results <- list()
+ 
+for (bc in pure_clones$barcode) {
+  cl <- pure_clones$dominant_cluster[pure_clones$barcode == bc]
+  clone_cells <- meta %>%
+    filter(barcode == bc, !!sym(CLUSTER_COL) == cl) %>%
+    pull(cellID)
+ 
+  clone_size <- length(clone_cells)
+  if (clone_size < MIN_CLONE_SIZE) next
+ 
+  # All cells in the same cluster (pool for random sampling)
+  cluster_cells <- meta %>%
+    filter(!!sym(CLUSTER_COL) == cl) %>%
+    pull(cellID)
+ 
+  # Exclude this clone's own cells from the random pool to avoid overlap
+  pool_cells <- setdiff(cluster_cells, clone_cells)
+  if (length(pool_cells) < clone_size * 2) next
+ 
+  clone_expr <- expr_mat[, clone_cells, drop = FALSE]
+ 
+  # Clone CV per gene (add small pseudocount to avoid 0/0)
+  clone_means <- rowMeans(clone_expr)
+  clone_sds <- apply(clone_expr, 1, sd)
+  # Use mean absolute deviation from clone mean as dispersion metric.
+  # More robust than CV for zero-inflated data.
+  clone_mad <- apply(clone_expr, 1, function(x) mean(abs(x - mean(x))))
+ 
+  # Random samples: draw size-matched sets from same cluster
+  random_mads <- mclapply(seq_len(N_RANDOM_SAMPLES), function(i) {
+    set.seed(i)
+    rand_cells <- sample(pool_cells, clone_size)
+    rand_expr <- expr_mat[, rand_cells, drop = FALSE]
+    apply(rand_expr, 1, function(x) mean(abs(x - mean(x))))
+  }, mc.cores = n_cores)
+  random_mad_mat <- do.call(cbind, random_mads)
+ 
+  # For each gene: empirical p-value that clone is more coherent than random
+  coherence_p <- (rowSums(random_mad_mat <= clone_mad) + 1) / (N_RANDOM_SAMPLES + 1)
+ 
+  # Coherence score: -log10(p), higher = more heritable
+  clone_coherence_results[[bc]] <- data.frame(
+    barcode = bc,
+    cluster = cl,
+    clone_size = clone_size,
+    gene = names(coherence_p),
+    coherence_pvalue = coherence_p,
+    clone_mad = clone_mad,
+    median_random_mad = apply(random_mad_mat, 1, median),
+    stringsAsFactors = FALSE
+  )
+}
+ 
+clone_coherence_df <- bind_rows(clone_coherence_results)
+ 
+# Summarize: for each clone, what fraction of genes are significantly coherent?
+clone_summary <- clone_coherence_df %>%
+  group_by(barcode, cluster, clone_size) %>%
+  summarise(
+    n_genes_tested = n(),
+    n_coherent_genes = sum(coherence_pvalue < 0.05),
+    frac_coherent = n_coherent_genes / n_genes_tested,
+    # Top 5 most coherent genes for annotation
+    top_genes = paste(head(gene[order(coherence_pvalue)], 5), collapse = ", "),
+    .groups = "drop"
+  ) %>%
+  arrange(desc(frac_coherent))
+ 
+cat("\n--- Clone coherence summary (top 20 clones) ---\n")
+print(head(clone_summary, 20))
+ 
+# ---- 7. Identify genes recurrently coherent across clones --------------------
+#
+# A gene that is coherent in many independent clones (within the same cluster)
+# is likely under heritable regulation, not a one-off stochastic event.
+ 
+gene_recurrence <- clone_coherence_df %>%
+  group_by(gene, cluster) %>%
+  summarise(
+    n_clones_tested = n(),
+    n_clones_coherent = sum(coherence_pvalue < 0.05),
+    frac_clones_coherent = n_clones_coherent / n_clones_tested,
+    median_coherence_p = median(coherence_pvalue),
+    .groups = "drop"
+  ) %>%
+  filter(n_clones_tested >= 3) %>%
+  arrange(desc(frac_clones_coherent), median_coherence_p)
+ 
+cat("\n--- Genes recurrently coherent across clones (top 20) ---\n")
+print(head(gene_recurrence, 20))
+ 
+# ---- 8. Visualizations ------------------------------------------------------
+ 
+output_dir <- paste0(combined.dir, "plots/")
+dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
+ 
+# 8a. Within-cluster volcano per cluster
+sig_within <- within_cluster_df %>% filter(perm_padj < 0.05)
+cat(sprintf("\nSignificant within-cluster heritable genes: %d\n", nrow(sig_within)))
+ 
+if (nrow(within_cluster_df) > 0) {
+  p_within <- ggplot(within_cluster_df,
+                     aes(x = icc, y = -log10(perm_padj))) +
+    geom_point(aes(color = perm_padj < 0.05), size = 0.8, alpha = 0.5) +
+    scale_color_manual(values = c("grey60", "firebrick"),
+                       labels = c("NS", "FDR < 0.05")) +
+    geom_text_repel(
+      data = within_cluster_df %>%
+        group_by(cluster) %>%
+        slice_min(perm_padj, n = 5, with_ties = FALSE),
+      aes(label = gene), size = 2.5, max.overlaps = 15
+    ) +
+    facet_wrap(~cluster, scales = "free") +
+    labs(
+      x = "ICC (within-cluster heritability)",
+      y = "-log10(Adjusted p-value)",
+      title = "Within-Cluster Gene Heritability (cell-type controlled)",
+      color = NULL
+    ) +
+    theme_minimal(base_size = 10) +
+    theme(legend.position = "top")
+ 
+  ggsave(paste0(output_dir, "heritability_within_cluster_volcano.pdf"),
+         p_within, width = 12, height = 8)
+}
+ 
+# 8b. Compare global ICC vs within-cluster ICC for top genes
+# This highlights genes whose heritability survives cell-type correction
+global_clone_labels <- meta$barcode
+names(global_clone_labels) <- meta$cellID
+global_icc <- apply(expr_mat, 1, compute_icc, group_labels = global_clone_labels)
+ 
+# Average within-cluster ICC per gene (across clusters where it was tested)
+avg_within_icc <- within_cluster_df %>%
+  group_by(gene) %>%
+  summarise(
+    mean_within_icc = mean(icc),
+    min_within_padj = min(perm_padj),
+    n_clusters_tested = n(),
+    .groups = "drop"
+  )
+ 
+comparison_df <- data.frame(
+  gene = names(global_icc),
+  global_icc = global_icc,
+  stringsAsFactors = FALSE
+) %>%
+  left_join(avg_within_icc, by = "gene") %>%
+  filter(!is.na(mean_within_icc))
+ 
+p_compare <- ggplot(comparison_df, aes(x = global_icc, y = mean_within_icc)) +
+  geom_point(aes(color = min_within_padj < 0.05), size = 1.2, alpha = 0.5) +
+  scale_color_manual(values = c("grey60", "firebrick"),
+                     labels = c("NS within-cluster", "Sig. within-cluster")) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "grey40") +
+  geom_text_repel(
+    data = comparison_df %>%
+      filter(min_within_padj < 0.05) %>%
+      slice_max(mean_within_icc, n = 15),
+    aes(label = gene), size = 2.5, max.overlaps = 20
+  ) +
+  labs(
+    x = "Global ICC (all clones pooled)",
+    y = "Mean within-cluster ICC",
+    title = "Global vs Cell-Type-Controlled Heritability",
+    subtitle = "Points below diagonal: heritability explained by cell type, not regulation",
+    color = NULL
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(legend.position = "top")
+ 
+ggsave(paste0(output_dir, "heritability_global_vs_within_cluster.pdf"),
+       p_compare, width = 8, height = 7)
+ 
+# 8c. Heatmap of top heritable genes across clones (within top cluster)
+# Pick the cluster with the most significant hits
+if (nrow(sig_within) > 0) {
+  best_cluster <- sig_within %>%
+    count(cluster, sort = TRUE) %>%
+    slice(1) %>%
+    pull(cluster)
+ 
+  top_within_genes <- sig_within %>%
+    filter(cluster == best_cluster) %>%
+    arrange(perm_padj) %>%
+    head(30) %>%
+    pull(gene)
+ 
+  clones_in_best <- pure_clones %>%
+    filter(dominant_cluster == best_cluster) %>%
+    pull(barcode)
+ 
+  cells_in_best <- meta %>%
+    filter(barcode %in% clones_in_best,
+           !!sym(CLUSTER_COL) == best_cluster) %>%
+    pull(cellID)
+ 
+  if (length(top_within_genes) > 1 && length(cells_in_best) > 5) {
+    hm_expr <- expr_mat[top_within_genes, cells_in_best]
+ 
+    # Scale genes for visualization
+    hm_scaled <- t(scale(t(hm_expr)))
+ 
+    # Annotation: clone identity
+    annot_col <- data.frame(
+      clone = meta$barcode[match(cells_in_best, meta$cellID)]
+    )
+    rownames(annot_col) <- cells_in_best
+ 
+    # Generate distinct colors for clones
+    n_clones_hm <- n_distinct(annot_col$clone)
+    clone_colors <- setNames(
+      colorRampPalette(c("#E41A1C", "#377EB8", "#4DAF4A", "#984EA3",
+                         "#FF7F00", "#A65628", "#F781BF", "#999999"))(n_clones_hm),
+      sort(unique(annot_col$clone))
+    )
+ 
+    pdf(paste0(output_dir, "heritability_heatmap_cluster_", best_cluster, ".pdf"),
+        width = 12, height = 8)
+    pheatmap(
+      hm_scaled,
+      annotation_col = annot_col,
+      annotation_colors = list(clone = clone_colors),
+      show_colnames = FALSE,
+      clustering_distance_cols = "euclidean",
+      clustering_method = "ward.D2",
+      main = sprintf("Top heritable genes in Cluster %s (cell-type controlled)",
+                     best_cluster),
+      fontsize_row = 7
+    )
+    dev.off()
+  }
+}
+ 
+# 8d. Clone coherence distribution
+p_coherence <- ggplot(clone_summary, aes(x = reorder(barcode, -frac_coherent),
+                                          y = frac_coherent)) +
+  geom_col(aes(fill = cluster), width = 0.8) +
+  labs(
+    x = "Clone (sorted by coherence)",
+    y = "Fraction of genes with coherent expression",
+    title = "Per-Clone Expression Coherence vs Same-Cluster Random Cells",
+    fill = "Cluster"
+  ) +
+  theme_minimal(base_size = 10) +
+  theme(axis.text.x = element_blank(), axis.ticks.x = element_blank())
+ 
+ggsave(paste0(output_dir, "clone_coherence_barplot.pdf"),
+       p_coherence, width = 10, height = 5)
+ 
+# ---- 9. Save all results ----------------------------------------------------
+ 
+write.csv(within_cluster_df,
+          paste0(combined.dir, "dataframes/heritability_within_cluster.csv"),
+          row.names = FALSE)
+ 
+write.csv(comparison_df,
+          paste0(combined.dir, "dataframes/heritability_global_vs_within.csv"),
+          row.names = FALSE)
+ 
+write.csv(clone_summary,
+          paste0(combined.dir, "dataframes/clone_coherence_summary.csv"),
+          row.names = FALSE)
+ 
+write.csv(gene_recurrence,
+          paste0(combined.dir, "dataframes/gene_recurrence_across_clones.csv"),
+          row.names = FALSE)
+ 
+write.csv(clone_coherence_df,
+          paste0(combined.dir, "dataframes/clone_coherence_per_gene.csv"),
+          row.names = FALSE)
+ 
+cat("\n--- All outputs saved ---\n")
+
+# ---- 10. Host factor heritability lookup ------------------------------------
+
+host_factors <- list(
+  restriction = c("APOBEC3G", "APOBEC3H", "TRIM5", "SAMHD1",
+                   "BST2", "SERINC5", "SERINC3", "MX2", "IFITM2"),
+  dependency = c("CD4", "CCR5", "PPIA", "PSIP1", "TNPO3", "CPSF6", "NUP153", "RANBP2",
+                  "TSG101", "PDCD6IP", "SP1", "NFKB1", "RELA", "CDK9", "CCNT1", "TNPO1",
+                  "XPO1", "DDX3X", "RAN", "RANBP1", "RANGAP1")#,
+  #cytotoxic = c("TBX21", "EOMES", "RUNX3", "IFNG-AS1", "GZMK", "GZMA", "CX3CR1", "PRF1",
+  #               "GZMB", "GZMH", "GNLY", "ZNF683")
+)
+all_factors <- unlist(host_factors, use.names = FALSE)
+
+# reload results
+combined.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS024/combined/"
+within_cluster_df <- read.csv(paste0(combined.dir, "dataframes/heritability_within_cluster.csv"))
+comparison_df <- read.csv(paste0(combined.dir, "dataframes/heritability_global_vs_within.csv"))
+gene_recurrence <- read.csv(paste0(combined.dir, "dataframes/gene_recurrence_across_clones.csv"))
+
+# Within-cluster ICC results for host factors
+cat("\n--- Host factors: within-cluster heritability ---\n")
+hf_within <- within_cluster_df %>%
+  filter(gene %in% all_factors) %>%
+  mutate(category = case_when(
+    gene %in% host_factors$restriction ~ "restriction",
+    gene %in% host_factors$dependency ~ "dependency"#,
+    #gene %in% host_factors$cytotoxic ~ "cytotoxic"
+  )) %>%
+  arrange(category, perm_padj)
+print(hf_within %>% select(gene, category, cluster, icc, perm_padj))
+
+cat(sprintf("\nSignificant host factors (padj < 0.05): %d / %d tested\n",
+            sum(hf_within$perm_padj < 0.05), nrow(hf_within)))
+
+# Global vs within-cluster ICC for host factors
+cat("\n--- Host factors: global vs within-cluster ICC ---\n")
+hf_compare <- comparison_df %>%
+  filter(gene %in% all_factors) %>%
+  mutate(category = case_when(
+    gene %in% host_factors$restriction ~ "restriction",
+    gene %in% host_factors$dependency ~ "dependency"#,
+    #gene %in% host_factors$cytotoxic ~ "cytotoxic"
+  )) %>%
+  arrange(category, desc(mean_within_icc))
+print(hf_compare %>% select(gene, category, global_icc, mean_within_icc, min_within_padj))
+
+# Gene recurrence across clones for host factors
+cat("\n--- Host factors: recurrence across clones ---\n")
+hf_recurrence <- gene_recurrence %>%
+  filter(gene %in% all_factors) %>%
+  mutate(category = case_when(
+    gene %in% host_factors$restriction ~ "restriction",
+    gene %in% host_factors$dependency ~ "dependency"#,
+    #gene %in% host_factors$cytotoxic ~ "cytotoxic"
+  )) %>%
+  arrange(desc(frac_clones_coherent))
+print(hf_recurrence)
+
+# Which host factors were NOT found in any results?
+tested_genes <- unique(c(within_cluster_df$gene, comparison_df$gene, gene_recurrence$gene))
+missing <- setdiff(all_factors, tested_genes)
+if (length(missing) > 0) {
+  cat("\nHost factors not in HVGs (not tested):", paste(missing, collapse = ", "), "\n")
+}
+
+# ---- Enrichment test: is the number of coherent clones more than expected? ----
+# Under the null, each clone has a 5% chance of appearing coherent (p < 0.05).
+# Binomial test asks: is the observed count significantly above this baseline?
+cat("\n--- Enrichment test: coherent clone counts vs chance (5%) ---\n")
+enrichment_results <- hf_recurrence %>%
+  rowwise() %>%
+  mutate(
+    expected = n_clones_tested * 0.05,
+    binom_p = binom.test(n_clones_coherent, n_clones_tested, p = 0.05,
+                          alternative = "greater")$p.value
+  ) %>%
+  ungroup() %>%
+  mutate(binom_padj = p.adjust(binom_p, method = "BH")) %>%
+  arrange(binom_padj)
+
+print(enrichment_results %>%
+  select(gene, cluster, category, n_clones_tested, n_clones_coherent,
+         expected, frac_clones_coherent, binom_p, binom_padj))
+
+cat(sprintf("\nGenes with significantly enriched coherence (BH-adjusted p < 0.05): %d\n",
+            sum(enrichment_results$binom_padj < 0.05)))
+```
+
 
 ## Other Joint Analyses
 
@@ -2644,6 +3103,7 @@ results_sparse <- host_virus_correlation_sparse(
 )
 
 output_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/joint/hostVirus/dependencyFactors/"
+dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
 host_virus_correlation(joint_data, objects, factors_restrict, viral_col = "SALVE", 
             output.dir = output_dir)
 host_virus_correlation(joint_data, objects, factors_restrict, viral_col = "USprop", 
@@ -2900,9 +3360,8 @@ test_metabolic_correlations <- function(joint_salve_data, joint_rds,
   
   # Save if output directory provided
   if (!is.null(output.dir)) {
-    if (!dir.exists(output.dir)) {
-      dir.create(output.dir, recursive = TRUE)
-    }
+    dir.create(output.dir, recursive = TRUE, showWarnings = FALSE)
+
     write.csv(combined_results, 
               file.path(output.dir, paste0(viral_col, "_metabolic_correlations.csv")),
               row.names = FALSE)
@@ -2971,9 +3430,8 @@ for (i in 1:length(samples)) {
                                    )
     
     output.dir <- paste0(output.base, sample_name, "/")
-    if (!dir.exists(output.dir)) {
-      dir.create(output.dir, recursive = TRUE)
-    }
+    dir.create(output.dir, recursive = TRUE, showWarnings = FALSE)
+
     #save_subset_analysis(results, output_dir = output.dir)
     plot_subset_analysis(seurat_obj, results, list_of_cells1, output_dir = paste0(output.dir, "plots/"))
     
@@ -3279,6 +3737,7 @@ perform_deg_pathway_analysis <- function(seurat_obj,
 ```{r}
 input.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS016/singleCell/Seurat/RDS/"
 output.dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS018/joint/subset/new/"
+dir.create(output.dir, recursive = TRUE, showWarnings = FALSE)
 
 samples <- c("Invitro",
              "D195",
@@ -3293,10 +3752,7 @@ for (i in 1:length(samples)) {
     genes_to_exclude <- c("CD4", "CD8A", "CD8B")  # remove from DEG analysis
     genes_to_keep <- rownames(seurat_obj)[!rownames(seurat_obj) %in% genes_to_exclude]
     seurat_obj <- subset(seurat_obj, features = genes_to_keep)
-
-    if (!dir.exists(output.dir)) {
-      dir.create(output.dir, recursive = TRUE)
-    }
+    dir.create(output.dir, recursive = TRUE, showWarnings = FALSE)
     
     salve <- combined_data[[sample_name]]
     available_cols <- intersect(c("MS", "SS-MS", "SS"), colnames(salve))
@@ -3338,9 +3794,7 @@ output_dir <- "/projects/b1042/GoyalLab/egrody/extractedData/EGS024/joint/plots/
 run_name <- "GFP_invitro"
 selected_k <- 6
 
-if (!dir.exists(output_dir)) {
-  dir.create(output_dir, recursive = TRUE)
-}
+dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
 
 # =============================================================================
 # 1. Load cNMF Outputs
@@ -3824,9 +4278,8 @@ for (i in 1:length(samples)) {
   selected_k <- selected_ks[i]
   output_dir <- paste0("/projects/b1042/GoyalLab/egrody/extractedData/EGS016/joint/plots/cNMF/", 
                        run_name, "/")
-  if (!dir.exists(output_dir)) {
-    dir.create(output_dir, recursive = TRUE)
-  }
+  dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
+
   cat("Loading: ", run_name, "\n")
   
   usage_file <- file.path(load_dir, paste0(run_name, "_usage_K", selected_k, ".csv"))
@@ -3870,9 +4323,8 @@ for (i in 1:length(samples)) {
   selected_k <- selected_ks[i]
   output_dir <- paste0("/projects/b1042/GoyalLab/egrody/extractedData/EGS016/joint/plots/cNMF/", 
                        run_name, "/")
-  if (!dir.exists(output_dir)) {
-    dir.create(output_dir, recursive = TRUE)
-  }
+  dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
+
   cat("Loading: ", run_name, "\n")
   
   usage_file <- file.path(load_dir, paste0(run_name, "_usage_K", selected_k, ".csv"))
