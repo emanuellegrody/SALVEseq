@@ -27,6 +27,7 @@ OUTPUT_DIR = "/projects/b1042/GoyalLab/egrody/extractedData/EGS024/twinfer/"
 N_TOP_GENES = 2000       # number of HVGs to use
 N_SHUFFLES = 10000       # number of null distribution shuffles
 P_VAL_THRESHOLD = 0.01   # significance threshold for gene-gene correlations
+MIN_DETECTION_RATE = 0.2 # gene must be detected in >= 20% of barcoded cells
 RANDOM_SEED = 42
 
 # ── Helper functions ──────────────────────────────────────────────────────
@@ -180,6 +181,15 @@ def main():
     gene_list = adata.var_names[adata.var.highly_variable].tolist()
     adata = adata[:, gene_list].copy()
     print(f"  {len(gene_list)} highly variable genes selected")
+
+    # Filter genes by minimum detection rate among barcoded cells
+    # Removes dropout-dominated genes where deltas are binary (0 vs nonzero)
+    detection_rates = np.array((adata.X > 0).mean(axis=0)).flatten()
+    gene_mask = detection_rates >= MIN_DETECTION_RATE
+    adata = adata[:, gene_mask].copy()
+    gene_list = adata.var_names.tolist()
+    print(f"  {gene_mask.sum()} genes pass {MIN_DETECTION_RATE:.0%} detection rate filter "
+          f"({(~gene_mask).sum()} removed)")
 
     # Dense expression matrix (n_cells x n_genes)
     expression_matrix = adata.X.toarray() if hasattr(adata.X, "toarray") else np.array(adata.X)

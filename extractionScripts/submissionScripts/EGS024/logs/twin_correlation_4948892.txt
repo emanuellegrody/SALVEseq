@@ -1,0 +1,80 @@
+Loading h5ad...
+  9220 cells x 16377 genes
+  2519 barcoded cells in 275 clones (size >= 2)
+  2000 highly variable genes selected
+  349 genes pass 20% detection rate filter (1651 removed)
+
+Building twin pairs (one random pair per clone)...
+  275 independent twin pairs (one per clone)
+
+Computing twin delta correlation matrix...
+  Done in 0.0s
+
+Computing gene-gene population Spearman correlation...
+  Done in 0.2s
+
+Generating null distribution (10000 shuffles)...
+  Running 10000 shuffles for null distribution...
+    Shuffle 500/10000 (3s elapsed, ~61s remaining)
+    Shuffle 1000/10000 (6s elapsed, ~58s remaining)
+    Shuffle 1500/10000 (10s elapsed, ~55s remaining)
+    Shuffle 2000/10000 (13s elapsed, ~52s remaining)
+    Shuffle 2500/10000 (16s elapsed, ~49s remaining)
+    Shuffle 3000/10000 (20s elapsed, ~46s remaining)
+    Shuffle 3500/10000 (23s elapsed, ~42s remaining)
+    Shuffle 4000/10000 (26s elapsed, ~39s remaining)
+    Shuffle 4500/10000 (29s elapsed, ~36s remaining)
+    Shuffle 5000/10000 (33s elapsed, ~33s remaining)
+    Shuffle 5500/10000 (36s elapsed, ~30s remaining)
+    Shuffle 6000/10000 (40s elapsed, ~26s remaining)
+    Shuffle 6500/10000 (43s elapsed, ~23s remaining)
+    Shuffle 7000/10000 (46s elapsed, ~20s remaining)
+    Shuffle 7500/10000 (50s elapsed, ~17s remaining)
+    Shuffle 8000/10000 (53s elapsed, ~13s remaining)
+    Shuffle 8500/10000 (57s elapsed, ~10s remaining)
+    Shuffle 9000/10000 (60s elapsed, ~7s remaining)
+    Shuffle 9500/10000 (63s elapsed, ~3s remaining)
+    Shuffle 10000/10000 (67s elapsed, ~0s remaining)
+  Null distribution complete in 67s
+
+Computing z-scores and p-values...
+
+  118 / 60726 gene pairs significant (FDR-corrected p < 0.01)
+
+  Full results: /projects/b1042/GoyalLab/egrody/extractedData/EGS024/twinfer/twin_correlation_results.csv
+  Significant pairs: /projects/b1042/GoyalLab/egrody/extractedData/EGS024/twinfer/significant_twin_correlations.csv
+
+  Matrices saved to /projects/b1042/GoyalLab/egrody/extractedData/EGS024/twinfer/
+
+============================================================
+SUMMARY
+============================================================
+  Cells: 2519
+  Clones: 275
+  Twin pairs: 275
+  Genes: 349
+  Gene pairs tested: 60726
+  Significant (FDR < 0.01): 118
+
+  Top 20 significant pairs:
+            gene_1             gene_2  twin_delta_correlation   z_score  p_value_adjusted
+            SPINK2                VIM               -0.040035 -7.159209      4.927535e-08
+            LAPTM5 ENSMMUG00000063583                0.100263  6.840011      2.404351e-07
+               LTB ENSMMUG00000063583                0.078836  6.243244      8.675474e-06
+             TIGIT                LTB               -0.040945  6.063777      2.018557e-05
+            S100A6                LTB                0.145219  5.646832      1.984911e-04
+            S100A6               TESC                0.099945 -5.515675      3.516484e-04
+              GZMB ENSMMUG00000063583                0.064702 -5.407024      5.365189e-04
+ENSMMUG00000050862             PECAM1                0.077120  5.389432      5.365189e-04
+             NUCB2               CCL3                0.045450  5.219859      1.208174e-03
+               ZP3               CCL3                0.187965  5.163795      1.345834e-03
+             ITM2C ENSMMUG00000063583               -0.084943 -5.162413      1.345834e-03
+            S100A6 ENSMMUG00000050862                0.072731  5.138809      1.399152e-03
+ENSMMUG00000050862 ENSMMUG00000058581                0.077301  5.093147      1.645060e-03
+              TRAC              CYB5A               -0.110452 -5.007574      2.231490e-03
+              IL7R                LTB                0.087772 -5.015483      2.231490e-03
+            LAPTM5                LTB                0.102569 -4.965891      2.595517e-03
+            S100A6               CD69                0.189783  4.895718      3.498794e-03
+            SPINK2                LTB                0.085209  4.877920      3.616917e-03
+             ATXN1               CAPG                0.296274  4.866821      3.624622e-03
+             EGLN3               CAPG               -0.068808 -4.842303      3.896874e-03

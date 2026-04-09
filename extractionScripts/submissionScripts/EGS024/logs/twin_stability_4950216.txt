@@ -1,0 +1,71 @@
+Loading and preprocessing data...
+  2519 cells, 349 genes, 275 clones
+  Running 10000 shuffles for null distribution...
+    Shuffle 1000/10000 (6s elapsed, ~58s remaining)
+    Shuffle 2000/10000 (13s elapsed, ~51s remaining)
+    Shuffle 3000/10000 (19s elapsed, ~45s remaining)
+    Shuffle 4000/10000 (26s elapsed, ~38s remaining)
+    Shuffle 5000/10000 (32s elapsed, ~32s remaining)
+    Shuffle 6000/10000 (38s elapsed, ~26s remaining)
+    Shuffle 7000/10000 (45s elapsed, ~19s remaining)
+    Shuffle 8000/10000 (51s elapsed, ~13s remaining)
+    Shuffle 9000/10000 (58s elapsed, ~6s remaining)
+    Shuffle 10000/10000 (64s elapsed, ~0s remaining)
+  Null distribution complete in 64s
+
+Resampling twin pairs across 100 seeds...
+    Seed 10/100 done (sig this seed: 41, elapsed: 0s)
+    Seed 20/100 done (sig this seed: 24, elapsed: 0s)
+    Seed 30/100 done (sig this seed: 41, elapsed: 0s)
+    Seed 40/100 done (sig this seed: 43, elapsed: 1s)
+    Seed 50/100 done (sig this seed: 24, elapsed: 1s)
+    Seed 60/100 done (sig this seed: 42, elapsed: 1s)
+    Seed 70/100 done (sig this seed: 32, elapsed: 1s)
+    Seed 80/100 done (sig this seed: 39, elapsed: 1s)
+    Seed 90/100 done (sig this seed: 28, elapsed: 1s)
+    Seed 100/100 done (sig this seed: 30, elapsed: 2s)
+  Resampling complete in 2s
+
+Building stability results...
+  Full stability table: /projects/b1042/GoyalLab/egrody/extractedData/EGS024/twinfer/stability_all_pairs.csv
+  Stable pairs (>= 50% of seeds): /projects/b1042/GoyalLab/egrody/extractedData/EGS024/twinfer/stable_significant_pairs.csv
+
+============================================================
+STABILITY ANALYSIS SUMMARY
+============================================================
+  Seeds tested: 100
+  Gene pairs tested: 60726
+  Significant pairs per seed: median=33, range=[17, 61]
+
+  Significant in >= 90% of seeds: 1 pairs
+  Significant in >= 75% of seeds: 3 pairs
+  Significant in >= 50% of seeds: 12 pairs
+  Significant in >= 25% of seeds: 33 pairs
+  Significant in >= 10% of seeds: 75 pairs
+
+  Top stable pairs (named genes, >= 50% of seeds):
+gene_1 gene_2  stability  median_z_score
+SPINK2  OTUD5       0.95       -6.296921
+SPINK2  THAP6       0.85       -5.482056
+LAPTM5   CD52       0.83       -5.277575
+LAPTM5    LTB       0.72       -5.083253
+ TIGIT    LTB       0.70        4.986387
+SPINK2    VIM       0.63       -4.779645
+S100A6    LTB       0.59        4.710139
+  CD52    LTB       0.57       -4.634251
+
+  Hub genes (most partners among stable pairs):
+SPINK2                4
+LTB                   4
+ENSMMUG00000050862    2
+CD52                  2
+ENSMMUG00000063583    2
+LAPTM5                2
+S100A6                1
+TIGIT                 1
+ENSMMUG00000060293    1
+OTUD5                 1
+ENSMMUG00000058581    1
+THAP6                 1
+VIM                   1
+PECAM1                1
